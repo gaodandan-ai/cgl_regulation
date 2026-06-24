@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C. glutamicum 基因调控网络探索器</title>
+    <meta name="description" content="谷氨酸棒状杆菌 DSM 20300 = ATCC 13032 基因调控与 sRNA 调控网络交互式可视化分析平台。">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css?v=1.1">
+</head>
+<body class="light-theme">
+    <div id="app-container">
+        <!-- 顶部导航栏 -->
+        <header id="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-network-wired"></i>
+                <h1>C. glutamicum 调控网络浏览器</h1>
+            </div>
+            <div class="header-status" id="data-status">
+                <span class="status-dot pulsing"></span>
+                <span class="status-text">正在加载本地数据...</span>
+            </div>
+        </header>
+
+        <!-- 主体布局 -->
+        <div id="main-layout">
+            <!-- 左侧控制面板 -->
+            <aside id="left-sidebar" class="sidebar">
+                <div class="sidebar-section search-section">
+                    <div class="search-tabs">
+                        <button class="search-tab active" id="tab-single-btn">逐个添加</button>
+                        <button class="search-tab" id="tab-batch-btn">批量粘贴</button>
+                    </div>
+                    <div id="search-tab-single-content" class="search-tab-content">
+                        <div id="gene-inputs-container">
+                            <div class="gene-input-row">
+                                <div class="gene-input-wrapper">
+                                    <input type="text" class="gene-input" placeholder="输入基因/sRNA名称 (如 cg0350)" autocomplete="off">
+                                </div>
+                                <button class="add-row-btn" title="添加基因栏"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="search-tab-batch-content" class="search-tab-content hidden">
+                        <textarea id="gene-batch-textarea" placeholder="在此粘贴多个基因/sRNA，支持空格、逗号、分号或换行分隔 (例如：cg0350 whiB4 cg0409)"></textarea>
+                        <div class="batch-hint">已自动匹配到 <span id="batch-parsed-count">0</span> 个有效基因</div>
+                    </div>
+                    
+                    <!-- 搜索按钮区域 -->
+                    <div class="search-actions-row">
+                        <button id="search-btn" class="primary-btn" style="width: 100%; height: 38px; font-size: 13px;" title="分析输入的所有基因"><i class="fa-solid fa-network-wired"></i> 立即分析</button>
+                    </div>
+                    <!-- 搜索建议框 -->
+                    <div id="suggestions-box" class="suggestions-list hidden"></div>
+                </div>
+
+                <!-- 网络筛选与布局 -->
+                <div class="sidebar-section filter-layout-section">
+                    <h2><i class="fa-solid fa-sliders"></i> 网络筛选与布局</h2>
+                    
+                    <!-- 调控类型过滤 -->
+                    <div class="checkbox-group" style="margin-bottom: 16px;">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="filter-activation" checked>
+                            <span class="checkmark chk-activation"></span>
+                            <span class="label-text">激活调控 (+)</span>
+                        </label>
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="filter-repression" checked>
+                            <span class="checkmark chk-repression"></span>
+                            <span class="label-text">抑制调控 (-)</span>
+                        </label>
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="filter-dual" checked>
+                            <span class="checkmark chk-dual"></span>
+                            <span class="label-text">双重调控/Sigma因子</span>
+                        </label>
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="filter-srna" checked>
+                            <span class="checkmark chk-srna"></span>
+                            <span class="label-text">sRNA预测调控</span>
+                        </label>
+                        <label class="custom-checkbox" style="border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 4px;">
+                            <input type="checkbox" id="filter-coregulated">
+                            <span class="checkmark chk-coregulated"></span>
+                            <span class="label-text" style="font-weight: 600; color: var(--color-primary-accent);">只显示共同调控基因</span>
+                        </label>
+                        <label class="custom-checkbox" style="border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 4px;">
+                            <input type="checkbox" id="filter-only-tf-targets">
+                            <span class="checkmark chk-only-tf-targets"></span>
+                            <span class="label-text" style="font-weight: 600; color: #1976d2;">只显示转录因子(TF)靶标</span>
+                        </label>
+                    </div>
+
+                    <!-- sRNA 预测过滤 (动态显示/隐藏) -->
+                    <div id="srna-threshold-panel" class="range-control hidden" style="margin-bottom: 16px; border-top: 1px dashed var(--border-color); padding-top: 12px;">
+                        <div class="range-labels">
+                            <span style="font-size: 11px;">CopraRNA Rank 限制</span>
+                            <span id="rank-val" style="font-size: 11px; font-weight: 600;">10</span>
+                        </div>
+                        <input type="range" id="srna-rank-threshold" min="1" max="15" value="10" step="1">
+                    </div>
+
+                    <!-- 绘图布局选择 -->
+                    <div class="layout-control" style="border-top: 1px dashed var(--border-color); padding-top: 12px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px;">绘图布局算法</label>
+                        <select id="layout-select" class="custom-select" style="padding: 8px 12px; font-size: 12px;">
+                            <option value="cose">CoSE (力导向-推荐)</option>
+                            <option value="concentric">Concentric (同心圆)</option>
+                            <option value="circle">Circle (圆形)</option>
+                            <option value="grid">Grid (网格)</option>
+                            <option value="breadthfirst">Breadthfirst (层级/广度优先)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- AI 智能发现助手 (选项卡) -->
+                <div class="sidebar-section ai-discovery-section">
+                    <h2><i class="fa-solid fa-brain"></i> AI 智能发现助手</h2>
+                    <div class="search-tabs" style="margin-bottom: 12px;">
+                        <button class="search-tab active" id="tab-ai-gene-btn" style="font-size: 11px; padding: 6px 0;">按功能特征</button>
+                        <button class="search-tab" id="tab-ai-pathway-btn" style="font-size: 11px; padding: 6px 0;">按代谢通路</button>
+                    </div>
+
+                    <!-- 选项卡1：按功能特征 -->
+                    <div id="ai-gene-tab-content" class="ai-tab-content">
+                        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
+                             输入功能或特性描述（如：抗逆、热激），AI 将智能分析其调控网络。
+                        </p>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <input type="text" id="ai-gene-input" placeholder="例如：抗逆 / 调节因子 / 热激蛋白" style="flex: 1; font-size: 12px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                            <button id="btn-analyze-gene" class="primary-btn" style="height: 32px; width: 56px; font-size: 12px; padding: 0; flex-shrink: 0;" title="分析特征"><i class="fa-solid fa-search"></i> 分析</button>
+                        </div>
+                        <div id="ai-gene-result" class="ai-gene-card hidden"></div>
+                    </div>
+
+                    <!-- 选项卡2：按代谢通路 -->
+                    <div id="ai-pathway-tab-content" class="ai-tab-content hidden">
+                        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
+                            输入代谢通路名称，AI 会自动提取基因并一键生成调控子网。
+                        </p>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <input type="text" id="ai-pathway-input" placeholder="例如：赖氨酸合成 / biotin / 糖酵解" style="flex: 1; font-size: 12px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                            <button id="btn-analyze-pathway" class="primary-btn" style="height: 32px; width: 56px; font-size: 12px; padding: 0; flex-shrink: 0;" title="分析该通路"><i class="fa-solid fa-search"></i> 分析</button>
+                        </div>
+                        <div id="ai-pathway-result" class="ai-pathway-card hidden"></div>
+                    </div>
+                </div>
+
+                <!-- 底栏操作区域 -->
+                <div class="sidebar-section action-section">
+                    <button id="reset-view-btn" class="secondary-btn"><i class="fa-solid fa-compress"></i> 适应画布</button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <button id="export-png-btn" class="secondary-btn" style="padding: 10px 4px; font-size: 12px;"><i class="fa-solid fa-file-image"></i> 导出图片</button>
+                        <button id="export-csv-btn" class="secondary-btn" style="padding: 10px 4px; font-size: 12px;"><i class="fa-solid fa-file-csv"></i> 导出 CSV</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 中间可视化画布 -->
+            <main id="canvas-container">
+                <div id="cy"></div>
+                <div id="canvas-overlay" class="empty-state">
+                    <div class="overlay-content">
+                        <i class="fa-solid fa-dharmachakra pulse-slow"></i>
+                        <h3>请输入基因开始分析</h3>
+                        <p>在左侧搜索栏中输入基因 Locus Tag (如 cg0350) 或常用名称 (如 whiB4, sigH, cspA)，即可动态生成一阶调控网络图。</p>
+                        <div class="quick-examples">
+                            <span>快速尝试:</span>
+                            <button class="example-tag">cg0350</button>
+                            <button class="example-tag">sigH</button>
+                            <button class="example-tag">whiB4</button>
+                            <button class="example-tag">cg0444</button>
+                            <button class="example-tag">cgb_01363</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 历史导航浮窗 -->
+                <div id="canvas-history-container" class="canvas-floating-box hidden">
+                    <button id="btn-history-back" class="history-btn" disabled title="返回上一步">
+                        <i class="fa-solid fa-chevron-left"></i> 返回上一步
+                    </button>
+                    <button id="btn-history-forward" class="history-btn" disabled title="前进">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <!-- 画布内检索与定位浮窗 -->
+                <div id="canvas-search-container" class="canvas-floating-box">
+                    <div class="canvas-search-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="canvas-search-input" placeholder="在当前画布中搜索定位基因..." autocomplete="off">
+                        <button id="canvas-search-clear-btn" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div id="canvas-search-results" class="canvas-search-results hidden"></div>
+                </div>
+
+                <!-- 当前网络统计分析面板 -->
+                <div id="canvas-stats-container" class="canvas-floating-box">
+                    <div class="canvas-stats-header">
+                        <span><i class="fa-solid fa-chart-simple"></i> 当前网络特征</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="canvas-stats-content">
+                        <div class="stat-grid">
+                            <div class="stat-item"><span class="stat-val" id="stats-nodes">0</span><span class="stat-lbl">节点数</span></div>
+                            <div class="stat-item"><span class="stat-val" id="stats-edges">0</span><span class="stat-lbl">关系数</span></div>
+                            <div class="stat-item"><span class="stat-val" id="stats-tfs">0</span><span class="stat-lbl">TF</span></div>
+                            <div class="stat-item"><span class="stat-val" id="stats-srnas">0</span><span class="stat-lbl">sRNA</span></div>
+                        </div>
+                        <div class="stat-details">
+                            <div class="stat-detail-row">
+                                <span>激活/抑制比:</span>
+                                <span id="stats-act-rep-ratio" style="font-family: monospace; font-weight: 500;">0/0</span>
+                            </div>
+                            <div class="stat-detail-row" style="margin-top: 4px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                                <span>网络核心 Hubs:</span>
+                                <span id="stats-hubs" style="font-size: 11px; color: var(--text-secondary); word-break: break-all; text-align: left; line-height: 1.3;">无</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 提示/控制浮窗 -->
+                <div id="canvas-controls">
+                    <button id="zoom-in" title="放大"><i class="fa-solid fa-plus"></i></button>
+                    <button id="zoom-out" title="缩小"><i class="fa-solid fa-minus"></i></button>
+                    <button id="fit-canvas" title="适应屏幕"><i class="fa-solid fa-expand"></i></button>
+                </div>
+            </main>
+
+            <!-- 右侧详情侧边栏 -->
+            <aside id="right-sidebar" class="sidebar collapsed">
+                <div id="sidebar-resizer" class="sidebar-resizer"></div>
+                <button id="close-detail-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+                <div class="detail-header">
+                    <span class="gene-badge" id="detail-type-badge">Gene</span>
+                    <h2 id="detail-gene-name">-</h2>
+                    <p class="locus-tag" id="detail-locus-tag">-</p>
+                    <button id="view-network-btn" class="view-network-btn" style="display: none;">
+                        <i class="fa-solid fa-network-wired"></i> 查看其调控网络
+                    </button>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-section">
+                        <h3><i class="fa-solid fa-circle-info"></i> 基本信息</h3>
+                        <table class="info-table">
+                            <tr>
+                                <th>标识符/Locus Tag</th>
+                                <td id="info-locus">-</td>
+                            </tr>
+                            <tr>
+                                <th>显示名称</th>
+                                <td id="info-name">-</td>
+                            </tr>
+                            <tr>
+                                <th>分子类型</th>
+                                <td id="info-type">-</td>
+                            </tr>
+                             <tr id="info-cgl-row" style="display: none;">
+                                <th>Cgl Locus Tag</th>
+                                <td id="info-cgl">-</td>
+                            </tr>
+                            <tr id="info-operon-row" style="display: none;">
+                                <th>所属操纵子</th>
+                                <td id="info-operon" style="white-space: normal; font-size: 12px; line-height: 1.4; color: var(--text-secondary);">-</td>
+                            </tr>
+                            <tr id="info-product-row" style="display: none;">
+                                <th>功能描述</th>
+                                <td id="info-product" style="font-family: var(--font-primary); font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: normal; word-break: break-all; text-align: justify;">-</td>
+                            </tr>
+                            <tr id="info-pathway-row" style="display: none;">
+                                <th>所属通路 (KEGG/GO)</th>
+                                <td id="info-pathway" style="font-family: var(--font-primary); font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: normal; word-break: break-all;">
+                                    <div class="pathway-container" id="info-pathway-container"></div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- 扰动效应预测模拟面板 -->
+                    <div class="detail-section perturbation-section" style="display: none;" id="detail-perturbation-panel">
+                        <h3><i class="fa-solid fa-flask"></i> 靶基因表达效应预测 (扰动模拟)</h3>
+                        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
+                            模拟对当前基因进行遗传扰动，预测下游靶标的转录水平响应：
+                        </p>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="btn-sim-oe" class="secondary-btn" style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(46, 125, 50, 0.2); background-color: rgba(46, 125, 50, 0.03); color: var(--color-activation); font-weight: 600;">
+                                <i class="fa-solid fa-circle-arrow-up"></i> 过表达 (OE)
+                            </button>
+                            <button id="btn-sim-ko" class="secondary-btn" style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(211, 47, 47, 0.2); background-color: rgba(211, 47, 47, 0.03); color: var(--color-repression); font-weight: 600;">
+                                <i class="fa-solid fa-circle-arrow-down"></i> 基因敲除 (KO)
+                            </button>
+                            <button id="btn-sim-reset" class="secondary-btn hidden" style="flex: 0 0 40px; font-size: 11px; padding: 6px 0; border: 1px solid var(--border-color); color: var(--text-secondary);">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                        </div>
+                        <div id="sim-export-row" class="hidden" style="margin-top: 8px; display: flex;">
+                            <button id="btn-sim-export" class="secondary-btn" style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(25, 118, 210, 0.2); background-color: rgba(25, 118, 210, 0.03); color: #1976d2; font-weight: 600;">
+                                <i class="fa-solid fa-file-csv"></i> <span id="btn-sim-export-text">导出预测效应表格</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 外部数据库 & 文献追踪 -->
+                    <div class="detail-section">
+                        <h3><i class="fa-solid fa-share-nodes"></i> 外部数据库 & 文献追踪</h3>
+                        <div id="info-links" class="db-links-grid">
+                            <!-- 动态生成链接按钮 -->
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3><i class="fa-solid fa-circle-nodes"></i> 调控关系汇总</h3>
+                        <div class="summary-cards">
+                            <div class="summary-card" id="btn-regulators-summary" title="点击分析并绘制所有上游调控因子联合网络">
+                                <span class="card-num" id="regulators-count">0</span>
+                                <span class="card-label">上游调控因子</span>
+                            </div>
+                            <div class="summary-card" id="btn-targets-summary" title="点击分析并绘制所有下游靶标联合网络">
+                                <span class="card-num" id="targets-count">0</span>
+                                <span class="card-label">下游靶标</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section ai-summary-section">
+                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI 文献与功能智能总结</h3>
+                        
+                        <!-- 1. API 密钥配置面板 -->
+                        <div id="ai-key-config-panel" class="ai-key-config" style="margin-bottom: 12px; background-color: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
+                                总结文献需要配置您的 <strong>Gemini API Key</strong>（密钥安全保存在您本地浏览器中）：
+                            </p>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="password" id="gemini-api-key-input" placeholder="输入 Gemini API Key..." style="flex: 1; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                                <button id="btn-save-key" class="primary-btn" style="height: 28px; width: 64px; font-size: 11px; padding: 0; flex-shrink: 0;" title="保存密钥至本地">保存</button>
+                            </div>
+                            <p style="font-size: 10px; margin-top: 6px; margin-bottom: 0;">
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> 获取免费的 Gemini API Key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                            </p>
+                        </div>
+                        
+                        <!-- 2. 已配置密钥状态 -->
+                        <div id="ai-key-active-panel" class="ai-key-active hidden" style="font-size: 11px; background-color: rgba(99, 102, 241, 0.05); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2); margin-bottom: 12px;">
+                            <span style="color: #6366f1; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Gemini 密钥已就绪</span>
+                            <button id="btn-clear-key" style="background: transparent; color: #ef4444; font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 6px; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; background-color: #fff5f5;">清除</button>
+                        </div>
+
+                        <!-- 3. AI 运行控制按钮 -->
+                        <button id="btn-trigger-ai" class="view-network-btn" style="margin-top: 0; margin-bottom: 12px; background-color: #6366f1; font-weight: 600; border: none;" disabled>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI 一键总结文献与功能
+                        </button>
+
+                        <!-- 4. 总结内容输出框 -->
+                        <div id="ai-summary-result" class="ai-summary-card hidden">
+                            <!-- 动态渲染 markdown 文本 -->
+                        </div>
+                    </div>
+
+                    <div class="detail-section table-section">
+                        <h3><i class="fa-solid fa-list"></i> 调控详情列表</h3>
+                        <div class="table-scroll-container">
+                            <table id="detail-relations-table" class="relations-table">
+                                <thead>
+                                    <tr>
+                                        <th>关联基因</th>
+                                        <th>方向</th>
+                                        <th>调控作用</th>
+                                        <th>来源/分值</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 动态渲染 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Cytoscape.js Core & PapaParse (for CSV Loading) via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Custom Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

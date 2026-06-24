@@ -1,0 +1,7 @@
+# Core dependencies for visualize_network.py
+pandas
+networkx
+matplotlib
+
+# Interactive HTML network visualization (optional, highly recommended)
+pyvis
