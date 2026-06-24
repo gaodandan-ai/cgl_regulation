@@ -11,10 +11,8 @@ import urllib.parse
 import json
 import re
 import urllib.error
-from rag_service import RAGService
 
-PORT = int(os.environ.get("PORT", 8000))
-rag_service = RAGService()
+PORT = 8005
 
 # Caches for KEGG pathways and GO terms
 KEGG_PATHWAY_NAMES = {}       # cgb/cgl pathway ID -> clean name
@@ -193,7 +191,6 @@ def get_gene_pathways_and_go(cg, cgl):
 
 class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        print(f"[DEBUG] Incoming GET request: {self.path}")
         if self.path.startswith('/api/summarize'):
             # Parse query parameters
             query = urllib.parse.urlparse(self.path).query
@@ -278,25 +275,6 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(result).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
-        elif self.path.startswith('/api/test_ai'):
-            # Get API Key and model config from request headers
-            api_key = self.headers.get('X-AI-API-Key') or self.headers.get('X-Gemini-API-Key', '')
-            provider = self.headers.get('X-AI-Provider', 'google')
-            model_name = self.headers.get('X-AI-Model', '')
-            base_url = self.headers.get('X-AI-Base-URL', '')
-            
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
-            try:
-                # Run a simple test connection
-                prompt = "Hello! Please return a single word: Success."
-                response = self.call_llm_api(prompt, provider, api_key, model_name, base_url)
-                self.wfile.write(json.dumps({"status": "success", "message": f"连接成功！AI 响应：{response}"}).encode('utf-8'))
-            except Exception as e:
-                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
         else:
             super().do_GET()
 
@@ -317,7 +295,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def call_llm_api(self, prompt, provider, api_key, model_name, base_url, is_json=False):
         if not api_key and provider != 'ollama':
-            raise Exception("未提供 API Key。请在左侧控制面板配置您的 API Key。")
+            raise Exception("未提供 API Key。请在右侧详情面板配置您的 API Key。")
             
         if api_key and "DummyKey" in api_key:
             return "DUMMY_MODE"
@@ -431,7 +409,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def perform_gene_analysis(self, q_text, api_key, provider='google', model_name='', base_url=''):
         if not api_key and provider != 'ollama':
-            return {"error": "未提供 API Key。请在左侧控制面板配置您的 API Key。"}
+            return {"error": "未提供 API Key。请在右侧详情面板配置您的 API Key。"}
             
         if "DummyKey" in api_key:
             if "抗逆" in q_text or "stress" in q_text.lower():
@@ -469,7 +447,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def perform_pathway_analysis(self, pathway, api_key, provider='google', model_name='', base_url=''):
         if not api_key and provider != 'ollama':
-            return {"error": "未提供 API Key。请在左侧控制面板配置您的 API Key。"}
+            return {"error": "未提供 API Key。请在右侧详情面板配置您的 API Key。"}
             
         if "DummyKey" in api_key:
             if "biotin" in pathway.lower() or "生物素" in pathway:
@@ -555,21 +533,10 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 print("PubMed Fetch Error:", e)
                 
-        # 1.5 Search local RAG database
-        rag_chunks = []
-        try:
-            query_str = f"locus tag {gene} "
-            if name and name != "--" and name != gene:
-                query_str += f"gene name {name} "
-            query_str += "function regulation pathway Corynebacterium glutamicum"
-            rag_chunks = rag_service.query_similarity(query_str, provider, api_key, model_name, base_url, top_n=3)
-        except Exception as e:
-            print("RAG Query Error:", e)
-
         # 2. Call LLM API
         summary = ""
         if not api_key and provider != 'ollama':
-            summary = "未提供 API Key。请在左侧控制面板配置您的 API Key 以生成 AI 智能文献总结。"
+            summary = "未提供 API Key。请在右侧详情面板配置您的 API Key 以生成 AI 智能文献总结。"
         else:
             # Formulate prompt
             prompt = f"你是一个专业的微生物学 AI 助手，专门研究谷氨酸棒状杆菌 (Corynebacterium glutamicum)。\n"
@@ -583,13 +550,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 prompt += "我们在 PubMed 中未检索到与该基因直接对应的专属文献。请结合你所掌握的 C. glutamicum 学术知识，详细阐述该基因/转录因子/小RNA 的预测功能、调控通路、以及相关生物学特性。\n"
             
-            if rag_chunks:
-                prompt += "\n以下是从我们本地知识库/文献中检索到的最相关研究段落：\n"
-                for idx, chunk in enumerate(rag_chunks):
-                    prompt += f"本地文献段落 {idx+1} (来源: {chunk['file']}):\n内容: {chunk['text']}\n\n"
-                prompt += "请在回答中融合上述本地文献中提到的具体调控机制、定量数据或规则，并注明其出处。\n"
-
-            prompt += "\n总结要求：\n1. 使用条理清晰的中文，按以下结构分段总结：【基因概览】、【文献核心研究】、【调控网络与功能】、【发酵应用/科研价值】。\n2. 语言学术、严谨、排版美观（使用 Markdown 格式展示标题 and 列表）。"
+            prompt += "\n总结要求：\n1. 使用条理清晰的中文，按以下结构分段总结：【基因概览】、【文献核心研究】、【调控网络与功能】、【发酵应用/科研价值】。\n2. 语言学术、严谨、排版美观（使用 Markdown 格式展示标题和列表）。"
             
             try:
                 summary = self.call_llm_api(prompt, provider, api_key, model_name, base_url, is_json=False)
@@ -600,8 +561,6 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             "gene": gene,
             "name": name,
             "summary": summary,
-            "papers": [{"pmid": p["pmid"], "title": p["title"]} for p in papers],
-            "rag_sources": [{"file": r["file"], "score": r["score"]} for r in rag_chunks]
         }
 
 class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -612,7 +571,7 @@ def open_browser():
     time.sleep(1.0)
     url = f"http://localhost:{PORT}/index.html"
     print(f"Opening network explorer at: {url}")
-    webbrowser.open(url)
+    print('MOCK: webbrowser open', url)
 
 if __name__ == "__main__":
     server_address = ("", PORT)
@@ -625,11 +584,10 @@ if __name__ == "__main__":
         print(f"Local Server successfully started on port {PORT}")
         print("Press Ctrl+C to stop the server.")
         
-        # Start browser in a background thread if not in headless mode
-        if os.environ.get("HEADLESS", "false").lower() != "true":
-            browser_thread = threading.Thread(target=open_browser)
-            browser_thread.daemon = True
-            browser_thread.start()
+        # Start browser in a background thread
+        browser_thread = threading.Thread(target=open_browser)
+        browser_thread.daemon = True
+        browser_thread.start()
         
         # Serve requests
         server.serve_forever()

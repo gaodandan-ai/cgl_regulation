@@ -1,0 +1,13 @@
+{
+  "files": {
+    "mock_paper1.txt": {
+      "mtime": 1782300746.0,
+      "chunks": [
+        {
+          "text": "Study on sigH and cg0350 regulation in Corynebacterium glutamicum. We found that under stress conditions, the transcription factor sigH activates the expression of cg0350 (also known as whiB4). In our experiment, the overexpression of sigH leads to a significant increase in cg0350 transcription (upregulated by 2.5 fold). Conversely, the knockout of sigH represses cg0350 transcription. This regulation pathway is critical for thermal stress tolerance and survival in Corynebacterium glutamicum.",
+          "vector": null
+        }
+      ]
+    }
+  }
+}

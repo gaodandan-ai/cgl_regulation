@@ -6,6 +6,25 @@ echo                  Windows Startup Launcher
 echo ==========================================================
 echo.
 
+:: Ensure we are in the directory containing this batch script
+cd /d "%~dp0"
+
+:: Verify that the package has been extracted and required files exist
+if not exist "run_server.py" (
+    echo [ERROR] Required files are missing from the current directory.
+    echo.
+    echo ==========================================================
+    echo WARNING: You might have run 'run.bat' directly from inside
+    echo a ZIP archive without extracting it first.
+    echo.
+    echo Please EXTRACT the entire ZIP folder to a normal directory
+    echo and then double-click 'run.bat' from the extracted folder.
+    echo ==========================================================
+    echo.
+    pause
+    exit /b 1
+)
+
 :: 1. Check Python installation and find the correct command
 echo Checking for Python 3...
 
