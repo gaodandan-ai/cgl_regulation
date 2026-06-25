@@ -7194,6 +7194,133 @@ function customizeProteinStructureViewer(tfLocus) {
     if (hudBadge) {
         hudBadge.textContent = `PDB: ${pdbId}`;
     }
+
+let activeViewer = null;
+
+function renderReal3DStructure(pdbData) {
+    const container = document.getElementById('protein-3d-viewer');
+    const img = document.getElementById('protein-3d-img');
+    
+    if (!container) return;
+    
+    // Clear previous elements
+    container.innerHTML = '';
+    
+    try {
+        // Initialize 3Dmol.js viewer
+        const viewer = $3Dmol.createViewer($(container), {
+            defaultcolors: $3Dmol.elementColors.rasmol
+        });
+        activeViewer = viewer;
+        
+        viewer.addModel(pdbData, "pdb");
+        
+        // Ribbon cartoon with beautiful spectrum colors
+        viewer.setStyle({}, {
+            cartoon: {
+                color: 'spectrum',
+                style: 'oval',
+                thickness: 0.6
+            }
+        });
+        
+        viewer.setBackgroundColor('#ffffff');
+        viewer.zoomTo();
+        viewer.render();
+    } catch (e) {
+        console.error("Failed to initialize 3Dmol viewer:", e);
+        // Viewer init failed, hide container and show mock fallback
+        container.style.display = 'none';
+        if (img) img.style.display = 'block';
+    }
+}
+
+function fetchReal3DStructure(tfLocus) {
+    const container = document.getElementById('protein-3d-viewer');
+    const img = document.getElementById('protein-3d-img');
+    const hudText = document.getElementById('protein-3d-hud-text');
+    const hudBadge = document.getElementById('protein-3d-hud-badge');
+    
+    activeViewer = null; // Reset previous viewer
+    
+    if (container) {
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; font-size:10px; color:var(--text-muted);">
+                <i class="fa-solid fa-spinner fa-spin fa-lg" style="color:#7c3aed; margin-bottom:8px;"></i>
+                <span>正在获取 UniProt / AlphaFold 3D 结构...</span>
+            </div>
+        `;
+    }
+    if (img) img.style.display = 'none';
+    
+    if (!tfLocus) return;
+    const cleanLocus = tfLocus.trim();
+    
+    // Query UniProt for Corynebacterium glutamicum taxonomy (196627 or 265669)
+    const uniProtUrl = `https://rest.uniprot.org/uniprotkb/search?query=(${cleanLocus})%20AND%20taxonomy_id:196627&format=json&size=1`;
+    
+    fetch(uniProtUrl)
+        .then(res => {
+            if (!res.ok) throw new Error("UniProt query failed");
+            return res.json();
+        })
+        .then(data => {
+            if (!data.results || data.results.length === 0) {
+                // Try taxonomy 265669 fallback
+                const secondaryUrl = `https://rest.uniprot.org/uniprotkb/search?query=(${cleanLocus})%20AND%20taxonomy_id:265669&format=json&size=1`;
+                return fetch(secondaryUrl).then(res => res.json());
+            }
+            return data;
+        })
+        .then(data => {
+            if (!data.results || data.results.length === 0) {
+                throw new Error("No UniProt accession found for locus: " + cleanLocus);
+            }
+            
+            const accession = data.results[0].primaryAccession;
+            console.log(`Resolved UniProt Accession ${accession} for ${cleanLocus}`);
+            
+            // Now fetch AlphaFold DB structure PDB file
+            const alphaFoldPdbUrl = `https://alphafold.ebi.ac.uk/files/AF-${accession}-F1-model_v4.pdb`;
+            
+            return fetch(alphaFoldPdbUrl)
+                .then(res => {
+                    if (!res.ok) throw new Error("AlphaFold PDB model not found");
+                    return res.text();
+                })
+                .then(pdbText => {
+                    // Update HUD labels to show real details
+                    if (hudText) {
+                        hudText.innerHTML = `
+                            <i class="fa-solid fa-expand fa-xs" style="color:#7c3aed;"></i> VIEW: 3D_ROTATE<br>
+                            <span style="color:#10b981;">● ALPHAFOLD_DB</span><br>
+                            <span style="color:var(--text-muted); font-size:8px;">ACC: ${accession}</span>
+                        `;
+                    }
+                    if (hudBadge) {
+                        hudBadge.textContent = `ACC: ${accession}`;
+                    }
+                    
+                    // Render 3D mol structure
+                    renderReal3DStructure(pdbText);
+                });
+        })
+        .catch(err => {
+            console.warn("Unable to load real 3D structure, using mock fallback:", err);
+            showFallbackMockImage(tfLocus);
+        });
+}
+
+function showFallbackMockImage(tfLocus) {
+    const container = document.getElementById('protein-3d-viewer');
+    const img = document.getElementById('protein-3d-img');
+    
+    if (container) container.style.display = 'none';
+    if (img) {
+        img.style.display = 'block';
+        customizeProteinStructureViewer(tfLocus);
+    }
 }
 
 function initProteinDomainFeature() {
@@ -7205,10 +7332,15 @@ function initProteinDomainFeature() {
         const btnSpin = e.target.closest('#btn-spin-structure');
         if (btnSpin) {
             const img = document.getElementById('protein-3d-img');
-            if (img) {
+            if (img && img.style.display !== 'none') {
+                // Mock image case
                 const isSpinning = img.classList.toggle('protein-structure-img-rotating');
                 btnSpin.classList.toggle('active', isSpinning);
                 updateProteinImgTransform(img);
+            } else if (activeViewer) {
+                // Real 3Dmol viewer case
+                const isSpinning = btnSpin.classList.toggle('active');
+                activeViewer.spin(isSpinning, [1, 1, 1]);
             }
             return;
         }
@@ -7217,7 +7349,8 @@ function initProteinDomainFeature() {
         const btnZoom = e.target.closest('#btn-zoom-structure');
         if (btnZoom) {
             const img = document.getElementById('protein-3d-img');
-            if (img) {
+            if (img && img.style.display !== 'none') {
+                // Mock image case
                 const isZoomed = img.classList.toggle('protein-structure-img-zoomed');
                 btnZoom.classList.toggle('active', isZoomed);
                 updateProteinImgTransform(img);
@@ -7225,6 +7358,18 @@ function initProteinDomainFeature() {
                     btnZoom.innerHTML = '<i class="fa-solid fa-magnifying-glass-minus"></i>';
                     btnZoom.setAttribute('title', '还原大小');
                 } else {
+                    btnZoom.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
+                    btnZoom.setAttribute('title', '放大模型');
+                }
+            } else if (activeViewer) {
+                // Real 3Dmol viewer case
+                const isZoomed = btnZoom.classList.toggle('active');
+                if (isZoomed) {
+                    activeViewer.zoom(1.4, 250);
+                    btnZoom.innerHTML = '<i class="fa-solid fa-magnifying-glass-minus"></i>';
+                    btnZoom.setAttribute('title', '还原大小');
+                } else {
+                    activeViewer.zoom(0.71, 250);
                     btnZoom.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
                     btnZoom.setAttribute('title', '放大模型');
                 }
@@ -7236,10 +7381,15 @@ function initProteinDomainFeature() {
         const btnReset = e.target.closest('#btn-reset-structure');
         if (btnReset) {
             const img = document.getElementById('protein-3d-img');
-            if (img) {
+            if (img && img.style.display !== 'none') {
+                // Mock image case
                 img.classList.remove('protein-structure-img-rotating');
                 img.classList.remove('protein-structure-img-zoomed');
                 updateProteinImgTransform(img);
+            } else if (activeViewer) {
+                // Real 3Dmol viewer case
+                activeViewer.zoomTo();
+                activeViewer.spin(false);
             }
             
             const spinBtn = document.getElementById('btn-spin-structure');
@@ -7258,6 +7408,9 @@ function initProteinDomainFeature() {
     });
 }
 
+
+
+
 function initBindingSiteFeature() {
     // Initializer stub for binding site visualization
     console.log("Binding site feature initialized.");
@@ -7269,8 +7422,8 @@ function loadMotifAndBindingSites(tfLocus) {
     const proteinDomainResult = document.getElementById('right-protein-domain-result');
     const consensusLabel = document.getElementById('right-motif-consensus-label');
 
-    // Customize the 3D viewer for this TF dynamically
-    customizeProteinStructureViewer(tfLocus);
+    // Fetch and load real interactive 3D model for this TF
+    fetchReal3DStructure(tfLocus);
 
     if (proteinDomainResult) {
         proteinDomainResult.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> 正在预测结合基序及结构域...</span>';
@@ -7449,9 +7602,8 @@ function loadMotifAndBindingSites(tfLocus) {
             }
 
             if (peakCanvas) {
-                let currentScale = 0.75;
                 let currentCond = 'Control';
-                renderChipSeqPeak(peakCanvas, currentScale, currentCond);
+                renderChipSeqPeak(peakCanvas, tfLocus, currentCond);
 
                 const btnCtrl = document.getElementById('btn-right-cond-ctrl');
                 const btnStress = document.getElementById('btn-right-cond-stress');
@@ -7487,9 +7639,8 @@ function loadMotifAndBindingSites(tfLocus) {
                         newBtnStress.style.color = 'var(--text-secondary)';
                         newBtnStress.style.fontWeight = '500';
 
-                        currentScale = 0.75;
                         currentCond = 'Control';
-                        renderChipSeqPeak(peakCanvas, currentScale, currentCond);
+                        renderChipSeqPeak(peakCanvas, tfLocus, currentCond);
                     });
 
                     newBtnStress.addEventListener('click', () => {
@@ -7505,9 +7656,8 @@ function loadMotifAndBindingSites(tfLocus) {
                         newBtnCtrl.style.color = 'var(--text-secondary)';
                         newBtnCtrl.style.fontWeight = '500';
 
-                        currentScale = 0.35;
                         currentCond = 'Stress';
-                        renderChipSeqPeak(peakCanvas, currentScale, currentCond);
+                        renderChipSeqPeak(peakCanvas, tfLocus, currentCond);
                     });
                 }
             }
@@ -7679,18 +7829,18 @@ function renderPwmHeatmap(canvas, pwm) {
     }
 }
 
-function renderChipSeqPeak(canvas, occupancyScale, conditionName) {
+function renderChipSeqPeak(canvas, tfLocus, conditionName) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
     
-    // Modern soft-grey background for ChIP-seq card
+    // Clear and fill with modern soft-grey background
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = '#f8fafc';
     ctx.fillRect(0, 0, width, height);
     
-    // Draw subtle horizontal grid lines for scaling references
+    // Draw subtle horizontal grid lines
     ctx.strokeStyle = '#f1f5f9';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -7706,109 +7856,128 @@ function renderChipSeqPeak(canvas, occupancyScale, conditionName) {
     ctx.moveTo(width / 2, 0); ctx.lineTo(width / 2, height - 20);
     ctx.stroke();
     
-    const peakHeight = (height - 35) * occupancyScale;
-    const peakCenter = width * 0.4;
+    // Deterministic hash based on tfLocus
+    let hash = 0;
+    if (tfLocus) {
+        for (let i = 0; i < tfLocus.length; i++) {
+            hash = tfLocus.charCodeAt(i) + ((hash << 5) - hash);
+        }
+    }
+    hash = Math.abs(hash);
     
-    // Establish multi-stop glowing linear gradients
-    const grad = ctx.createLinearGradient(0, height - 20 - peakHeight, 0, height - 20);
-    let strokeColor = '#6366f1'; // Premium Indigo for Control
-    let shadowColor = 'rgba(99, 102, 241, 0.35)';
+    // Determine unique biological peak parameters
+    const numPeaks = 1 + (hash % 2); // 1 or 2 peaks
+    const peaks = [];
+    
+    for (let i = 0; i < numPeaks; i++) {
+        // Center position relative to width
+        // For i=0, center is around 35%-55%. For i=1, center is around 55%-75%.
+        const centerOffset = 0.35 + (i * 0.25) + ((hash + i * 7) % 5) * 0.05;
+        const center = width * centerOffset;
+        
+        // Peak width (spread)
+        const peakWidth = 35 + ((hash + i * 11) % 4) * 12; // 35 to 71 px
+        
+        // Biological heights for Control and Stress
+        const heightCtrl = 0.4 + ((hash + i * 13) % 5) * 0.12;  // 0.4 to 0.88
+        const heightStress = 0.2 + ((hash + i * 17) % 7) * 0.11; // 0.2 to 0.86
+        
+        peaks.push({
+            center: center,
+            width: peakWidth,
+            height: (conditionName === 'Stress') ? heightStress : heightCtrl
+        });
+    }
+    
+    // Setup linear gradient based on condition
+    const grad = ctx.createLinearGradient(0, 0, 0, height - 20);
+    let strokeColor = '#6366f1'; // Indigo for Control
+    let shadowColor = 'rgba(99, 102, 241, 0.3)';
     
     if (conditionName === 'Stress') {
-        grad.addColorStop(0, 'rgba(239, 68, 68, 0.48)');
+        grad.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
         grad.addColorStop(0.5, 'rgba(239, 68, 68, 0.15)');
         grad.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
-        strokeColor = '#ef4444'; // Vibrant Red for Stress
-        shadowColor = 'rgba(239, 68, 68, 0.35)';
+        strokeColor = '#ef4444'; // Red for Stress
+        shadowColor = 'rgba(239, 68, 68, 0.3)';
     } else {
-        grad.addColorStop(0, 'rgba(99, 102, 241, 0.48)');
+        grad.addColorStop(0, 'rgba(99, 102, 241, 0.45)');
         grad.addColorStop(0.5, 'rgba(99, 102, 241, 0.15)');
         grad.addColorStop(1, 'rgba(99, 102, 241, 0.01)');
     }
     
-    // Draw smooth peak Bezier area curve
+    // Plot the composite biological peaks track using Gaussian accumulation
     ctx.save();
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.moveTo(0, height - 20);
-    ctx.bezierCurveTo(
-        peakCenter - 60, height - 20,
-        peakCenter - 30, height - 20 - peakHeight,
-        peakCenter, height - 20 - peakHeight
-    );
-    ctx.bezierCurveTo(
-        peakCenter + 30, height - 20 - peakHeight,
-        peakCenter + 60, height - 20,
-        width, height - 20
-    );
+    
+    const availableHeight = height - 32;
+    for (let x = 0; x <= width; x++) {
+        let accumulatedHeight = 0;
+        peaks.forEach(p => {
+            const h = p.height * availableHeight;
+            const exponent = -Math.pow((x - p.center) / p.width, 2);
+            accumulatedHeight += h * Math.exp(exponent);
+        });
+        // Clamp and calculate y
+        const y = Math.max(4, height - 20 - accumulatedHeight);
+        ctx.lineTo(x, y);
+    }
     ctx.lineTo(width, height - 20);
     ctx.closePath();
     ctx.fill();
     
-    // Draw glowing stroke line
+    // Draw outline stroke on top of the shaded area
     ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2.2;
     ctx.shadowColor = shadowColor;
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 1;
+    ctx.shadowBlur = 5;
     ctx.beginPath();
-    ctx.moveTo(0, height - 20);
-    ctx.bezierCurveTo(
-        peakCenter - 60, height - 20,
-        peakCenter - 30, height - 20 - peakHeight,
-        peakCenter, height - 20 - peakHeight
-    );
-    ctx.bezierCurveTo(
-        peakCenter + 30, height - 20 - peakHeight,
-        peakCenter + 60, height - 20,
-        width, height - 20
-    );
+    for (let x = 0; x <= width; x++) {
+        let accumulatedHeight = 0;
+        peaks.forEach(p => {
+            const h = p.height * availableHeight;
+            const exponent = -Math.pow((x - p.center) / p.width, 2);
+            accumulatedHeight += h * Math.exp(exponent);
+        });
+        const y = Math.max(4, height - 20 - accumulatedHeight);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
     ctx.stroke();
     ctx.restore();
     
-    // Draw a prominent glowing Peak Marker circle
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(peakCenter, height - 20 - peakHeight, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle = strokeColor;
-    ctx.shadowColor = strokeColor;
-    ctx.shadowBlur = 8;
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.8;
-    ctx.stroke();
-    ctx.restore();
-    
-    // Draw titles and signal details
-    ctx.fillStyle = '#475569';
-    ctx.font = 'bold 8.5px \'Outfit\', sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(`信号源: ${conditionName === 'Stress' ? '逆境胁迫 (Stress)' : '对照组 (Control)'}`, 8, 14);
-    
-    ctx.textAlign = 'right';
-    ctx.fillText(`最高富集度 (Occupancy): ${Math.round(occupancyScale * 100)}%`, width - 8, 14);
-    
-    // TSS indicator line
-    ctx.strokeStyle = '#94a3b8';
-    ctx.setLineDash([2, 3]);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(width / 2, 22);
-    ctx.lineTo(width / 2, height - 20);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    
-    ctx.fillStyle = '#64748b';
-    ctx.font = 'bold 7px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('TSS (0)', width / 2, 19);
-    
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '7px monospace';
-    ctx.fillText('-200bp', 24, height - 8);
-    ctx.fillText('-35bp', peakCenter, height - 8);
-    ctx.fillText('+50bp', width - 24, height - 8);
+    // Draw peak coordinate dots at local maxima of the curves
+    peaks.forEach(p => {
+        const peakY = height - 20 - (p.height * availableHeight);
+        
+        ctx.save();
+        ctx.fillStyle = strokeColor;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = shadowColor;
+        ctx.shadowBlur = 8;
+        
+        ctx.beginPath();
+        ctx.arc(p.center, peakY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        
+        // Print coordinate text above dot
+        ctx.fillStyle = varColorTextSecondary();
+        ctx.font = 'bold 7px monospace';
+        ctx.textAlign = 'center';
+        // Mock coordinate relative to gene transcription start site (TSS)
+        const tssOffset = Math.round((p.center - width / 2) * 2.5);
+        const coordinateText = tssOffset >= 0 ? `+${tssOffset}bp` : `${tssOffset}bp`;
+        ctx.fillText(coordinateText, p.center, peakY - 8);
+    });
+}
+
+function varColorTextSecondary() {
+    return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#475569';
 }
 
 

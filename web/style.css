@@ -1842,3 +1842,11 @@ a.ai-pathway-gene-badge:hover {
     border-color: rgba(99, 102, 241, 0.2);
 }
 
+.header-contact-link:hover {
+    background-color: rgba(99, 102, 241, 0.08) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    color: var(--text-primary) !important;
+    transform: translateY(-0.5px);
+}
+
+
