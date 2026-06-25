@@ -7259,9 +7259,23 @@ function fetchReal3DStructure(tfLocus) {
     
     if (!tfLocus) return;
     const cleanLocus = tfLocus.trim();
+    const locusLower = cleanLocus.toLowerCase();
     
-    // Query UniProt for Corynebacterium glutamicum taxonomy (196627 or 265669)
-    const uniProtUrl = `https://rest.uniprot.org/uniprotkb/search?query=(${cleanLocus})%20AND%20taxonomy_id:196627&format=json&size=1`;
+    // Resolve cglLocus mapped from cg Locus if available
+    let cglLocus = '';
+    if (typeof cgToCgl !== 'undefined' && cgToCgl[locusLower]) {
+        cglLocus = cgToCgl[locusLower];
+    } else if (locusLower.startsWith('cgl')) {
+        cglLocus = cleanLocus;
+    }
+    
+    // Build query prioritizing Cgl locus tag and then cleanLocus
+    const queryParts = [];
+    if (cglLocus) queryParts.push(cglLocus);
+    if (cleanLocus && cleanLocus !== cglLocus) queryParts.push(cleanLocus);
+    
+    const queryStr = `(${queryParts.join(' OR ')}) AND (taxonomy_id:196627 OR taxonomy_id:265669)`;
+    const uniProtUrl = `https://rest.uniprot.org/uniprotkb/search?query=${encodeURIComponent(queryStr)}&format=json&size=1`;
     
     fetch(uniProtUrl)
         .then(res => {
@@ -7270,9 +7284,9 @@ function fetchReal3DStructure(tfLocus) {
         })
         .then(data => {
             if (!data.results || data.results.length === 0) {
-                // Try taxonomy 265669 fallback
-                const secondaryUrl = `https://rest.uniprot.org/uniprotkb/search?query=(${cleanLocus})%20AND%20taxonomy_id:265669&format=json&size=1`;
-                return fetch(secondaryUrl).then(res => res.json());
+                // Try a broader search for cleanLocus alone
+                const broadUrl = `https://rest.uniprot.org/uniprotkb/search?query=${encodeURIComponent(cleanLocus)}&format=json&size=1`;
+                return fetch(broadUrl).then(res => res.json());
             }
             return data;
         })
@@ -7284,10 +7298,24 @@ function fetchReal3DStructure(tfLocus) {
             const accession = data.results[0].primaryAccession;
             console.log(`Resolved UniProt Accession ${accession} for ${cleanLocus}`);
             
-            // Now fetch AlphaFold DB structure PDB file
-            const alphaFoldPdbUrl = `https://alphafold.ebi.ac.uk/files/AF-${accession}-F1-model_v4.pdb`;
-            
-            return fetch(alphaFoldPdbUrl)
+            // Query AlphaFold DB prediction API to get the correct pdbUrl dynamically
+            const alphaFoldApiUrl = `https://alphafold.ebi.ac.uk/api/prediction/${accession}`;
+            return fetch(alphaFoldApiUrl)
+                .then(res => {
+                    if (!res.ok) throw new Error("AlphaFold API query failed");
+                    return res.json();
+                })
+                .then(predictions => {
+                    if (!predictions || predictions.length === 0 || !predictions[0].pdbUrl) {
+                        // Fallback to hardcoded v6/v4 if API call returns no results
+                        return `https://alphafold.ebi.ac.uk/files/AF-${accession}-F1-model_v6.pdb`;
+                    }
+                    return predictions[0].pdbUrl;
+                })
+                .then(pdbUrl => {
+                    console.log(`Fetching PDB structure from: ${pdbUrl}`);
+                    return fetch(pdbUrl);
+                })
                 .then(res => {
                     if (!res.ok) throw new Error("AlphaFold PDB model not found");
                     return res.text();
