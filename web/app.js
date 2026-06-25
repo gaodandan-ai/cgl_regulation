@@ -146,15 +146,17 @@ const OPERONS_URL = 'data/operons.csv';
 
 // ==========================================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-
+function initializeApp() {
     initEventListeners();
-
     initSidebarResizer();
-
     loadNetworkData();
+}
 
-});
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
 
 
 
@@ -7194,6 +7196,7 @@ function customizeProteinStructureViewer(tfLocus) {
     if (hudBadge) {
         hudBadge.textContent = `PDB: ${pdbId}`;
     }
+}
 
 let activeViewer = null;
 
