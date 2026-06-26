@@ -18,9 +18,45 @@ import concurrent.futures
 import xml.etree.ElementTree as ET
 from collections import Counter
 from rag_service import RAGService
+import math
 
 PORT = int(os.environ.get("PORT", 8000))
 rag_service = RAGService()
+
+# Species abbreviations map from CoryneRegNet7 prefixes to user-friendly names
+SPECIES_MAP = {
+    "B_s": "B. subtilis",
+    "E_c": "E. coli",
+    "M_t": "M. tuberculosis",
+    "C_g": "C. glutamicum",
+    "C_a": "C. aurimucosum",
+    "C_c": "C. callunae",
+    "C_d": "C. diphtheriae",
+    "C_e": "C. efficiens",
+    "C_f": "C. falsenii",
+    "C_h": "C. halotolerans",
+    "C_i": "C. imitans",
+    "C_j": "C. jeikeium",
+    "C_k": "C. kroppenstedtii",
+    "C_l": "C. lipophiloflavum",
+    "C_m": "C. minutissimum",
+    "C_p": "C. pseudotuberculosis",
+    "C_r": "C. resistens",
+    "C_s": "C. striatum",
+    "C_t": "C. tuberculostearicum",
+    "C_u": "C. urealyticum",
+    "C_v": "C. viteruminis",
+    "C_x": "C. xerosis",
+    "[_f": "B. flavum",
+}
+
+# Global variables for mappings and pathways cache
+CG_TO_CGL = {}
+CGL_TO_CG = {}
+GENE_NAMES = {}
+ORGANISM_PATHWAYS_LOADED = False
+GENE_TO_PATHWAYS = {}
+PATHWAY_TO_GENES = {}
 
 # Caches for KEGG pathways and GO terms
 KEGG_PATHWAY_NAMES = {}       # cgb/cgl pathway ID -> clean name
@@ -69,6 +105,336 @@ def load_kegg_pathway_names():
                             KEGG_PATHWAY_NAMES[f"path:{pid_clean}"] = pname_clean
         except Exception as e:
             print("Error loading cgl pathway names:", e)
+
+def load_gene_mappings():
+    global CG_TO_CGL, CGL_TO_CG, GENE_NAMES
+    if CG_TO_CGL:
+        return
+    if os.path.exists('data/gene_mapping.csv'):
+        try:
+            with open('data/gene_mapping.csv', 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    cg = row.get('cg_locus', '').strip()
+                    cgl = row.get('cgl_locus', '').strip()
+                    name = row.get('gene_name', '').strip()
+                    
+                    if cg and cgl:
+                        CG_TO_CGL[cg.lower()] = cgl
+                        CGL_TO_CG[cgl.lower()] = cg
+                    if cg and name:
+                        GENE_NAMES[cg.lower()] = name
+                    if cgl and name:
+                        GENE_NAMES[cgl.lower()] = name
+        except Exception as e:
+            print("Error loading gene mapping CSV in server:", e)
+
+def load_organism_kegg_links():
+    global ORGANISM_PATHWAYS_LOADED, GENE_TO_PATHWAYS, PATHWAY_TO_GENES, KEGG_PATHWAY_NAMES
+    if ORGANISM_PATHWAYS_LOADED:
+        return
+    
+    # 1. Load pathway names first
+    load_kegg_pathway_names()
+
+    # 2. Load cgb links
+    try:
+        url = "https://rest.kegg.jp/link/pathway/cgb"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            for line in resp.read().decode('utf-8').splitlines():
+                if '\t' in line:
+                    gene_raw, path_raw = line.split('\t', 1)
+                    gene = gene_raw.replace("cgb:", "").strip().lower()
+                    path = path_raw.replace("path:", "").strip()
+                    
+                    if gene not in GENE_TO_PATHWAYS:
+                        GENE_TO_PATHWAYS[gene] = set()
+                    GENE_TO_PATHWAYS[gene].add(path)
+                    
+                    if path not in PATHWAY_TO_GENES:
+                        PATHWAY_TO_GENES[path] = set()
+                    PATHWAY_TO_GENES[path].add(gene)
+    except Exception as e:
+        print("Error loading cgb pathways links:", e)
+
+    # 3. Load cgl links
+    try:
+        url = "https://rest.kegg.jp/link/pathway/cgl"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            for line in resp.read().decode('utf-8').splitlines():
+                if '\t' in line:
+                    gene_raw, path_raw = line.split('\t', 1)
+                    gene = gene_raw.replace("cgl:", "").strip().lower()
+                    path = path_raw.replace("path:", "").strip()
+                    
+                    if gene not in GENE_TO_PATHWAYS:
+                        GENE_TO_PATHWAYS[gene] = set()
+                    GENE_TO_PATHWAYS[gene].add(path)
+                    
+                    if path not in PATHWAY_TO_GENES:
+                        PATHWAY_TO_GENES[path] = set()
+                    PATHWAY_TO_GENES[path].add(gene)
+    except Exception as e:
+        print("Error loading cgl pathways links:", e)
+
+    ORGANISM_PATHWAYS_LOADED = True
+
+def hypergeom_sf(x, N, M, k):
+    """Survival function (P(X >= x)) for hypergeometric distribution using math.comb."""
+    total_prob = 0.0
+    total_comb = math.comb(N, k)
+    if total_comb == 0:
+        return 1.0
+    for i in range(x, min(k, M) + 1):
+        total_prob += math.comb(M, i) * math.comb(N - M, k - i)
+    return min(1.0, total_prob / total_comb)
+
+def run_needleman_wunsch(seq1, seq2, match=2, mismatch=-1, gap=-1):
+    n, m = len(seq1), len(seq2)
+    score = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(n + 1):
+        score[i][0] = i * gap
+    for j in range(m + 1):
+        score[0][j] = j * gap
+        
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            s_match = score[i-1][j-1] + (match if seq1[i-1] == seq2[j-1] else mismatch)
+            s_delete = score[i-1][j] + gap
+            s_insert = score[i][j-1] + gap
+            score[i][j] = max(s_match, s_delete, s_insert)
+            
+    align1, align2 = [], []
+    i, j = n, m
+    while i > 0 or j > 0:
+        if i > 0 and j > 0 and score[i][j] == score[i-1][j-1] + (match if seq1[i-1] == seq2[j-1] else mismatch):
+            align1.append(seq1[i-1])
+            align2.append(seq2[j-1])
+            i -= 1
+            j -= 1
+        elif i > 0 and score[i][j] == score[i-1][j] + gap:
+            align1.append(seq1[i-1])
+            align2.append('-')
+            i -= 1
+        else:
+            align1.append('-')
+            align2.append(seq2[j-1])
+            j -= 1
+            
+    align1.reverse()
+    align2.reverse()
+    return "".join(align1), "".join(align2)
+
+def handle_regulon_enrichment(tf):
+    load_gene_mappings()
+    load_organism_kegg_links()
+    
+    tf_lower = tf.strip().lower()
+    resolved_cg = tf
+    
+    if tf_lower in CGL_TO_CG:
+        resolved_cg = CGL_TO_CG[tf_lower]
+        
+    targets = []
+    if os.path.exists('data/regulations.csv'):
+        try:
+            with open('data/regulations.csv', 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    tf_row = row.get('TF_locusTag', '').strip().lower()
+                    tf_name = row.get('TF_name', '').strip().lower()
+                    if tf_row == resolved_cg.lower() or (tf_name and tf_name == tf_lower):
+                        tg = row.get('TG_locusTag', '').strip()
+                        if tg and tg not in targets:
+                            targets.append(tg)
+        except Exception as e:
+            print("Error reading regulations for enrichment:", e)
+            
+    if not targets:
+        return {"error": f"No target genes found for transcription factor {tf}"}
+        
+    expanded_targets = set()
+    for tg in targets:
+        tg_lower = tg.lower()
+        expanded_targets.add(tg_lower)
+        if tg_lower in CG_TO_CGL:
+            expanded_targets.add(CG_TO_CGL[tg_lower].lower())
+        if tg_lower in CGL_TO_CG:
+            expanded_targets.add(CGL_TO_CG[tg_lower].lower())
+            
+    all_annotated_genes = set(GENE_TO_PATHWAYS.keys())
+    
+    regulon_with_pathways = expanded_targets.intersection(all_annotated_genes)
+    canonical_regulon = set()
+    for g in regulon_with_pathways:
+        canonical_g = CGL_TO_CG.get(g, g).lower()
+        canonical_regulon.add(canonical_g)
+    k = len(canonical_regulon)
+    
+    if k == 0:
+        return {
+            "tf": tf,
+            "regulon_size": len(targets),
+            "annotated_regulon_size": 0,
+            "pathways": []
+        }
+        
+    canonical_pathway_to_genes = {}
+    for pid, genes in PATHWAY_TO_GENES.items():
+        canonical_genes = set()
+        for g in genes:
+            canonical_g = CGL_TO_CG.get(g, g).lower()
+            canonical_genes.add(canonical_g)
+        canonical_pathway_to_genes[pid] = canonical_genes
+        
+    all_canonical_annotated = set()
+    for genes in canonical_pathway_to_genes.values():
+        all_canonical_annotated.update(genes)
+    N = len(all_canonical_annotated)
+    
+    pathway_enrichments = []
+    for pid, pathway_genes in canonical_pathway_to_genes.items():
+        M = len(pathway_genes)
+        hits_genes = canonical_regulon.intersection(pathway_genes)
+        x = len(hits_genes)
+        
+        if x > 0:
+            fold_enrichment = (x / k) / (M / N) if M > 0 else 0
+            p_val = hypergeom_sf(x, N, M, k)
+            name = KEGG_PATHWAY_NAMES.get(pid, pid)
+            
+            display_hits = []
+            for g in hits_genes:
+                g_name = GENE_NAMES.get(g, g.upper())
+                display_hits.append({
+                    "locus": g,
+                    "name": g_name
+                })
+                
+            pathway_enrichments.append({
+                "pathway_id": pid,
+                "pathway_name": name,
+                "p_value": p_val,
+                "fold_enrichment": fold_enrichment,
+                "hits": x,
+                "total_genes": M,
+                "target_genes": display_hits
+            })
+            
+    pathway_enrichments.sort(key=lambda x: x['p_value'])
+    return {
+        "tf": tf,
+        "regulon_size": len(targets),
+        "annotated_regulon_size": k,
+        "total_annotated_genome": N,
+        "pathways": pathway_enrichments
+    }
+
+def handle_homolog_alignment(gene_name, accession):
+    if not gene_name or not accession:
+        return {"error": "Missing gene_name or accession parameter"}
+        
+    try:
+        cg_fasta_url = f"https://rest.uniprot.org/uniprotkb/{accession}.fasta"
+        req = urllib.request.Request(cg_fasta_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            cg_fasta = resp.read().decode('utf-8')
+        cg_seq = "".join(cg_fasta.splitlines()[1:])
+    except Exception as e:
+        return {"error": f"Failed to retrieve sequence for C. glutamicum accession {accession}: {str(e)}"}
+        
+    try:
+        search_url = f"https://rest.uniprot.org/uniprotkb/search?query=gene:{gene_name}%20AND%20taxonomy_id:83332&format=json&size=1"
+        req = urllib.request.Request(search_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            d = json.loads(resp.read().decode('utf-8'))
+            results = d.get('results', [])
+        
+        if not results:
+            search_url_broad = f"https://rest.uniprot.org/uniprotkb/search?query=({gene_name})%20AND%20taxonomy_id:83332&format=json&size=1"
+            req_broad = urllib.request.Request(search_url_broad, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req_broad, timeout=10) as resp:
+                d = json.loads(resp.read().decode('utf-8'))
+                results = d.get('results', [])
+                
+        if not results:
+            return {
+                "error": f"No homolog found in Mycobacterium tuberculosis (Taxonomy 83332) for gene {gene_name}"
+            }
+            
+        homolog_acc = results[0]['primaryAccession']
+        homolog_org = results[0]['organism']['scientificName']
+        homolog_gene = results[0].get('genes', [{}])[0].get('geneName', {}).get('value', gene_name.upper())
+    except Exception as e:
+        return {"error": f"Failed to search for homolog in M. tuberculosis: {str(e)}"}
+        
+    try:
+        mt_fasta_url = f"https://rest.uniprot.org/uniprotkb/{homolog_acc}.fasta"
+        req = urllib.request.Request(mt_fasta_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            mt_fasta = resp.read().decode('utf-8')
+        mt_seq = "".join(mt_fasta.splitlines()[1:])
+    except Exception as e:
+        return {"error": f"Failed to retrieve sequence for M. tuberculosis accession {homolog_acc}: {str(e)}"}
+        
+    try:
+        a1, a2 = run_needleman_wunsch(cg_seq, mt_seq)
+        
+        identity_count = 0
+        similarity_count = 0
+        match_chars = []
+        
+        SIMILAR_GROUPS = [
+            set("IVLMC"),
+            set("FYW"),
+            set("KR"),
+            set("DE"),
+            set("ST"),
+            set("QN"),
+            set("AGP")
+        ]
+        
+        for c1, c2 in zip(a1, a2):
+            if c1 == '-' or c2 == '-':
+                match_chars.append(' ')
+            elif c1 == c2:
+                identity_count += 1
+                similarity_count += 1
+                match_chars.append('*')
+            else:
+                is_sim = False
+                for g in SIMILAR_GROUPS:
+                    if c1 in g and c2 in g:
+                        is_sim = True
+                        break
+                if is_sim:
+                    similarity_count += 1
+                    match_chars.append(':')
+                else:
+                    match_chars.append(' ')
+                    
+        match_str = "".join(match_chars)
+        total_len = len(a1)
+        
+        identity_pct = (identity_count / total_len * 100) if total_len > 0 else 0
+        similarity_pct = (similarity_count / total_len * 100) if total_len > 0 else 0
+        
+        return {
+            "cg_accession": accession,
+            "cg_gene_name": gene_name,
+            "homolog_accession": homolog_acc,
+            "homolog_organism": homolog_org,
+            "homolog_gene_name": homolog_gene,
+            "alignment1": a1,
+            "alignment2": a2,
+            "match_string": match_str,
+            "identity_percentage": round(identity_pct, 1),
+            "similarity_percentage": round(similarity_pct, 1)
+        }
+    except Exception as e:
+        return {"error": f"Alignment calculation failed: {str(e)}"}
 
 def get_gene_pathways_and_go(cg, cgl):
     global GENE_PATHWAYS_CACHE
@@ -363,6 +729,86 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"status": "success", "message": f"连接成功！AI 响应：{response}"}).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/regulon_enrichment'):
+            query = urllib.parse.urlparse(self.path).query
+            params = urllib.parse.parse_qs(query)
+            tf = params.get('tf', [''])[0]
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            try:
+                result = handle_regulon_enrichment(tf)
+                self.wfile.write(json.dumps(result).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/homolog_alignment'):
+            query = urllib.parse.urlparse(self.path).query
+            params = urllib.parse.parse_qs(query)
+            gene_name = params.get('gene_name', [''])[0]
+            accession = params.get('accession', [''])[0]
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            try:
+                result = handle_homolog_alignment(gene_name, accession)
+                self.wfile.write(json.dumps(result).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/list_organisms'):
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            try:
+                organisms = []
+                folder = os.path.join(os.getcwd(), 'data', 'AllOrganismsFiles')
+                if os.path.exists(folder):
+                    for filename in os.listdir(folder):
+                        if filename.endswith('_regulations.csv'):
+                            org_id = filename[:-16] # strip '_regulations.csv'
+                            if not org_id:
+                                continue
+                            
+                            # Determine user friendly name
+                            name = org_id
+                            parts = org_id.split('_', 2)
+                            if len(parts) >= 2:
+                                key = f"{parts[0]}_{parts[1]}"
+                                rest = parts[2] if len(parts) > 2 else ""
+                                if key in SPECIES_MAP:
+                                    clean_rest = rest.replace('_', ' ').strip()
+                                    name = f"{SPECIES_MAP[key]} {clean_rest}".strip()
+                                else:
+                                    name = org_id.replace('_', ' ')
+                            else:
+                                name = org_id.replace('_', ' ')
+                                
+                            # Check if has sRNA
+                            rna_file = f"{org_id}_rna_regulation.csv"
+                            has_rna = os.path.exists(os.path.join(folder, rna_file))
+                            
+                            organisms.append({
+                                "id": org_id,
+                                "name": name,
+                                "has_rna": has_rna
+                            })
+                
+                # Sort: default strain C_g_DSM_20300_=_ATCC_13032 first, then alphabetically by name
+                def sort_key(x):
+                    is_default = (x['id'] == 'C_g_DSM_20300_=_ATCC_13032')
+                    return (not is_default, x['name'])
+                organisms.sort(key=sort_key)
+                
+                self.wfile.write(json.dumps(organisms).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
         else:
             super().do_GET()
 

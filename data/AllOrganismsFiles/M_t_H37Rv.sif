@@ -1,0 +1,168 @@
+whiB5	Activation	Rv0029	Rv0030	glyA2	Rv0309	Rv2077A	Rv2078	Rv2409c	Rv2631	Rv2798c	Rv2799	Rv2824c	eccB4	cut3	Rv3468c	Rv3492c
+whiB5	Repression	ctpD
+Rv0023	Activation	dnaN	Rv0057	fadE5	Rv0245	Rv0268c	fba	Rv0691c	Rv1052	Rv1056	prpD	lipX	sigE	Rv1805c	Rv1875	Rv1954c	mce3R	Rv1986	cmtR	Rv1995	Rv2034	PE22	Rv2254c	Rv2640c	Rv2991	alkB	Rv3269	lat	Rv3440c	kshA	ctpJ	nmtR
+Rv0023	Repression	gyrA	hddA	yrbE1A	lprK	mce1F	PPE7	secE2	fadD30	Rv0412c	Rv0424c	mazF1	vapB6	rpoC	Rv0961	pimE	Rv1503c	Rv1638A	PPE35	Rv2000	Rv2323c	Rv2452c	Rv2723	Rv2779c	lppW	drrA	fadD22	pca	eccA1	espI	Rv1184c	Rv1230c	glgB	Rv1339	lipL	Rv1534	lipP	Rv2474c	fadE19	Rv2722	Rv2990c	nuoF	nuoG	Rv3216	mce4A	yrbE4B	Rv3631
+Rv0047c	Activation	Rv0047c	nrp	yrbE3A
+Rv0047c	Repression	ino1	rpmD	Rv3655c
+Rv0067c	Activation	Rv0067c
+Rv0067c	Repression	Rv0068
+Rv0078	Activation	Rv0078
+Rv0078	Repression	Rv0077c
+Rv0081	Activation	Rv0188	Rv0196	Rv0208c	Rv0293c	Rv0331	iniB	icl1	Rv0493c	Rv0576	Rv0579	vapB28	Rv0654	Rv0695	Rv0730	Rv0744c	Rv0837c	csoR	Rv1048c	Rv1190	Rv1192	rfe	lprD	Rv1674c	Rv1687c	mpg	lprJ	mgtC	erg3	Rv1875	Rv1920	Rv1936	mce3R	yrbE3A	Rv1975	Rv1985c	Rv1990c	cmtR	Rv2034	Rv2100	PE22	Rv2132	Rv2452c	Rv3076	moaD1	moaR1	fadE23	Rv3142c	Rv3180c	rubB	Rv3348	Rv3502c	Rv3527	cyp125	fadA5	kshB	Rv3675	tgs2	Rv3830c	Rv3831	Rv3844	Rv3848	bioF2	bioF2	Rv0076c	gmhA	hddA	Rv0474	cmaA2	pks16	vapB32	Rv1129c	sigE	cyp130	Rv1265	alkA	Rv1320c	fmt	Rv1425	Rv1463	Rv1533	PPE36	Rv2302	Rv2307A	Rv2307c	Rv2323c	smtB	fadD35	Rv2516c	Rv2517c	vapB17	vapC20	vapB20	fadD9	Rv2633c	Rv2712c	sthA	fadE20	Rv2827c	esxQ	Rv3055	mmr	Rv3181c	alkB	lat	Rv3371	ddn	ctpJ	whiB6
+Rv0081	Repression	pcp	Rv0323c	Rv0324	grpE	dnaJ1	pks6	mutT3	trcR	Rv0082	Rv0082	Rv0320	Rv0397	mmpS2	PE_PGRS7	PE_PGRS10	Rv1424c	Rv1672c	Rv2148c	ftsZ	PE_PGRS38	Rv2172c	qcrB	lipP	ruvC	Rv2809	Rv3005c	Rv3075c	Rv3096	Rv1075c	Rv1158c	Rv1230c	Rv1435c	PE_PGRS26	PE17	PPE52	nuoB	nuoF	nuoG	whiB1	whiB2	Rv3413c	PE_PGRS57	Rv3613c	Rv3728	Rv3811
+Rv0135c	Activation	Rv0135c
+Rv0135c	Repression	cyp138	Rv0749A	Rv1919c	Rv2204c	Rv2884	Rv3312A	Rv0520	Rv1815	mmpL9	Rv3400
+Rv0195	Repression	Rv0191
+Rv0195	Activation	Rv0076c	Rv0194	Rv2700	Rv2700
+Rv0238	Repression	fadA2	fixA	fadE24	fabG4	Rv3030
+Rv0273c	Repression	Rv0274	proX
+Rv0273c	Activation	Rv0273c	Rv0029	Rv0029
+Rv0275c	Activation	Rv0275c
+Rv0275c	Repression	Rv0276	Rv0520
+Rv0302	Activation	Rv0302
+Rv0302	Repression	Rv0093c	Rv0807	gmdA	ceoB	embA
+Rv0324	Activation	Rv0034	dnaB	Rv0097	Rv0324	Rv1184c	Rv1356c	Rv1587c	Rv1889c	Rv1910c	Rv1936	Rv1975	Rv1995	rpsT	Rv2434c	Rv2452c	Rv2516c	Rv2517c	Rv2957	moaD1	Rv3406	kstR	Rv3636	Rv3902c	recF	recF
+Rv0324	Repression	fadD4	Rv0268c	pcp	Rv0331	Rv0430	mazF1	Rv0458	PE_PGRS7	echA3	Rv0854	pabB	trcR	vapB32	Rv1435c	Rv1532c	Rv1533	PE17	mctB	Rv1754c	Rv1830	vapB14	nrdF1	Rv1985c	cmtR	cysQ	Rv2132	wag31	ctaE	glnA2	Rv2323c	Rv2367c	Rv2387	Rv2729c	esxQ	Rv3058c	cyp136	Rv3172c	Rv3269	Rv1986	Rv1986	whiB1	TB7.3	lat	fdxD	Rv3510c	lsr2	tgs2
+Rv0330c	Activation	Rv0330c
+Rv0339c	Activation	Rv0339c	iniB
+Rv0339c	Repression	panB
+Rv0465c	Activation	Rv0465c	icl1
+Rv0465c	Repression	Rv0464c	Rv0466	pstS3	pstC2	fadE24	PPE52
+Rv0472c	Repression	desA1	desA2	fdxC
+Rv0474	Activation	Rv0474
+Rv0494	Activation	Rv2514c	Rv0494
+Rv0494	Repression	icl1	Rv0493c	Rv1632c	Rv3094c	Rv3786c
+Rv0576	Activation	Rv0576
+Rv0576	Repression	fadD5	Rv1519	whiB4	mutT3	mutT3	Rv0516c	aldA	Rv1986	Rv2034	Rv2336	Rv3660c	Rv3661
+tcrA	Activation	tcrA	Rv0603
+tcrA	Repression	Rv2280	nadE
+vapB30	Activation	vapB30
+Rv0653c	Activation	Rv0653c
+Rv0653c	Repression	Rv0654
+Rv0674	Repression	fadE8
+Rv0678	Activation	Rv0678	Rv0849	Rv0963c	Rv1128c	Rv1760	Rv1895	Rv0044c	Rv0044c	Rv0161	ndhA	Rv1945	kshB
+Rv0678	Repression	Rv0183	PPE9	mmpS2	mmpS5	pabB	trcR	purT	purT	Rv0485	Rv1230c	lppW	hsaA	Rv3706c
+Rv0681	Activation	Rv3531c
+Rv0691c	Activation	Rv0691c
+Rv0691c	Repression	Rv0692	Rv0441c	Rv0441c	arcA	metS
+phoP	Activation	nirB	phoY2	Rv1184c	Rv1519	Rv2136c	Rv2331	Rv2331A	sirA	fadD9	lppW	phoP	phoP	Rv0789c	pks3	rfe	Rv1517	metH	Rv2390c	apt	Rv2779c	Rv3197	Rv3767c	pks2
+phoP	Repression	mazE3	Rv2288	Rv2633c	yrbE4A	Rv3768	yrbE1A	yrbE1A	mazF3	fabD	cdh	PE_PGRS39	cfp2	ppiB	Rv3312A	Rv3750c	Rv3779
+Rv0767c	Repression	grcC2	Rv1097c	Rv2049c	vapB17	Rv2638	Rv0042c	lipW	Rv0493c	Rv0776c	prrA	Rv1085c	Rv1086	pks12	Rv2050	Rv3197
+Rv0818	Activation	glbN	PE19	desA3	vapC46	nirB	nirB	galE2	vapB46
+Rv0818	Repression	fadE5	Rv1322A	Rv1322A	PE15	Rv3386
+kmtR	Activation	kmtR
+Rv0880	Repression	fadD9	Rv0726c	Rv2172c
+csoR	Repression	Rv0225	gltA2	Rv1191	pknF	Rv2507	nuoE	nuoF
+csoR	Activation	csoR
+trcR	Activation	trcR	whiB4	bioF2	bioF2	PE22	canB
+trcR	Repression	pntAa	fadD2	Rv0426c	Rv0430	cyp135B1	pks16	Rv1204c	Rv1205	Rv0078A	Rv0078A	Rv0269c	Rv0996	glmU	Rv1158c	mec	PE15	Rv1812c	vapB17	Rv2952	Rv3237c	Rv3706c	Rv3762c	Rv1728c	Rv2387	fas	Rv2525c	lppW	topA
+Rv1049	Activation	Rv1049	Rv1986	Rv1986
+Rv1049	Repression	Rv0175	fabG4	vapC3	Rv0730	Rv1780	lexA	vapB3	vapB3	Rv0688	Rv1050	Rv1075c	fdxC	Rv1277	Rv2147c
+Rv1167c	Activation	espE
+Rv1176c	Activation	Rv1176c
+Rv1186c	Activation	Rv1186c
+Rv1186c	Repression	rocA
+Rv1219c	Activation	Rv3714c	Rv1219c	Rv1219c
+Rv1219c	Repression	clpB	Rv1250	ffh	Rv1249c	Rv1249c	Rv2729c
+Rv1255c	Activation	Rv0455c	aldA	moeW
+Rv1255c	Repression	Rv0634c	Rv0950c	cyp130	Rv2300c	Rv2638	Rv3706c
+Rv1287	Activation	cysD
+Rv1353c	Activation	Rv0272c	Rv0293c	trcS	papA3	Rv1414	PPE23	Rv3162c	fadE29	pks4	pks4	mmpL10	hsaA	pks2
+Rv1353c	Repression	ctpI	Rv0183	Rv0455c	hemA	Rv0537c	purB	Rv0810c	Rv0998	metB	xseB	fbiC	Rv1205	folP2	gpgS	Rv1360	nlhH	Rv1401	ansA	Rv0431	Rv0431	menB	Rv1567c	Rv1637c	uvrA	Rv1691	Rv1856c	modA	Rv1919c	cobN	blaC	ephD	glnA2	ptkA	cysK1	Rv2567	Rv2576c	dhaA	sthA	pgsA3	argA	Rv2778c	Rv2798c	efpA	fecB	vapB46	vapC47	rplM	otsA	kshA	Rv3603c	Rv3661	ponA2	Rv3753c	Rv3816c
+Rv1359	Activation	Rv1359
+Rv1395	Activation	Rv1395
+Rv1404	Activation	Rv1404	Rv1730c
+Rv1404	Repression	PE_PGRS9	Rv1375	PE15	PE_PGRS26	gabD2	vapC20	vapB20	Rv2956
+whiA	Activation	Rv1320c	uvrD2
+whiA	Repression	Rv2118c	plcB	cfp2	Rv3587c	Rv3604c	fadE2	fadE2	ispE	Rv1456c
+Rv1460	Activation	Rv1460
+Rv1556	Activation	Rv1556
+argR	Activation	argC
+Rv1674c	Activation	Rv1674c
+Rv1674c	Repression	Rv0324
+Rv1719	Repression	def	Rv3067	lpdA	Rv3725
+Rv1773c	Activation	Rv1773c
+Rv1773c	Repression	Rv1774
+Rv1776c	Repression	fgd1
+Rv1816	Activation	Rv1065	Rv1816
+blaI	Repression	hemL	ctaB	Rv1456c	sigC
+higA	Repression	Rv1954c	Rv2219A
+Rv1985c	Activation	Rv1985c
+Rv1985c	Repression	echA14	trcR	trcR
+Rv1990c	Activation	Rv1990c
+Rv1990c	Repression	fadD14	Rv1255c	rpiB	Rv2469c	Rv0208c	Rv0208c	nirB	Rv0386	glgC	ilvG	Rv1868	Rv1977	dosT	vapB37	caeA	Rv2337c	Rv2464c	glbO	Rv2731	Rv2991	Rv3179	secA1	sapM	Rv3717
+cmtR	Activation	Rv0077c	Rv0963c	cmtR
+cmtR	Repression	Rv0318c	pcp	Rv1985c	amiA2	glyA2	glyA2	Rv0078	trcR	Rv1986	Rv1987	recO	Rv3142c
+vapB15	Activation	vapC15
+Rv2011c	Activation	Rv2011c	PE34	PE34
+Rv2011c	Repression	glyA2	Rv0158	Rv0473	Rv0692	phoP	mprA	rpfC	Rv2012	pgsA3	argA	Rv3058c	cyp136	Rv3075c	Rv3076	Rv3099c	glmS	Rv3437	nat	pcp	pcp	Rv0472c	Rv0774c	Rv1194c	lppE	Rv2525c	Rv3035
+Rv2017	Repression	Rv2016
+Rv2034	Activation	Rv1000c	Rv1251c	cya	vapC12	Rv1816	Rv1922	Rv2034	Rv2432c	Rv2650c	moaA1	phyA	Rv3488
+Rv2034	Repression	mmpL11	Rv0356c	Rv0481c	Rv0537c	Rv0538	uvrD1	Rv1812c	fadD35	Rv2506	Rv3529c	rpmH	Rv0576	Rv1192	Rv2621c	Rv2622	Rv3030	pheA	parB	rnpA
+sigC	Activation	PPE1	Rv0097	ctpB
+Rv2250c	Activation	Rv2666	Rv1047	Rv2250c	scoA	Rv3115	Rv3115
+Rv2250c	Repression	msrA	Rv0205	nirB	pcp	Rv0537c	mmpL13a	vapC11	Rv1747	Rv1868	Rv2250A	Rv2390c	pepQ	lppW	dacB1	leuA	PE36	Rv0138	Rv0138	Rv0196	aac	Rv0318c	Rv0367c	phoP	Rv0877	recA	Rv2749	Rv3267	Rv3631	dnaQ	ethA
+Rv2282c	Activation	Rv2282c
+Rv2324	Repression	lpqR	PE17	Rv2311	Rv2312	Rv2323c	Rv2645	Rv2646	Rv2803	PPE52	cyp135B1	gcvB	PE_PGRS38
+zur	Repression	PPE3	Rv2990c	PE15	Rv2059
+Rv2506	Repression	scoA	fadD35
+Rv2506	Activation	Rv2506
+vapB40	Activation	vapB40
+vapB42	Activation	vapB42
+Rv2779c	Activation	Rv2779c
+sirR	Activation	Rv3848
+sirR	Repression	nrdF1
+Rv2827c	Activation	Rv2827c
+Rv2827c	Repression	phoP
+Rv2887	Activation	Rv2887
+Rv2887	Repression	PE_PGRS35	moeW	purU	Rv3127	Rv1565c	mce3R	moxR3
+Rv2912c	Repression	Rv2913c
+Rv2989	Activation	Rv1356c
+Rv2989	Repression	lpdA
+Rv3050c	Repression	Rv0885
+Rv3066	Repression	mmr
+virS	Activation	virS
+Rv3095	Activation	Rv3095
+Rv3095	Repression	Rv3094c
+devR	Activation	Rv0569	nrdZ	Rv1734c	ctpF	Rv2005c	Rv2629	Rv3127	Rv3134c	fadA5	Rv0079	Rv0079	Rv0571c	Rv0572c	Rv1129c	prpD	Rv1738	Rv1996	otsB1	fdxA	hspX	acg	cut2	TB31.7	hrp1	Rv2628	PPE49	Rv3126c	tgs1	Rv3131
+devR	Repression	ldtA	mazF1	Rv1036c	Rv2307A	Rv2336	nadD	Rv2709	Rv0011c	Rv0011c
+Rv3160c	Repression	Rv3161c
+moxR3	Activation	moxR3
+Rv3167c	Repression	Rv1895
+Rv3173c	Activation	Rv3173c
+Rv3183	Repression	Rv3182
+sigH	Activation	Rv1875	Rv2466c	PPE56	trxB2	trxB1	papA4	pepN	Rv2707	moeB1	sigH
+sigH	Repression	rpsF
+Rv3249c	Activation	choD	bioF2	bioF2	Rv0097	fadD30	PE22	PPE36	fdxB
+Rv3249c	Repression	Rv2574	Rv2887	Rv0634c	Rv0634c	Rv1565c	lppZ	alkB
+whiB2	Activation	Rv2147c	Rv2331	Rv3587c
+sigF	Activation	Rv0759c	Rv2884	Rv0213c	Rv0941c	rsbW
+lrpA	Activation	lat
+Rv3405c	Activation	Rv3405c
+sigD	Activation	sigD
+whiB3	Activation	Rv0950c
+whiB3	Repression	yrbE1A
+groEL1	Activation	groEL1
+Rv3488	Activation	Rv2983	Rv3488
+Rv3488	Repression	fadE2	vapB14	dnaG
+Rv3557c	Activation	Rv0793
+Rv3557c	Repression	Rv3549c	echA20	fadE30	fadE30	fadD3
+kstR	Activation	kstR
+kstR	Repression	Rv0257	Rv0940c	Rv0953c	pimE	narG	narI	Rv1204c	Rv1205	sugB	Rv1628c	Rv1894c	fadB5	Rv1913	Rv3371	echA19	kshA	Rv3531c	hsaE	kstD	pks6	pks6	hemB	fadD8	Rv0687	purD	parD1	Rv2118c	Rv2556c	Rv2799	fadD19	Rv3521	Rv3528c	fadA5	hsaA	Rv3631
+lsr2	Activation	Rv1116	lsr2	pks11	moaD1
+lsr2	Repression	Rv0320
+whiB4	Activation	phoP
+Rv3736	Repression	Rv1869c	Rv3856c
+Rv3736	Activation	Rv3736
+nmtR	Activation	nmtR
+tcrX	Activation	gmhA	Rv1986	PPE52	Rv3706c	tcrX
+tcrX	Repression	Rv0095c	esxR
+Rv3830c	Activation	Rv3830c
+Rv3833	Activation	Rv3833
+espR	Activation	Rv0397	celA2a	Rv2143
+espR	Repression	Rv1364c	Rv1490	lipL	Rv1816	gpsI	recR	rfbE	PE_PGRS62	acpA	acpA	mce1D	Rv0386	fadE10	Rv1478	Rv1762c	Rv1824	wag31	Rv2237	Rv2307A	Rv2307D	Rv2560	Rv2957	esxS	PPE52
+ethR	Activation	ethR
+ethR	Repression	ethA
+whiB6	Activation	espB	PE35	PE35
+whiB6	Repression	Rv3779	Rv3778c	Rv3778c
+sigM	Activation	Rv2515c	Rv3906c

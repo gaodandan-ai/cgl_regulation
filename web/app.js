@@ -129,14 +129,10 @@ const fitCanvasBtn = document.getElementById('fit-canvas');
 
 
 // Data File Paths
-
-const REGULATIONS_URL = 'data/regulations.csv';
-
-const RNA_REGULATIONS_URL = 'data/rna_regulation.csv';
-
-const MAPPING_URL = 'data/gene_mapping.csv';
-
-const OPERONS_URL = 'data/operons.csv';
+let REGULATIONS_URL = 'data/regulations.csv';
+let RNA_REGULATIONS_URL = 'data/rna_regulation.csv';
+let MAPPING_URL = 'data/gene_mapping.csv';
+let OPERONS_URL = 'data/operons.csv';
 
 
 
@@ -281,6 +277,34 @@ async function loadNetworkData() {
 
 
         buildGeneIndex();
+
+        // Pre-load default RNA-seq data
+        try {
+            const rnaSeqResp = await fetch('data/mock_rnaseq.csv');
+            if (rnaSeqResp.ok) {
+                const text = await rnaSeqResp.text();
+                const parsed = Papa.parse(text, {
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: true
+                });
+                rnaseqData = {};
+                parsed.data.forEach(row => {
+                    let locus = cleanStr(row.locus_tag).trim().toLowerCase();
+                    let fc = parseFloat(row.log2fc);
+                    let pval = parseFloat(row.pvalue) || 1.0;
+                    if (locus && !isNaN(fc)) {
+                        if (cglToCg[locus]) {
+                            locus = cglToCg[locus].toLowerCase();
+                        }
+                        rnaseqData[locus] = { log2fc: fc, pvalue: isNaN(pval) ? 1.0 : pval };
+                    }
+                });
+                console.log(`Pre-loaded default RNA-seq data with ${Object.keys(rnaseqData).length} genes.`);
+            }
+        } catch (e) {
+            console.warn('Failed to pre-load default RNA-seq data:', e);
+        }
 
         updateStatus('数据已就绪', 'success');
 
@@ -1924,6 +1948,7 @@ function showNodeDetails(locusTag) {
         resolvedLocus = cglToCg[lower];
     }
     const resolvedLower = resolvedLocus.toLowerCase();
+    currentQueryGene = resolvedLocus;
 
     // Resolve display meta
     let meta = { locusTag: resolvedLocus, name: resolvedLocus, type: 'Target' };
@@ -2742,6 +2767,13 @@ function showNodeDetails(locusTag) {
 
     }
 
+    // Always render genomic locus map for all nodes
+    const genomicMapSection = document.getElementById('detail-genomic-map-section');
+    if (genomicMapSection) {
+        genomicMapSection.style.display = 'block';
+        renderGenomicLocusMap(resolvedLocus);
+    }
+
     // Setup protein domain and binding site sections
     const proteinDomainSection = document.getElementById('detail-protein-domain-section');
     const bindingSiteSection = document.getElementById('detail-binding-site-section');
@@ -2750,6 +2782,13 @@ function showNodeDetails(locusTag) {
             proteinDomainSection.style.display = 'block';
             bindingSiteSection.style.display = 'block';
             loadMotifAndBindingSites(meta.locusTag);
+            // Fetch regulon pathway enrichment
+            fetchRegulonPathwayEnrichment(meta.locusTag);
+            // Hide the motif scan results from any previous query
+            const scanResultsBox = document.getElementById('scan-results-box');
+            if (scanResultsBox) scanResultsBox.classList.add('hidden');
+            const scanInput = document.getElementById('scan-sequence-input');
+            if (scanInput) scanInput.value = '';
         } else {
             proteinDomainSection.style.display = 'none';
             bindingSiteSection.style.display = 'none';
@@ -3662,6 +3701,8 @@ function initEventListeners() {
     initProteinDomainFeature();
 
     initBindingSiteFeature();
+
+    initAdvancedFeatures();
 
 
 
@@ -4600,6 +4641,16 @@ function processRnaSeqData(dataRows) {
         applyRnaSeqStyling();
         applyRnaSeqFilters();
     }
+
+    // Update details sidebar status badge and map if visible
+    const badge = document.getElementById('rnaseq-status-badge');
+    if (badge) {
+        badge.textContent = `(已导入 ${loadedCount} 个基因)`;
+        badge.style.color = '#3b82f6';
+    }
+    if (currentQueryGene) {
+        renderGenomicLocusMap(currentQueryGene);
+    }
 }
 
 function clearRnaSeqOverlay() {
@@ -4638,6 +4689,15 @@ function clearRnaSeqOverlay() {
         cy.nodes().removeClass('rnaseq-hidden');
         cy.style().update();
         updateNetworkStatistics();
+    }
+
+    const badge = document.getElementById('rnaseq-status-badge');
+    if (badge) {
+        badge.textContent = `(数据已清除)`;
+        badge.style.color = 'var(--text-muted)';
+    }
+    if (currentQueryGene) {
+        renderGenomicLocusMap(currentQueryGene);
     }
 }
 
@@ -5746,19 +5806,19 @@ function exportNetworkToCsv() {
 
                 if (currentSimulationMode === 'OE') {
 
-                    if (role === 'A') effectText = '表达增强 ⬆';
+                    if (role === 'A') effectText = '⬆';
 
-                    else if (role === 'R' || role === 'sRNA') effectText = '表达减弱 ⬇';
+                    else if (role === 'R' || role === 'sRNA') effectText = '⬇';
 
-                    else effectText = '复杂/双重 ↕';
+                    else effectText = '↕';
 
                 } else if (currentSimulationMode === 'KO') {
 
-                    if (role === 'A') effectText = '表达减弱 ⬇';
+                    if (role === 'A') effectText = '⬇';
 
-                    else if (role === 'R' || role === 'sRNA') effectText = '表达增强 ⬆';
+                    else if (role === 'R' || role === 'sRNA') effectText = '⬆';
 
-                    else effectText = '复杂/双重 ↕';
+                    else effectText = '↕';
 
                 }
 
@@ -6590,9 +6650,9 @@ function runPerturbationSimulation(regLocus, mode) {
 
         let cleanName = origName;
 
-        if (cleanName.includes(' (⬆ 增强)') || cleanName.includes(' (⬇ 减弱)') || cleanName.includes(' (↕ 双重)')) {
+        if (cleanName.includes(' (⬆)') || cleanName.includes(' (⬇)') || cleanName.includes(' (↕)')) {
 
-            cleanName = cleanName.replace(' (⬆ 增强)', '').replace(' (⬇ 减弱)', '').replace(' (↕ 双重)', '');
+            cleanName = cleanName.replace(' (⬆)', '').replace(' (⬇)', '').replace(' (↕)', '');
 
         }
 
@@ -6602,19 +6662,19 @@ function runPerturbationSimulation(regLocus, mode) {
 
             targetNode.addClass('sim-up');
 
-            targetNode.data('name', `${cleanName} (⬆ 增强)`);
+            targetNode.data('name', `${cleanName} (⬆)`);
 
         } else if (effect === 'down') {
 
             targetNode.addClass('sim-down');
 
-            targetNode.data('name', `${cleanName} (⬇ 减弱)`);
+            targetNode.data('name', `${cleanName} (⬇)`);
 
         } else if (effect === 'dual') {
 
             targetNode.addClass('sim-dual');
 
-            targetNode.data('name', `${cleanName} (↕ 双重)`);
+            targetNode.data('name', `${cleanName} (↕)`);
 
         }
 
@@ -6656,19 +6716,19 @@ function runPerturbationSimulation(regLocus, mode) {
 
                 if (targetNode.hasClass('sim-up')) {
 
-                    effectText = '表达增强 ⬆';
+                    effectText = '⬆';
 
                     effectStyle = 'color: #2e7d32; font-weight: 600;';
 
                 } else if (targetNode.hasClass('sim-down')) {
 
-                    effectText = '表达减弱 ⬇';
+                    effectText = '⬇';
 
                     effectStyle = 'color: #d32f2f; font-weight: 600;';
 
                 } else if (targetNode.hasClass('sim-dual')) {
 
-                    effectText = '复杂/双重 ↕';
+                    effectText = '↕';
 
                     effectStyle = 'color: #e65100; font-weight: 600;';
 
@@ -6784,9 +6844,9 @@ function resetPerturbationSimulation() {
 
         const currentName = node.data('name') || '';
 
-        if (currentName.includes(' (⬆ 增强)') || currentName.includes(' (⬇ 减弱)') || currentName.includes(' (↕ 双重)')) {
+        if (currentName.includes(' (⬆)') || currentName.includes(' (⬇)') || currentName.includes(' (↕)')) {
 
-            const clean = currentName.replace(' (⬆ 增强)', '').replace(' (⬇ 减弱)', '').replace(' (↕ 双重)', '');
+            const clean = currentName.replace(' (⬆)', '').replace(' (⬇)', '').replace(' (↕)', '');
 
             node.data('name', clean);
 
@@ -7000,15 +7060,15 @@ function exportPerturbationToCsv() {
 
         if (dualCount > 0 || (upCount > 0 && downCount > 0)) {
 
-            effectText = '复杂/双重 ↕';
+            effectText = '↕';
 
         } else if (upCount > 0) {
 
-            effectText = '表达增强 ⬆';
+            effectText = '⬆';
 
         } else if (downCount > 0) {
 
-            effectText = '表达减弱 ⬇';
+            effectText = '⬇';
 
         }
 
@@ -7199,6 +7259,7 @@ function customizeProteinStructureViewer(tfLocus) {
 }
 
 let activeViewer = null;
+let currentTfPwm = null;
 
 function renderReal3DStructure(pdbData) {
     const container = document.getElementById('protein-3d-viewer');
@@ -7480,10 +7541,17 @@ function loadMotifAndBindingSites(tfLocus) {
             if (!detailLocusTag || detailLocusTag.textContent !== tfLocus) return;
 
             if (data.error) {
+                currentTfPwm = null;
                 if (proteinDomainResult) {
                     proteinDomainResult.innerHTML = `<span style="color: var(--color-repression);">${data.error}</span>`;
                 }
                 return;
+            }
+            
+            if (data.pwm) {
+                currentTfPwm = data.pwm;
+            } else {
+                currentTfPwm = null;
             }
 
             if (data.consensus && consensusLabel) {
@@ -8010,6 +8078,555 @@ function renderChipSeqPeak(canvas, tfLocus, conditionName) {
 function varColorTextSecondary() {
     return getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#475569';
 }
+
+// ==========================================================================
+// 4. Advanced Computational and Visual Features
+// ==========================================================================
+
+// A. Target Regulon KEGG Enrichment
+function fetchRegulonPathwayEnrichment(tfLocus) {
+    const tbody = document.getElementById('enrichment-results-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0;"><i class="fa-solid fa-spinner fa-spin"></i> 正在计算通路富集...</td></tr>`;
+
+    fetch(`/api/regulon_enrichment?tf=${encodeURIComponent(tfLocus)}`)
+        .then(res => {
+            if (!res.ok) throw new Error("API request failed");
+            return res.json();
+        })
+        .then(data => {
+            if (data.error) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0; color:var(--color-repression);">${data.error}</td></tr>`;
+                return;
+            }
+
+            const pathways = data.pathways || [];
+            if (pathways.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0;">该转录因子的靶标未富集到显著代谢通路</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            pathways.slice(0, 10).forEach(p => { // limit to top 10
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid var(--border-color)';
+                
+                // Color significant ones (p < 0.05) with light green background
+                const isSig = p.p_value < 0.05;
+                if (isSig) {
+                    tr.style.backgroundColor = 'rgba(46, 125, 50, 0.04)';
+                }
+
+                // Format hit genes list for highlighting on KEGG map
+                // Mapping targets to KEGG cgb:cgXXXX format
+                const cgbTargetList = p.target_genes.map(g => `cgb:${g.locus.toLowerCase()}`).join('+');
+                const keggUrl = `https://www.kegg.jp/kegg-bin/show_pathway?${p.pathway_id}+${cgbTargetList}`;
+
+                const pValText = p.p_value < 0.001 ? p.p_value.toExponential(3) : p.p_value.toFixed(4);
+
+                tr.innerHTML = `
+                    <td style="padding:6px; text-align:left;">
+                        <a href="${keggUrl}" target="_blank" title="在新窗口打开 KEGG 通路图并标记靶基因" style="color:var(--color-primary-accent); text-decoration:none; font-weight:500;">
+                            ${p.pathway_name} <i class="fa-solid fa-arrow-up-right-from-square fa-xs" style="font-size:7px; opacity:0.7;"></i>
+                        </a>
+                        <div style="font-size:7.5px; color:var(--text-muted); margin-top:2px;">ID: ${p.pathway_id} | FE: ${p.fold_enrichment.toFixed(2)}x</div>
+                    </td>
+                    <td style="padding:6px; text-align:center; font-family:var(--font-mono); font-weight:600; color:var(--text-primary);">
+                        ${p.hits}/${p.total_genes}
+                    </td>
+                    <td style="padding:6px; text-align:right; font-family:var(--font-mono); font-weight:600; color:${isSig ? 'var(--color-activation)' : 'var(--text-secondary)'}; padding-right:10px;">
+                        ${pValText}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(err => {
+            console.error("Failed to load regulon pathway enrichment:", err);
+            tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0; color:var(--color-repression);">计算通路富集失败</td></tr>`;
+        });
+}
+
+// B. Client-side Promoter Motif Scanner
+function scanSequenceForMotif(seq, pwm, threshold) {
+    const tbody = document.getElementById('scan-results-body');
+    const box = document.getElementById('scan-results-box');
+    if (!tbody || !box) return;
+
+    tbody.innerHTML = '';
+    
+    // 1. Standardize and clean input sequence (only allow A, C, G, T)
+    const cleanSeq = seq.toUpperCase().replace(/[^ACGT]/g, '');
+    if (!cleanSeq) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">请输入有效的 DNA 序列</td></tr>`;
+        box.classList.remove('hidden');
+        return;
+    }
+
+    const pwmLen = pwm.length;
+    if (pwmLen === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">基序权重矩阵为空</td></tr>`;
+        box.classList.remove('hidden');
+        return;
+    }
+
+    if (cleanSeq.length < pwmLen) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">序列长度必须大于等于基序长度 (${pwmLen}bp)</td></tr>`;
+        box.classList.remove('hidden');
+        return;
+    }
+
+    // 2. Pre-calculate max and min possible scores for consensus matching
+    let maxScore = 0;
+    let minScore = 0;
+    for (let i = 0; i < pwmLen; i++) {
+        const vals = Object.values(pwm[i]);
+        maxScore += Math.max(...vals);
+        minScore += Math.min(...vals);
+    }
+    const scoreRange = maxScore - minScore;
+
+    const hits = [];
+
+    // Helper to score a single window of size pwmLen
+    function scoreWindow(windowSeq, pos, strand) {
+        let rawScore = 0;
+        for (let i = 0; i < pwmLen; i++) {
+            const base = windowSeq[i];
+            rawScore += (pwm[i][base] !== undefined) ? pwm[i][base] : 0;
+        }
+        // Normalize to percentage
+        const similarity = scoreRange > 0 ? ((rawScore - minScore) / scoreRange * 100) : 0;
+        if (similarity >= threshold) {
+            hits.push({
+                position: pos,
+                strand: strand,
+                sequence: windowSeq,
+                score: similarity
+            });
+        }
+    }
+
+    // Helper for reverse complement
+    function getReverseComplement(s) {
+        const comp = { 'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A' };
+        return s.split('').reverse().map(b => comp[b] || b).join('');
+    }
+
+    // 3. Slide window along sequence
+    for (let i = 0; i <= cleanSeq.length - pwmLen; i++) {
+        const windowSeq = cleanSeq.substring(i, i + pwmLen);
+        // Forward strand scoring
+        scoreWindow(windowSeq, i + 1, '+');
+        // Reverse strand scoring
+        const revWindowSeq = getReverseComplement(windowSeq);
+        scoreWindow(revWindowSeq, i + 1, '-');
+    }
+
+    // 4. Render hits
+    if (hits.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">未扫描到匹配位点 (低于阈值 ${threshold}%)</td></tr>`;
+        box.classList.remove('hidden');
+        return;
+    }
+
+    // Sort by score descending
+    hits.sort((a, b) => b.score - a.score);
+
+    hits.forEach(h => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--border-color)';
+        
+        let color = '#475569';
+        if (h.score >= 90) color = 'var(--color-repression)';
+        else if (h.score >= 80) color = 'var(--color-dual)';
+        else color = 'var(--color-activation)';
+
+        tr.innerHTML = `
+            <td style="padding:4px 6px; color:var(--text-secondary);">${h.position}</td>
+            <td style="padding:4px 6px; font-weight:600; color:${h.strand === '+' ? 'var(--color-activation)' : 'var(--color-srna)'}">${h.strand}</td>
+            <td style="padding:4px 6px; color:#1e3a8a; font-weight:500;">${h.sequence}</td>
+            <td style="padding:4px 6px; text-align:right; font-weight:bold; color:${color}; padding-right:10px;">${h.score.toFixed(1)}%</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    box.classList.remove('hidden');
+}
+
+// C. Genomic Locus Map SVG Visualizer
+function renderGenomicLocusMap(locusTag) {
+    const container = document.getElementById('genomic-map-container');
+    if (!container) return;
+
+    container.innerHTML = ''; // Clear previous
+
+    if (!locusTag) return;
+    const cleanLocus = locusTag.trim();
+    const locusLower = cleanLocus.toLowerCase();
+
+    // Extract the numeric part of RefSeq locus tag, e.g. cg0279 -> 279
+    const numMatch = cleanLocus.match(/\d+/);
+    if (!numMatch) {
+        container.innerHTML = `<span style="font-size: 10px; color:var(--text-muted);">无法获取基因组坐标位置</span>`;
+        return;
+    }
+
+    const centerNum = parseInt(numMatch[0]);
+    const neighborGenes = [];
+
+    // Resolve neighbor locus tags (+- 3 genes)
+    for (let offset = -3; offset <= 3; offset++) {
+        const num = centerNum + offset;
+        if (num <= 0) continue;
+        const padLocus = 'cg' + String(num).padStart(4, '0');
+        const key = padLocus.toLowerCase();
+        
+        const item = geneIndex[key] || { name: padLocus.toUpperCase(), type: 'Target' };
+        const geneName = (item.name && item.name !== '--') ? item.name : padLocus.toUpperCase();
+        const product = cgToProduct[key] || '暂无描述';
+        const type = item.type || 'Target';
+        
+        const operonMeta = geneToOperon[key];
+        const strand = operonMeta ? operonMeta.orientation : '+';
+        const operonName = operonMeta ? operonMeta.operon : null;
+
+        // Fetch expression data (check both cg locus and mapped cgl locus)
+        const cglTag = cgToCgl[key] || '';
+        const expr = rnaseqData && (rnaseqData[key] || (cglTag ? rnaseqData[cglTag.toLowerCase()] : null));
+        const log2fc = expr ? expr.log2fc : undefined;
+        const pval = expr ? expr.pvalue : undefined;
+
+        neighborGenes.push({
+            locus: padLocus,
+            name: geneName,
+            type: type,
+            product: product,
+            strand: strand,
+            operon: operonName,
+            log2fc: log2fc,
+            pval: pval
+        });
+    }
+
+    // Dimensions
+    const svgWidth = 340;
+    const svgHeight = 110;
+    const paddingX = 15;
+    const totalSlots = neighborGenes.length;
+    const spacing = 4;
+    const geneWidth = (svgWidth - 2 * paddingX - (totalSlots - 1) * spacing) / totalSlots;
+    const h = 26; // arrow height
+    const y = 42; // arrow y-offset
+
+    let svgHtml = `<svg viewBox="0 0 ${svgWidth} ${svgHeight}" style="width:100%; height:100%; display:block;" xmlns="http://www.w3.org/2000/svg">`;
+
+    // 1. Draw operon grouping background boxes
+    const operonGroups = {};
+    neighborGenes.forEach((g, idx) => {
+        if (g.operon) {
+            if (!operonGroups[g.operon]) {
+                operonGroups[g.operon] = [];
+            }
+            operonGroups[g.operon].push(idx);
+        }
+    });
+
+    Object.entries(operonGroups).forEach(([operonName, indices]) => {
+        if (indices.length >= 1) {
+            const firstIdx = indices[0];
+            const lastIdx = indices[indices.length - 1];
+            const opX = paddingX + firstIdx * (geneWidth + spacing) - 2;
+            const opW = (lastIdx - firstIdx + 1) * (geneWidth + spacing) - spacing + 4;
+            
+            svgHtml += `
+                <rect x="${opX}" y="${y - 14}" width="${opW}" height="${h + 30}" fill="rgba(99, 102, 241, 0.03)" stroke="#818cf8" stroke-dasharray="2,2" stroke-width="0.8" rx="4"></rect>
+                <text x="${opX + 3}" y="${y - 18}" font-size="6.5px" font-family="sans-serif" font-weight="600" fill="#4f46e5">${operonName}</text>
+            `;
+        }
+    });
+
+    // 2. Draw chromosome backbone line
+    svgHtml += `<line x1="${paddingX - 5}" y1="${y + h/2}" x2="${svgWidth - paddingX + 5}" y2="${y + h/2}" stroke="#94a3b8" stroke-dasharray="3,3" stroke-width="1.5"></line>`;
+
+    // 3. Draw each gene block chevron
+    neighborGenes.forEach((g, idx) => {
+        const x = paddingX + idx * (geneWidth + spacing);
+        const isCenter = g.locus.toLowerCase() === locusLower;
+        
+        // Determine color based on log2FC
+        let fill = '#e2e8f0';
+        let stroke = '#cbd5e1';
+        if (g.log2fc !== undefined) {
+            fill = getRnaSeqColor(g.log2fc);
+            stroke = Math.abs(g.log2fc) >= 0.5 ? (g.log2fc > 0 ? '#ef4444' : '#2563eb') : '#cbd5e1';
+        }
+
+        // Draw chevron path based on strand direction
+        let points = "";
+        if (g.strand === '+') {
+            points = `${x},${y} ${x+geneWidth-6},${y} ${x+geneWidth},${y+h/2} ${x+geneWidth-6},${y+h} ${x},${y+h} ${x+3},${y+h/2}`;
+        } else {
+            points = `${x+6},${y} ${x+geneWidth},${y} ${x+geneWidth-3},${y+h/2} ${x+geneWidth},${y+h} ${x+6},${y+h} ${x},${y+h/2}`;
+        }
+
+        // Highlight center selected gene
+        const highlightStyle = isCenter ? 'stroke="#7c3aed" stroke-width="2.5" filter="drop-shadow(0 2px 4px rgba(124, 58, 237, 0.4))"' : `stroke="${stroke}" stroke-width="1"`;
+
+        svgHtml += `
+            <polygon class="gene-chevron" data-locus="${g.locus}" points="${points}" fill="${fill}" ${highlightStyle} style="cursor:pointer; transition: opacity 0.15s;">
+                <title>${g.locus.toUpperCase()} (${g.name})\n功能: ${g.product}\n链: ${g.strand}\nlog2FC: ${g.log2fc !== undefined ? g.log2fc.toFixed(2) : '无数据'}</title>
+            </polygon>
+        `;
+
+        // Text label inside/above
+        const dispName = g.name.length > 8 ? g.name.substring(0, 7) + '..' : g.name;
+        
+        svgHtml += `
+            <text x="${x + geneWidth/2}" y="${y + h + 10}" font-size="7.5px" font-family="sans-serif" font-weight="600" text-anchor="middle" fill="${isCenter ? '#7c3aed' : '#334155'}" style="pointer-events:none;">${dispName}</text>
+            <text x="${x + geneWidth/2}" y="${y - 4}" font-size="6.5px" font-family="monospace" text-anchor="middle" fill="#64748b" style="pointer-events:none;">${g.locus.toUpperCase()}</text>
+        `;
+
+        // 4. Draw regulation ChIP-seq Peak overlay in promoter intergenic region
+        const tfLower = cleanLocus.toLowerCase();
+        const tgLower = g.locus.toLowerCase();
+        
+        const regRow = regulations.find(r => {
+            const rowTf = cleanStr(r.TF_locusTag).toLowerCase();
+            const rowTg = cleanStr(r.TG_locusTag).toLowerCase();
+            return rowTf === tfLower && rowTg === tgLower && r.Binding_site && cleanStr(r.Binding_site) !== 'nan';
+        });
+
+        if (regRow) {
+            const peakOffset = g.strand === '+' ? -spacing/2 : geneWidth + spacing/2;
+            const peakX = x + peakOffset;
+            
+            svgHtml += `
+                <path d="M ${peakX - 6},${y + h/2} Q ${peakX},${y - 8} ${peakX + 6},${y + h/2}" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" stroke-width="1.2">
+                    <title>预测结合位点:\n${regRow.Binding_site}\n类型: ${regRow.Role}</title>
+                </path>
+                <circle cx="${peakX}" cy="${y - 8}" r="2" fill="#ef4444"></circle>
+            `;
+        }
+    });
+
+    svgHtml += `</svg>`;
+    container.innerHTML = svgHtml;
+
+    // Bind click navigation event handler to polygons
+    const polygons = container.querySelectorAll('.gene-chevron');
+    polygons.forEach(p => {
+        p.addEventListener('mouseenter', () => { p.style.opacity = '0.8'; });
+        p.addEventListener('mouseleave', () => { p.style.opacity = '1.0'; });
+        p.addEventListener('click', () => {
+            const clickedLocus = p.getAttribute('data-locus');
+            if (clickedLocus) {
+                querySingleGene(clickedLocus);
+            }
+        });
+    });
+}
+
+// D. Initialize Advanced Interactive Event Bindings
+function initAdvancedFeatures() {
+    // 1. Motif Scanner Events
+    const btnScan = document.getElementById('btn-run-scan');
+    const seqInput = document.getElementById('scan-sequence-input');
+    const thresholdSlider = document.getElementById('scan-threshold-slider');
+    const thresholdVal = document.getElementById('scan-threshold-val');
+
+    if (thresholdSlider && thresholdVal) {
+        thresholdSlider.addEventListener('input', () => {
+            thresholdVal.textContent = thresholdSlider.value + '%';
+        });
+    }
+
+    if (btnScan && seqInput && thresholdSlider) {
+        btnScan.addEventListener('click', () => {
+            if (!currentTfPwm) {
+                alert('请先选择一个有效的转录因子以获取其基序权重矩阵 (PWM)！');
+                return;
+            }
+            const seq = seqInput.value;
+            const threshold = parseFloat(thresholdSlider.value);
+            scanSequenceForMotif(seq, currentTfPwm, threshold);
+        });
+    }
+
+    // 2. Custom RNA-seq File Upload in Sidebar
+    const btnImport = document.getElementById('btn-import-rnaseq');
+    const fileInput = document.getElementById('rnaseq-upload-input');
+    
+    if (btnImport && fileInput) {
+        btnImport.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const csvText = evt.target.result;
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        processRnaSeqData(results.data);
+                        fileInput.value = '';
+                    },
+                    error: function(err) {
+                        alert('解析 CSV 文件失败: ' + err.message);
+                    }
+                });
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    // 3. Organism/Strain Selection
+    const orgSelect = document.getElementById('organism-select');
+    if (orgSelect) {
+        // Fetch organisms
+        fetch('/api/list_organisms')
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    console.error("Error loading organisms:", data.error);
+                    return;
+                }
+                
+                orgSelect.innerHTML = '';
+                data.forEach(org => {
+                    const opt = document.createElement('option');
+                    opt.value = org.id;
+                    opt.textContent = org.name;
+                    opt.setAttribute('data-has-rna', org.has_rna);
+                    orgSelect.appendChild(opt);
+                });
+                
+                // Select default
+                orgSelect.value = 'C_g_DSM_20300_=_ATCC_13032';
+            })
+            .catch(err => console.error("Failed to fetch organisms:", err));
+
+        orgSelect.addEventListener('change', async () => {
+            const orgId = orgSelect.value;
+            const opt = orgSelect.selectedOptions[0];
+            const hasRna = opt ? opt.getAttribute('data-has-rna') === 'true' : false;
+            
+            updateStatus('正在切换物种/菌株...', 'loading');
+            
+            if (orgId === 'C_g_DSM_20300_=_ATCC_13032') {
+                // Use default files
+                REGULATIONS_URL = 'data/regulations.csv';
+                RNA_REGULATIONS_URL = 'data/rna_regulation.csv';
+                MAPPING_URL = 'data/gene_mapping.csv';
+                OPERONS_URL = 'data/operons.csv';
+            } else {
+                const opPrefix = getOperonPrefix(orgId);
+                REGULATIONS_URL = `data/AllOrganismsFiles/${orgId}_regulations.csv`;
+                RNA_REGULATIONS_URL = hasRna ? `data/AllOrganismsFiles/${orgId}_rna_regulation.csv` : '';
+                MAPPING_URL = ''; // No mapping for other strains
+                OPERONS_URL = `data/AllOrganismsFiles/${opPrefix}_operons.csv`;
+            }
+            
+            // Clear current network mapping variables
+            geneMapping = [];
+            geneIndex = {};
+            cglToCg = {};
+            cgToCgl = {};
+            nameToCg = {};
+            cgToProduct = {};
+            regulations = [];
+            rnaRegulations = [];
+            
+            // Reset simulation if active
+            resetPerturbationSimulation();
+            
+            // Reset UI lists and query states
+            currentQueryGene = null;
+            clearAllInputs();
+            
+            // Hide the details sidebar if open
+            toggleRightSidebar(false);
+            
+            // Clear network visualization
+            if (cy) {
+                cy.elements().remove();
+            }
+            const overlay = document.getElementById('canvas-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                const h3 = overlay.querySelector('h3');
+                if (h3) h3.textContent = `已载入 ${opt ? opt.textContent : '新物种'}，请输入基因开始分析`;
+            }
+            
+            try {
+                await loadNetworkData();
+                updateExampleTags();
+            } catch (err) {
+                console.error("Failed to load new organism network data:", err);
+                updateStatus('载入数据失败: ' + err.message, 'error');
+            }
+        });
+    }
+}
+
+function getOperonPrefix(orgId) {
+    let count = 0;
+    return orgId.replace(/_/g, (match) => {
+        count++;
+        return count <= 2 ? '' : match;
+    });
+}
+
+function updateExampleTags() {
+    const tfCounts = {};
+    regulations.forEach(row => {
+        const tfTag = cleanStr(row.TF_locusTag);
+        const tfName = cleanStr(row.TF_name);
+        const tf = tfName && tfName !== tfTag ? tfName : tfTag;
+        if (tf) {
+            tfCounts[tf] = (tfCounts[tf] || 0) + 1;
+        }
+    });
+    const sortedTfs = Object.entries(tfCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(entry => entry[0]);
+
+    if (sortedTfs.length === 0) {
+        sortedTfs.push("cg0350", "sigH", "whiB4");
+    }
+
+    const container = document.querySelector('.quick-examples');
+    if (container) {
+        const span = container.querySelector('span');
+        container.innerHTML = '';
+        if (span) {
+            container.appendChild(span);
+        } else {
+            const newSpan = document.createElement('span');
+            newSpan.textContent = '快速尝试:';
+            container.appendChild(newSpan);
+        }
+        sortedTfs.forEach(tf => {
+            const btn = document.createElement('button');
+            btn.className = 'example-tag';
+            btn.textContent = tf;
+            btn.addEventListener('click', () => {
+                querySingleGene(tf);
+            });
+            container.appendChild(btn);
+        });
+    }
+}
+
+
 
 
 

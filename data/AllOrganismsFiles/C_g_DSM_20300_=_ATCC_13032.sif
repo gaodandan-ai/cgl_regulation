@@ -1,0 +1,130 @@
+cg0012	Activation	cg1147	ssiE	ssiG	ssuB	ssuA	ssuD2	ssiF	ssuD1	ssuC
+cg0019	Activation	cg0018
+cg0051	Activation	cg0052	cg0053	cg0054
+citB	Activation	cg3127	cg3126	cg3125	citP
+ureR	Repression	ureC	ureE	ureF	ureG	ureD	ureA	ureB
+cg0146	Activation	cg0350
+cg0146	Repression	sixA	mtlD	cg0146	xylB	adhA	adhA	rbtT
+cg0156	Repression	cg3138	cg3139	cg2810	cg2810
+cg0156	Activation	cg3372	cg3373	cg3374	cg3375	cg4005	cg0012	cg1514	cg3112	cg3112	cg3113	cysN	cysD	cysH	cg3117	cysI	cysJ
+cg0196	Repression	cg0198	msmA	iolD	iolE	iolG	iolH	cg0206	cg0207	cg0196	iolB	cg0210	pck	iolC	cg0223
+cspA	Repression	aceB
+sigC	Activation	cydC	cydD	cydB	cydA	ctaA	ctaB	qcrB	ctaE	qcrA1	qcrC
+lrp	Activation	lrp	brnF	brnE
+cg0317	Repression	arsX	arsC1	arsC2	cg1706	cg1707
+whiB4	Repression	cg0404	cg1214	nadC	nadA	cg1218	cg2342	cg3405	trxB	trxC	cwlM
+cg0343	Repression	cg0340	fadD1	fabG1	cg0345	fadE	cg0347
+cg0350	Activation	cg1039	cg1040	cg1040	pdxK	cg1767	cg1767	cg1768	cg1768	qcrC	qcrC	ctaE	ctaC	ctaC	ltsA	fas-IA	fas-IA	ldh	ldh	narK	narK	cg1735	pstA	pstA	pstC	gltB	gltB	ndh	ndh	cg1766	qcrB	qcrB	cg4001	cg4001	sdhCD	sdhCD	cg2402	qcrA1	sdhA	sdhB	sdhB	cg0448	cg0448	gltD	gltD	narJ	narJ	narG	narG	cg2824	cg2824	cg2831	pstB	pstB	pstS	pstS	ctaA	ctaA	whiB1	narI	narI	cg2408	serC	cg0879	cg0879	pfkA	cg3382	cg3382	cg0936	cg0936	ctaD	ctaD	cg1037	cg1037	cg2361	narH	ksgA	ksgA	actA	actA
+cg0350	Repression	cg3126	cg1139	cg1139	catA2	cg1140	cg1140	ptsF	ptsF	cg1141	cg1142	cg1142	cg1143	cg1143	pcaI	pcaB1	cg1144	benA	benC	fum	benK1	nrdF	nrdF	cg3388	cg3388	whiB4	whiB4	cg1753	amtB	cg0350	prpD1	prpD1	cg3349	prpB1	prpB1	prpC1	gltD	gltA	cg1061	tfdF	uspA2	fabG1	cg1062	cg1064	cg1064	ptsI	pfkB	cg0345	cg1065	gluA	gluC	cg1066	aceA	aceA	fadE	coaA	vanK	benB	benK3	benD	gntV	cg0347	pobB	xylC	cg2965	cg1309	cg2966	gntP	recJ	cg3226	lldA	cg0444	cg0444	cg2118	gdh	pck	pck	cg0198	iolB	iolE	iolE	iolG	sdhA	cg0448	cg3220	putP	cg1307	cg1739	cg3221	citP	iolC	msmA	iolD	iolH	iolH	cg0246	cg0246	cg0247	sdhCD	sdhB	gabT	gabD2	cg0568	cg0568	prpD2	prpB2	prpC2	ilvB	cg1086	cg1340	ppc	ppc	pyc	ilvN	cg1840	msiK1	ugpC	ugpC	ackA	ackA	pta	cg3127	cg1738	cg3389	cg3390	tpi	dtsR1	glnK	sucC	cg3096	cg3096	birA	hpaG	gluB	gluB	gluD	cg0836	cg0875	cg0961	cg0961	cg0968	cg2610	glnA	cg3170	cg3195	cg3250	cg3251	vanA	vanA	benK2	vanB	vanB	ptsG	pcaG	pcaH	ugpA	ugpA	catA1	benE	ugpE	adhA	adhA	accDA	acn	pgk	fas-IB	gap	glnD	aceB	aceB	ilvC	ugpB	sucD	sucD	cg3125	nagI	cg3352	cg3352	cg3354
+cspA2	Sigma	aceB
+cg0444	Activation	aceE
+cg0444	Repression	pta	mez	sdhB	pyc	gltA	ptsS	ackA	cg0054	cg0378	cg0735	mdh2	cg0770	fkpA	pdxK	pyrR	cg2080	sucD	sucD	sdhCD	sdhA	ptsG	cg0052	cg0053	cg0736	cg0767	cg0769	cg1037	ksgA	cg1040	acn	cg1738	cg2234	ctaE	cg2766	cg0444	fda	cg0448	serC	pyrB	cg0952	glgA	aceB	cysK	cg3096	cg2079	sucC	actA	aceA	adhA	cg4001	cg0350	cg0953	cg0737	cg0768	accDA	cg1039	pyrC	pck
+cg0454	Repression	cg0456	cg0454	cg0455
+cg0463	Repression	cg3411	ctpA	cg3280	cg3281	cg3282	cg0463
+cg0500	Activation	cg0501	cg0502	aroD	aroE	cg0500
+cg0527	Activation	glyA
+cg0565	Repression	gabT	gabD2	cg0568
+cg0646	Repression	cg0635	cg0636	cg0638	cg0642	betB	cg0639	fdxB	fabG2	cg0644	cytP
+whiB3	Activation	whiB1
+whiB3	Repression	trxB
+sigD	Activation	pks	pccB	fadD2	cop1	cmt3	cg1056	purB	cmt1	cg0697	cg0810	cg0809	cg1246	cg2320	cg2572	cg3009	cg0532	cg0607	lppS	dtsR2	cg1247	cg3181	cg3180	fixA	cg0136	cg0486
+cg0702	Activation	cg0701
+cgtR7	Repression	cg2402
+cgtR7	Activation	cg1324	cg3077	cg3322	cg0451	cg0452	cg0706	cgtS7	cgtR7	cg0710	cg0781	cg3078	hspR	cg3142	cg3143	cg3264	cg1325	cg2444	cg2444	cg2684	cg2812	cg2811	clpB	dnaK	grpE	dnaJ	cg3321	cg3320
+cg0725	Repression	crtYe	crtI2	cg0722	crtE	cg0725	crtYf	crtB2	crtEb
+sirR	Repression	sirR	cg1623	cg0740
+cg0800	Activation	prpC2	prpD2	prpB2
+mtrA	Repression	cg2402	cg2747	cg1039	cg1039	pdxK	cg3138	cg3138	cg3139	cg0858	cg0858	ksgA	cg1040	cg1037	cg1037
+mtrA	Activation	betP	cg0859	cg0859	cg1612	cg1612	proP	cg1665	cg1942	nrdH	cg0134	cg0980	cg2777	nrdE	cg0133	cg0133	cg1517	cg1517	cg1943	cg2052	cg2096	cg0282	cg0715	cg0896	nrdI	nrdI	cg3254
+sigH	Sigma	hemA	atpF	fdhD	cg0617	cg1096	fadD4	atpA	atpD	atpG	atpC	cg0184	dkg	sigB	cg0614	guaB2	cg0877	cg1272	clpP1	cg1288	cg1356	cg1398	cg1689	hspR	mcmA	nifS2	sufC	sufB	dnaJ	cg2106	cg2177	cg2332	cg2331	grpE	cg2397	ctaC	cg2408	lipA	sigM	cg2434	cg2487	dnaG	cg2538	cg2661	cg3078	clpB	cg3143	msrA	trxB1	cg3344	trpP	cg3378	cg2247	cg2263	cg2267	cg2301	cg2329	cg2330	cg2380	cg2411	cg2514	clpX	cg2619	lppS	murI	cg2810	cg2835	cg2838	gpx	cg2912	cg2949	clpC	ftsH	adhA	trxB	trxC	cg3429	cg0404	cg1214	nadC	cg1218	cg2342	cg2152	dnaJ2	whiB1	clpP2	atpB	atpE	ilvD	ilvB	ilvN	cg1555	uvrA	cg1686	cg1687	cysS2	cg1730	cg1759	sufD	cg1765	tal	ribC	sigA	cg1397	ilvC	ugpE	cg1640	cg1671	cg1688	hemC	cg1708	cg0928	cg1127	cg1760	cg1181	cg1182	zwf	cg1245	sigE	ribD	cg1289	thrB	cg2078	rho	cg1358	cg2126	cg1359	cg1360	atpH	gor	ispG	cg2214	sigH	cg0018	cg0378	secE	cg1179	cg1282	prfA	cg1375	nadA	cg3405	dnaK
+whiB1	Activation	trxB	trxC	cwlM	whiB4	whiB3
+pdxR	Repression	pdxR
+pdxR	Activation	cg0898	cg0899
+cg0979	Repression	cg0978	cg0979	cg0977
+amtR	Repression	soxA	cg2183	mez	cg1646	cg0103	codA	ureB	ureF	ureD	cg0228	gltB	cg1062	cg1065	ocd	gluC	cg2181	cg2182	glnK	gdh	glnA	cg1647	ureC	ureE	cg1061	cg1066	amt	cg1064	cg1295	cg1296	gluA	gluB	gluD	cg2184	ureA	ureG	amtB	gltD	dapD	glnD
+cg0993	Repression	cg0992	cg0993
+cg1032	Repression	cg1032	cg1033
+cg1053	Repression	mmpL2	cg1053
+cgtR10	Activation	cg1082	cgtR10	cg1081	cgtS10
+cg1120	Repression	sdhCD	sdhB	narI	narH	cg1340	leuC	catA1	cg4001	sdhA	cg0448	narJ	narG	narK	leuD	ackA	pta	katA	acn	cg1738	cg1739
+cg1211	Repression	cg1211	cg1212
+cg1218	Repression	nadA	nadC	cg1218	cg1214
+sigE	Sigma	rrmA
+cg1308	Repression	cg1308	catA2	cg1309	tfdF
+cg1324	Activation	narI	narJ	narJ	narG	narH	narH	narK
+cg1324	Repression	msrA	cg1322	cg1324	cg1426	cg1426	cg1848	cg2329	cg3084	cg1150	cg1849	cg1849	cg1850	cg3085	sod
+cg1340	Activation	cg1340
+cg1340	Repression	narJ	narG	narI	hmp	narH	narK	cg1340
+cg1410	Repression	rbsK2	iunH3	rbsK1	ccpA1	cg1410	cg1411	cg1413	cg1412	cg1414	cg1545
+lysG	Repression	lysG
+lysG	Activation	lysE
+cg1486	Repression	leuC	leuD	trpG	trpCF	trpB	leuB	trpE	trpD	trpA
+ccpA1	Repression	cg1410	cg1413	iunH3	cg1411	ccpA1	cg1412	cg1414	cg1545	rbsK1	rbsK2
+cg1552	Repression	cg1553	cg1552
+argR	Repression	carB	gltD	carA	pyrF	gdh	argJ	gltB	argD	argR	argC	argB	argF
+cg1648	Repression	pctA	cg1648	pctB	pctD	pctC	pgp1
+cg1704	Repression	cg1707	arsC1	arsX	arsC2	cg1706
+cg1738	Repression	cg1739	cg1738	acn
+cg1765	Repression	nifS2	sufD	cg1765	cg1759	cg1760	sufC	sufB
+cg1792	Activation	ftsZ	dtsR1	cg2363
+pyrR	Repression	pyrH	pyrB	pyrR	pyrC
+cg1831	Repression	cg1834	cg1831	cg1832	cg1833
+cg1846	Repression	cg1844	cg1845	cg1846	cg1847
+rel	Repression	cg2942
+rel	Activation	sigH	sigE	cg1272	cg1272	cg0877	sigB	lexA	sigM
+cg1935	Repression	gnd	zwf	devB	gntP	tkt	tkt	tal	opcA	gntV
+cg1935	Activation	ptsG	pck	pck	ptsS	ptsS
+sigA	Activation	hom	narJ	narH	narG	ssuB	ssuA	lysE	lysG	ilvN	ilvC	cg1459	leuC	rbsK1	ugpE	ugpC	soxA	ocd	amt	pgk	cg1992	ptsH	cg0041	cg0043	citP	bioB	cg0304	brnF	brnE	cg0350	cg0397	sdhCD	cg0527	cg0676	cg0679	metX	prpB2	cg0767	cg0770	pyc	cg0794	cg0800	cg0899	cg0938	cg1010	cg1012	betP	cg1039	pdxK	gapX	eno	glyA	cg1147	ssiE	ssuD2	glgA	cg1279	metE	argS	cg2701	amyE	pstC	cg2912	cg2913	nagB	nagA1	clpC	ackA	clpB	hspR	dnaJ	cysN	grpE	cysJ	cg0096	prpD2	icd	cg1340	ssuD1	cg1486	tpi	cg1935	cg2113	cg0012	cg0042	sixA	mtlD	rbtT	cg0146	xylB	cg0156	gltB	leuA	lysC	asd	lrp	cg0444	sdhA	sdhB	cg0448	secE	cg0678	groES	groEL	metY	prpC2	cg0768	cg0769	irp1	cg0795	cg0921	cg0922	cg1011	ksgA	fum	ssiG	glgC	lysA	cg2703	ftn	cg2831	sucC	pstA	pstS	bioA	thrE	groEL	pta	fda	cg3078	cg3096	adhA	cg3112	cg3117	cysI	cg3125	cg3126	cg3139	pck	gntP	cg2152	dapA	cg2162	lpdA	pdxR	cg0898	gltA	cg1037	cg1040	ssiF	dapD	odhA	thrB	narI	narK	ssuC	pfkA	cg1410	cg1411	cg1412	cg1413	cg1414	ilvD	ilvB	leuB	cg1458	leuD	ptsG	iunH3	cg1545	ccpA1	ugpA	ugpB	metH	acn	cg1738	cg1739	ppc	gap	metK	sigA	cg2112	lexA	cg2115	ptsI	cg2118	pfkB	ptsF	cg2147	cg2149	cg2160	mqo	gdh	cg2364	cg2365	ftsZ	ilvE	cg2500	rbsK2	cg2612	mdh	vanB	metB	cg2704	gntV	sucD	pstB	cg2883	cgtS3	cgtR3	ptsS	scrB	cysD	cysH	cg3127	ldh	lldA	mez	cg3374	proP	cg2148	sucB	glnA	thrC	fur	brnQ	vanK	clpP2	clpP1	cg2747	pgm	cg2810	nuc	cg2884	bioD	poxB	cg2911	dnaK	cg3113	dapB	ilvA	cg2363	metF	aceE	aecD	aceB	aceA	vanA	cg3138	cg3226	cg3372	cg3375
+sigB	Sigma	cg0097	fum	pgk	ilvE	fda	cgtR10	cg2162	dapB	cg0096	cgtS10	eno	pfkA	cg1417	ppc	tpi	gap	poxB	cg3330	hmp
+dtxR	Activation	ftn	sdhB	sdhB	cg0448	dps	dps	sdhCD	sdhCD	sdhA	cg4001	cg4001
+dtxR	Repression	cg0589	cg0591	cg0748	cg0767	cg0768	irp1	cg0928	cg1120	cg1405	cglIIR	cg3083	cysD	cysJ	cg3156	cg0470	cg0471	cg0527	cg0590	cg0769	cg0770	cg0921	cg0922	cg0924	cg0926	cg0927	cg0955	cg1931	cglIM	cglIR	cg2234	cg2311	hmuO	cg2796	cg2796	cg2797	cg3084	cg3085	cg3113	cg0159	cg0405	cg0466	cg0466	cysN	cysH	cysI	cg3404	cg3404	cg0465	cg0465	cg0468	cg0469	cg0467	cg1418	cg1642	cg1930	cg3082	cg3112	cg3117	cgtR11	cg3394	cg0160	cg0160
+oxyR	Repression	katA	cg1293	cydA	cg1695	cg1759	sufD	cg1765	cydD	hemH	nifS2	proP	cg0311	cg1292	cydC	cydB	cg1760	sufC	oxyR	ftn	cg1294	cg1746	sufB	dps
+cg2112	Repression	nrdI	nrdE	nrdH
+lexA	Activation	cg0834	cg0898	cg0899	putP	putP
+lexA	Repression	cg0471	cg0714	cg1080	cg1080	cg1288	cg1289	cg1318	cg1319	ruvB	ruvC	cg2026	cg2113	recA	ftsK	cg2277	cg2279	cg3345	cg0713	cg0841	cg1255	dnaE2	cg0742	cg0875	cg1059	cg1408	cg1408	cg1427	cg1559	recN	ruvA	cg1881	cg1883	cg1884	cg2034	lexA	recX	cg2381	cg2504	cg2683	cg2733	cg0470	uvrA	cg1977	cg2112	cg2449	radA
+cg2115	Repression	cytP	eno	lipT	fda	rmpC	ptsH	cg2831	lpd	fabG2	cg0644	cg0680	alr	aroE2	cg1285	cg1408	ctaB	tkt	tal	terC	cg2795	cg2796	cysK	rmpA	cg0638	cg0639	cg2116	ptsS	ldh	ptsG	cg2115	cg2118	betB	cg0642	pfkA	zwf	opcA	devB	gap	ptsI	pfkB	ptsF	ftsY	pyk
+cg2118	Repression	cg2118	ptsH	ptsI	pfkB	ptsF
+cg2152	Activation	cg0297	recR	cg0892	cg2126	clpP2	clpC	clpP1	ptrB
+cg2200	Activation	cg2202	cg2204
+cg2200	Repression	cgtR11
+cg2268	Activation	cg2269
+cg2309	Repression	cg2148	bioA	cg0096	cg0097	cg2883	cg2884	bioD	bioB	cg2147	cg2149
+cg2500	Repression	cg2500	fur
+fur	Repression	cg0040	cg2913	cg0041	cg0042	cg0043	cg0794	cg0795	cg1447	cg2911	cg2912
+hrcA	Repression	groEL	groES	groEL	cg1553
+cg2544	Activation	cg0350
+cg2544	Repression	cg2540	cg2542	glcD
+cg2615	Repression	vanB	vanA	vanK
+pcaR	Repression	pcaI	benK3	scoB	pcaF	pcaL	cg2627	pcaB1	pcaG	pobB	scoA	pcaR	pcaH
+cg2627	Activation	pobB	pcaB1	pcaI	benK3	pcaG	pcaH
+cg2641	Activation	catC	catA1	benB	benC	benE	catB	benA	benD	benK1
+cg2737	Repression	accBC	dtsR1	fas-IB	fas-IA
+cg2766	Repression	cg2675	menE	cg1421	cg2674	cg2676	cg0534	cg2290	cg2677	cg2678	cg3344
+cg2783	Activation	ptsG	ptsS	ptsS	icd	icd	gapX	gapX	pck	mez
+cg2783	Repression	gnd	tal	tal	opcA	gntV	gntP	gntP	pyk	pyk	tkt	tkt	zwf	devB
+cg2831	Repression	cg2831	ptsH	ptsH	ptsG	tkt	zwf	opcA	cg2612	cg2612	mdh	cg3226	cg3226	ldh	pfkA	pfkA	tal	tal	devB	pyk	cynT	cynT	lldA
+cg2831	Activation	sdhCD	sdhA	pck	pck	sdhB	prpB2	gapX	gap	gap	cg2115	cg2116	mqo	sucB	sucC	sucC	cg0444	cg0444	cg1039	cg1738	pta	adhA	cg0448	prpC2	gltA	cg0953	glpX	gnd	gnd	acn	cg1739	sucD	sucD	mez	mez	prpD2	cg0952	fum	glgA	glgC	cg3096	cg1037	ksgA	cg1040	pdxK	aceB	aceA	ackA
+cgtR3	Activation	phoH1	ugpB	pstB	pstC	cg0397	porB	ugpA	ugpC	nuc	cg3393	pitA	ugpE	glpQ2	cg0544	pstA	pstS	cgtS3	cgtR3
+cg2894	Repression	cg2895	cg2893	cg2894
+cg2910	Repression	cg0534	menE	menE	cg1421
+cg2910	Activation	cg3323	cg0044	cg3210	cg3210	cg0045	cg0046	cg3195	cg3195
+cg2936	Repression	nanH	nagA1	cg2932	nanP	cg2937	cg2938	cg2940	nagB	nanA	cg2936	cg2939	nanE
+cg2942	Activation	cg2941
+cg2965	Activation	cg2966
+cg3082	Repression	cg3085	cg3083	cg3082	cg3084
+hspR	Repression	clpB	cg2152	groEL	cg3078	hspR	dnaJ	grpE	dnaK
+cg3202	Repression	argJ	argD	argG	gdh	cg3202	argF	argR	argC	argH	argB
+cg3224	Repression	pfkB	ptsF	cg3226	lldA	cg2118	ldh
+cg3239	Activation	cg3240
+cg3239	Repression	cg3239
+cgtR11	Repression	hemL	cg0519	ccsA	hemH	hemA	hemA	hemE	cg0520	cg0523	ccsB	cg2200	cg2201	hemC	hemC	hemY
+cgtR11	Activation	qcrA1	ctaD	qcrB	qcrB	qcrC	hmuO	ctaE	ctaE
+mcbR	Repression	cg0735	cg0737	metX	cg1147	ssiE	ssuD2	metE	thrB	ssuC	fixA	fixB	cg2674	cg2675	cg2678	metB	cysK	cg3112	cg3113	cysD	cysI	cysJ	cg3132	mcbR	cg0012	cg0156	cg0736	metY	ssiF	ssiG	hom	ssuD1	ssuB	ssuA	nifS1	metH	cg1739	metK	cysN	cysH	cg3117	cg3373	cg3374	cg3372	cg3375	cg2676	cg2677
+cg3261	Repression	cg3263
+cgtR9	Activation	cg3281	cgtR9	cg3280	cg3282	cgtS9	cg3287	cg3289	cg3286	cg3288
+cg3315	Repression	cg3315	cg3316	mez
+cg3352	Repression	cg3352
+cg3352	Activation	benK2	cg3354	cg0638	fabG2	cg0642	hpaG	hpaG	betB	cg0639	cg0644	cytP	fdxB	nagI	cg3349
+cg3373	Repression	cg3373	cg3374	cg3375
+cg3388	Activation	cg3387	catA3	tcbF
+sigM	Sigma	cg1759	sufD	cg1765	cg1091	sufC	cg1696	cg1760	sufB	clpB	trxB	groES	groEL	nifS2	cg3078	trxB1	trxC	cwlM
