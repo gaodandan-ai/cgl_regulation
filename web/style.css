@@ -831,6 +831,150 @@ input[type="range"] {
     display: block;
 }
 
+.metabolic-impact-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.metabolic-intro {
+    padding: 8px 10px;
+    border: 1px solid rgba(15, 118, 110, 0.12);
+    border-radius: 6px;
+    background: rgba(15, 118, 110, 0.04);
+    color: var(--text-primary);
+    line-height: 1.45;
+}
+
+.metabolic-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.metabolic-stat-grid div {
+    padding: 7px 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #ffffff;
+    text-align: center;
+}
+
+.metabolic-stat-grid strong {
+    display: block;
+    color: #0f766e;
+    font-size: 14px;
+    line-height: 1.1;
+}
+
+.metabolic-stat-grid span {
+    display: block;
+    margin-top: 3px;
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.metabolic-subtitle {
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+}
+
+.metabolic-pathway-list,
+.metabolic-gene-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.metabolic-pathway-row,
+.metabolic-gene-row {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #ffffff;
+    padding: 7px 8px;
+}
+
+.metabolic-pathway-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.metabolic-pathway-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.25;
+}
+
+.metabolic-counts {
+    flex: 0 0 auto;
+    color: #0f766e;
+    font-weight: 700;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.metabolic-gene-link {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-primary-accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.metabolic-reaction-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 5px;
+}
+
+.metabolic-reaction-badge {
+    display: inline-flex;
+    align-items: center;
+    max-width: 120px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.08);
+    color: #0f766e;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.metabolic-muted,
+.metabolic-source {
+    color: var(--text-muted);
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.metabolic-source {
+    padding-top: 2px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.metabolic-empty {
+    padding: 9px 10px;
+    border: 1px dashed rgba(15, 118, 110, 0.2);
+    border-radius: 6px;
+    background: rgba(15, 118, 110, 0.03);
+    color: var(--text-secondary);
+    line-height: 1.45;
+}
+
 /* Relations Details Table */
 .table-section {
     display: flex;

@@ -1,0 +1,3 @@
+model,gene,reaction_id,reaction_name,equation,gpr_rule,pathway_id,pathway_name
+iCW773,cg1739,GLUDy,Glutamate dehydrogenase,"glu-L + nad + h2o <=> akg + nh4 + nadh + h","cg1739",glutamate_metabolism,Glutamate metabolism
+iCGB21FR,Cgl1708,CS,Citrate synthase,"accoa + h2o + oaa -> cit + coa + h","Cgl1708",tca_cycle,TCA cycle

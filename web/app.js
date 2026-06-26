@@ -2234,6 +2234,8 @@ function showNodeDetails(locusTag) {
 
     }
 
+    fetchMetabolicImpact(meta.locusTag, meta.type);
+
 
 
     // Operon Row Rendering
@@ -2887,6 +2889,14 @@ function showOperonDetails(operonMeta, initialMode = null) {
     if (pathwayRow) {
 
         pathwayRow.style.display = 'none';
+
+    }
+
+    const metabolicSection = document.getElementById('detail-metabolic-impact-section');
+
+    if (metabolicSection) {
+
+        metabolicSection.style.display = 'none';
 
     }
 
@@ -4893,6 +4903,115 @@ function escapeHtml(value) {
         '"': '&quot;',
         "'": '&#39;'
     }[char]));
+}
+
+function renderMetabolicImpact(data, detailLocus) {
+    const section = document.getElementById('detail-metabolic-impact-section');
+    const container = document.getElementById('metabolic-impact-content');
+    if (!section || !container) return;
+    section.style.display = '';
+
+    const mapping = data.model_mapping || {};
+    const summary = data.summary || {};
+    const pathways = data.pathways || [];
+    const genes = data.affected_genes || [];
+    const isTf = data.mode === 'tf';
+
+    if (!mapping.loaded) {
+        const warning = (mapping.warnings || [])[0] || 'No model mapping files found.';
+        container.innerHTML = `
+            <div class="metabolic-empty">
+                <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">
+                    模型映射层已就绪，等待 iCGB21FR / iCW773 gene-reaction mapping
+                </div>
+                <div>请将映射表放入 <code>data/metabolic_models/</code>。支持 <code>iCGB21FR_gene_reaction_mapping.csv</code>、<code>iCW773_gene_reaction_mapping.csv</code> 或通用 <code>gene_reaction_mapping.csv</code>。</div>
+                <div style="margin-top:6px; color:var(--text-muted);">当前状态：${escapeHtml(warning)}</div>
+            </div>
+        `;
+        return;
+    }
+
+    const statHtml = `
+        <div class="metabolic-stat-grid">
+            <div><strong>${escapeHtml(summary.target_gene_count || 0)}</strong><span>${isTf ? '靶基因' : '查询基因'}</span></div>
+            <div><strong>${escapeHtml(summary.mapped_gene_count || 0)}</strong><span>映射基因</span></div>
+            <div><strong>${escapeHtml(summary.reaction_count || 0)}</strong><span>反应</span></div>
+            <div><strong>${escapeHtml(summary.pathway_count || 0)}</strong><span>通路/模块</span></div>
+        </div>
+    `;
+
+    const pathwayHtml = pathways.length > 0
+        ? pathways.slice(0, 8).map(p => `
+            <div class="metabolic-pathway-row">
+                <div>
+                    <div class="metabolic-pathway-name">${escapeHtml(p.name)}</div>
+                    <div class="metabolic-muted">${escapeHtml(p.model || '')}${p.id ? ` · ${escapeHtml(p.id)}` : ''}</div>
+                </div>
+                <div class="metabolic-counts">${escapeHtml(p.gene_count)} genes · ${escapeHtml(p.reaction_count)} rxns</div>
+            </div>
+        `).join('')
+        : '<div class="metabolic-empty">当前查询基因尚未映射到代谢通路/模块。</div>';
+
+    const mappedGenes = genes.filter(g => (g.mapped_reaction_count || 0) > 0);
+    const geneHtml = mappedGenes.length > 0
+        ? mappedGenes.slice(0, 8).map(g => {
+            const reactionBadges = (g.reactions || []).slice(0, 5).map(r => `
+                <span class="metabolic-reaction-badge" title="${escapeHtml(r.equation || r.gpr_rule || '')}">
+                    ${escapeHtml(r.id)}
+                </span>
+            `).join('');
+            return `
+                <div class="metabolic-gene-row">
+                    <button class="metabolic-gene-link" data-locus="${escapeHtml(g.locus)}">${escapeHtml(getPrioritizedLabel(g.locus, g.name || g.locus))}</button>
+                    <div class="metabolic-muted">${escapeHtml(g.mapped_reaction_count)} reactions</div>
+                    <div class="metabolic-reaction-list">${reactionBadges}</div>
+                </div>
+            `;
+        }).join('')
+        : '<div class="metabolic-empty">没有靶基因映射到 reaction。导入模型映射表后会在这里显示。</div>';
+
+    const files = (mapping.files || []).map(f => `${f.model || 'model'}:${f.rows || 0}`).join(' · ');
+    container.innerHTML = `
+        <div class="metabolic-intro">
+            ${isTf
+                ? `该 TF 调控 ${escapeHtml(summary.target_gene_count || 0)} 个靶基因，其中 ${escapeHtml(summary.mapped_gene_count || 0)} 个已映射到代谢反应。`
+                : `该基因已映射到 ${escapeHtml(summary.reaction_count || 0)} 个模型反应。`}
+        </div>
+        ${statHtml}
+        <div class="metabolic-subtitle">Affected pathways / modules</div>
+        <div class="metabolic-pathway-list">${pathwayHtml}</div>
+        <div class="metabolic-subtitle">${isTf ? 'Mapped target genes' : 'Associated reactions'}</div>
+        <div class="metabolic-gene-list">${geneHtml}</div>
+        <div class="metabolic-source">Models: ${escapeHtml((mapping.models || []).join(', ') || 'none')} ${files ? ` · Files: ${escapeHtml(files)}` : ''}</div>
+    `;
+
+    container.querySelectorAll('.metabolic-gene-link').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const locus = btn.getAttribute('data-locus');
+            if (locus) querySingleGene(locus);
+        });
+    });
+}
+
+function fetchMetabolicImpact(locusTag, nodeType) {
+    const section = document.getElementById('detail-metabolic-impact-section');
+    const container = document.getElementById('metabolic-impact-content');
+    if (!section || !container || !locusTag) return;
+    section.style.display = '';
+    container.innerHTML = '<span class="metabolic-muted"><i class="fa-solid fa-spinner fa-spin"></i> 正在加载模型映射层...</span>';
+
+    fetch(`/api/metabolic_impact?gene=${encodeURIComponent(locusTag)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (detailLocusTag.textContent !== locusTag) return;
+            renderMetabolicImpact(data, locusTag, nodeType);
+        })
+        .catch(err => {
+            console.error('Error fetching metabolic impact:', err);
+            if (detailLocusTag.textContent === locusTag) {
+                container.innerHTML = '<div class="metabolic-empty">代谢模型映射加载失败。</div>';
+            }
+        });
 }
 
 function renderPathwayRegulation(regulation) {

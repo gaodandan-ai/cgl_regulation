@@ -16,6 +16,7 @@ import tempfile
 import subprocess
 import concurrent.futures
 import xml.etree.ElementTree as ET
+import zipfile
 from collections import Counter
 from rag_service import RAGService
 import math
@@ -57,6 +58,7 @@ GENE_NAMES = {}
 ORGANISM_PATHWAYS_LOADED = False
 GENE_TO_PATHWAYS = {}
 PATHWAY_TO_GENES = {}
+NAME_TO_CG = {}
 
 # Caches for KEGG pathways and GO terms
 KEGG_PATHWAY_NAMES = {}       # cgb/cgl pathway ID -> clean name
@@ -67,6 +69,8 @@ KEGG_CACHE_LOADED = False
 KEGG_CACHE_HIT = False
 KEGG_CACHE_DIR = os.path.join("data", "kegg_cache")
 KEGG_CACHE_FILE = os.path.join(KEGG_CACHE_DIR, "kegg_cgl_cgb.json")
+METABOLIC_MODEL_DIR = os.path.join("data", "metabolic_models")
+METABOLIC_MODEL_CACHE = None
 
 def load_kegg_cache():
     global KEGG_CACHE_LOADED, KEGG_CACHE_HIT, ORGANISM_PATHWAYS_LOADED
@@ -151,7 +155,7 @@ def load_kegg_pathway_names():
             save_kegg_cache()
 
 def load_gene_mappings():
-    global CG_TO_CGL, CGL_TO_CG, GENE_NAMES
+    global CG_TO_CGL, CGL_TO_CG, GENE_NAMES, NAME_TO_CG
     if CG_TO_CGL:
         return
     if os.path.exists('data/gene_mapping.csv'):
@@ -168,6 +172,7 @@ def load_gene_mappings():
                         CGL_TO_CG[cgl.lower()] = cg
                     if cg and name:
                         GENE_NAMES[cg.lower()] = name
+                        NAME_TO_CG.setdefault(name.lower(), cg)
                     if cgl and name:
                         GENE_NAMES[cgl.lower()] = name
         except Exception as e:
@@ -388,7 +393,456 @@ def normalize_gene_locus(locus):
         return CGL_TO_CG[lower].lower()
     if lower in CG_TO_CGL:
         return lower
+    if lower in NAME_TO_CG:
+        return NAME_TO_CG[lower].lower()
     return lower
+
+def expand_gene_aliases(locus):
+    load_gene_mappings()
+    aliases = set()
+    lower = (locus or "").strip().lower()
+    if not lower:
+        return aliases
+    aliases.add(lower)
+    canonical = normalize_gene_locus(lower)
+    if canonical:
+        aliases.add(canonical.lower())
+    if lower in CG_TO_CGL:
+        aliases.add(CG_TO_CGL[lower].lower())
+    if lower in CGL_TO_CG:
+        aliases.add(CGL_TO_CG[lower].lower())
+    return aliases
+
+def split_mapping_values(value):
+    text = (value or "").strip()
+    if not text:
+        return []
+    parts = re.split(r"[;,|]+|\s+and\s+|\s+or\s+", text, flags=re.IGNORECASE)
+    return [p.strip() for p in parts if p.strip()]
+
+def first_row_value(row, names):
+    for name in names:
+        if name in row and row.get(name):
+            return str(row.get(name, "")).strip()
+    lower_map = {k.lower(): v for k, v in row.items()}
+    for name in names:
+        val = lower_map.get(name.lower())
+        if val:
+            return str(val).strip()
+    return ""
+
+def infer_model_name_from_file(path):
+    name = os.path.splitext(os.path.basename(path))[0]
+    for suffix in ("_gene_reaction_mapping", "_gene_reaction_map", "_reaction_mapping"):
+        if name.lower().endswith(suffix):
+            return name[: -len(suffix)]
+    return name
+
+def ns_attr(element, namespace, name):
+    return element.attrib.get(f"{{{namespace}}}{name}") or element.attrib.get(name, "")
+
+def parse_sbml_gene_reaction_mappings(xml_bytes, source_name):
+    core_ns = "http://www.sbml.org/sbml/level3/version1/core"
+    fbc_ns = "http://www.sbml.org/sbml/level3/version1/fbc/version2"
+    groups_ns = "http://www.sbml.org/sbml/level3/version1/groups/version1"
+    try:
+        root = ET.fromstring(xml_bytes)
+    except Exception as e:
+        raise ValueError(f"SBML parse failed: {e}")
+
+    model_el = root.find(f".//{{{core_ns}}}model")
+    model = model_el.attrib.get("id", infer_model_name_from_file(source_name)) if model_el is not None else infer_model_name_from_file(source_name)
+
+    gene_products = {}
+    for gp in root.findall(f".//{{{fbc_ns}}}geneProduct"):
+        gid = ns_attr(gp, fbc_ns, "id")
+        label = ns_attr(gp, fbc_ns, "label") or gid
+        if gid:
+            gene_products[gid] = label.replace("G_", "")
+
+    reaction_to_pathway = {}
+    for group in root.findall(f".//{{{groups_ns}}}group"):
+        pathway_id = ns_attr(group, groups_ns, "id") or group.attrib.get("id", "")
+        pathway_name = ns_attr(group, groups_ns, "name") or pathway_id or "Unassigned pathway"
+        for member in group.findall(f".//{{{groups_ns}}}member"):
+            reaction_id = ns_attr(member, groups_ns, "idRef")
+            if reaction_id:
+                reaction_to_pathway.setdefault(reaction_id, {
+                    "pathway_id": pathway_id,
+                    "pathway_name": pathway_name
+                })
+
+    records = []
+    for reaction in root.findall(f".//{{{core_ns}}}reaction"):
+        reaction_id = reaction.attrib.get("id", "")
+        if not reaction_id:
+            continue
+        reaction_name = reaction.attrib.get("name", reaction_id)
+        gene_refs = []
+        for ref in reaction.findall(f".//{{{fbc_ns}}}geneProductRef"):
+            gp_id = ns_attr(ref, fbc_ns, "geneProduct")
+            gene = gene_products.get(gp_id, gp_id.replace("G_", "") if gp_id else "")
+            if gene:
+                gene_refs.append(gene)
+        if not gene_refs:
+            continue
+        pathway = reaction_to_pathway.get(reaction_id, {
+            "pathway_id": "",
+            "pathway_name": "Unassigned pathway"
+        })
+        for gene in gene_refs:
+            records.append({
+                "model": model,
+                "gene": gene,
+                "reaction_id": reaction_id,
+                "reaction_name": reaction_name,
+                "equation": "",
+                "gpr_rule": " ".join(sorted(set(gene_refs))),
+                "pathway_id": pathway["pathway_id"],
+                "pathway_name": pathway["pathway_name"],
+                "source_file": os.path.basename(source_name)
+            })
+    return model, records
+
+def load_metabolic_model_mappings():
+    global METABOLIC_MODEL_CACHE
+    if METABOLIC_MODEL_CACHE is not None:
+        return METABOLIC_MODEL_CACHE
+
+    load_gene_mappings()
+    gene_to_reactions = {}
+    reaction_to_pathways = {}
+    files_loaded = []
+    warnings = []
+
+    if not os.path.isdir(METABOLIC_MODEL_DIR):
+        METABOLIC_MODEL_CACHE = {
+            "loaded": False,
+            "files": [],
+            "models": [],
+            "gene_to_reactions": gene_to_reactions,
+            "reaction_to_pathways": reaction_to_pathways,
+            "warnings": [f"Missing mapping directory: {METABOLIC_MODEL_DIR}"]
+        }
+        return METABOLIC_MODEL_CACHE
+
+    csv_files = []
+    for filename in os.listdir(METABOLIC_MODEL_DIR):
+        lower = filename.lower()
+        if "example" in lower or lower.endswith(".template.csv"):
+            continue
+        if lower.endswith(".csv") and ("reaction" in lower or "gpr" in lower or "mapping" in lower):
+            csv_files.append(os.path.join(METABOLIC_MODEL_DIR, filename))
+
+    def add_mapping_record(record):
+        model = record.get("model") or "model"
+        gene = record.get("gene") or ""
+        reaction_id = record.get("reaction_id") or ""
+        if not gene or not reaction_id:
+            return False
+        reaction = {
+            "id": reaction_id,
+            "label": record.get("reaction_name") or reaction_id,
+            "model": model,
+            "equation": record.get("equation", ""),
+            "gpr_rule": record.get("gpr_rule", ""),
+            "pathway_id": record.get("pathway_id", ""),
+            "pathway_name": record.get("pathway_name") or "Unassigned pathway",
+            "source_file": record.get("source_file", "")
+        }
+        reaction_key = f"{model}:{reaction_id}"
+        reaction_to_pathways[reaction_key] = {
+            "id": reaction["pathway_id"] or reaction["pathway_name"],
+            "label": reaction["pathway_name"],
+            "model": model
+        }
+        for alias in expand_gene_aliases(gene):
+            gene_to_reactions.setdefault(alias, [])
+            if not any(r["model"] == model and r["id"] == reaction_id for r in gene_to_reactions[alias]):
+                gene_to_reactions[alias].append(reaction)
+        return True
+
+    for path in sorted(csv_files):
+        file_model = infer_model_name_from_file(path)
+        try:
+            with open(path, "r", encoding="utf-8-sig", newline="") as f:
+                reader = csv.DictReader(f)
+                if not reader.fieldnames:
+                    warnings.append(f"{os.path.basename(path)} has no header row")
+                    continue
+                row_count = 0
+                for row in reader:
+                    model = first_row_value(row, ["model", "model_id", "source_model"]) or file_model
+                    gene_field = first_row_value(row, [
+                        "gene", "genes", "gene_id", "gene_locus", "locus", "locus_tag",
+                        "cg_locus", "cgl_locus", "gene_reaction_rule_genes"
+                    ])
+                    reaction_id = first_row_value(row, [
+                        "reaction_id", "reaction", "rxn_id", "rxn", "id"
+                    ])
+                    reaction_name = first_row_value(row, [
+                        "reaction_name", "rxn_name", "name", "description"
+                    ]) or reaction_id
+                    if not gene_field or not reaction_id:
+                        continue
+
+                    pathway_id = first_row_value(row, [
+                        "pathway_id", "subsystem_id", "pathway", "subsystem", "module_id"
+                    ])
+                    pathway_name = first_row_value(row, [
+                        "pathway_name", "subsystem_name", "pathway", "subsystem", "module", "category"
+                    ]) or pathway_id or "Unassigned pathway"
+                    equation = first_row_value(row, ["equation", "reaction_equation", "formula"])
+                    gpr_rule = first_row_value(row, ["gpr_rule", "gene_reaction_rule", "gpr", "grRule"])
+                    genes = split_mapping_values(gene_field)
+                    if not genes:
+                        genes = [gene_field]
+
+                    for gene in genes:
+                        added = add_mapping_record({
+                            "model": model,
+                            "gene": gene,
+                            "reaction_id": reaction_id,
+                            "reaction_name": reaction_name,
+                            "equation": equation,
+                            "gpr_rule": gpr_rule,
+                            "pathway_id": pathway_id,
+                            "pathway_name": pathway_name,
+                            "source_file": os.path.basename(path)
+                        })
+                        if added:
+                            row_count += 1
+                files_loaded.append({"file": os.path.basename(path), "model": file_model, "rows": row_count})
+        except Exception as e:
+            warnings.append(f"{os.path.basename(path)}: {e}")
+
+    model_dirs = [METABOLIC_MODEL_DIR, os.path.join("data", "model")]
+    model_files = []
+    for model_dir in model_dirs:
+        if not os.path.isdir(model_dir):
+            continue
+        for filename in os.listdir(model_dir):
+            lower = filename.lower()
+            if lower.endswith((".omex", ".xml", ".sbml")):
+                model_files.append(os.path.join(model_dir, filename))
+
+    for path in sorted(model_files):
+        try:
+            xml_payloads = []
+            if path.lower().endswith(".omex"):
+                with zipfile.ZipFile(path) as archive:
+                    for name in archive.namelist():
+                        if name.lower().endswith((".xml", ".sbml")) and "manifest" not in name.lower():
+                            xml_payloads.append((name, archive.read(name)))
+            else:
+                with open(path, "rb") as f:
+                    xml_payloads.append((os.path.basename(path), f.read()))
+
+            total_rows = 0
+            parsed_model = infer_model_name_from_file(path)
+            for inner_name, xml_bytes in xml_payloads:
+                parsed_model, records = parse_sbml_gene_reaction_mappings(xml_bytes, inner_name or path)
+                for record in records:
+                    record["source_file"] = os.path.basename(path)
+                    if add_mapping_record(record):
+                        total_rows += 1
+            if total_rows > 0:
+                files_loaded.append({"file": os.path.basename(path), "model": parsed_model, "rows": total_rows})
+        except Exception as e:
+            warnings.append(f"{os.path.basename(path)}: {e}")
+
+    models = sorted({f["model"] for f in files_loaded})
+    METABOLIC_MODEL_CACHE = {
+        "loaded": len(files_loaded) > 0,
+        "files": files_loaded,
+        "models": models,
+        "gene_to_reactions": gene_to_reactions,
+        "reaction_to_pathways": reaction_to_pathways,
+        "warnings": warnings
+    }
+    return METABOLIC_MODEL_CACHE
+
+def get_regulatory_targets_for_tf(query):
+    load_gene_mappings()
+    q = (query or "").strip().lower()
+    resolved = normalize_gene_locus(q)
+    targets = {}
+    is_tf = False
+    if not os.path.exists("data/regulations.csv"):
+        return is_tf, []
+    try:
+        with open("data/regulations.csv", "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                tf_locus = (row.get("TF_locusTag") or "").strip()
+                tf_name = (row.get("TF_name") or "").strip()
+                tf_aliases = expand_gene_aliases(tf_locus)
+                if tf_name:
+                    tf_aliases.add(tf_name.lower())
+                matched = q in tf_aliases or resolved in tf_aliases
+                if not matched:
+                    continue
+                is_tf = True
+                target = normalize_gene_locus(row.get("TG_locusTag", ""))
+                if not target:
+                    continue
+                if target not in targets:
+                    targets[target] = {
+                        "locus": target,
+                        "name": row.get("TG_name", "").strip() or GENE_NAMES.get(target, target),
+                        "regulation": row.get("Role", "").strip(),
+                        "evidence": row.get("Evidence", "").strip()
+                    }
+    except Exception as e:
+        print("Error reading regulations for metabolic impact:", e)
+    return is_tf, list(targets.values())
+
+def handle_metabolic_impact(query):
+    mapping = load_metabolic_model_mappings()
+    q = (query or "").strip()
+    canonical = normalize_gene_locus(q)
+    is_tf, targets = get_regulatory_targets_for_tf(q)
+    if is_tf:
+        seed_genes = targets
+        mode = "tf"
+    else:
+        name = GENE_NAMES.get(canonical, q)
+        seed_genes = [{"locus": canonical or q.lower(), "name": name, "regulation": "", "evidence": ""}]
+        mode = "gene"
+
+    affected_genes = []
+    pathway_stats = {}
+    reaction_seen = set()
+    nodes = {}
+    edges = []
+
+    query_id = canonical or q.lower()
+    nodes[query_id] = {
+        "id": query_id,
+        "type": "TF" if is_tf else "gene",
+        "label": GENE_NAMES.get(query_id, q)
+    }
+
+    for gene in seed_genes:
+        locus = normalize_gene_locus(gene.get("locus", ""))
+        if not locus:
+            continue
+        reactions = []
+        for alias in expand_gene_aliases(locus):
+            reactions.extend(mapping["gene_to_reactions"].get(alias, []))
+
+        unique_reactions = []
+        local_seen = set()
+        for reaction in reactions:
+            key = f"{reaction['model']}:{reaction['id']}"
+            if key in local_seen:
+                continue
+            local_seen.add(key)
+            unique_reactions.append(reaction)
+
+        if is_tf:
+            edges.append({
+                "source": query_id,
+                "target": locus,
+                "type": "regulates",
+                "regulation": {"A": "activation", "R": "repression"}.get(gene.get("regulation"), "unknown"),
+                "confidence": evidence_weight(gene.get("evidence", "")) / 3.0
+            })
+        nodes[locus] = {
+            "id": locus,
+            "type": "gene",
+            "label": GENE_NAMES.get(locus, gene.get("name") or locus)
+        }
+
+        affected_genes.append({
+            **gene,
+            "locus": locus,
+            "name": GENE_NAMES.get(locus, gene.get("name") or locus),
+            "mapped_reaction_count": len(unique_reactions),
+            "reactions": unique_reactions[:12]
+        })
+
+        for reaction in unique_reactions:
+            reaction_node_id = f"reaction:{reaction['model']}:{reaction['id']}"
+            pathway_label = reaction.get("pathway_name") or "Unassigned pathway"
+            pathway_id = reaction.get("pathway_id") or pathway_label
+            pathway_node_id = f"pathway:{reaction['model']}:{pathway_id}"
+
+            nodes[reaction_node_id] = {
+                "id": reaction_node_id,
+                "type": "reaction",
+                "label": reaction.get("label") or reaction["id"],
+                "equation": reaction.get("equation", ""),
+                "model": reaction.get("model", "")
+            }
+            nodes[pathway_node_id] = {
+                "id": pathway_node_id,
+                "type": "pathway",
+                "label": pathway_label,
+                "model": reaction.get("model", "")
+            }
+            edges.append({
+                "source": locus,
+                "target": reaction_node_id,
+                "type": "associated_with_reaction",
+                "gpr_rule": reaction.get("gpr_rule", "")
+            })
+            edges.append({
+                "source": reaction_node_id,
+                "target": pathway_node_id,
+                "type": "belongs_to_pathway"
+            })
+            pkey = f"{reaction.get('model')}::{pathway_label}"
+            stat = pathway_stats.setdefault(pkey, {
+                "id": pathway_id,
+                "name": pathway_label,
+                "model": reaction.get("model", ""),
+                "gene_count": 0,
+                "reaction_count": 0,
+                "genes": set(),
+                "reactions": set()
+            })
+            stat["genes"].add(locus)
+            stat["reactions"].add(reaction["id"])
+            reaction_seen.add(f"{reaction['model']}:{reaction['id']}")
+
+    pathways = []
+    for stat in pathway_stats.values():
+        pathways.append({
+            "id": stat["id"],
+            "name": stat["name"],
+            "model": stat["model"],
+            "gene_count": len(stat["genes"]),
+            "reaction_count": len(stat["reactions"]),
+            "genes": sorted(stat["genes"])[:20],
+            "reactions": sorted(stat["reactions"])[:20]
+        })
+    pathways.sort(key=lambda p: (-p["gene_count"], -p["reaction_count"], p["name"]))
+
+    mapped_genes = [g for g in affected_genes if g["mapped_reaction_count"] > 0]
+    return {
+        "query": q,
+        "mode": mode,
+        "is_tf": is_tf,
+        "model_mapping": {
+            "loaded": mapping["loaded"],
+            "models": mapping["models"],
+            "files": mapping["files"],
+            "warnings": mapping["warnings"]
+        },
+        "summary": {
+            "target_gene_count": len(seed_genes),
+            "mapped_gene_count": len(mapped_genes),
+            "reaction_count": len(reaction_seen),
+            "pathway_count": len(pathways)
+        },
+        "affected_genes": affected_genes,
+        "pathways": pathways,
+        "graph": {
+            "nodes": list(nodes.values()),
+            "edges": edges
+        }
+    }
 
 def find_matching_kegg_pathways(query):
     load_organism_kegg_links()
@@ -1007,6 +1461,21 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(result).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        elif urllib.parse.urlparse(self.path).path == '/api/metabolic_impact':
+            query = urllib.parse.urlparse(self.path).query
+            params = urllib.parse.parse_qs(query)
+            gene = params.get('gene', [''])[0] or params.get('query', [''])[0]
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
+            try:
+                result = handle_metabolic_impact(gene)
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e)}, ensure_ascii=False).encode('utf-8'))
         elif self.path.startswith('/api/test_ai'):
             # Get API Key and model config from request headers
             api_key = self.headers.get('X-AI-API-Key') or self.headers.get('X-Gemini-API-Key', '')
