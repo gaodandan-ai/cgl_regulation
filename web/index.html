@@ -3,8 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C. glutamicum 基因调控网络探索器</title>
-    <meta name="description" content="谷氨酸棒状杆菌 DSM 20300 = ATCC 13032 基因调控与 sRNA 调控网络交互式可视化分析平台。">
+    <title>Corynebacterium glutamicum Regulatory Network Explorer | 谷氨酸棒杆菌转录调控网络</title>
+    <meta name="description" content="面向科研人员的 Corynebacterium glutamicum DSM 20300 / ATCC 13032 转录调控网络浏览器，整合 TF-靶基因、sRNA、操纵子、motif、ChIP-seq、表达相关性、KEGG 通路和 AI 文献分析。">
+    <meta name="keywords" content="Corynebacterium glutamicum,谷氨酸棒杆菌,transcriptional regulation,regulatory network,TF target genes,sRNA,operon,ChIP-seq,motif,PWM,KEGG,BioCyc,systems biology">
+    <meta name="author" content="C. glutamicum Regulatory Network Explorer contributors">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="google-site-verification" content="AmpdoQA1wOmCDGID8c1QbG4fl_BdKYIzdhUIziCnlJ0">
+    <meta name="application-name" content="C. glutamicum Regulatory Network Explorer">
+    <meta name="theme-color" content="#0f766e">
+    <link rel="canonical" href="https://cgl-regulation.vercel.app/">
+    <link rel="alternate" hreflang="zh-CN" href="https://cgl-regulation.vercel.app/">
+    <link rel="alternate" hreflang="en" href="https://cgl-regulation.vercel.app/">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="C. glutamicum Regulatory Network Explorer">
+    <meta property="og:title" content="Corynebacterium glutamicum Regulatory Network Explorer">
+    <meta property="og:description" content="Interactive transcriptional and sRNA regulatory network explorer for Corynebacterium glutamicum, with TF-target links, operons, motif evidence, confidence scoring, KEGG pathway context, and AI-assisted literature analysis.">
+    <meta property="og:url" content="https://cgl-regulation.vercel.app/">
+    <meta property="og:locale" content="zh_CN">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Corynebacterium glutamicum Regulatory Network Explorer">
+    <meta name="twitter:description" content="Explore C. glutamicum transcriptional regulation, sRNA links, operons, motif evidence, confidence-scored edges, and KEGG pathway regulation.">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://cgl-regulation.vercel.app/#website",
+          "url": "https://cgl-regulation.vercel.app/",
+          "name": "Corynebacterium glutamicum Regulatory Network Explorer",
+          "alternateName": "C. glutamicum Regulatory Network Explorer",
+          "inLanguage": ["zh-CN", "en"],
+          "description": "Interactive regulatory network browser for Corynebacterium glutamicum DSM 20300 / ATCC 13032."
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://cgl-regulation.vercel.app/#app",
+          "name": "C. glutamicum Regulatory Network Explorer",
+          "applicationCategory": "ScienceApplication",
+          "operatingSystem": "Web browser",
+          "url": "https://cgl-regulation.vercel.app/",
+          "description": "A web application for exploring Corynebacterium glutamicum transcription factor targets, sRNA interactions, operons, motif evidence, confidence-scored regulatory edges, and metabolic pathway context.",
+          "keywords": "Corynebacterium glutamicum, transcriptional regulation, regulatory network, sRNA, operon, motif, ChIP-seq, KEGG",
+          "isAccessibleForFree": true
+        },
+        {
+          "@type": "Dataset",
+          "@id": "https://cgl-regulation.vercel.app/#dataset",
+          "name": "Corynebacterium glutamicum regulatory network dataset",
+          "description": "Local regulatory network data for Corynebacterium glutamicum including TF-target interactions, predicted sRNA-mRNA interactions, operon annotations, motif evidence, and pathway-linked regulatory summaries.",
+          "keywords": ["Corynebacterium glutamicum", "regulatory network", "transcription factors", "sRNA", "operons", "systems biology"],
+          "distribution": [
+            {
+              "@type": "DataDownload",
+              "encodingFormat": "text/csv",
+              "contentUrl": "https://cgl-regulation.vercel.app/data/regulations.csv"
+            },
+            {
+              "@type": "DataDownload",
+              "encodingFormat": "text/csv",
+              "contentUrl": "https://cgl-regulation.vercel.app/data/rna_regulation.csv"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,9 +78,24 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css?v=1.1">
+    <link rel="stylesheet" href="style.css?v=1.2">
 </head>
 <body class="light-theme">
+    <noscript>
+        <main style="max-width: 900px; margin: 32px auto; padding: 24px; font-family: Arial, sans-serif; line-height: 1.6;">
+            <h1>Corynebacterium glutamicum Regulatory Network Explorer</h1>
+            <p>
+                This browser-based research tool helps scientists explore the transcriptional regulatory network of
+                <em>Corynebacterium glutamicum</em> DSM 20300 / ATCC 13032. It integrates transcription factor-target
+                relationships, predicted sRNA-mRNA interactions, operon annotations, motif evidence, ChIP-seq support,
+                expression correlation, KEGG pathway context, and confidence-scored regulatory edges.
+            </p>
+            <p>
+                Please enable JavaScript to use the interactive Cytoscape network visualization, gene detail panels,
+                perturbation simulation, pathway-regulation analysis, and AI-assisted literature workflows.
+            </p>
+        </main>
+    </noscript>
     <div id="app-container">
         <!-- 顶部导航栏 -->
         <header id="app-header">
@@ -122,6 +203,13 @@
                                 <span class="checkmark chk-only-tf-targets"></span>
                                 <span class="label-text" style="font-weight: 500; font-size: 11px;">只显示转录因子(TF)靶标</span>
                             </label>
+                        </div>
+                        <div class="edge-schema-legend" style="margin-top: 10px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: #fff; font-size: 10px; color: var(--text-secondary); line-height: 1.5;">
+                            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Unified Edge Schema</div>
+                            <div><span style="display:inline-block; width:18px; height:3px; background:#2e7d32; vertical-align:middle; margin-right:5px;"></span>Activation</div>
+                            <div><span style="display:inline-block; width:18px; height:3px; background:#d32f2f; vertical-align:middle; margin-right:5px;"></span>Repression</div>
+                            <div><span style="display:inline-block; width:18px; height:3px; background:#7b1fa2; border-top:1px dashed #7b1fa2; vertical-align:middle; margin-right:5px;"></span>sRNA / post-transcriptional</div>
+                            <div style="margin-top:4px;">Thicker, darker edges indicate higher confidence from motif, ChIP, expression, and database evidence.</div>
                         </div>
                     </div>
 
@@ -398,12 +486,16 @@
                     <button id="zoom-out" title="缩小"><i class="fa-solid fa-minus"></i></button>
                     <button id="fit-canvas" title="适应屏幕"><i class="fa-solid fa-expand"></i></button>
                 </div>
+                <button id="right-sidebar-toggle" class="right-sidebar-toggle collapsed" title="显示详情栏" aria-label="显示详情栏" aria-controls="right-sidebar" aria-expanded="false">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>详情</span>
+                </button>
             </main>
 
             <!-- 右侧详情侧边栏 -->
             <aside id="right-sidebar" class="sidebar collapsed">
-                <div id="sidebar-resizer" class="sidebar-resizer"></div>
-                <button id="close-detail-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+                <div id="sidebar-resizer" class="sidebar-resizer" title="拖动调整详情栏宽度" aria-label="拖动调整详情栏宽度"></div>
+                <button id="close-detail-btn" class="close-btn" title="隐藏详情栏" aria-label="隐藏详情栏"><i class="fa-solid fa-xmark"></i></button>
                 <div class="detail-header">
                     <span class="gene-badge" id="detail-type-badge">Gene</span>
                     <h2 id="detail-gene-name">-</h2>
@@ -729,13 +821,12 @@
         </div>
     </div>
 
-    <!-- Cytoscape.js Core & PapaParse (for CSV Loading) via CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <!-- jQuery & 3Dmol.js for Interactive 3D Protein Structure Viewer -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.1.0/3Dmol-min.js"></script>
+    <!-- Local browser libraries for offline/stable loading -->
+    <script src="lib/vendor/cytoscape.min.js"></script>
+    <script src="lib/vendor/papaparse.min.js"></script>
+    <script src="lib/vendor/jquery-3.6.0.min.js"></script>
+    <script src="lib/vendor/3Dmol-min.js"></script>
     <!-- Custom Application Logic -->
-    <script src="app.js?v=1.3"></script>
+    <script src="app.js?v=1.8"></script>
 </body>
 </html>

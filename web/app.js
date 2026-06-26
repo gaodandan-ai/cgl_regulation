@@ -14,6 +14,10 @@ let regulations = [];
 
 let rnaRegulations = [];
 
+let normalizedNodes = {};
+
+let normalizedEdges = [];
+
 let geneMapping = [];
 
 let cglToCg = {};
@@ -31,6 +35,8 @@ let geneToOperon = {}; // lower -> { operon, orientation, genes }
 let searchSuggestions = [];
 
 let currentQueryGene = null;
+
+let currentDetailGene = null;
 
 let cy = null;
 
@@ -65,6 +71,8 @@ const canvasOverlay = document.getElementById('canvas-overlay');
 const rightSidebar = document.getElementById('right-sidebar');
 
 const closeDetailBtn = document.getElementById('close-detail-btn');
+
+const rightSidebarToggle = document.getElementById('right-sidebar-toggle');
 
 let activeInput = null;
 
@@ -277,6 +285,7 @@ async function loadNetworkData() {
 
 
         buildGeneIndex();
+        normalizeNetworkData();
 
         // Pre-load default RNA-seq data
         try {
@@ -336,6 +345,249 @@ function parseCSV(text) {
 
     return parsed.data;
 
+}
+
+function normalizeRegulationType(role, sourceType = 'TF-TG') {
+    const cleanRole = cleanStr(role).toUpperCase();
+    if (sourceType === 'sRNA-mRNA') return 'post_transcriptional_repression';
+    if (cleanRole === 'A') return 'activation';
+    if (cleanRole === 'R') return 'repression';
+    if (cleanRole === 'DUAL') return 'dual';
+    if (cleanRole === 'SIGMA') return 'sigma';
+    return 'unknown';
+}
+
+function confidenceFromEvidence(evidence) {
+    const text = cleanStr(evidence).toLowerCase();
+    if (text.includes('experimental') && text.includes('predicted')) return 0.78;
+    if (text.includes('experimental')) return 0.86;
+    if (text.includes('curated') || text.includes('literature')) return 0.74;
+    if (text.includes('predicted')) return 0.42;
+    return 0.32;
+}
+
+function confidenceFromMotif(bindingSite) {
+    const site = cleanStr(bindingSite);
+    if (!site) return 0;
+    const sites = site.split(';').map(s => s.trim()).filter(Boolean);
+    if (sites.length >= 2) return 0.78;
+    const longest = sites.reduce((max, s) => Math.max(max, s.length), 0);
+    return longest >= 10 ? 0.66 : 0.48;
+}
+
+function confidenceFromChip(row) {
+    const evidence = `${cleanStr(row.Evidence)} ${cleanStr(row.Source)} ${cleanStr(row.Method)} ${cleanStr(row.Assay)}`.toLowerCase();
+    if (evidence.includes('chip-exo')) return 0.95;
+    if (evidence.includes('chip-seq') || evidence.includes('chip_seq') || evidence.includes('chip')) return 0.9;
+    return 0;
+}
+
+function confidenceFromExpression(row, sourceType = 'TF-TG') {
+    if (sourceType === 'sRNA-mRNA') {
+        const p = parseFloat(row.copra_pvalue);
+        const fdr = parseFloat(row.copra_fdr);
+        const energy = parseFloat(row.energy);
+        let score = 0.35;
+        if (!Number.isNaN(p)) score += p <= 0.001 ? 0.25 : p <= 0.01 ? 0.18 : p <= 0.05 ? 0.1 : 0;
+        if (!Number.isNaN(fdr)) score += fdr <= 0.05 ? 0.2 : fdr <= 0.25 ? 0.12 : 0;
+        if (!Number.isNaN(energy)) score += energy <= -20 ? 0.15 : energy <= -12 ? 0.08 : 0;
+        return Math.min(0.9, score);
+    }
+
+    const corr = parseFloat(row.expression_correlation ?? row.Expression_correlation ?? row.correlation ?? row.Correlation);
+    if (!Number.isNaN(corr)) return Math.min(0.95, Math.abs(corr));
+    return 0;
+}
+
+function combineConfidenceScores(factors) {
+    const weights = {
+        motif: 0.25,
+        chip: 0.3,
+        expression: 0.2,
+        database: 0.25
+    };
+    let weighted = 0;
+    let usedWeight = 0;
+    Object.entries(weights).forEach(([key, weight]) => {
+        const val = factors[key] || 0;
+        if (val > 0) {
+            weighted += val * weight;
+            usedWeight += weight;
+        }
+    });
+    if (usedWeight === 0) return 0.25;
+    const normalized = weighted / usedWeight;
+    const multiEvidenceBonus = Object.values(factors).filter(v => v > 0.1).length >= 2 ? 0.06 : 0;
+    return Math.max(0.05, Math.min(0.99, normalized + multiEvidenceBonus));
+}
+
+function confidenceLevel(score) {
+    if (score >= 0.75) return 'high';
+    if (score >= 0.5) return 'medium';
+    return 'low';
+}
+
+function roleLabelFromType(role, regulationType) {
+    if (regulationType === 'activation' || role === 'A') return '激活 (+)';
+    if (regulationType === 'repression' || role === 'R') return '抑制 (-)';
+    if (regulationType === 'post_transcriptional_repression' || role === 'sRNA') return 'sRNA/转录后抑制';
+    if (regulationType === 'sigma') return 'Sigma 因子';
+    if (regulationType === 'dual' || role === 'Dual') return '双重调控';
+    return '未知/待定';
+}
+
+function confidenceSummary(edge) {
+    if (!edge) return '';
+    const factors = edge.confidenceFactors || {};
+    const percent = Math.round((edge.confidenceScore || 0) * 100);
+    return `Conf ${percent}% (${edge.confidenceLevel || 'low'}; motif ${Math.round((factors.motif || 0) * 100)} / ChIP ${Math.round((factors.chip || 0) * 100)} / expr ${Math.round((factors.expression || 0) * 100)} / db ${Math.round((factors.database || 0) * 100)})`;
+}
+
+function getNodeMetaForDetails(locus) {
+    const lower = cleanStr(locus).toLowerCase();
+    const normalized = normalizedNodes[lower];
+    const indexed = geneIndex[lower];
+    return {
+        name: normalized?.label || indexed?.name || locus,
+        type: normalized?.type || indexed?.type || 'Target'
+    };
+}
+
+function normalizeNodeRecord(id, label, type, aliases = {}) {
+    const cleanId = cleanStr(id);
+    if (!cleanId) return null;
+    return {
+        id: cleanId,
+        label: getPrioritizedLabel(cleanId, label || cleanId),
+        type,
+        aliases,
+        dataSource: 'local_csv'
+    };
+}
+
+function mergeNormalizedNode(node) {
+    if (!node) return;
+    const key = node.id.toLowerCase();
+    const existing = normalizedNodes[key];
+    if (!existing) {
+        normalizedNodes[key] = node;
+        return;
+    }
+    const typeRank = { query: 4, TF: 3, sRNA: 2, Target: 1 };
+    const chosenType = (typeRank[node.type] || 0) > (typeRank[existing.type] || 0) ? node.type : existing.type;
+    normalizedNodes[key] = {
+        ...existing,
+        ...node,
+        type: chosenType,
+        aliases: {
+            ...(existing.aliases || {}),
+            ...(node.aliases || {})
+        }
+    };
+}
+
+function normalizeTfEdge(row, index) {
+    const source = cleanStr(row.TF_locusTag);
+    const target = cleanStr(row.TG_locusTag);
+    if (!source || !target) return null;
+    const regulationType = normalizeRegulationType(row.Role, 'TF-TG');
+    const factors = {
+        motif: confidenceFromMotif(row.Binding_site),
+        chip: confidenceFromChip(row),
+        expression: confidenceFromExpression(row, 'TF-TG'),
+        database: confidenceFromEvidence(row.Evidence || row.Source)
+    };
+    const confidenceScore = combineConfidenceScores(factors);
+    const role = cleanStr(row.Role);
+    return {
+        id: `edge_${source}_${target}_${index}`,
+        source,
+        target,
+        sourceType: 'TF',
+        targetType: 'Target',
+        regulationType,
+        role,
+        legacyRole: role,
+        interactionClass: 'TF-TG',
+        confidenceScore,
+        confidenceLevel: confidenceLevel(confidenceScore),
+        confidenceFactors: factors,
+        evidence: {
+            motifSequence: cleanStr(row.Binding_site),
+            databaseEvidence: cleanStr(row.Evidence),
+            source: cleanStr(row.Source),
+            pmid: cleanStr(row.PMID),
+            expressionCorrelation: cleanStr(row.expression_correlation ?? row.Expression_correlation ?? row.correlation ?? '')
+        },
+        original: row
+    };
+}
+
+function normalizeSrnaEdge(row, index) {
+    const source = cleanStr(row.srna);
+    const target = cleanStr(row.mrna);
+    if (!source || !target) return null;
+    const factors = {
+        motif: 0,
+        chip: 0,
+        expression: confidenceFromExpression(row, 'sRNA-mRNA'),
+        database: 0.45
+    };
+    const confidenceScore = combineConfidenceScores(factors);
+    return {
+        id: `edge_srna_${source}_${target}_${index}`,
+        source,
+        target,
+        sourceType: 'sRNA',
+        targetType: 'Target',
+        regulationType: 'post_transcriptional_repression',
+        role: 'sRNA',
+        legacyRole: 'sRNA',
+        interactionClass: 'sRNA-mRNA',
+        confidenceScore,
+        confidenceLevel: confidenceLevel(confidenceScore),
+        confidenceFactors: factors,
+        evidence: {
+            rank: row.rank,
+            energy: row.energy,
+            copraPvalue: row.copra_pvalue,
+            copraFdr: row.copra_fdr,
+            source: 'sRNA prediction'
+        },
+        original: row
+    };
+}
+
+function normalizeNetworkData() {
+    normalizedNodes = {};
+    normalizedEdges = [];
+
+    regulations.forEach((row, index) => {
+        const edge = normalizeTfEdge(row, index);
+        if (!edge) return;
+        normalizedEdges.push(edge);
+        const tfNode = normalizeNodeRecord(edge.source, cleanStr(row.TF_name), 'TF', {
+            altLocus: cleanStr(row.TF_altLocusTag)
+        });
+        const tgNode = normalizeNodeRecord(edge.target, cleanStr(row.TG_name), 'Target', {
+            altLocus: cleanStr(row.TG_altLocusTag),
+            operon: cleanStr(row.Operon)
+        });
+        mergeNormalizedNode(tfNode);
+        mergeNormalizedNode(tgNode);
+    });
+
+    rnaRegulations.forEach((row, index) => {
+        const edge = normalizeSrnaEdge(row, index);
+        if (!edge) return;
+        normalizedEdges.push(edge);
+        const srnaNode = normalizeNodeRecord(edge.source, edge.source, 'sRNA');
+        const targetNode = normalizeNodeRecord(edge.target, edge.target, 'Target');
+        mergeNormalizedNode(srnaNode);
+        mergeNormalizedNode(targetNode);
+    });
+
+    console.log(`Normalized regulatory graph: ${Object.keys(normalizedNodes).length} nodes, ${normalizedEdges.length} edges.`);
 }
 
 
@@ -1118,7 +1370,7 @@ function renderNetwork(locusTag) {
 
                 style: {
 
-                    'width': 2,
+                    'width': (edge) => 1.2 + ((edge.data('confidenceScore') || 0.25) * 3.2),
 
                     'line-color': '#e65100', // Default dark orange
 
@@ -1130,12 +1382,23 @@ function renderNetwork(locusTag) {
 
                     'arrow-scale': 1.1,
 
+                    'opacity': (edge) => 0.35 + ((edge.data('confidenceScore') || 0.25) * 0.6),
+
                     'transition-property': 'line-color, target-arrow-color, opacity, width',
 
                     'transition-duration': '0.2s'
 
                 }
 
+            },
+
+            {
+                selector: 'edge[regulationType="activation"]',
+                style: {
+                    'line-color': '#2e7d32',
+                    'target-arrow-color': '#2e7d32',
+                    'target-arrow-shape': 'triangle'
+                }
             },
 
             {
@@ -1150,6 +1413,15 @@ function renderNetwork(locusTag) {
 
                 }
 
+            },
+
+            {
+                selector: 'edge[regulationType="repression"]',
+                style: {
+                    'line-color': '#d32f2f',
+                    'target-arrow-color': '#d32f2f',
+                    'target-arrow-shape': 'tee'
+                }
             },
 
             {
@@ -1169,6 +1441,15 @@ function renderNetwork(locusTag) {
             },
 
             {
+                selector: 'edge[regulationType="dual"], edge[regulationType="sigma"], edge[regulationType="unknown"]',
+                style: {
+                    'line-color': '#e65100',
+                    'target-arrow-color': '#e65100',
+                    'target-arrow-shape': 'triangle'
+                }
+            },
+
+            {
 
                 selector: 'edge[role="Dual"]',
 
@@ -1180,6 +1461,16 @@ function renderNetwork(locusTag) {
 
                 }
 
+            },
+
+            {
+                selector: 'edge[regulationType="post_transcriptional_repression"]',
+                style: {
+                    'line-color': '#7b1fa2',
+                    'target-arrow-color': '#7b1fa2',
+                    'line-style': 'dashed',
+                    'target-arrow-shape': 'triangle-tee'
+                }
             },
 
             {
@@ -1198,6 +1489,28 @@ function renderNetwork(locusTag) {
 
                 }
 
+            },
+
+            {
+                selector: 'edge.confidence-high',
+                style: {
+                    'line-style': 'solid'
+                }
+            },
+
+            {
+                selector: 'edge.confidence-medium',
+                style: {
+                    'line-style': 'solid'
+                }
+            },
+
+            {
+                selector: 'edge.confidence-low',
+                style: {
+                    'line-style': 'dotted',
+                    'opacity': 0.42
+                }
             },
 
             // Interactive dimming styles
@@ -1446,15 +1759,9 @@ function buildElements(queryLoci) {
 
     const querySet = new Set(queryList.map(l => l.toLowerCase()));
 
-
-
     const nodesMap = {};
 
     const edges = [];
-
-
-
-    // Local filter state
 
     const showActivation = filterActivation.checked;
 
@@ -1468,399 +1775,147 @@ function buildElements(queryLoci) {
 
     const showOnlyTfTargets = filterOnlyTfTargets ? filterOnlyTfTargets.checked : false;
 
-
-
-    // Add all query nodes first
-
-    queryList.forEach(locus => {
-
+    function getNodeMeta(locus, fallbackType = 'Target') {
         const lower = locus.toLowerCase();
-
-        let meta = { locusTag: locus, name: locus, type: 'Target' };
-
-        for (let key in geneIndex) {
-
-            if (geneIndex[key].locusTag.toLowerCase() === lower) {
-
-                meta = geneIndex[key];
-
-                break;
-
-            }
-
-        }
-
-        nodesMap[locus] = {
-
-            data: {
-
-                id: locus,
-
-                name: getPrioritizedLabel(locus, meta.name),
-
-                type: 'query'
-
-            }
-
+        const normalized = normalizedNodes[lower];
+        const indexed = geneIndex[lower];
+        return {
+            locusTag: locus,
+            name: normalized?.label || indexed?.name || locus,
+            type: normalized?.type || indexed?.type || fallbackType
         };
-
-    });
-
-
-
-    // 1. Process TF regulations
-
-    regulations.forEach(row => {
-
-        const tfTag = cleanStr(row.TF_locusTag);
-
-        const tfName = cleanStr(row.TF_name);
-
-        const tgTag = cleanStr(row.TG_locusTag);
-
-        const tgName = cleanStr(row.TG_name);
-
-        const role = cleanStr(row.Role); // A, R, Dual, etc.
-
-
-
-        // Edge matching role filter
-
-        if (role === 'A' && !showActivation) return;
-
-        if (role === 'R' && !showRepression) return;
-
-        if ((role === 'Dual' || role === 'Sigma' || role === '') && !showDual) return;
-
-
-
-        // Is ANY query involved?
-
-        const isTfQuery = querySet.has(tfTag.toLowerCase());
-
-        const isTgQuery = querySet.has(tgTag.toLowerCase());
-
-
-
-        if (isTfQuery || isTgQuery) {
-
-            // TF targets filter
-
-            if (showOnlyTfTargets && isTfQuery && !isTgQuery) {
-
-                const targetMeta = geneIndex[tgTag.toLowerCase()];
-
-                const isTargetTf = targetMeta && targetMeta.type === 'TF';
-
-                if (!isTargetTf) return;
-
-            }
-
-            
-
-            // Add nodes
-
-            if (!nodesMap[tfTag]) {
-
-                nodesMap[tfTag] = {
-
-                    data: {
-
-                        id: tfTag,
-
-                        name: getPrioritizedLabel(tfTag, tfName),
-
-                        type: querySet.has(tfTag.toLowerCase()) ? 'query' : 'TF'
-
-                    }
-
-                };
-
-            }
-
-            if (!nodesMap[tgTag]) {
-
-                nodesMap[tgTag] = {
-
-                    data: {
-
-                        id: tgTag,
-
-                        name: getPrioritizedLabel(tgTag, tgName),
-
-                        type: querySet.has(tgTag.toLowerCase()) ? 'query' : 'Target'
-
-                    }
-
-                };
-
-            }
-
-            
-
-            // Add edge
-
-            edges.push({
-
-                data: {
-
-                    id: `edge_${tfTag}_${tgTag}`,
-
-                    source: tfTag,
-
-                    target: tgTag,
-
-                    role: role,
-
-                    type: 'TF-TG'
-
-                }
-
-            });
-
-        }
-
-    });
-
-
-
-    // 2. Process sRNA regulations
-
-    if (showSrna && rnaRegulations.length > 0) {
-
-        rnaRegulations.forEach(row => {
-
-            const srna = cleanStr(row.srna);
-
-            const mrna = cleanStr(row.mrna);
-
-            const rank = parseInt(row.rank, 10);
-
-            
-
-            if (rank > rankLimit) return; // Slider filter
-
-
-
-            const isSrnaQuery = querySet.has(srna.toLowerCase());
-
-            const isMrnaQuery = querySet.has(mrna.toLowerCase());
-
-
-
-            if (isSrnaQuery || isMrnaQuery) {
-
-                // TF targets filter for sRNA targets
-
-                if (showOnlyTfTargets && isSrnaQuery && !isMrnaQuery) {
-
-                    const targetMeta = geneIndex[mrna.toLowerCase()];
-
-                    const isTargetTf = targetMeta && targetMeta.type === 'TF';
-
-                    if (!isTargetTf) return;
-
-                }
-
-                
-
-                if (!nodesMap[srna]) {
-
-                    nodesMap[srna] = {
-
-                        data: {
-
-                            id: srna,
-
-                            name: getPrioritizedLabel(srna, srna),
-
-                            type: querySet.has(srna.toLowerCase()) ? 'query' : 'sRNA'
-
-                        }
-
-                    };
-
-                }
-
-                if (!nodesMap[mrna]) {
-
-                    nodesMap[mrna] = {
-
-                        data: {
-
-                            id: mrna,
-
-                            name: getPrioritizedLabel(mrna, mrna),
-
-                            type: querySet.has(mrna.toLowerCase()) ? 'query' : 'Target'
-
-                        }
-
-                    };
-
-                }
-
-
-
-                edges.push({
-
-                    data: {
-
-                        id: `edge_srna_${srna}_${mrna}`,
-
-                        source: srna,
-
-                        target: mrna,
-
-                        role: 'sRNA',
-
-                        type: 'sRNA-mRNA',
-
-                        rank: rank,
-
-                        energy: row.energy,
-
-                        pvalue: row.copra_pvalue
-
-                    }
-
-                });
-
-            }
-
-        });
-
     }
 
+    function addNode(locus, typeOverride = null) {
+        if (!locus || nodesMap[locus]) return;
+        const lower = locus.toLowerCase();
+        const meta = getNodeMeta(locus, typeOverride || 'Target');
+        const nodeType = querySet.has(lower) ? 'query' : (typeOverride || meta.type || 'Target');
+        nodesMap[locus] = {
+            data: {
+                id: locus,
+                name: getPrioritizedLabel(locus, meta.name),
+                type: nodeType,
+                schemaVersion: 'unified-v1'
+            }
+        };
+    }
 
+    queryList.forEach(locus => addNode(locus, 'Target'));
 
-    // Inject RNA-Seq data to nodes if active
+    const edgeSource = normalizedEdges.length > 0
+        ? normalizedEdges
+        : regulations.map((row, index) => normalizeTfEdge(row, index)).filter(Boolean);
+
+    edgeSource.forEach(edge => {
+        if (!edge) return;
+
+        const source = edge.source;
+        const target = edge.target;
+        const role = edge.legacyRole || edge.role || '';
+        const regulationType = edge.regulationType || normalizeRegulationType(role, edge.interactionClass);
+
+        if (regulationType === 'activation' && !showActivation) return;
+        if (regulationType === 'repression' && !showRepression) return;
+        if (['dual', 'sigma', 'unknown'].includes(regulationType) && edge.interactionClass !== 'sRNA-mRNA' && !showDual) return;
+        if (edge.interactionClass === 'sRNA-mRNA') {
+            if (!showSrna) return;
+            const rank = parseInt(edge.evidence?.rank ?? edge.original?.rank, 10);
+            if (!Number.isNaN(rank) && rank > rankLimit) return;
+        }
+
+        const isSourceQuery = querySet.has(source.toLowerCase());
+        const isTargetQuery = querySet.has(target.toLowerCase());
+        if (!isSourceQuery && !isTargetQuery) return;
+
+        if (showOnlyTfTargets && isSourceQuery && !isTargetQuery) {
+            const targetMeta = geneIndex[target.toLowerCase()] || normalizedNodes[target.toLowerCase()];
+            const isTargetTf = targetMeta && targetMeta.type === 'TF';
+            if (!isTargetTf) return;
+        }
+
+        addNode(source, edge.sourceType === 'sRNA' ? 'sRNA' : 'TF');
+        addNode(target, edge.targetType || 'Target');
+
+        edges.push({
+            data: {
+                id: edge.id,
+                source,
+                target,
+                role,
+                type: edge.interactionClass,
+                regulationType,
+                confidenceScore: edge.confidenceScore,
+                confidencePercent: Math.round((edge.confidenceScore || 0) * 100),
+                confidenceLevel: edge.confidenceLevel,
+                confidenceFactors: edge.confidenceFactors,
+                evidence: edge.evidence,
+                motifScore: edge.confidenceFactors?.motif || 0,
+                chipScore: edge.confidenceFactors?.chip || 0,
+                expressionScore: edge.confidenceFactors?.expression || 0,
+                databaseScore: edge.confidenceFactors?.database || 0,
+                rank: edge.evidence?.rank,
+                energy: edge.evidence?.energy,
+                pvalue: edge.evidence?.copraPvalue,
+                schemaVersion: 'unified-v1'
+            },
+            classes: `confidence-${edge.confidenceLevel || 'low'}`
+        });
+    });
 
     if (rnaseqData) {
-
         Object.keys(nodesMap).forEach(id => {
-
             const lowerId = id.toLowerCase();
-
             if (rnaseqData[lowerId]) {
-
                 const item = rnaseqData[lowerId];
-
                 nodesMap[id].data.rnaseq_log2fc = item.log2fc;
-
                 nodesMap[id].data.rnaseq_pvalue = item.pvalue;
-
                 nodesMap[id].classes = (nodesMap[id].classes || '') + ' rnaseq-node';
-
             }
-
         });
-
     }
-
-
-
-    // 3. Filter for co-regulated target genes if checked
 
     const showOnlyCoRegulated = filterCoregulated.checked;
-
     if (showOnlyCoRegulated) {
-
-        // Count incoming edges for Target nodes in the current edges set
-
         const inDegreeMap = {};
-
         edges.forEach(e => {
-
             const target = e.data.target;
-
             inDegreeMap[target] = (inDegreeMap[target] || 0) + 1;
-
         });
-
-
-
-        // Determine which Target nodes have inDegree >= 2
 
         const coRegulatedTargets = new Set();
-
         Object.keys(inDegreeMap).forEach(nodeId => {
-
             const nodeObj = nodesMap[nodeId];
-
-            if (nodeObj && (nodeObj.data.type === 'Target') && inDegreeMap[nodeId] >= 2) {
-
+            if (nodeObj && nodeObj.data.type === 'Target' && inDegreeMap[nodeId] >= 2) {
                 coRegulatedTargets.add(nodeId);
-
             }
-
         });
-
-
-
-        // Filter edges: only keep edges pointing to co-regulated target genes
 
         const keptEdges = edges.filter(e => {
-
             const targetNode = nodesMap[e.data.target];
-
             const targetType = targetNode ? targetNode.data.type : '';
-
-            if (targetType === 'Target') {
-
-                return coRegulatedTargets.has(e.data.target);
-
-            }
-
-            return true; // Keep edges pointing to queries/TFs/sRNAs
-
+            if (targetType === 'Target') return coRegulatedTargets.has(e.data.target);
+            return true;
         });
-
-
-
-        // Nodes must be kept if they are in the query list or involved in kept edges
 
         const keptNodeIds = new Set(queryList);
-
         keptEdges.forEach(e => {
-
             keptNodeIds.add(e.data.source);
-
             keptNodeIds.add(e.data.target);
-
         });
 
-
-
-        const keptNodes = Object.values(nodesMap).filter(n => keptNodeIds.has(n.data.id));
-
-
-
         return {
-
-            nodes: keptNodes,
-
+            nodes: Object.values(nodesMap).filter(n => keptNodeIds.has(n.data.id)),
             edges: keptEdges
-
         };
-
     }
 
-
-
     return {
-
         nodes: Object.values(nodesMap),
-
-        edges: edges
-
+        edges
     };
-
 }
 
-
-
-// Highlight subnetwork (1st degree neighbors)
 
 function highlightSubnet(node) {
 
@@ -1948,7 +2003,7 @@ function showNodeDetails(locusTag) {
         resolvedLocus = cglToCg[lower];
     }
     const resolvedLower = resolvedLocus.toLowerCase();
-    currentQueryGene = resolvedLocus;
+    currentDetailGene = resolvedLocus;
 
     // Resolve display meta
     let meta = { locusTag: resolvedLocus, name: resolvedLocus, type: 'Target' };
@@ -2415,123 +2470,43 @@ function showNodeDetails(locusTag) {
 
 
 
-    // TF-TG details
+    // Unified edge details
 
-    regulations.forEach(row => {
+    normalizedEdges.forEach(edge => {
+        const sourceLower = edge.source.toLowerCase();
+        const targetLower = edge.target.toLowerCase();
+        const sourceMeta = getNodeMetaForDetails(edge.source);
+        const targetMeta = getNodeMetaForDetails(edge.target);
+        const sourceText = `${cleanStr(edge.evidence?.source) || edge.interactionClass}; ${confidenceSummary(edge)}`;
 
-        const tfTag = cleanStr(row.TF_locusTag);
-
-        const tfName = cleanStr(row.TF_name);
-
-        const tgTag = cleanStr(row.TG_locusTag);
-
-        const tgName = cleanStr(row.TG_name);
-
-        const role = cleanStr(row.Role);
-
-
-
-        if (tfTag.toLowerCase() === lower) {
-
+        if (sourceLower === lower) {
             targsCount++;
-
             relations.push({
-
-                gene: getPrioritizedLabel(tgTag, tgName),
-
-                locusTag: tgTag,
-
+                gene: getPrioritizedLabel(edge.target, targetMeta.name),
+                locusTag: edge.target,
                 dir: 'outgoing',
-
-                role: role,
-
-                source: 'CorynebNet'
-
+                role: edge.legacyRole || edge.role,
+                regulationType: edge.regulationType,
+                confidenceScore: edge.confidenceScore,
+                confidenceLevel: edge.confidenceLevel,
+                source: sourceText
             });
-
         }
 
-        if (tgTag.toLowerCase() === lower) {
-
+        if (targetLower === lower) {
             regsCount++;
-
             relations.push({
-
-                gene: getPrioritizedLabel(tfTag, tfName),
-
-                locusTag: tfTag,
-
+                gene: getPrioritizedLabel(edge.source, sourceMeta.name),
+                locusTag: edge.source,
                 dir: 'incoming',
-
-                role: role,
-
-                source: 'CorynebNet'
-
+                role: edge.legacyRole || edge.role,
+                regulationType: edge.regulationType,
+                confidenceScore: edge.confidenceScore,
+                confidenceLevel: edge.confidenceLevel,
+                source: sourceText
             });
-
         }
-
     });
-
-
-
-    // sRNA details
-
-    rnaRegulations.forEach(row => {
-
-        const srna = cleanStr(row.srna);
-
-        const mrna = cleanStr(row.mrna);
-
-        const rank = parseInt(row.rank, 10);
-
-        const energy = row.energy;
-
-
-
-        if (srna.toLowerCase() === lower) {
-
-            targsCount++;
-
-            relations.push({
-
-                gene: getPrioritizedLabel(mrna, mrna),
-
-                locusTag: mrna,
-
-                dir: 'outgoing',
-
-                role: 'sRNA',
-
-                source: `Rank: ${rank} (E: ${energy})`
-
-            });
-
-        }
-
-        if (mrna.toLowerCase() === lower) {
-
-            regsCount++;
-
-            relations.push({
-
-                gene: getPrioritizedLabel(srna, srna),
-
-                locusTag: srna,
-
-                dir: 'incoming',
-
-                role: 'sRNA',
-
-                source: `Rank: ${rank} (E: ${energy})`
-
-            });
-
-        }
-
-    });
-
-
 
     // Update Counts
 
@@ -2611,9 +2586,9 @@ function showNodeDetails(locusTag) {
 
             
 
-            const roleClass = rel.role === 'A' ? 'activation' : rel.role === 'R' ? 'repression' : rel.role === 'sRNA' ? 'srna' : 'dual';
+            const roleClass = rel.regulationType === 'activation' ? 'activation' : rel.regulationType === 'repression' ? 'repression' : rel.regulationType === 'post_transcriptional_repression' ? 'srna' : 'dual';
 
-            const roleText = rel.role === 'A' ? '激活 (+)' : rel.role === 'R' ? '抑制 (-)' : rel.role === 'sRNA' ? 'sRNA预测' : '双重/Sigma';
+            const roleText = roleLabelFromType(rel.role, rel.regulationType);
 
             
 
@@ -3059,139 +3034,43 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
 
 
-    regulations.forEach(row => {
+    normalizedEdges.forEach(edge => {
+        const sourceLower = edge.source.toLowerCase();
+        const targetLower = edge.target.toLowerCase();
+        const sourceMeta = getNodeMetaForDetails(edge.source);
+        const targetMeta = getNodeMetaForDetails(edge.target);
+        const sourceText = `${cleanStr(edge.evidence?.source) || edge.interactionClass}; ${confidenceSummary(edge)}`;
 
-        const tfTag = cleanStr(row.TF_locusTag);
-
-        const tfName = cleanStr(row.TF_name);
-
-        const tgTag = cleanStr(row.TG_locusTag);
-
-        const tgName = cleanStr(row.TG_name);
-
-        const role = cleanStr(row.Role);
-
-
-
-        const tfLower = tfTag.toLowerCase();
-
-        const tgLower = tgTag.toLowerCase();
-
-
-
-        if (operonGeneSet.has(tgLower) && !operonGeneSet.has(tfLower)) {
-
+        if (operonGeneSet.has(targetLower) && !operonGeneSet.has(sourceLower)) {
             regsCount++;
-
             relations.push({
-
-                gene: getPrioritizedLabel(tfTag, tfName),
-
-                locusTag: tfTag,
-
+                gene: getPrioritizedLabel(edge.source, sourceMeta.name),
+                locusTag: edge.source,
                 dir: 'incoming',
-
-                role: role,
-
-                source: 'CorynebNet',
-
-                targetGene: getPrioritizedLabel(tgTag, tgName)
-
+                role: edge.legacyRole || edge.role,
+                regulationType: edge.regulationType,
+                confidenceScore: edge.confidenceScore,
+                confidenceLevel: edge.confidenceLevel,
+                source: sourceText,
+                targetGene: getPrioritizedLabel(edge.target, targetMeta.name)
             });
-
         }
 
-        if (operonGeneSet.has(tfLower) && !operonGeneSet.has(tgLower)) {
-
+        if (operonGeneSet.has(sourceLower) && !operonGeneSet.has(targetLower)) {
             targsCount++;
-
             relations.push({
-
-                gene: getPrioritizedLabel(tgTag, tgName),
-
-                locusTag: tgTag,
-
+                gene: getPrioritizedLabel(edge.target, targetMeta.name),
+                locusTag: edge.target,
                 dir: 'outgoing',
-
-                role: role,
-
-                source: 'CorynebNet',
-
-                sourceGene: getPrioritizedLabel(tfTag, tfName)
-
+                role: edge.legacyRole || edge.role,
+                regulationType: edge.regulationType,
+                confidenceScore: edge.confidenceScore,
+                confidenceLevel: edge.confidenceLevel,
+                source: sourceText,
+                sourceGene: getPrioritizedLabel(edge.source, sourceMeta.name)
             });
-
         }
-
     });
-
-
-
-    rnaRegulations.forEach(row => {
-
-        const srna = cleanStr(row.srna);
-
-        const mrna = cleanStr(row.mrna);
-
-        const rank = parseInt(row.rank, 10);
-
-        const energy = row.energy;
-
-
-
-        const srnaLower = srna.toLowerCase();
-
-        const mrnaLower = mrna.toLowerCase();
-
-
-
-        if (operonGeneSet.has(mrnaLower) && !operonGeneSet.has(srnaLower)) {
-
-            regsCount++;
-
-            relations.push({
-
-                gene: getPrioritizedLabel(srna, srna),
-
-                locusTag: srna,
-
-                dir: 'incoming',
-
-                role: 'sRNA',
-
-                source: `Rank: ${rank} (E: ${energy})`,
-
-                targetGene: getPrioritizedLabel(mrna, mrna)
-
-            });
-
-        }
-
-        if (operonGeneSet.has(srnaLower) && !operonGeneSet.has(mrnaLower)) {
-
-            targsCount++;
-
-            relations.push({
-
-                gene: getPrioritizedLabel(mrna, mrna),
-
-                locusTag: mrna,
-
-                dir: 'outgoing',
-
-                role: 'sRNA',
-
-                source: `Rank: ${rank} (E: ${energy})`,
-
-                sourceGene: getPrioritizedLabel(srna, srna)
-
-            });
-
-        }
-
-    });
-
-
 
     regulatorsCount.textContent = regsCount;
 
@@ -3261,9 +3140,9 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
             const tr = document.createElement('tr');
 
-            const roleClass = rel.role === 'A' ? 'activation' : rel.role === 'R' ? 'repression' : rel.role === 'sRNA' ? 'srna' : 'dual';
+            const roleClass = rel.regulationType === 'activation' ? 'activation' : rel.regulationType === 'repression' ? 'repression' : rel.regulationType === 'post_transcriptional_repression' ? 'srna' : 'dual';
 
-            const roleText = rel.role === 'A' ? '激活 (+)' : rel.role === 'R' ? '抑制 (-)' : rel.role === 'sRNA' ? 'sRNA预测' : '双重/Sigma';
+            const roleText = roleLabelFromType(rel.role, rel.regulationType);
 
             const assocGeneText = rel.dir === 'incoming' 
 
@@ -3597,6 +3476,18 @@ function initEventListeners() {
         toggleRightSidebar(false);
 
     });
+
+    if (rightSidebarToggle) {
+
+        rightSidebarToggle.addEventListener('click', () => {
+
+            const isCollapsed = rightSidebar?.classList.contains('collapsed');
+
+            toggleRightSidebar(isCollapsed);
+
+        });
+
+    }
 
 
 
@@ -4079,8 +3970,6 @@ function querySingleGene(locus) {
     }
 
     triggerSearchFromInputs();
-
-    showNodeDetails(locus);
 
 }
 
@@ -4996,6 +4885,102 @@ function parseMarkdownToHtml(mdText) {
 
 // ==========================================================================
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
+function renderPathwayRegulation(regulation) {
+    if (!regulation) return '';
+
+    const matched = regulation.matched_pathways || [];
+    const regulators = regulation.regulators || [];
+    const pathwayGenes = regulation.pathway_genes || [];
+    const cacheInfo = regulation.cache || {};
+    const matchHtml = matched.length > 0
+        ? matched.map(p => `<a href="${escapeHtml(p.link)}" target="_blank" style="color:#2563eb; text-decoration:none; font-weight:600;">${escapeHtml(p.name || p.id)}</a>`).join(' · ')
+        : '<span style="color:var(--text-secondary);">No KEGG pathway match found</span>';
+
+    const regulatorRows = regulators.slice(0, 8).map(r => {
+        const roleText = Object.entries(r.roles || {}).map(([k, v]) => `${escapeHtml(k)}:${escapeHtml(v)}`).join(' ');
+        const evidenceText = Object.entries(r.evidence || {}).map(([k, v]) => `${escapeHtml(k)}:${escapeHtml(v)}`).join(' ');
+        const components = r.score_components || {};
+        const scoreTitle = [
+            `Coverage: ${components.coverage ?? 0}`,
+            `Evidence: ${components.evidence ?? 0}`,
+            `Binding site: ${components.binding_site ?? 0}`,
+            `Direction: ${components.direction_consistency ?? 0}`,
+            `Edge support: ${components.edge_support ?? 0}`
+        ].join('\n');
+        const targets = (r.target_genes || []).slice(0, 8).map(g =>
+            `<button class="ai-pathway-gene-badge pathway-reg-target" data-locus="${escapeHtml(g)}" style="border:none; cursor:pointer;">${escapeHtml(g)}</button>`
+        ).join('');
+        return `
+            <tr>
+                <td style="padding:5px 6px; vertical-align:top;">
+                    <button class="ai-pathway-gene-badge pathway-reg-target" data-locus="${escapeHtml(r.tf_locus)}" style="border:none; cursor:pointer; font-weight:700;">${escapeHtml(r.tf_name || r.tf_locus)}</button>
+                    <div style="font-size:8.5px; color:var(--text-muted);">${escapeHtml(r.tf_locus)}</div>
+                </td>
+                <td style="padding:5px 6px; text-align:center; vertical-align:top;" title="${escapeHtml(scoreTitle)}">
+                    <span style="display:inline-block; min-width:34px; padding:2px 5px; border-radius:4px; background:#ecfdf5; color:#047857; font-weight:700;">${escapeHtml(r.impact_score ?? '-')}</span>
+                    <div style="font-size:8px; color:var(--text-muted); margin-top:2px;">${escapeHtml(r.confidence || '')}</div>
+                </td>
+                <td style="padding:5px 6px; text-align:center; vertical-align:top;">${escapeHtml(r.target_count)}</td>
+                <td style="padding:5px 6px; vertical-align:top; font-size:8.5px; color:var(--text-secondary);">${roleText || '-'}</td>
+                <td style="padding:5px 6px; vertical-align:top; font-size:8.5px; color:var(--text-secondary);">${evidenceText || '-'}</td>
+                <td style="padding:5px 6px; vertical-align:top;">${targets || '-'}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const geneBadges = pathwayGenes.slice(0, 24).map(g =>
+        `<button class="ai-pathway-gene-badge pathway-reg-target" data-locus="${escapeHtml(g.locus)}" style="border:none; cursor:pointer;">${escapeHtml(g.name || g.locus)}<span style="opacity:.65;"> (${escapeHtml(g.locus)})</span></button>`
+    ).join('');
+
+    return `
+        <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-color);">
+            <div style="font-size:11px; font-weight:700; color:var(--text-primary); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-diagram-project" style="color:#0f766e;"></i> KEGG 通路 - TF 调控投影
+            </div>
+            <div style="font-size:10px; color:var(--text-secondary); line-height:1.5; margin-bottom:8px;">
+                匹配通路：${matchHtml}<br>
+                通路基因 ${escapeHtml(regulation.pathway_gene_count || 0)} 个；已有调控记录覆盖 ${escapeHtml(regulation.regulated_gene_count || 0)} 个；上游 TF ${escapeHtml(regulation.regulator_count || 0)} 个。
+                ${cacheInfo.enabled ? `<br>KEGG 缓存：${cacheInfo.loaded_from_disk ? '已使用本地缓存' : '本次联网生成缓存'}` : ''}
+            </div>
+            ${regulators.length > 0 ? `
+                <div style="max-height:190px; overflow:auto; border:1px solid var(--border-color); border-radius:6px; background:#fff;">
+                    <table style="width:100%; border-collapse:collapse; font-size:9px;">
+                        <thead>
+                            <tr style="background:#f8fafc; color:var(--text-secondary); border-bottom:1px solid var(--border-color);">
+                                <th style="padding:5px 6px; text-align:left;">TF</th>
+                                <th style="padding:5px 6px;">Score</th>
+                                <th style="padding:5px 6px;">靶基因</th>
+                                <th style="padding:5px 6px; text-align:left;">方向</th>
+                                <th style="padding:5px 6px; text-align:left;">证据</th>
+                                <th style="padding:5px 6px; text-align:left;">通路靶基因</th>
+                            </tr>
+                        </thead>
+                        <tbody>${regulatorRows}</tbody>
+                    </table>
+                </div>
+            ` : `
+                <div style="font-size:10px; color:var(--text-secondary); padding:8px; background:#f8fafc; border-radius:6px;">
+                    暂未在本地调控表中找到指向该 KEGG 通路基因的 TF 边。
+                </div>
+            `}
+            ${geneBadges ? `
+                <div style="font-size:10px; font-weight:700; color:var(--text-primary); margin-top:9px; margin-bottom:5px;">通路基因候选</div>
+                <div class="ai-pathway-genes-list">${geneBadges}</div>
+            ` : ''}
+        </div>
+    `;
+}
+
 function initAiPathwayFeature() {
 
     const btnAnalyze = document.getElementById('btn-analyze-pathway');
@@ -5034,34 +5019,6 @@ function initAiPathwayFeature() {
 
 
 
-        if (!apiKey && provider !== 'ollama') {
-
-            alert('要使用 AI 通路分析，请先在左侧控制面板配置您的 API Key！');
-
-            // Highlight the key input in the left sidebar
-
-            const apiKeyInput = document.getElementById('gemini-api-key-input');
-
-            if (apiKeyInput) {
-
-                apiKeyInput.focus();
-
-                apiKeyInput.style.border = '2px solid #6366f1';
-
-                setTimeout(() => {
-
-                    apiKeyInput.style.border = '1px solid var(--border-color)';
-
-                }, 2000);
-
-            }
-
-            return;
-
-        }
-
-
-
         // Set loading state
 
         btnAnalyze.disabled = true;
@@ -5084,13 +5041,17 @@ function initAiPathwayFeature() {
 
             const headers = {
 
-                'X-AI-API-Key': apiKey,
-
-                'X-AI-Provider': provider,
-
-                'X-Gemini-API-Key': apiKey
+                'X-AI-Provider': provider
 
             };
+
+            if (apiKey) {
+
+                headers['X-AI-API-Key'] = apiKey;
+
+                headers['X-Gemini-API-Key'] = apiKey;
+
+            }
 
             if (model) headers['X-AI-Model'] = model;
 
@@ -5144,6 +5105,8 @@ function initAiPathwayFeature() {
 
 
 
+            const regulationHtml = renderPathwayRegulation(result.pathway_regulation);
+
             resultCard.innerHTML = `
 
                 <div class="ai-pathway-summary">${result.summary || '无总结信息'}</div>
@@ -5151,6 +5114,8 @@ function initAiPathwayFeature() {
                 <div class="ai-pathway-genes-title"><i class="fa-solid fa-dna"></i> 关联基因 (${genes.length})</div>
 
                 <div class="ai-pathway-genes-list">${genesBadgesHtml}</div>
+
+                ${regulationHtml}
 
                 ${genes.length > 0 ? `
 
@@ -5510,6 +5475,8 @@ function initSidebarResizer() {
 
     if (!resizer || !sidebar) return;
 
+    syncRightSidebarToggleState(!sidebar.classList.contains('collapsed'));
+
 
 
     // Load saved width from localStorage if exists
@@ -5530,31 +5497,7 @@ function initSidebarResizer() {
 
 
 
-    function onMouseMove(e) {
-
-        const deltaX = e.clientX - startX;
-
-        let newWidth = startWidth - deltaX; // Drag left (negative deltaX) makes it wider
-
-        
-
-        // Enforce limits: min 280px, max 80% of window width
-
-        const minWidth = 280;
-
-        const maxWidth = window.innerWidth * 0.8;
-
-        if (newWidth < minWidth) newWidth = minWidth;
-
-        if (newWidth > maxWidth) newWidth = maxWidth;
-
-
-
-        document.documentElement.style.setProperty('--right-sidebar-width', newWidth + 'px');
-
-        
-
-        // Notify Cytoscape of layout resize
+    function notifyCanvasResize() {
 
         if (cy) {
 
@@ -5566,11 +5509,57 @@ function initSidebarResizer() {
 
 
 
-    function onMouseUp() {
+    function onPointerMove(e) {
 
-        document.removeEventListener('mousemove', onMouseMove);
+        const deltaX = e.clientX - startX;
 
-        document.removeEventListener('mouseup', onMouseUp);
+        let newWidth = startWidth - deltaX; // Drag left (negative deltaX) makes it wider
+
+        
+
+        // Enforce limits: min 280px, max 80% of window width
+
+        const minWidth = window.innerWidth <= 900 ? 280 : 300;
+
+        const maxWidth = window.innerWidth <= 900 ? window.innerWidth * 0.88 : window.innerWidth * 0.8;
+
+        if (newWidth < minWidth) newWidth = minWidth;
+
+        if (newWidth > maxWidth) newWidth = maxWidth;
+
+
+
+        document.documentElement.style.setProperty('--right-sidebar-width', newWidth + 'px');
+
+        
+
+        notifyCanvasResize();
+
+    }
+
+
+
+    function onPointerUp(e) {
+
+        document.removeEventListener('pointermove', onPointerMove);
+
+        document.removeEventListener('pointerup', onPointerUp);
+
+        document.removeEventListener('pointercancel', onPointerUp);
+
+        if (e.pointerId !== undefined && resizer.releasePointerCapture) {
+
+            try {
+
+                resizer.releasePointerCapture(e.pointerId);
+
+            } catch (err) {
+
+                // Pointer capture may already be released by the browser.
+
+            }
+
+        }
 
         sidebar.classList.remove('sidebar-no-transition');
 
@@ -5586,17 +5575,13 @@ function initSidebarResizer() {
 
         
 
-        if (cy) {
-
-            cy.resize();
-
-        }
+        notifyCanvasResize();
 
     }
 
 
 
-    resizer.addEventListener('mousedown', (e) => {
+    resizer.addEventListener('pointerdown', (e) => {
 
         e.preventDefault(); // Prevent text selection
 
@@ -5610,13 +5595,39 @@ function initSidebarResizer() {
 
         resizer.classList.add('resizing');
 
+        if (resizer.setPointerCapture) {
+
+            resizer.setPointerCapture(e.pointerId);
+
+        }
 
 
-        document.addEventListener('mousemove', onMouseMove);
 
-        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('pointermove', onPointerMove);
+
+        document.addEventListener('pointerup', onPointerUp);
+
+        document.addEventListener('pointercancel', onPointerUp);
 
     });
+
+}
+
+
+
+function syncRightSidebarToggleState(isOpen) {
+
+    const toggleBtn = document.getElementById('right-sidebar-toggle');
+
+    if (!toggleBtn) return;
+
+    toggleBtn.classList.toggle('collapsed', !isOpen);
+
+    toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+    toggleBtn.setAttribute('title', isOpen ? '隐藏详情栏' : '显示详情栏');
+
+    toggleBtn.setAttribute('aria-label', isOpen ? '隐藏详情栏' : '显示详情栏');
 
 }
 
@@ -5632,23 +5643,40 @@ function toggleRightSidebar(open) {
 
     
 
+    if (!rightSidebar) return;
+
+
     if (open) {
 
         rightSidebar.classList.remove('collapsed');
+
+        syncRightSidebarToggleState(true);
 
         searchContainer?.classList.add('sidebar-open');
 
         statsContainer?.classList.add('sidebar-open');
 
+        localStorage.setItem('right-sidebar-collapsed', 'false');
+
     } else {
 
         rightSidebar.classList.add('collapsed');
+
+        syncRightSidebarToggleState(false);
 
         searchContainer?.classList.remove('sidebar-open');
 
         statsContainer?.classList.remove('sidebar-open');
 
         resetHighlight();
+
+        localStorage.setItem('right-sidebar-collapsed', 'true');
+
+    }
+
+    if (cy) {
+
+        window.setTimeout(() => cy.resize(), 260);
 
     }
 
@@ -5764,37 +5792,41 @@ function exportNetworkToCsv() {
 
         const role = edge.data('role') || '';
 
-        let roleText = '未知';
+        const regulationType = edge.data('regulationType') || normalizeRegulationType(role, type);
 
-        if (role === 'A') roleText = '激活 (+)';
+        const roleText = roleLabelFromType(role, regulationType);
 
-        else if (role === 'R') roleText = '抑制 (-)';
+        const confidenceScore = edge.data('confidenceScore') || 0;
 
-        else if (role === 'sRNA') roleText = 'sRNA预测';
+        const edgeConfidenceLevel = edge.data('confidenceLevel') || confidenceLevel(confidenceScore);
 
-        else roleText = '双重/Sigma';
+        const factors = edge.data('confidenceFactors') || {};
 
-        
+        const schemaVersion = edge.data('schemaVersion') || 'legacy';
 
-        let sourceVal = '';
+        const evidence = edge.data('evidence') || {};
 
-        if (type === 'TF-TG') {
+        let sourceVal = evidence.source || '';
 
-            sourceVal = 'CorynebNet';
+        if (!sourceVal && type === 'TF-TG') {
 
-        } else {
+            sourceVal = 'CoryneRegNet';
+
+        } else if (!sourceVal) {
 
             const rank = edge.data('rank') || '';
 
             const energy = edge.data('energy') || '';
 
-            sourceVal = `sRNA预测 (Rank: ${rank}, Energy: ${energy})`;
+            sourceVal = `sRNA prediction (Rank: ${rank}, Energy: ${energy})`;
 
         }
 
+        sourceVal = `${sourceVal}; ${confidenceSummary({ confidenceScore, confidenceLevel: edgeConfidenceLevel, confidenceFactors: factors })}`;
 
 
-        let line = `${cleanVal(sourceId)},${cleanVal(sourceLabel)},${cleanVal(sourceFunc)},${cleanVal(targetId)},${cleanVal(targetLabel)},${cleanVal(targetFunc)},${cleanVal(type)},${cleanVal(roleText)},${cleanVal(sourceVal)}`;
+
+        let line = `${cleanVal(sourceId)},${cleanVal(sourceLabel)},${cleanVal(sourceFunc)},${cleanVal(targetId)},${cleanVal(targetLabel)},${cleanVal(targetFunc)},${cleanVal(type)},${cleanVal(roleText)},${cleanVal(regulationType)},${cleanVal(confidenceScore.toFixed ? confidenceScore.toFixed(3) : confidenceScore)},${cleanVal(edgeConfidenceLevel)},${cleanVal(factors.motif || 0)},${cleanVal(factors.chip || 0)},${cleanVal(factors.expression || 0)},${cleanVal(factors.database || 0)},${cleanVal(schemaVersion)},${cleanVal(sourceVal)}`;
 
 
 
@@ -6320,19 +6352,22 @@ function pushQueryToHistory(locusTags) {
 
     if (isNavigatingHistory) return;
 
+    const currentList = normalizeQueryList(currentQueryGene);
+    const nextList = normalizeQueryList(locusTags);
+
     
 
-    if (currentQueryGene) {
+    if (currentList.length > 0) {
 
-        const currStr = JSON.stringify(currentQueryGene.map(l => l.toLowerCase()).sort());
+        const currStr = JSON.stringify(currentList.map(l => String(l).toLowerCase()).sort());
 
-        const nextStr = JSON.stringify((Array.isArray(locusTags) ? locusTags : [locusTags]).map(l => l.toLowerCase()).sort());
+        const nextStr = JSON.stringify(nextList.map(l => String(l).toLowerCase()).sort());
 
         
 
         if (currStr !== nextStr) {
 
-            queryHistory.push(currentQueryGene);
+            queryHistory.push(currentList);
 
             queryForwardHistory = []; // clear forward
 
@@ -6341,6 +6376,14 @@ function pushQueryToHistory(locusTags) {
     }
 
     updateHistoryButtons();
+
+}
+
+function normalizeQueryList(value) {
+
+    if (!value) return [];
+
+    return Array.isArray(value) ? value : [value];
 
 }
 
@@ -6454,9 +6497,11 @@ function navigateHistory(direction) {
 
         const prev = queryHistory.pop();
 
-        if (currentQueryGene) {
+        const currentList = normalizeQueryList(currentQueryGene);
 
-            queryForwardHistory.push(currentQueryGene);
+        if (currentList.length > 0) {
+
+            queryForwardHistory.push(currentList);
 
         }
 
@@ -6490,9 +6535,11 @@ function navigateHistory(direction) {
 
         const next = queryForwardHistory.pop();
 
-        if (currentQueryGene) {
+        const currentList = normalizeQueryList(currentQueryGene);
 
-            queryHistory.push(currentQueryGene);
+        if (currentList.length > 0) {
+
+            queryHistory.push(currentList);
 
         }
 
@@ -6966,7 +7013,7 @@ function exportPerturbationToCsv() {
 
     let csvContent = '\uFEFF';
 
-    csvContent += '调控基因Locus Tag(Regulator Locus),调控基因名称(Regulator Name),靶基因Locus Tag(Target Locus),靶基因名称(Target Name),调控关系(Interaction Role),扰动模式(Perturbation Mode),预测表达效应(Predicted Effect),靶基因功能描述(Target Function)\n';
+    csvContent += '调控基因Locus Tag(Regulator Locus),调控基因名称(Regulator Name),靶基因Locus Tag(Target Locus),靶基因名称(Target Name),调控关系(Interaction Role),标准化调控类型(Normalized Regulation Type),置信度分数(Confidence Score),置信度等级(Confidence Level),证据摘要(Evidence Summary),扰动模式(Perturbation Mode),预测表达效应(Predicted Effect),靶基因功能描述(Target Function)\n';
 
 
 
@@ -7113,16 +7160,17 @@ function exportPerturbationToCsv() {
 
 
         const role = edge.data('role') || '';
-
-        let roleText = '未知';
-
-        if (role === 'A') roleText = '激活 (+)';
-
-        else if (role === 'R') roleText = '抑制 (-)';
-
-        else if (role === 'sRNA') roleText = 'sRNA预测';
-
-        else roleText = '双重/Sigma';
+        const type = edge.data('type') || '';
+        const regulationType = edge.data('regulationType') || normalizeRegulationType(role, type);
+        const roleText = roleLabelFromType(role, regulationType);
+        const score = edge.data('confidenceScore') || 0;
+        const level = edge.data('confidenceLevel') || confidenceLevel(score);
+        const factors = edge.data('confidenceFactors') || {};
+        const evidenceSummary = confidenceSummary({
+            confidenceScore: score,
+            confidenceLevel: level,
+            confidenceFactors: factors
+        });
 
 
 
@@ -7132,7 +7180,7 @@ function exportPerturbationToCsv() {
 
 
 
-        csvContent += `${cleanVal(sourceId)},${cleanVal(sourceName)},${cleanVal(targetId)},${cleanVal(targetName)},${cleanVal(roleText)},${cleanVal(mode === 'OE' ? '上调' : '下调')},${cleanVal(effectText)},${cleanVal(targetFunc)}\n`;
+        csvContent += `${cleanVal(sourceId)},${cleanVal(sourceName)},${cleanVal(targetId)},${cleanVal(targetName)},${cleanVal(roleText)},${cleanVal(regulationType)},${cleanVal(score.toFixed ? score.toFixed(3) : score)},${cleanVal(level)},${cleanVal(evidenceSummary)},${cleanVal(mode === 'OE' ? '上调' : '下调')},${cleanVal(effectText)},${cleanVal(targetFunc)}\n`;
 
     });
 

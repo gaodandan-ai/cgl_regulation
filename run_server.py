@@ -62,9 +62,51 @@ PATHWAY_TO_GENES = {}
 KEGG_PATHWAY_NAMES = {}       # cgb/cgl pathway ID -> clean name
 PATHWAY_NAMES_MUTEX = threading.Lock()
 GENE_PATHWAYS_CACHE = {}      # (cg_locus, cgl_locus) -> parsed dict
+PATHWAY_REGULATION_CACHE = {}
+KEGG_CACHE_LOADED = False
+KEGG_CACHE_HIT = False
+KEGG_CACHE_DIR = os.path.join("data", "kegg_cache")
+KEGG_CACHE_FILE = os.path.join(KEGG_CACHE_DIR, "kegg_cgl_cgb.json")
+
+def load_kegg_cache():
+    global KEGG_CACHE_LOADED, KEGG_CACHE_HIT, ORGANISM_PATHWAYS_LOADED
+    if KEGG_CACHE_LOADED:
+        return
+    KEGG_CACHE_LOADED = True
+    if not os.path.exists(KEGG_CACHE_FILE):
+        return
+    try:
+        with open(KEGG_CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        KEGG_PATHWAY_NAMES.update(data.get("pathway_names", {}))
+        for gene, pathways in data.get("gene_to_pathways", {}).items():
+            GENE_TO_PATHWAYS[gene] = set(pathways)
+        for pathway, genes in data.get("pathway_to_genes", {}).items():
+            PATHWAY_TO_GENES[pathway] = set(genes)
+        KEGG_CACHE_HIT = True
+        if GENE_TO_PATHWAYS and PATHWAY_TO_GENES:
+            ORGANISM_PATHWAYS_LOADED = True
+    except Exception as e:
+        print("Error loading KEGG cache:", e)
+
+def save_kegg_cache():
+    try:
+        os.makedirs(KEGG_CACHE_DIR, exist_ok=True)
+        data = {
+            "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "organisms": ["cgb", "cgl"],
+            "pathway_names": KEGG_PATHWAY_NAMES,
+            "gene_to_pathways": {k: sorted(v) for k, v in GENE_TO_PATHWAYS.items()},
+            "pathway_to_genes": {k: sorted(v) for k, v in PATHWAY_TO_GENES.items()}
+        }
+        with open(KEGG_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print("Error saving KEGG cache:", e)
 
 def load_kegg_pathway_names():
     global KEGG_PATHWAY_NAMES
+    load_kegg_cache()
     if KEGG_PATHWAY_NAMES:
         return
         
@@ -105,6 +147,8 @@ def load_kegg_pathway_names():
                             KEGG_PATHWAY_NAMES[f"path:{pid_clean}"] = pname_clean
         except Exception as e:
             print("Error loading cgl pathway names:", e)
+        if KEGG_PATHWAY_NAMES:
+            save_kegg_cache()
 
 def load_gene_mappings():
     global CG_TO_CGL, CGL_TO_CG, GENE_NAMES
@@ -131,6 +175,7 @@ def load_gene_mappings():
 
 def load_organism_kegg_links():
     global ORGANISM_PATHWAYS_LOADED, GENE_TO_PATHWAYS, PATHWAY_TO_GENES, KEGG_PATHWAY_NAMES
+    load_kegg_cache()
     if ORGANISM_PATHWAYS_LOADED:
         return
     
@@ -180,6 +225,8 @@ def load_organism_kegg_links():
         print("Error loading cgl pathways links:", e)
 
     ORGANISM_PATHWAYS_LOADED = True
+    if GENE_TO_PATHWAYS and PATHWAY_TO_GENES:
+        save_kegg_cache()
 
 def hypergeom_sf(x, N, M, k):
     """Survival function (P(X >= x)) for hypergeometric distribution using math.comb."""
@@ -331,6 +378,241 @@ def handle_regulon_enrichment(tf):
         "total_annotated_genome": N,
         "pathways": pathway_enrichments
     }
+
+def normalize_gene_locus(locus):
+    locus = (locus or "").strip()
+    if not locus:
+        return ""
+    lower = locus.lower()
+    if lower in CGL_TO_CG:
+        return CGL_TO_CG[lower].lower()
+    if lower in CG_TO_CGL:
+        return lower
+    return lower
+
+def find_matching_kegg_pathways(query):
+    load_organism_kegg_links()
+    q = (query or "").strip().lower()
+    if not q:
+        return []
+
+    q_digits = "".join(ch for ch in q if ch.isdigit())
+    matches = []
+    seen = set()
+    for pid, name in KEGG_PATHWAY_NAMES.items():
+        clean_pid = pid.replace("path:", "")
+        pid_lower = clean_pid.lower()
+        name_lower = name.lower()
+        pid_digits = "".join(ch for ch in clean_pid if ch.isdigit())
+        is_match = (
+            q == pid_lower
+            or q in name_lower
+            or (q_digits and q_digits == pid_digits)
+            or (q_digits and pid_lower.endswith(q_digits))
+        )
+        if not is_match:
+            continue
+        if clean_pid in seen:
+            continue
+        seen.add(clean_pid)
+        matches.append({
+            "id": clean_pid,
+            "name": name,
+            "link": f"https://www.kegg.jp/kegg-bin/show_pathway?{clean_pid}"
+        })
+
+    if not matches and q_digits:
+        for prefix in ("cgl", "cgb"):
+            pid = f"{prefix}{q_digits}"
+            if pid in PATHWAY_TO_GENES and pid not in seen:
+                seen.add(pid)
+                matches.append({
+                    "id": pid,
+                    "name": KEGG_PATHWAY_NAMES.get(pid, pid),
+                    "link": f"https://www.kegg.jp/kegg-bin/show_pathway?{pid}"
+                })
+
+    matches.sort(key=lambda p: (0 if p["id"].lower().endswith(q_digits) and q_digits else 1, p["name"]))
+    return matches
+
+def evidence_weight(evidence):
+    text = (evidence or "").lower()
+    if "experimental" in text and "predicted" in text:
+        return 2.5
+    if "experimental" in text:
+        return 3.0
+    if "predicted" in text:
+        return 1.0
+    return 0.5
+
+def calculate_tf_pathway_impact(stat, pathway_gene_count):
+    edge_count = max(1, stat["edge_count"])
+    target_count = len(stat["target_genes"])
+    coverage = target_count / pathway_gene_count if pathway_gene_count else 0
+    evidence_total = sum(evidence_weight(k) * v for k, v in stat["evidence"].items())
+    evidence_avg = evidence_total / edge_count
+    binding_fraction = stat["binding_site_edges"] / edge_count
+    dominant_role_count = stat["roles"].most_common(1)[0][1] if stat["roles"] else 0
+    direction_consistency = dominant_role_count / edge_count
+
+    components = {
+        "coverage": round(coverage * 40, 2),
+        "evidence": round((evidence_avg / 3.0) * 25, 2),
+        "binding_site": round(binding_fraction * 20, 2),
+        "direction_consistency": round(direction_consistency * 10, 2),
+        "edge_support": round(min(edge_count, 10) / 10 * 5, 2)
+    }
+    score = round(sum(components.values()), 2)
+    confidence = "high" if score >= 70 else "medium" if score >= 45 else "low"
+    return score, components, confidence
+
+def handle_pathway_regulation(query):
+    cache_key = (query or "").strip().lower()
+    if cache_key in PATHWAY_REGULATION_CACHE:
+        return PATHWAY_REGULATION_CACHE[cache_key]
+
+    load_gene_mappings()
+    load_organism_kegg_links()
+
+    matches = find_matching_kegg_pathways(query)
+    selected = matches[:4]
+    pathway_genes = set()
+    pathway_ids = set()
+    for pathway in selected:
+        pid = pathway["id"]
+        pathway_ids.add(pid)
+        pathway_ids.add(f"path:{pid}")
+        pathway_genes.update(PATHWAY_TO_GENES.get(pid, set()))
+        pathway_genes.update(PATHWAY_TO_GENES.get(f"path:{pid}", set()))
+
+    canonical_pathway_genes = set()
+    for gene in pathway_genes:
+        canonical = normalize_gene_locus(gene)
+        if canonical:
+            canonical_pathway_genes.add(canonical)
+
+    tf_stats = {}
+    regulated_pathway_genes = set()
+    edge_examples = []
+    if os.path.exists('data/regulations.csv') and canonical_pathway_genes:
+        try:
+            with open('data/regulations.csv', 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    target = normalize_gene_locus(row.get('TG_locusTag'))
+                    if target not in canonical_pathway_genes:
+                        continue
+
+                    tf = (row.get('TF_locusTag') or '').strip()
+                    if not tf:
+                        continue
+                    tf_key = tf.lower()
+                    tf_name = (row.get('TF_name') or tf).strip() or tf
+                    role = (row.get('Role') or '').strip() or "unknown"
+                    evidence = (row.get('Evidence') or '').strip() or "unknown"
+                    source = (row.get('Source') or '').strip() or "local"
+                    target_name = (row.get('TG_name') or row.get('TG_locusTag') or target).strip()
+                    binding_site = (row.get('Binding_site') or '').strip()
+
+                    if tf_key not in tf_stats:
+                        tf_stats[tf_key] = {
+                            "tf_locus": tf,
+                            "tf_name": tf_name,
+                            "edge_count": 0,
+                            "target_genes": set(),
+                            "roles": Counter(),
+                            "evidence": Counter(),
+                            "sources": Counter(),
+                            "binding_site_edges": 0,
+                            "examples": []
+                        }
+
+                    stat = tf_stats[tf_key]
+                    stat["edge_count"] += 1
+                    stat["target_genes"].add(target)
+                    stat["roles"][role] += 1
+                    stat["evidence"][evidence] += 1
+                    stat["sources"][source] += 1
+                    if binding_site:
+                        stat["binding_site_edges"] += 1
+                    if len(stat["examples"]) < 5:
+                        stat["examples"].append({
+                            "target_locus": target,
+                            "target_name": target_name,
+                            "role": role,
+                            "evidence": evidence,
+                            "has_binding_site": bool(binding_site)
+                        })
+                    regulated_pathway_genes.add(target)
+                    if len(edge_examples) < 12:
+                        edge_examples.append({
+                            "tf": tf,
+                            "tf_name": tf_name,
+                            "target_locus": target,
+                            "target_name": target_name,
+                            "role": role,
+                            "evidence": evidence,
+                            "source": source,
+                            "has_binding_site": bool(binding_site)
+                        })
+        except Exception as e:
+            print("Error projecting pathway genes onto regulatory network:", e)
+
+    regulators = []
+    for stat in tf_stats.values():
+        target_genes = sorted(stat["target_genes"])
+        impact_score, score_components, confidence = calculate_tf_pathway_impact(stat, len(canonical_pathway_genes))
+        regulators.append({
+            "tf_locus": stat["tf_locus"],
+            "tf_name": stat["tf_name"],
+            "impact_score": impact_score,
+            "score_components": score_components,
+            "confidence": confidence,
+            "edge_count": stat["edge_count"],
+            "target_count": len(target_genes),
+            "coverage": round(len(target_genes) / len(canonical_pathway_genes), 4) if canonical_pathway_genes else 0,
+            "target_genes": target_genes,
+            "roles": dict(stat["roles"].most_common()),
+            "evidence": dict(stat["evidence"].most_common()),
+            "sources": dict(stat["sources"].most_common()),
+            "binding_site_edges": stat["binding_site_edges"],
+            "examples": stat["examples"]
+        })
+    regulators.sort(key=lambda r: (r["impact_score"], r["target_count"], r["edge_count"]), reverse=True)
+
+    pathway_gene_rows = []
+    for gene in sorted(canonical_pathway_genes):
+        pathway_gene_rows.append({
+            "locus": gene,
+            "name": GENE_NAMES.get(gene, gene.upper()),
+            "cgl_locus": CG_TO_CGL.get(gene, "")
+        })
+
+    result = {
+        "query": query,
+        "matched_pathways": selected,
+        "all_matches_count": len(matches),
+        "pathway_ids": sorted(pathway_ids),
+        "pathway_gene_count": len(canonical_pathway_genes),
+        "regulated_gene_count": len(regulated_pathway_genes),
+        "regulator_count": len(regulators),
+        "coverage": round(len(regulated_pathway_genes) / len(canonical_pathway_genes), 4) if canonical_pathway_genes else 0,
+        "pathway_genes": pathway_gene_rows,
+        "regulators": regulators[:25],
+        "edge_examples": edge_examples,
+        "external_resources": {
+            "kegg": [p["link"] for p in selected],
+            "biocyc_search": f"https://biocyc.org/gene-search.shtml?orgid=CORYNE&query={urllib.parse.quote(query or '')}",
+            "note": "BioCyc and genome-scale model overlays can be added when local reaction/SBML files are supplied."
+        },
+        "cache": {
+            "enabled": True,
+            "path": KEGG_CACHE_FILE,
+            "loaded_from_disk": KEGG_CACHE_HIT
+        }
+    }
+    PATHWAY_REGULATION_CACHE[cache_key] = result
+    return result
 
 def handle_homolog_alignment(gene_name, accession):
     if not gene_name or not accession:
@@ -589,7 +871,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(result).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
-        elif self.path.startswith('/api/pathway'):
+        elif urllib.parse.urlparse(self.path).path == '/api/pathway':
             # Parse query parameters
             query = urllib.parse.urlparse(self.path).query
             params = urllib.parse.parse_qs(query)
@@ -707,6 +989,21 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             
             try:
                 result = get_gene_pathways_and_go(cg_locus, cgl_locus)
+                self.wfile.write(json.dumps(result).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        elif urllib.parse.urlparse(self.path).path == '/api/pathway_regulation':
+            query = urllib.parse.urlparse(self.path).query
+            params = urllib.parse.parse_qs(query)
+            pathway = params.get('pathway', [''])[0] or params.get('query', [''])[0]
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
+            try:
+                result = handle_pathway_regulation(pathway)
                 self.wfile.write(json.dumps(result).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
@@ -1480,19 +1777,33 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         }
 
     def perform_pathway_analysis(self, pathway, api_key, provider='google', model_name='', base_url=''):
+        pathway_regulation = handle_pathway_regulation(pathway)
         if not api_key and provider != 'ollama':
-            return {"error": "未提供 API Key。请在左侧控制面板配置您的 API Key。"}
+            genes = [g["locus"] for g in pathway_regulation.get("pathway_genes", [])]
+            summary = (
+                f"本地 KEGG/调控网络整合识别到 {pathway_regulation.get('pathway_gene_count', 0)} 个通路基因，"
+                f"其中 {pathway_regulation.get('regulated_gene_count', 0)} 个已有上游 TF 调控记录，"
+                f"涉及 {pathway_regulation.get('regulator_count', 0)} 个转录因子。"
+            )
+            return {
+                "summary": summary,
+                "genes": genes,
+                "pathway_regulation": pathway_regulation,
+                "source": "Local KEGG + regulatory network"
+            }
             
         if "DummyKey" in api_key:
             if "biotin" in pathway.lower() or "生物素" in pathway:
                 return {
                     "summary": "生物素（Biotin，维生素 H）合成通路在谷氨酸棒状杆菌中由 bioBFDA 操纵子等基因编码，是参与羧化酶反应的重要辅因子。该通路的调控由生物素蛋白连接酶 BirA 以及合成酶 BioA/BioB 催化。",
-                    "genes": ["cg0814", "cg0815", "cg0817"]
+                    "genes": ["cg0814", "cg0815", "cg0817"],
+                    "pathway_regulation": pathway_regulation
                 }
             else:
                 return {
                     "summary": f"这是一个关于 '{pathway}' 通路的模拟分析总结，识别到相关的调节因子与代谢基因。",
-                    "genes": ["cg0350", "cg0409"]
+                    "genes": ["cg0350", "cg0409"],
+                    "pathway_regulation": pathway_regulation
                 }
             
         prompt = f"你是一个专业的微生物学 AI 助手，专门研究谷氨酸棒状杆菌 (Corynebacterium glutamicum) ATCC 13032。\n"
@@ -1512,7 +1823,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             parsed = json.loads(text)
             return {
                 "summary": parsed.get("summary", ""),
-                "genes": parsed.get("genes", [])
+                "genes": parsed.get("genes", []),
+                "pathway_regulation": pathway_regulation
             }
         except Exception as e:
             return {"error": f"AI 生成失败。错误: {str(e)}"}
