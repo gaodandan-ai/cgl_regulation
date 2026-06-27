@@ -183,7 +183,7 @@ def baseline_simulation():
 def gene_knockout(req: GeneKnockoutRequest):
     try:
         model = load_model_if_needed()
-        result = run_gene_knockout(model, req.geneId, req.objective, req.trackReactionIds)
+        result = run_gene_knockout(model, req.geneId, req.objective, req.trackReactionIds, req.method)
         return result
     except Exception as e:
         logger.error(f"Gene knockout simulation failed: {str(e)}")
@@ -193,7 +193,7 @@ def gene_knockout(req: GeneKnockoutRequest):
 def gene_set_knockout(req: GeneSetKnockoutRequest):
     try:
         model = load_model_if_needed()
-        result = run_gene_set_knockout(model, req.geneIds, req.objective, req.trackReactionIds)
+        result = run_gene_set_knockout(model, req.geneIds, req.objective, req.trackReactionIds, req.method)
         return result
     except Exception as e:
         logger.error(f"Gene set knockout simulation failed: {str(e)}")
@@ -205,7 +205,7 @@ def tf_perturbation(req: TFPerturbationRequest):
         raise HTTPException(status_code=400, detail="Only 'knockout' perturbation mode is currently supported in v0.1.")
     try:
         model = load_model_if_needed()
-        result = run_tf_perturbation(model, req.tfId, req.targetGeneIds, req.objective, req.trackReactionIds)
+        result = run_tf_perturbation(model, req.tfId, req.targetGeneIds, req.objective, req.trackReactionIds, req.method)
         return result
     except Exception as e:
         logger.error(f"TF target perturbation simulation failed: {str(e)}")

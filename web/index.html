@@ -1128,6 +1128,14 @@
                                 </div>
                             </div>
 
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; font-size: 10.5px; color: var(--text-secondary); margin-bottom: 4px;">Simulation Algorithm / Method:</label>
+                                <select id="glutamate-scenario-method" style="width: 100%; height: 28px; font-size: 11px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
+                                    <option value="fba">FBA (Standard Flux Balance Analysis)</option>
+                                    <option value="moma">MOMA (Minimization of Metabolic Adjustment)</option>
+                                </select>
+                            </div>
+
                             <button id="btn-run-glutamate-scenario" class="secondary-btn" style="width: 100%; height: 36px; background: var(--color-primary-accent); color: white; font-weight: 700; border: none; font-size: 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 8px;" disabled>
                                 <i class="fa-solid fa-play"></i> Run Glutamate Production Simulation
                             </button>
@@ -1691,6 +1699,15 @@
                                     <select id="fba-objective-select" style="width: 100%; height: 28px; font-size: 11px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
                                         <option value="biomass">Growth / biomass objective</option>
                                         <option value="reaction">Custom reaction objective</option>
+                                    </select>
+                                </div>
+
+                                <!-- Simulation Method Selector -->
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Simulation Algorithm / Method:</label>
+                                    <select id="fba-method-select" style="width: 100%; height: 28px; font-size: 11px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
+                                        <option value="fba">FBA (Standard Flux Balance Analysis)</option>
+                                        <option value="moma">MOMA (Minimization of Metabolic Adjustment)</option>
                                     </select>
                                 </div>
                                 

@@ -3693,6 +3693,9 @@ async function initFbaSimulation(locusTag, nodeType) {
             trackReactionIds.push(trackRxnSelect.value);
         }
         
+        const methodSelect = document.getElementById('fba-method-select');
+        const method = methodSelect ? methodSelect.value : 'fba';
+        
         let res;
         if (isTf) {
             const targetGeneIds = [];
@@ -3701,9 +3704,9 @@ async function initFbaSimulation(locusTag, nodeType) {
                     targetGeneIds.push(node.id());
                 });
             }
-            res = await window.simulationClient.runTFPerturbation(locusTag, targetGeneIds, objective, trackReactionIds);
+            res = await window.simulationClient.runTFPerturbation(locusTag, targetGeneIds, objective, trackReactionIds, method);
         } else {
-            res = await window.simulationClient.runGeneKnockout(locusTag, objective, trackReactionIds);
+            res = await window.simulationClient.runGeneKnockout(locusTag, objective, trackReactionIds, method);
         }
         
         fbaBtn.disabled = false;
@@ -10607,12 +10610,15 @@ function initGlutamateScenarioDashboard() {
             runBtn.disabled = true;
             
             try {
+                const methodSelect = document.getElementById('glutamate-scenario-method');
+                const method = methodSelect ? methodSelect.value : 'fba';
+                
                 let res = null;
                 const objective = { objectiveType: "biomass" };
                 const trackedReactionIds = [glutamateSelectedReaction.reactionId];
                 
                 if (type === 'gene') {
-                    res = await window.simulationClient.runGeneKnockout(locus, objective, trackedReactionIds);
+                    res = await window.simulationClient.runGeneKnockout(locus, objective, trackedReactionIds, method);
                 } else {
                     const targetGeneIds = [];
                     if (cy) {
@@ -10638,7 +10644,7 @@ function initGlutamateScenarioDashboard() {
                         targetGeneIds.push(locus);
                     }
                     
-                    res = await window.simulationClient.runTFPerturbation(locus, targetGeneIds, objective, trackedReactionIds);
+                    res = await window.simulationClient.runTFPerturbation(locus, targetGeneIds, objective, trackedReactionIds, method);
                 }
                 
                 if (!res || res.status === "error") {

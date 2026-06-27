@@ -47,6 +47,7 @@ class GeneKnockoutRequest(BaseModel):
     geneId: str
     objective: Optional[ObjectiveSchema] = None
     trackReactionIds: Optional[List[str]] = None
+    method: str = "fba"
 
 class GeneKnockoutResponse(BaseModel):
     status: str
@@ -62,6 +63,7 @@ class GeneSetKnockoutRequest(BaseModel):
     geneIds: List[str]
     objective: Optional[ObjectiveSchema] = None
     trackReactionIds: Optional[List[str]] = None
+    method: str = "fba"
 
 class GeneSetKnockoutResponse(BaseModel):
     status: str
@@ -80,6 +82,7 @@ class TFPerturbationRequest(BaseModel):
     mode: str = "knockout"
     objective: Optional[ObjectiveSchema] = None
     trackReactionIds: Optional[List[str]] = None
+    method: str = "fba"
 
 class TFPerturbationResponse(BaseModel):
     tfId: str

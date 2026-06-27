@@ -91,12 +91,13 @@ def run_fba_simulation_pipeline(
     model, 
     knockout_genes: List[Any], 
     objective_cfg: Any, 
-    track_reaction_ids: Optional[List[str]] = None
+    track_reaction_ids: Optional[List[str]] = None,
+    method: str = "fba"
 ) -> Tuple[str, Dict[str, Any], float, float, float, float, List[Dict[str, Any]], List[str]]:
     """
-    Executes FBA optimization pipeline on the model:
+    Executes FBA or MOMA optimization pipeline on the model:
     - Runs baseline under customized objective
-    - Runs perturbed under customized objective with knockouts
+    - Runs perturbed under FBA or MOMA with knockouts
     - Tracks fluxes of selected reactions under both states.
     
     Returns:
@@ -106,13 +107,22 @@ def run_fba_simulation_pipeline(
     tracked_fluxes = []
     
     # 1. Run baseline to get objective label and baseline values
+    baseline_solution = None
     with model:
         label, obj_warnings = apply_objective_to_model(model, objective_cfg)
         warnings.extend(obj_warnings)
         
-        baseline_obj, b_status, b_warnings = run_fba_optimization(model)
-        warnings.extend(b_warnings)
-        
+        try:
+            baseline_solution = model.optimize()
+            b_status = baseline_solution.status
+            baseline_obj = float(baseline_solution.objective_value) if b_status == 'optimal' else 0.0
+            if b_status != 'optimal':
+                warnings.append(f"Baseline solver returned non-optimal status: '{b_status}'.")
+        except Exception as e:
+            b_status = "error"
+            baseline_obj = 0.0
+            warnings.append(f"Baseline FBA optimization failed: {str(e)}")
+            
         baseline_fluxes = {}
         if track_reaction_ids:
             for rxn_id in track_reaction_ids:
@@ -146,9 +156,64 @@ def run_fba_simulation_pipeline(
             except Exception as e:
                 warnings.append(f"Failed to knock out gene '{gene.id}': {str(e)}")
                 
-        perturbed_obj, p_status, p_warnings = run_fba_optimization(model)
-        warnings.extend(p_warnings)
+        p_status = "optimal"
+        perturbed_obj = 0.0
+        perturbed_fluxes = {}
         
+        if method.lower() == "moma":
+            # Run MOMA optimization
+            from cobra.flux_analysis import moma
+            sol_moma = None
+            try:
+                logger.info("Running MOMA (linear=True)...")
+                sol_moma = moma(model, solution=baseline_solution, linear=True)
+            except Exception as e:
+                logger.info(f"Linear MOMA failed, trying standard MOMA: {str(e)}")
+                try:
+                    sol_moma = moma(model, solution=baseline_solution, linear=False)
+                except Exception as ex:
+                    p_status = "error"
+                    warnings.append(f"MOMA optimization failed: {str(ex)}")
+            
+            if sol_moma and sol_moma.status == 'optimal':
+                p_status = "optimal"
+                
+                # Retrieve actual biological objective reaction flux for perturbed growth rate
+                biomass_reaction = None
+                for rxn in model.reactions:
+                    if rxn.objective_coefficient != 0:
+                        biomass_reaction = rxn
+                        break
+                
+                if biomass_reaction and biomass_reaction.id in sol_moma.fluxes:
+                    perturbed_obj = float(sol_moma.fluxes[biomass_reaction.id])
+                else:
+                    perturbed_obj = float(sol_moma.objective_value)
+                    
+                # Store tracked fluxes
+                if track_reaction_ids:
+                    for rxn_id in track_reaction_ids:
+                        if rxn_id in sol_moma.fluxes:
+                            perturbed_fluxes[rxn_id] = float(sol_moma.fluxes[rxn_id])
+            else:
+                if p_status != "error":
+                    p_status = sol_moma.status if sol_moma else "infeasible"
+                    warnings.append(f"MOMA optimization returned non-optimal status: '{p_status}'")
+                perturbed_obj = 0.0
+        else:
+            # Standard FBA optimization
+            p_val, p_status, p_warnings = run_fba_optimization(model)
+            warnings.extend(p_warnings)
+            perturbed_obj = p_val
+            
+            if p_status == 'optimal' and track_reaction_ids:
+                for rxn_id in track_reaction_ids:
+                    if rxn_id in model.reactions:
+                        try:
+                            perturbed_fluxes[rxn_id] = float(model.reactions.get_by_id(rxn_id).flux)
+                        except Exception as e:
+                            warnings.append(f"Failed to get perturbed flux for '{rxn_id}': {str(e)}")
+                            
         final_status = p_status if p_status == 'optimal' else b_status
         
         # Tracked fluxes
@@ -156,13 +221,8 @@ def run_fba_simulation_pipeline(
             for rxn_id in track_reaction_ids:
                 if rxn_id in model.reactions:
                     b_flux = baseline_fluxes.get(rxn_id, 0.0)
-                    p_flux = 0.0
-                    if p_status == 'optimal':
-                        try:
-                            p_flux = float(model.reactions.get_by_id(rxn_id).flux)
-                        except Exception as e:
-                            warnings.append(f"Failed to get perturbed flux for '{rxn_id}': {str(e)}")
-                            
+                    p_flux = perturbed_fluxes.get(rxn_id, 0.0)
+                    
                     flux_change = float(p_flux - b_flux)
                     flux_pct = 0.0
                     if abs(b_flux) > 1e-7:
@@ -188,7 +248,8 @@ def run_gene_knockout(
     model, 
     gene_id: str, 
     objective_cfg: Any = None, 
-    track_reaction_ids: List[str] = None
+    track_reaction_ids: List[str] = None,
+    method: str = "fba"
 ) -> Dict[str, Any]:
     """
     Simulates a single gene knockout.
@@ -199,7 +260,7 @@ def run_gene_knockout(
     if not gene:
         # Resolve fallback without knockout
         status, obj_resp, baseline_obj, perturbed_obj, change, change_pct, tracked_fluxes, pipeline_warnings = run_fba_simulation_pipeline(
-            model, [], objective_cfg, track_reaction_ids
+            model, [], objective_cfg, track_reaction_ids, method
         )
         warnings.extend(pipeline_warnings)
         warnings.append(f"Gene '{gene_id}' not found in the metabolic model. Simulated as no metabolic change.")
@@ -215,7 +276,7 @@ def run_gene_knockout(
         }
         
     status, obj_resp, baseline_obj, perturbed_obj, change, change_pct, tracked_fluxes, pipeline_warnings = run_fba_simulation_pipeline(
-        model, [gene], objective_cfg, track_reaction_ids
+        model, [gene], objective_cfg, track_reaction_ids, method
     )
     return {
         "status": status,
@@ -232,7 +293,8 @@ def run_gene_set_knockout(
     model, 
     gene_ids: List[str], 
     objective_cfg: Any = None, 
-    track_reaction_ids: List[str] = None
+    track_reaction_ids: List[str] = None,
+    method: str = "fba"
 ) -> Dict[str, Any]:
     """
     Simulates knockouts for multiple genes.
@@ -244,7 +306,7 @@ def run_gene_set_knockout(
     if not gene_ids:
         warnings.append("Empty gene list provided.")
         status, obj_resp, baseline_obj, perturbed_obj, change, change_pct, tracked_fluxes, pipeline_warnings = run_fba_simulation_pipeline(
-            model, [], objective_cfg, track_reaction_ids
+            model, [], objective_cfg, track_reaction_ids, method
         )
         return {
             "status": status,
@@ -269,7 +331,7 @@ def run_gene_set_knockout(
         warnings.append(f"{len(missing_genes)} genes were not found in the metabolic model: {', '.join(missing_genes)}")
         
     status, obj_resp, baseline_obj, perturbed_obj, change, change_pct, tracked_fluxes, pipeline_warnings = run_fba_simulation_pipeline(
-        model, mapped_genes, objective_cfg, track_reaction_ids
+        model, mapped_genes, objective_cfg, track_reaction_ids, method
     )
     warnings.extend(pipeline_warnings)
     
@@ -290,12 +352,13 @@ def run_tf_perturbation(
     tf_id: str, 
     target_gene_ids: List[str], 
     objective_cfg: Any = None, 
-    track_reaction_ids: List[str] = None
+    track_reaction_ids: List[str] = None,
+    method: str = "fba"
 ) -> Dict[str, Any]:
     """
     Simulates a transcription factor knockout by knocking out its downstream targets.
     """
-    result = run_gene_set_knockout(model, target_gene_ids, objective_cfg, track_reaction_ids)
+    result = run_gene_set_knockout(model, target_gene_ids, objective_cfg, track_reaction_ids, method)
     
     return {
         "tfId": tf_id,

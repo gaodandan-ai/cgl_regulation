@@ -40,12 +40,12 @@
         }
     }
 
-    async function runGeneKnockout(geneId, objective, trackReactionIds) {
+    async function runGeneKnockout(geneId, objective, trackReactionIds, method = "fba") {
         try {
             const res = await fetch(`${BASE_URL}/api/simulation/gene-knockout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ geneId, objective, trackReactionIds })
+                body: JSON.stringify({ geneId, objective, trackReactionIds, method })
             });
             if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
             return await res.json();
@@ -62,12 +62,12 @@
         }
     }
 
-    async function runGeneSetKnockout(geneIds, objective, trackReactionIds) {
+    async function runGeneSetKnockout(geneIds, objective, trackReactionIds, method = "fba") {
         try {
             const res = await fetch(`${BASE_URL}/api/simulation/gene-set-knockout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ geneIds, objective, trackReactionIds })
+                body: JSON.stringify({ geneIds, objective, trackReactionIds, method })
             });
             if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
             return await res.json();
@@ -84,12 +84,12 @@
         }
     }
 
-    async function runTFPerturbation(tfId, targetGeneIds, objective, trackReactionIds) {
+    async function runTFPerturbation(tfId, targetGeneIds, objective, trackReactionIds, method = "fba") {
         try {
             const res = await fetch(`${BASE_URL}/api/simulation/tf-perturbation`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tfId, targetGeneIds, mode: "knockout", objective, trackReactionIds })
+                body: JSON.stringify({ tfId, targetGeneIds, mode: "knockout", objective, trackReactionIds, method })
             });
             if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
             return await res.json();
