@@ -94,3 +94,18 @@ class TFPerturbationResponse(BaseModel):
     objectiveChangePercent: float
     trackedFluxes: List[TrackedFluxSchema] = []
     warnings: List[str] = []
+
+class GlutamateCandidateSchema(BaseModel):
+    reactionId: str
+    name: str
+    equation: str
+    lowerBound: float
+    upperBound: float
+    classification: str
+    confidence: str
+    reason: str
+
+class GlutamateCandidatesResponse(BaseModel):
+    candidates: List[GlutamateCandidateSchema]
+    warnings: List[str] = []
+
