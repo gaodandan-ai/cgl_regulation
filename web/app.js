@@ -170,6 +170,41 @@ if (document.readyState === 'loading') {
     initializeApp();
 }
 
+function showToast(title, message, type = 'success', duration = 8000) {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    toast.innerHTML = `
+        <div class="toast-header">
+            <span><i class="fa-solid fa-circle-info" style="margin-right: 6px; color: inherit;"></i> ${title}</span>
+            <button class="toast-close">&times;</button>
+        </div>
+        <div class="toast-body">${message}</div>
+    `;
+    
+    container.appendChild(toast);
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.onclick = () => {
+        toast.style.animation = 'toastFadeOut 0.3s forwards';
+        setTimeout(() => toast.remove(), 300);
+    };
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.animation = 'toastFadeOut 0.3s forwards';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
+}
+
 
 
 function updateStatus(message, type = 'loading') {
@@ -5633,9 +5668,11 @@ function processRnaSeqData(dataRows) {
         btnUpload.style.borderColor = 'var(--color-activation)';
     }
 
-    if (cy) {
+    let hasActiveNetwork = false;
+    if (cy && cy.nodes().length > 0) {
         applyRnaSeqStyling();
         applyRnaSeqFilters();
+        hasActiveNetwork = true;
     }
 
     // Update details sidebar status badge and map if visible
@@ -5646,6 +5683,23 @@ function processRnaSeqData(dataRows) {
     }
     if (currentQueryGene) {
         renderGenomicLocusMap(currentQueryGene);
+    }
+
+    // Send clear interactive guidance toast message
+    if (hasActiveNetwork) {
+        showToast(
+            'RNA-seq Data Overlay Applied',
+            'Expression fold changes have been overlayed on the active network nodes (<b>Red</b>: Upregulated, <b>Blue</b>: Downregulated). Nodes passing significance filters feature pulsing breathing borders. Adjust the thresholds in the sidebar to dynamically filter the network!',
+            'success',
+            10000
+        );
+    } else {
+        showToast(
+            'Omics Data Imported Successfully',
+            `Successfully matched and loaded <b>${loadedCount}</b> genes! <br/><br/><b>What to do next:</b> Query any transcription factor (e.g. <i>sigH</i>, <i>cg0041</i>) in the <b>Gene / TF Explorer</b> sidebar or choose an example from the <b>Examples</b> panel to render the network with your expression overlay.`,
+            'info',
+            12000
+        );
     }
 }
 
@@ -9645,7 +9699,8 @@ function renderGenomicLocusMap(locusTag) {
     container.innerHTML = ''; // Clear previous
 
     if (!locusTag) return;
-    const cleanLocus = locusTag.trim();
+    const cleanLocus = String(Array.isArray(locusTag) ? locusTag[0] : locusTag).trim();
+    if (!cleanLocus) return;
     const locusLower = cleanLocus.toLowerCase();
 
     // Extract the numeric part of RefSeq locus tag, e.g. cg0279 -> 279
