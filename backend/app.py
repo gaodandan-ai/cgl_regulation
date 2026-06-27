@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from model_loader import get_model_status, load_model_if_needed
-from simulation import run_baseline_simulation, run_gene_knockout, run_gene_set_knockout, run_tf_perturbation
+from simulation import run_baseline_simulation, run_gene_knockout, run_gene_set_knockout, run_tf_perturbation, run_fva_analysis
 from schemas import (
     ModelStatusResponse,
     ReactionSearchResponse,
@@ -14,7 +14,9 @@ from schemas import (
     TFPerturbationRequest,
     TFPerturbationResponse,
     GlutamateCandidatesResponse,
-    GlutamateCandidateSchema
+    GlutamateCandidateSchema,
+    FVARequest,
+    FVAResponse
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -208,3 +210,36 @@ def tf_perturbation(req: TFPerturbationRequest):
     except Exception as e:
         logger.error(f"TF target perturbation simulation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/simulation/flux-variability", response_model=FVAResponse)
+def flux_variability(req: FVARequest):
+    try:
+        model = load_model_if_needed()
+        
+        # Resolve knockout list depending on mode
+        knockout_genes = []
+        if req.mode == "gene-knockout":
+            if req.geneId:
+                knockout_genes.append(req.geneId)
+        elif req.mode == "tf-perturbation":
+            if req.targetGeneIds:
+                knockout_genes.extend(req.targetGeneIds)
+                
+        status, fva_ranges, warnings = run_fva_analysis(
+            model,
+            knockout_genes,
+            req.objective,
+            req.trackReactionIds,
+            req.fractionOfOptimum
+        )
+        
+        return {
+            "status": status,
+            "fractionOfOptimum": req.fractionOfOptimum,
+            "fvaRanges": fva_ranges,
+            "warnings": warnings
+        }
+    except Exception as e:
+        logger.error(f"FVA simulation endpoint failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+

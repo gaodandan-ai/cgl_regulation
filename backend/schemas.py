@@ -109,3 +109,25 @@ class GlutamateCandidatesResponse(BaseModel):
     candidates: List[GlutamateCandidateSchema]
     warnings: List[str] = []
 
+class FVARangeSchema(BaseModel):
+    reactionId: str
+    baselineMin: float
+    baselineMax: float
+    perturbedMin: float
+    perturbedMax: float
+
+class FVARequest(BaseModel):
+    geneId: Optional[str] = None
+    targetGeneIds: Optional[List[str]] = None
+    mode: str = "baseline"
+    objective: Optional[ObjectiveSchema] = None
+    trackReactionIds: Optional[List[str]] = None
+    fractionOfOptimum: float = 0.95
+
+class FVAResponse(BaseModel):
+    status: str
+    fractionOfOptimum: float
+    fvaRanges: List[FVARangeSchema]
+    warnings: List[str] = []
+
+

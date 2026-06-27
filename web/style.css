@@ -235,6 +235,17 @@ h1, h2, h3, th {
 
 #left-sidebar {
     flex-shrink: 0;
+    transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+}
+
+#left-sidebar.collapsed {
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-right: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
 }
 
 #right-sidebar {

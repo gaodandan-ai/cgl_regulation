@@ -305,7 +305,7 @@ async function loadNetworkData() {
         initGlobalMetabolicImpactRanking();
         initPathwayRegulatoryView();
         initEngineeringTargetFinder();
-        loadDefaultExampleNetwork();
+        // loadDefaultExampleNetwork();
 
     } catch (err) {
 
@@ -1209,8 +1209,44 @@ function setActiveWorkflowEntry(workflow) {
         }
     }
 
+    // Collapse right sidebar for fullscreen overlay dashboards
     if (workflow !== 'gene' && workflow !== 'pathway') {
         toggleRightSidebar(false);
+    }
+
+    // Update left sidebar sections visibility & collapse status
+    const leftSidebar = document.getElementById('left-sidebar');
+    if (leftSidebar) {
+        const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate'];
+        const isFullscreen = fullscreenWorkflows.includes(workflow);
+        
+        if (isFullscreen) {
+            leftSidebar.classList.add('collapsed');
+        } else {
+            leftSidebar.classList.remove('collapsed');
+        }
+        
+        // Match sidebar sections to specific active workflows
+        const sections = {
+            'search-section': ['gene'],
+            'filter-layout-section': ['gene'],
+            'rnaseq-section': ['gene'],
+            'global-metabolic-impact-section': ['gene'],
+            'pathway-regulatory-view-section': ['pathway'],
+            'engineering-targets-section': ['engineering'],
+            'organism-section': ['gene', 'pathway', 'engineering']
+        };
+        
+        for (const [className, activeWorkflows] of Object.entries(sections)) {
+            const el = leftSidebar.querySelector(`.${className}`);
+            if (el) {
+                if (activeWorkflows.includes(workflow)) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            }
+        }
     }
 }
 
@@ -1237,7 +1273,7 @@ function initWorkflowEntrypoints() {
             scrollLeftSidebarTo('.search-section');
             const input = geneInputsContainer?.querySelector('.gene-input');
             if (input) input.focus();
-            loadDefaultExampleNetwork();
+            // loadDefaultExampleNetwork();
         });
     }
     if (pathwayEntry && !pathwayEntry.dataset.bound) {
@@ -3631,6 +3667,8 @@ async function initFbaSimulation(locusTag, nodeType) {
         fbaBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Simulating...';
         fbaResult.classList.add('hidden');
         fbaError.classList.add('hidden');
+        const fvaBox = document.getElementById('fba-fva-results');
+        if (fvaBox) fvaBox.classList.add('hidden');
         
         const objective = {
             objectiveType: objSelect ? objSelect.value : 'biomass',
@@ -3757,6 +3795,78 @@ async function initFbaSimulation(locusTag, nodeType) {
             fbaError.textContent = res && res.error ? `Simulation failed: ${res.error}` : 'Simulation failed: Backend offline or model loading failed.';
         }
     };
+
+    const btnRunFva = document.getElementById('btn-fba-run-fva');
+    const fvaResultsBox = document.getElementById('fba-fva-results');
+    const fvaResultsTbody = document.getElementById('fba-fva-results-tbody');
+    
+    if (btnRunFva && fvaResultsBox && fvaResultsTbody) {
+        fvaResultsBox.classList.add('hidden');
+        fvaResultsTbody.innerHTML = '';
+        
+        btnRunFva.dataset.bound = '1';
+        btnRunFva.onclick = async () => {
+            btnRunFva.disabled = true;
+            btnRunFva.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running FVA...';
+            fbaError.classList.add('hidden');
+            
+            try {
+                const mode = nodeType === 'TF' ? 'tf-perturbation' : 'gene-knockout';
+                const objective = { objectiveType: objSelect.value };
+                if (objSelect.value === 'reaction') {
+                    objective.reactionId = objRxnSelect ? objRxnSelect.value : '';
+                }
+                
+                const trackReactionIds = [];
+                if (trackRxnSelect && trackRxnSelect.value) {
+                    trackReactionIds.push(trackRxnSelect.value);
+                }
+                
+                let targetGeneIds = [];
+                if (mode === 'tf-perturbation' && cy) {
+                    cy.edges(`[source = "${locusTag}"]`).targets().forEach(node => {
+                        targetGeneIds.push(node.id());
+                    });
+                }
+                
+                const res = await window.simulationClient.runFluxVariabilityAnalysis(
+                    mode,
+                    locusTag,
+                    targetGeneIds,
+                    objective,
+                    trackReactionIds,
+                    0.95
+                );
+                
+                if (res && res.status !== 'error') {
+                    fvaResultsTbody.innerHTML = '';
+                    res.fvaRanges.forEach(range => {
+                        const row = document.createElement('tr');
+                        row.style.borderBottom = '1px solid var(--border-color)';
+                        row.innerHTML = `
+                            <td style="padding: 4px 6px; font-weight:600;">${escapeHtml(range.reactionId)}</td>
+                            <td style="padding: 4px 6px; font-family:monospace;">[${range.baselineMin.toFixed(4)}, ${range.baselineMax.toFixed(4)}]</td>
+                            <td style="padding: 4px 6px; font-family:monospace;">[${range.perturbedMin.toFixed(4)}, ${range.perturbedMax.toFixed(4)}]</td>
+                        `;
+                        fvaResultsTbody.appendChild(row);
+                    });
+                    fvaResultsBox.classList.remove('hidden');
+                } else {
+                    throw new Error(res.error || 'FVA request failed.');
+                }
+            } catch (err) {
+                console.error("FVA run error:", err);
+                fbaError.classList.remove('hidden');
+                fbaError.style.color = '#d32f2f';
+                fbaError.style.background = '#fef2f2';
+                fbaError.style.borderColor = '#fee2e2';
+                fbaError.textContent = `FVA failed: ${err.message}`;
+            } finally {
+                btnRunFva.disabled = false;
+                btnRunFva.innerHTML = '<i class="fa-solid fa-calculator"></i> Run Flux Variability Analysis (FVA)';
+            }
+        };
+    }
 }
 
 
@@ -10474,6 +10584,8 @@ function initGlutamateScenarioDashboard() {
             const type = typeSelect ? typeSelect.value : 'TF';
             
             if (errorBox) errorBox.classList.add('hidden');
+            const gluFvaBox = document.getElementById('glu-fva-results');
+            if (gluFvaBox) gluFvaBox.classList.add('hidden');
             
             if (!locus) {
                 if (errorBox) {
@@ -10570,6 +10682,100 @@ function initGlutamateScenarioDashboard() {
                 runBtn.disabled = false;
             }
         });
+    }
+
+    const btnGluRunFva = document.getElementById('btn-glu-run-fva');
+    const gluFvaResultsBox = document.getElementById('glu-fva-results');
+    const gluFvaResultsTbody = document.getElementById('glu-fva-results-tbody');
+    
+    if (btnGluRunFva && gluFvaResultsBox && gluFvaResultsTbody) {
+        btnGluRunFva.dataset.bound = '1';
+        btnGluRunFva.onclick = async () => {
+            const locusInput = document.getElementById('glutamate-scenario-locus');
+            const typeSelect = document.getElementById('glutamate-scenario-type');
+            const errorBox = document.getElementById('glutamate-scenario-error-box');
+            
+            const locus = locusInput ? locusInput.value.trim() : '';
+            const type = typeSelect ? typeSelect.value : 'TF';
+            
+            if (errorBox) errorBox.classList.add('hidden');
+            
+            if (!locus || !glutamateSelectedReaction || !window.glutamateScenario.glutamateState.userVerified) {
+                if (errorBox) {
+                    errorBox.textContent = "Please configure, select and verify target reactions first.";
+                    errorBox.classList.remove('hidden');
+                }
+                return;
+            }
+            
+            btnGluRunFva.disabled = true;
+            btnGluRunFva.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running FVA...';
+            
+            try {
+                const mode = type === 'gene' ? 'gene-knockout' : 'tf-perturbation';
+                const objective = { objectiveType: "biomass" };
+                const trackReactionIds = [glutamateSelectedReaction.reactionId];
+                
+                let targetGeneIds = [];
+                if (mode === 'tf-perturbation' && cy) {
+                    cy.edges().forEach(edge => {
+                        if (edge.source().id().toLowerCase() === locus.toLowerCase()) {
+                            targetGeneIds.push(edge.target().id());
+                        }
+                    });
+                }
+                
+                if (mode === 'tf-perturbation' && targetGeneIds.length === 0) {
+                    try {
+                        const info = await window.metabolicModelAdapter.fetchGeneReactionPathwayMapping(locus);
+                        if (info && info.targetGenes) {
+                            info.targetGenes.forEach(tg => targetGeneIds.push(tg));
+                        }
+                    } catch (e) {
+                        console.warn("Could not retrieve target genes dynamically:", e);
+                    }
+                }
+                
+                if (mode === 'tf-perturbation' && targetGeneIds.length === 0) {
+                    targetGeneIds.push(locus);
+                }
+                
+                const res = await window.simulationClient.runFluxVariabilityAnalysis(
+                    mode,
+                    locus,
+                    targetGeneIds,
+                    objective,
+                    trackReactionIds,
+                    0.95
+                );
+                
+                if (res && res.status !== 'error') {
+                    gluFvaResultsTbody.innerHTML = '';
+                    res.fvaRanges.forEach(range => {
+                        const row = document.createElement('tr');
+                        row.style.borderBottom = '1px solid var(--border-color)';
+                        row.innerHTML = `
+                            <td style="padding: 4px 6px; font-weight:600;">${escapeHtml(range.reactionId)}</td>
+                            <td style="padding: 4px 6px; font-family:monospace;">[${range.baselineMin.toFixed(4)}, ${range.baselineMax.toFixed(4)}]</td>
+                            <td style="padding: 4px 6px; font-family:monospace;">[${range.perturbedMin.toFixed(4)}, ${range.perturbedMax.toFixed(4)}]</td>
+                        `;
+                        gluFvaResultsTbody.appendChild(row);
+                    });
+                    gluFvaResultsBox.classList.remove('hidden');
+                } else {
+                    throw new Error(res.error || 'FVA request failed.');
+                }
+            } catch (err) {
+                console.error("Glutamate Scenario FVA error:", err);
+                if (errorBox) {
+                    errorBox.textContent = `FVA failed: ${err.message}`;
+                    errorBox.classList.remove('hidden');
+                }
+            } finally {
+                btnGluRunFva.disabled = false;
+                btnGluRunFva.innerHTML = '<i class="fa-solid fa-calculator"></i> Run Flux Variability Analysis (FVA)';
+            }
+        };
     }
 }
 

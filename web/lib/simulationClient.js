@@ -110,12 +110,32 @@
         }
     }
 
+    async function runFluxVariabilityAnalysis(mode, geneId, targetGeneIds, objective, trackReactionIds, fractionOfOptimum = 0.95) {
+        try {
+            const res = await fetch(`${BASE_URL}/api/simulation/flux-variability`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode, geneId, targetGeneIds, objective, trackReactionIds, fractionOfOptimum })
+            });
+            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            return {
+                status: "error",
+                fractionOfOptimum,
+                fvaRanges: [],
+                error: err.message || "FastAPI backend offline"
+            };
+        }
+    }
+
     global.simulationClient = {
         getModelStatus,
         searchReactions,
         runBaselineSimulation,
         runGeneKnockout,
         runGeneSetKnockout,
-        runTFPerturbation
+        runTFPerturbation,
+        runFluxVariabilityAnalysis
     };
 })(window);

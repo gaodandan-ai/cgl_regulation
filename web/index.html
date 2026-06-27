@@ -1178,6 +1178,31 @@
                                     </div>
                                 </div>
                                 
+                                <!-- FVA Section in Glutamate Scenario -->
+                                <div style="margin-top: 10px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
+                                    <button id="btn-glu-run-fva" class="secondary-btn" style="width: 100%; height: 28px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: 1px solid #0f766e; background: transparent; color: #0f766e; border-radius: 4px;">
+                                        <i class="fa-solid fa-calculator"></i> Run Flux Variability Analysis (FVA)
+                                    </button>
+                                    
+                                    <div id="glu-fva-results" class="hidden" style="margin-top: 8px; font-size: 11px;">
+                                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;"><i class="fa-solid fa-arrows-left-right"></i> FVA Feasible Bounds (95% Optimum):</div>
+                                        <div style="border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; max-height: 120px; overflow-y: auto;">
+                                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 10.5px;">
+                                                <thead style="background: var(--bg-secondary);">
+                                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                                        <th style="padding: 4px 6px;">Reaction</th>
+                                                        <th style="padding: 4px 6px;">Baseline Min/Max</th>
+                                                        <th style="padding: 4px 6px;">Perturbed Min/Max</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="glu-fva-results-tbody">
+                                                    <!-- Filled dynamically -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Cautious Interpretation -->
                                 <div style="font-size: 10.5px; line-height: 1.4; color: #b45309; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 10px; margin-top: auto;">
                                     <strong>Interpretation:</strong>
@@ -1743,6 +1768,31 @@
                                 <div id="fba-cautious-interpretation" style="font-size: 10.5px; line-height: 1.4; color: #b45309; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 8px; margin-top: 10px;">
                                     <strong>Interpretation Note:</strong>
                                     <p id="fba-interpretation-text" style="margin: 3px 0 0 0;">This growth rate is predicted under the current model objective and does not represent an actual experimental or production increase.</p>
+                                </div>
+
+                                <!-- FVA Section -->
+                                <div style="margin-top: 10px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
+                                    <button id="btn-fba-run-fva" class="secondary-btn" style="width: 100%; height: 28px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: 1px solid var(--color-primary-accent); background: transparent; color: var(--color-primary-accent); border-radius: 4px;">
+                                        <i class="fa-solid fa-calculator"></i> Run Flux Variability Analysis (FVA)
+                                    </button>
+                                    
+                                    <div id="fba-fva-results" class="hidden" style="margin-top: 8px; font-size: 11px;">
+                                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;"><i class="fa-solid fa-arrows-left-right"></i> FVA Feasible Bounds (95% Optimum):</div>
+                                        <div style="border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; max-height: 120px; overflow-y: auto;">
+                                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 10.5px;">
+                                                <thead style="background: var(--bg-secondary);">
+                                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                                        <th style="padding: 4px 6px;">Reaction</th>
+                                                        <th style="padding: 4px 6px;">Baseline Min/Max</th>
+                                                        <th style="padding: 4px 6px;">Perturbed Min/Max</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="fba-fva-results-tbody">
+                                                    <!-- Filled dynamically -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             

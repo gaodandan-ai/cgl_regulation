@@ -311,3 +311,120 @@ def run_tf_perturbation(
         "trackedFluxes": result["trackedFluxes"],
         "warnings": result["warnings"]
     }
+
+def run_fva_analysis(
+    model,
+    knockout_genes: List[str],
+    objective_cfg: Any,
+    track_reaction_ids: Optional[List[str]] = None,
+    fraction_of_optimum: float = 0.95
+) -> Tuple[str, List[Dict[str, Any]], List[str]]:
+    """
+    Runs Flux Variability Analysis (FVA) under baseline and perturbed states.
+    For each reaction in track_reaction_ids (and the active objective reaction):
+    - Calculates maximum and minimum feasible fluxes under fraction_of_optimum.
+    
+    Returns:
+        status, ranges_list, warnings
+    """
+    from cobra.flux_analysis import flux_variability_analysis
+    warnings = []
+    fva_ranges = []
+    
+    # 1. Resolve reactions list
+    # If no track reactions specified, track the current objective reaction
+    reactions_to_track = []
+    if track_reaction_ids:
+        for rid in track_reaction_ids:
+            if rid in model.reactions:
+                reactions_to_track.append(rid)
+            else:
+                warnings.append(f"Tracked reaction '{rid}' not found in metabolic model during FVA.")
+                
+    # Always include current objective reaction in FVA tracking
+    with model:
+        _, obj_warn = apply_objective_to_model(model, objective_cfg)
+        warnings.extend(obj_warn)
+        # Find active objective reaction ID(s)
+        for rxn in model.reactions:
+            if rxn.objective_coefficient != 0:
+                if rxn.id not in reactions_to_track:
+                    reactions_to_track.append(rxn.id)
+
+    if not reactions_to_track:
+        return "error", [], warnings + ["No valid reactions to track for FVA."]
+        
+    try:
+        # 2. Run Baseline FVA
+        baseline_min = {}
+        baseline_max = {}
+        
+        with model:
+            apply_objective_to_model(model, objective_cfg)
+            logger.info(f"Running baseline FVA on {reactions_to_track} at fraction {fraction_of_optimum}...")
+            df_baseline = flux_variability_analysis(
+                model, 
+                reaction_list=reactions_to_track, 
+                fraction_of_optimum=fraction_of_optimum
+            )
+            for rid in reactions_to_track:
+                if rid in df_baseline.index:
+                    baseline_min[rid] = float(df_baseline.at[rid, "minimum"])
+                    baseline_max[rid] = float(df_baseline.at[rid, "maximum"])
+                else:
+                    baseline_min[rid] = 0.0
+                    baseline_max[rid] = 0.0
+                    
+        # 3. Run Perturbed FVA (with knockouts)
+        perturbed_min = {}
+        perturbed_max = {}
+        
+        with model:
+            apply_objective_to_model(model, objective_cfg)
+            
+            # Apply gene knockouts
+            mapped_ko_genes = []
+            for g_id in knockout_genes:
+                gene = find_gene_in_model(model, g_id)
+                if gene:
+                    mapped_ko_genes.append(gene)
+                    gene.knock_out()
+                    
+            # Optimize to see if model is still feasible under perturbation
+            sol = model.optimize()
+            if sol.status != "optimal":
+                warnings.append("Metabolic model became infeasible under perturbation. FVA perturbed ranges set to 0.")
+                for rid in reactions_to_track:
+                    perturbed_min[rid] = 0.0
+                    perturbed_max[rid] = 0.0
+            else:
+                logger.info(f"Running perturbed FVA on {reactions_to_track} at fraction {fraction_of_optimum}...")
+                df_perturbed = flux_variability_analysis(
+                    model, 
+                    reaction_list=reactions_to_track, 
+                    fraction_of_optimum=fraction_of_optimum
+                )
+                for rid in reactions_to_track:
+                    if rid in df_perturbed.index:
+                        perturbed_min[rid] = float(df_perturbed.at[rid, "minimum"])
+                        perturbed_max[rid] = float(df_perturbed.at[rid, "maximum"])
+                    else:
+                        perturbed_min[rid] = 0.0
+                        perturbed_max[rid] = 0.0
+                        
+        # 4. Construct response list
+        for rid in reactions_to_track:
+            fva_ranges.append({
+                "reactionId": rid,
+                "baselineMin": baseline_min.get(rid, 0.0),
+                "baselineMax": baseline_max.get(rid, 0.0),
+                "perturbedMin": perturbed_min.get(rid, 0.0),
+                "perturbedMax": perturbed_max.get(rid, 0.0)
+            })
+            
+        return "optimal", fva_ranges, warnings
+        
+    except Exception as e:
+        logger.error(f"FVA calculation error: {str(e)}")
+        return "error", [], warnings + [f"FVA calculation failed: {str(e)}"]
+
