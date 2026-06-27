@@ -844,6 +844,82 @@ def handle_metabolic_impact(query):
         }
     }
 
+def handle_metabolic_pathways(query=""):
+    mapping = load_metabolic_model_mappings()
+    pathway_index = {}
+    query_text = (query or "").strip().lower()
+
+    for alias, reactions in mapping.get("gene_to_reactions", {}).items():
+        locus = normalize_gene_locus(alias) or (alias or "").strip().lower()
+        if not locus:
+            continue
+        gene_label = GENE_NAMES.get(locus, locus)
+        for reaction in reactions or []:
+            model = reaction.get("model", "")
+            pathway_id = reaction.get("pathway_id") or reaction.get("pathway_name") or "Unassigned pathway"
+            pathway_name = reaction.get("pathway_name") or pathway_id or "Unassigned pathway"
+            pathway_key = f"{model}::{pathway_id or pathway_name}"
+            entry = pathway_index.setdefault(pathway_key, {
+                "id": pathway_id,
+                "name": pathway_name,
+                "model": model,
+                "genes": {},
+                "reactions": {}
+            })
+            reaction_id = reaction.get("id") or reaction.get("label") or "reaction"
+            entry["reactions"][reaction_id] = {
+                "reactionId": reaction_id,
+                "reactionName": reaction.get("label") or reaction_id,
+                "model": model
+            }
+            gene_entry = entry["genes"].setdefault(locus, {
+                "geneId": locus,
+                "geneLabel": gene_label,
+                "reactions": {}
+            })
+            gene_entry["reactions"][reaction_id] = {
+                "reactionId": reaction_id,
+                "reactionName": reaction.get("label") or reaction_id
+            }
+
+    pathways = []
+    for entry in pathway_index.values():
+        genes = []
+        for gene in entry["genes"].values():
+            reactions = sorted(gene["reactions"].values(), key=lambda r: r["reactionId"])
+            genes.append({
+                "geneId": gene["geneId"],
+                "geneLabel": gene["geneLabel"],
+                "reactions": reactions
+            })
+        genes.sort(key=lambda g: g["geneId"])
+        reactions = sorted(entry["reactions"].values(), key=lambda r: r["reactionId"])
+        item = {
+            "pathwayId": entry["id"],
+            "pathwayName": entry["name"],
+            "model": entry["model"],
+            "totalGenes": len(genes),
+            "totalReactions": len(reactions),
+            "genes": genes,
+            "reactions": reactions
+        }
+        if query_text:
+            haystack = f"{item['pathwayId']} {item['pathwayName']}".lower()
+            if query_text not in haystack:
+                continue
+        pathways.append(item)
+
+    pathways.sort(key=lambda p: (-p["totalGenes"], -p["totalReactions"], p["pathwayName"]))
+    return {
+        "model_mapping": {
+            "loaded": mapping.get("loaded", False),
+            "models": mapping.get("models", []),
+            "files": mapping.get("files", []),
+            "warnings": mapping.get("warnings", [])
+        },
+        "pathways": pathways
+    }
+
 def find_matching_kegg_pathways(query):
     load_organism_kegg_links()
     q = (query or "").strip().lower()
@@ -1473,6 +1549,21 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             try:
                 result = handle_metabolic_impact(gene)
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e)}, ensure_ascii=False).encode('utf-8'))
+        elif urllib.parse.urlparse(self.path).path == '/api/metabolic_pathways':
+            query = urllib.parse.urlparse(self.path).query
+            params = urllib.parse.parse_qs(query)
+            pathway = params.get('pathway', [''])[0] or params.get('query', [''])[0]
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
+            try:
+                result = handle_metabolic_pathways(pathway)
                 self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}, ensure_ascii=False).encode('utf-8'))

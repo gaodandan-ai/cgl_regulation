@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corynebacterium glutamicum Regulatory Network Explorer | 谷氨酸棒杆菌转录调控网络</title>
-    <meta name="description" content="面向科研人员的 Corynebacterium glutamicum DSM 20300 / ATCC 13032 转录调控网络浏览器，整合 TF-靶基因、sRNA、操纵子、motif、ChIP-seq、表达相关性、KEGG 通路和 AI 文献分析。">
-    <meta name="keywords" content="Corynebacterium glutamicum,谷氨酸棒杆菌,transcriptional regulation,regulatory network,TF target genes,sRNA,operon,ChIP-seq,motif,PWM,KEGG,BioCyc,systems biology">
+    <title>Corynebacterium glutamicum Regulatory Network Explorer</title>
+    <meta name="description" content="Interactive research tool for exploring the Corynebacterium glutamicum DSM 20300 / ATCC 13032 transcriptional regulatory network, integrating TF-target links, sRNA regulation, operons, motif evidence, ChIP-seq support, expression correlation, metabolic model mapping, pathway context, and AI-assisted literature analysis.">
+    <meta name="keywords" content="Corynebacterium glutamicum,transcriptional regulation,regulatory network,TF target genes,sRNA,operon,ChIP-seq,motif,PWM,KEGG,BioCyc,metabolic model,systems biology">
     <meta name="author" content="C. glutamicum Regulatory Network Explorer contributors">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow">
@@ -13,18 +13,17 @@
     <meta name="application-name" content="C. glutamicum Regulatory Network Explorer">
     <meta name="theme-color" content="#0f766e">
     <link rel="canonical" href="https://cgl-regulation.vercel.app/">
-    <link rel="alternate" hreflang="zh-CN" href="https://cgl-regulation.vercel.app/">
     <link rel="alternate" hreflang="en" href="https://cgl-regulation.vercel.app/">
     <link rel="manifest" href="/site.webmanifest">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="C. glutamicum Regulatory Network Explorer">
     <meta property="og:title" content="Corynebacterium glutamicum Regulatory Network Explorer">
-    <meta property="og:description" content="Interactive transcriptional and sRNA regulatory network explorer for Corynebacterium glutamicum, with TF-target links, operons, motif evidence, confidence scoring, KEGG pathway context, and AI-assisted literature analysis.">
+    <meta property="og:description" content="Interactive transcriptional and sRNA regulatory network explorer for Corynebacterium glutamicum, with TF-target links, operons, motif evidence, confidence scoring, metabolic model mapping, pathway context, and AI-assisted literature analysis.">
     <meta property="og:url" content="https://cgl-regulation.vercel.app/">
-    <meta property="og:locale" content="zh_CN">
+    <meta property="og:locale" content="en_US">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Corynebacterium glutamicum Regulatory Network Explorer">
-    <meta name="twitter:description" content="Explore C. glutamicum transcriptional regulation, sRNA links, operons, motif evidence, confidence-scored edges, and KEGG pathway regulation.">
+    <meta name="twitter:description" content="Explore C. glutamicum transcriptional regulation, sRNA links, operons, motif evidence, confidence-scored edges, metabolic model mapping, and pathway regulation.">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -35,7 +34,7 @@
           "url": "https://cgl-regulation.vercel.app/",
           "name": "Corynebacterium glutamicum Regulatory Network Explorer",
           "alternateName": "C. glutamicum Regulatory Network Explorer",
-          "inLanguage": ["zh-CN", "en"],
+          "inLanguage": "en",
           "description": "Interactive regulatory network browser for Corynebacterium glutamicum DSM 20300 / ATCC 13032."
         },
         {
@@ -45,8 +44,8 @@
           "applicationCategory": "ScienceApplication",
           "operatingSystem": "Web browser",
           "url": "https://cgl-regulation.vercel.app/",
-          "description": "A web application for exploring Corynebacterium glutamicum transcription factor targets, sRNA interactions, operons, motif evidence, confidence-scored regulatory edges, and metabolic pathway context.",
-          "keywords": "Corynebacterium glutamicum, transcriptional regulation, regulatory network, sRNA, operon, motif, ChIP-seq, KEGG",
+          "description": "A web application for exploring Corynebacterium glutamicum transcription factor targets, sRNA interactions, operons, motif evidence, confidence-scored regulatory edges, metabolic model mappings, and pathway context.",
+          "keywords": "Corynebacterium glutamicum, transcriptional regulation, regulatory network, sRNA, operon, motif, ChIP-seq, KEGG, metabolic model",
           "isAccessibleForFree": true
         },
         {
@@ -78,7 +77,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css?v=1.3">
+    <link rel="stylesheet" href="style.css?v=1.6">
 </head>
 <body class="light-theme">
     <noscript>
@@ -97,111 +96,135 @@
         </main>
     </noscript>
     <div id="app-container">
-        <!-- 顶部导航栏 -->
+        <!-- Top navigation -->
         <header id="app-header">
             <div class="logo">
                 <i class="fa-solid fa-network-wired"></i>
-                <h1>C. glutamicum 调控网络浏览器</h1>
+                <h1>C. glutamicum Regulatory Network Explorer</h1>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
                 <a href="mailto:gdandan756@gmail.com" class="header-contact-link" style="font-size: 12.5px; color: var(--text-secondary); text-decoration: none; display: flex; align-items: center; gap: 5px; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15); padding: 5px 12px; border-radius: 20px; font-weight: 500; transition: var(--transition-smooth);">
-                    <i class="fa-solid fa-envelope" style="color: #6366f1;"></i> 联系作者
+                    <i class="fa-solid fa-envelope" style="color: #6366f1;"></i> Contact
                 </a>
                 <div class="header-status" id="data-status">
                     <span class="status-dot pulsing"></span>
-                    <span class="status-text">正在加载本地数据...</span>
+                    <span class="status-text">Loading local data...</span>
                 </div>
             </div>
         </header>
 
-        <!-- 主体布局 -->
+        <nav id="workflow-entrybar" aria-label="Primary research workflows">
+            <button class="workflow-entry active" id="workflow-entry-gene" data-workflow="gene">
+                <span class="workflow-icon"><i class="fa-solid fa-network-wired"></i></span>
+                <span class="workflow-copy">
+                    <strong>Gene / TF Explorer</strong>
+                    <small>Start from a regulator such as cg0350 and inspect targets, evidence, and metabolic impact.</small>
+                </span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-pathway" data-workflow="pathway">
+                <span class="workflow-icon"><i class="fa-solid fa-diagram-project"></i></span>
+                <span class="workflow-copy">
+                    <strong>Pathway View</strong>
+                    <small>Start from glutamate metabolism, TCA, or amino acid modules and find upstream TFs.</small>
+                </span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-engineering" data-workflow="engineering">
+                <span class="workflow-icon"><i class="fa-solid fa-bullseye"></i></span>
+                <span class="workflow-copy">
+                    <strong>Engineering Targets</strong>
+                    <small>Rank candidate regulators by mapped genes, reactions, pathways, and confidence.</small>
+                </span>
+            </button>
+        </nav>
+
+        <!-- Main layout -->
         <div id="main-layout">
-            <!-- 左侧控制面板 -->
+            <!-- Left control panel -->
             <aside id="left-sidebar" class="sidebar">
                 <div class="sidebar-section organism-section" style="margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                    <h2 style="font-size: 12px; margin-bottom: 8px; color: var(--text-primary); font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bacteria" style="color: var(--color-primary-accent);"></i> 选择物种/菌株 (Organism)</h2>
+                    <h2 style="font-size: 12px; margin-bottom: 8px; color: var(--text-primary); font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bacteria" style="color: var(--color-primary-accent);"></i> Organism / Strain</h2>
                     <select id="organism-select" style="width: 100%; height: 34px; font-size: 11.5px; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 8px; font-family: var(--font-primary); color: var(--text-primary); background: #ffffff; cursor: pointer; font-weight: 500; outline: none; transition: border-color 0.2s;">
                         <option value="C_g_DSM_20300_=_ATCC_13032">C. glutamicum DSM 20300 = ATCC 13032</option>
                     </select>
                 </div>
                 <div class="sidebar-section search-section">
                     <div class="search-tabs">
-                        <button class="search-tab active" id="tab-single-btn">逐个添加</button>
-                        <button class="search-tab" id="tab-batch-btn">批量粘贴</button>
+                        <button class="search-tab active" id="tab-single-btn">Single gene</button>
+                        <button class="search-tab" id="tab-batch-btn">Batch input</button>
                     </div>
                     <div id="search-tab-single-content" class="search-tab-content">
                         <div id="gene-inputs-container">
                             <div class="gene-input-row">
                                 <div class="gene-input-wrapper">
-                                    <input type="text" class="gene-input" placeholder="输入基因/sRNA名称 (如 cg0350)" autocomplete="off">
+                                    <input type="text" class="gene-input" placeholder="Enter gene, TF, or sRNA (e.g. cg0350)" autocomplete="off">
                                 </div>
-                                <button class="add-row-btn" title="添加基因栏"><i class="fa-solid fa-plus"></i></button>
+                                <button class="add-row-btn" title="Add another gene"><i class="fa-solid fa-plus"></i></button>
                             </div>
                         </div>
                     </div>
                     <div id="search-tab-batch-content" class="search-tab-content hidden">
-                        <textarea id="gene-batch-textarea" placeholder="在此粘贴多个基因/sRNA，支持空格、逗号、分号或换行分隔 (例如：cg0350 whiB4 cg0409)"></textarea>
-                        <div class="batch-hint">已自动匹配到 <span id="batch-parsed-count">0</span> 个有效基因</div>
+                        <textarea id="gene-batch-textarea" placeholder="Paste multiple genes or sRNAs separated by spaces, commas, semicolons, or new lines (e.g. cg0350 whiB4 cg0409)"></textarea>
+                        <div class="batch-hint">Parsed valid genes: <span id="batch-parsed-count">0</span></div>
                     </div>
                     
-                    <!-- 搜索按钮区域 -->
+                    <!-- Search actions -->
                     <div class="search-actions-row">
-                        <button id="search-btn" class="primary-btn" style="width: 100%; height: 38px; font-size: 13px;" title="分析输入的所有基因"><i class="fa-solid fa-network-wired"></i> 立即分析</button>
+                        <button id="search-btn" class="primary-btn" style="width: 100%; height: 38px; font-size: 13px;" title="Analyze all entered genes"><i class="fa-solid fa-network-wired"></i> Analyze</button>
                     </div>
-                    <!-- 搜索建议框 -->
+                    <!-- Search suggestions -->
                     <div id="suggestions-box" class="suggestions-list hidden"></div>
                 </div>
 
-                <!-- 网络筛选与布局 -->
+                <!-- Network filters and layout -->
                 <div class="sidebar-section filter-layout-section">
-                    <h2><i class="fa-solid fa-sliders"></i> 网络筛选与布局</h2>
+                    <h2><i class="fa-solid fa-sliders"></i> Filters & Layout</h2>
                     
-                    <!-- 调控类型过滤 -->
+                    <!-- Regulation type filters -->
                     <div class="checkbox-group" style="margin-bottom: 16px;">
                         <label class="custom-checkbox">
                             <input type="checkbox" id="filter-activation" checked>
                             <span class="checkmark chk-activation"></span>
-                            <span class="label-text">激活调控 (+)</span>
+                            <span class="label-text">Activation (+)</span>
                         </label>
                         <label class="custom-checkbox">
                             <input type="checkbox" id="filter-repression" checked>
                             <span class="checkmark chk-repression"></span>
-                            <span class="label-text">抑制调控 (-)</span>
+                            <span class="label-text">Repression (-)</span>
                         </label>
                         <label class="custom-checkbox">
                             <input type="checkbox" id="filter-dual" checked>
                             <span class="checkmark chk-dual"></span>
-                            <span class="label-text">双重调控/Sigma因子</span>
+                            <span class="label-text">Dual regulation / sigma factor</span>
                         </label>
                         <label class="custom-checkbox">
                             <input type="checkbox" id="filter-srna">
                             <span class="checkmark chk-srna"></span>
-                            <span class="label-text">sRNA预测调控</span>
+                            <span class="label-text">Predicted sRNA regulation</span>
                         </label>
                         
-                        <!-- sRNA 预测过滤 (动态显示/隐藏) -->
+                        <!-- sRNA prediction filter -->
                         <div id="srna-threshold-panel" class="range-control hidden" style="margin-bottom: 12px; margin-top: 6px; padding-left: 20px;">
                             <div class="range-labels">
-                                <span style="font-size: 11px; color: var(--text-secondary);">CopraRNA Rank 限制</span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">CopraRNA rank limit</span>
                                 <span id="rank-val" style="font-size: 11px; font-weight: 600; color: var(--color-srna);">10</span>
                             </div>
                             <input type="range" id="srna-rank-threshold" min="1" max="15" value="10" step="1">
                         </div>
 
-                        <!-- 高级网络精简 (优化布局) -->
+                        <!-- Advanced network filters -->
                         <div class="advanced-filters-group" style="border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 12px; background-color: rgba(99, 102, 241, 0.02); padding: 8px 10px; border-radius: 6px; border: 1px dashed rgba(99, 102, 241, 0.15);">
                             <span style="font-size: 10px; font-weight: 600; color: #4f46e5; display: block; margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase;">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> 高级网络精简
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Advanced Network Filters
                             </span>
                             <label class="custom-checkbox" style="margin-bottom: 6px;">
                                 <input type="checkbox" id="filter-coregulated">
                                 <span class="checkmark chk-coregulated"></span>
-                                <span class="label-text" style="font-weight: 500; font-size: 11px;">只显示共同调控基因</span>
+                                <span class="label-text" style="font-weight: 500; font-size: 11px;">Show co-regulated targets only</span>
                             </label>
                             <label class="custom-checkbox" style="margin-bottom: 0;">
                                 <input type="checkbox" id="filter-only-tf-targets">
                                 <span class="checkmark chk-only-tf-targets"></span>
-                                <span class="label-text" style="font-weight: 500; font-size: 11px;">只显示转录因子(TF)靶标</span>
+                                <span class="label-text" style="font-weight: 500; font-size: 11px;">Show TF targets only</span>
                             </label>
                         </div>
                         <div class="edge-schema-legend" style="margin-top: 10px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: #fff; font-size: 10px; color: var(--text-secondary); line-height: 1.5;">
@@ -213,72 +236,174 @@
                         </div>
                     </div>
 
-                    <!-- 绘图布局选择 -->
+                    <!-- Layout selection -->
                     <div class="layout-control" style="border-top: 1px dashed var(--border-color); padding-top: 12px;">
-                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px;">绘图布局算法</label>
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px;">Layout algorithm</label>
                         <select id="layout-select" class="custom-select" style="padding: 8px 12px; font-size: 12px;">
-                            <option value="cose">CoSE (力导向-推荐)</option>
-                            <option value="concentric">Concentric (同心圆)</option>
-                            <option value="circle">Circle (圆形)</option>
-                            <option value="grid">Grid (网格)</option>
-                            <option value="breadthfirst">Breadthfirst (层级/广度优先)</option>
+                            <option value="cose">CoSE (force-directed, recommended)</option>
+                            <option value="concentric">Concentric</option>
+                            <option value="circle">Circle</option>
+                            <option value="grid">Grid</option>
+                            <option value="breadthfirst">Breadthfirst</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- RNA-Seq 数据叠加 -->
+                
+
+                <div class="sidebar-section global-metabolic-impact-section">
+                    <h2><i class="fa-solid fa-ranking-star"></i> Global Metabolic Impact</h2>
+                    <div class="global-metabolic-controls">
+                        <input type="text" id="global-metabolic-pathway-filter" placeholder="Filter by affected pathway" autocomplete="off">
+                        <button id="global-metabolic-refresh-btn" class="secondary-btn" title="Refresh ranking">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
+                    </div>
+                    <div class="global-metabolic-keywords">
+                        <button type="button" data-pathway-filter="glutamate">glutamate</button>
+                        <button type="button" data-pathway-filter="amino acid">amino acid</button>
+                        <button type="button" data-pathway-filter="TCA">TCA</button>
+                        <button type="button" data-pathway-filter="transport">transport</button>
+                        <button type="button" data-pathway-filter="lysine">lysine</button>
+                    </div>
+                    <div id="global-metabolic-impact-status" class="metabolic-muted">Loading ranking...</div>
+                    <div class="global-metabolic-table-wrap">
+                        <table class="global-metabolic-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>TF</th>
+                                    <th>Score</th>
+                                    <th>Targets</th>
+                                    <th>Mapped</th>
+                                    <th>Rxns</th>
+                                    <th>Pathways</th>
+                                    <th>Key pathways</th>
+                                </tr>
+                            </thead>
+                            <tbody id="global-metabolic-impact-tbody">
+                                <tr><td colspan="8">Loading ranking...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <div class="sidebar-section pathway-regulatory-view-section">
+                    <h2><i class="fa-solid fa-diagram-project"></i> Pathway View</h2>
+                    <div class="pathway-view-controls">
+                        <input type="text" id="pathway-view-input" list="pathway-view-options" placeholder="Select pathway" autocomplete="off">
+                        <button id="pathway-view-run-btn" class="secondary-btn" title="Analyze pathway">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i>
+                        </button>
+                        <datalist id="pathway-view-options"></datalist>
+                    </div>
+                    <div class="pathway-view-keywords">
+                        <button type="button" data-pathway-view-query="glutamate metabolism">glutamate metabolism</button>
+                        <button type="button" data-pathway-view-query="amino acid">amino acid</button>
+                        <button type="button" data-pathway-view-query="TCA">TCA cycle</button>
+                        <button type="button" data-pathway-view-query="transport">transport</button>
+                        <button type="button" data-pathway-view-query="lysine">lysine biosynthesis</button>
+                    </div>
+                    <div id="pathway-view-status" class="metabolic-muted">Load a pathway to inspect upstream regulators.</div>
+                    <div id="pathway-view-result" class="pathway-view-result"></div>
+                </div>
+
+                <div class="sidebar-section engineering-targets-section">
+                    <h2><i class="fa-solid fa-bullseye"></i> Engineering Targets</h2>
+                    <div class="engineering-target-controls">
+                        <input type="text" id="engineering-target-search" placeholder="Search TF" autocomplete="off">
+                        <input type="text" id="engineering-target-pathway-filter" placeholder="Pathway keyword" autocomplete="off">
+                        <select id="engineering-target-level-filter">
+                            <option value="">All levels</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                        <button id="engineering-target-refresh-btn" class="secondary-btn" title="Refresh candidates">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
+                    </div>
+                    <div class="engineering-target-score-row">
+                        <label for="engineering-target-min-score">Minimum score</label>
+                        <input type="range" id="engineering-target-min-score" min="0" max="1" value="0" step="0.05">
+                        <span id="engineering-target-min-score-value">0.00</span>
+                    </div>
+                    <div id="engineering-target-status" class="metabolic-muted">Loading candidate regulators...</div>
+                    <div class="engineering-target-table-wrap">
+                        <table class="engineering-target-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>TF</th>
+                                    <th>Score</th>
+                                    <th>Level</th>
+                                    <th>Mapped</th>
+                                    <th>Rxns</th>
+                                    <th>Pathways</th>
+                                    <th>Key pathways</th>
+                                    <th>Regulation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="engineering-target-tbody">
+                                <tr><td colspan="9">Loading candidate regulators...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+<!-- RNA-seq overlay -->
                 <div class="sidebar-section rnaseq-section">
-                    <h2><i class="fa-solid fa-dna"></i> RNA-Seq 数据叠加</h2>
+                    <h2><i class="fa-solid fa-dna"></i> RNA-seq Overlay</h2>
                     <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
-                        导入您的本地差异表达数据 (CSV) 以在网络节点中叠加显示转录水平变化：
+                        Upload local differential expression data (CSV) to overlay expression changes on network nodes.
                     </p>
                     <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                         <input type="file" id="rnaseq-file-input" accept=".csv" class="hidden" style="display: none;">
-                        <button id="btn-upload-rnaseq" class="secondary-btn" style="flex: 1; padding: 8px; font-size: 12px; font-weight: 600;" title="选择 CSV 文件">
-                            <i class="fa-solid fa-file-arrow-up"></i> 上传 CSV 数据
+                        <button id="btn-upload-rnaseq" class="secondary-btn" style="flex: 1; padding: 8px; font-size: 12px; font-weight: 600;" title="Select a CSV file">
+                            <i class="fa-solid fa-file-arrow-up"></i> Upload CSV
                         </button>
-                        <button id="btn-clear-rnaseq" class="secondary-btn hidden" style="flex: 0 0 40px; padding: 8px; font-size: 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background-color: #fff5f5;" title="清除数据叠加">
+                        <button id="btn-clear-rnaseq" class="secondary-btn hidden" style="flex: 0 0 40px; padding: 8px; font-size: 12px; color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background-color: #fff5f5;" title="Clear expression overlay">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                     
-                    <!-- 渐变图例 (默认隐藏，上传后显示) -->
+                    <!-- Legend shown after upload -->
                     <div id="rnaseq-legend-container" class="hidden" style="background-color: var(--bg-card); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 8px;">
                         <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500;">
                             <span>log2FC</span>
-                            <span id="rnaseq-loaded-count" style="color: #6366f1; font-weight: 600;">已叠加 0 个基因</span>
+                            <span id="rnaseq-loaded-count" style="color: #6366f1; font-weight: 600;">Loaded 0 genes</span>
                         </div>
                         <div class="rnaseq-colorbar-wrapper" style="position: relative; height: 12px; border-radius: 6px; background: linear-gradient(to right, #1d4ed8, #e2e8f0, #b91c1c); margin-bottom: 4px;"></div>
                         <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary); font-family: monospace;">
-                            <span>-3 (下调 ⬇)</span>
+                            <span>-3 (down)</span>
                             <span>0</span>
-                            <span>+3 (上调 ⬆)</span>
+                            <span>+3 (up)</span>
                         </div>
                         <div style="margin-top: 6px; font-size: 10px; color: var(--text-muted); line-height: 1.3; margin-bottom: 8px;">
-                            <i class="fa-solid fa-circle-info"></i> 边框加粗与呼吸霓虹表示差异显著。
+                            <i class="fa-solid fa-circle-info"></i> Thicker borders and breathing effect indicate significant differential expression.
                         </div>
                         
-                        <!-- 动态过滤配置 -->
+                        <!-- Dynamic expression filters -->
                         <div style="border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 8px;">
                             <label class="custom-checkbox" style="margin-bottom: 8px;">
                                 <input type="checkbox" id="rnaseq-filter-enable">
                                 <span class="checkmark"></span>
-                                <span class="label-text" style="font-weight: 600; font-size: 11px;">只显示筛选后的差异基因</span>
+                                <span class="label-text" style="font-weight: 600; font-size: 11px;">Show only genes passing expression filters</span>
                             </label>
                             
-                            <!-- LFC 阈值 -->
+                            <!-- LFC threshold -->
                             <div class="range-control" style="margin-bottom: 8px; margin-top: 4px; padding-left: 4px;">
                                 <div class="range-labels" style="display: flex; justify-content: space-between;">
-                                    <span style="font-size: 10px; color: var(--text-secondary);">|log2FC| 阈值 &ge;</span>
+                                    <span style="font-size: 10px; color: var(--text-secondary);">|log2FC| &ge;</span>
                                     <span id="rnaseq-lfc-val" style="font-size: 11px; font-weight: 600; color: #b91c1c;">1.0</span>
                                 </div>
                                 <input type="range" id="rnaseq-lfc-threshold" min="0" max="3" value="1.0" step="0.1" style="width: 100%;">
                             </div>
                             
-                            <!-- P-Value 阈值 -->
+                            <!-- P-value threshold -->
                             <div class="range-control" style="margin-bottom: 4px; padding-left: 4px;">
                                 <div class="range-labels" style="display: flex; justify-content: space-between;">
-                                    <span style="font-size: 10px; color: var(--text-secondary);">P-Value 阈值 &le;</span>
+                                    <span style="font-size: 10px; color: var(--text-secondary);">P-value &le;</span>
                                     <span id="rnaseq-p-val" style="font-size: 11px; font-weight: 600; color: #1d4ed8;">0.05</span>
                                 </div>
                                 <input type="range" id="rnaseq-p-threshold" min="0.01" max="1.0" value="0.05" step="0.01" style="width: 100%;">
@@ -287,145 +412,145 @@
                     </div>
                 </div>
 
-                <!-- AI API 配置 -->
+                <!-- AI API settings -->
                 <div class="sidebar-section ai-config-section">
-                    <h2><i class="fa-solid fa-gear"></i> AI 服务商配置</h2>
+                    <h2><i class="fa-solid fa-gear"></i> AI Provider Settings</h2>
                     
-                    <!-- 1. API 密钥配置面板 -->
+                    <!-- API key configuration -->
                     <div id="ai-key-config-panel" class="ai-key-config" style="margin-bottom: 12px; background-color: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
                         <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
-                            配置您的 AI 服务商以启用智能文献总结及助手功能（密钥保存在本地浏览器）：
+                            Configure an AI provider for literature summaries and discovery assistance. Keys are stored locally in this browser.
                         </p>
-                        <!-- 服务商选择 -->
+                        <!-- Provider selection -->
                         <div style="margin-bottom: 8px;">
-                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">服务商 (Provider)</label>
+                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Provider</label>
                             <select id="ai-provider-select" class="custom-select" style="padding: 4px 8px; font-size: 11px; height: 28px; line-height: 18px; border-radius: 6px;">
                                 <option value="google">Google Gemini</option>
                                 <option value="openai">OpenAI</option>
                                 <option value="deepseek">DeepSeek</option>
-                                <option value="qwen">阿里通义千问 (Qwen)</option>
+                                <option value="qwen">Qwen</option>
                                 <option value="kimi">Moonshot Kimi</option>
-                                <option value="zhipu">智谱清言 (GLM)</option>
-                                <option value="ollama">Ollama (本地运行)</option>
-                                <option value="custom">Custom (OpenAI 兼容)</option>
+                                <option value="zhipu">Zhipu GLM</option>
+                                <option value="ollama">Ollama (local)</option>
+                                <option value="custom">Custom (OpenAI-compatible)</option>
                             </select>
                         </div>
                         
-                        <!-- 自定义 Base URL，仅在 custom 时可见 -->
+                        <!-- Custom Base URL -->
                         <div id="ai-custom-url-wrapper" class="hidden" style="margin-bottom: 8px;">
-                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">接口基址 (Base URL)</label>
-                            <input type="text" id="ai-base-url-input" placeholder="例如: https://api.openai.com/v1" style="width: 100%; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Base URL</label>
+                            <input type="text" id="ai-base-url-input" placeholder="Example: https://api.openai.com/v1" style="width: 100%; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
                         </div>
 
-                        <!-- 模型名称，在 deepseek/custom 时可见 -->
+                        <!-- Model name -->
                         <div id="ai-model-wrapper" class="hidden" style="margin-bottom: 8px;">
-                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">模型名称 (Model)</label>
-                            <input type="text" id="ai-model-input" placeholder="例如: deepseek-chat" style="width: 100%; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Model</label>
+                            <input type="text" id="ai-model-input" placeholder="Example: deepseek-chat" style="width: 100%; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
                         </div>
 
                         <!-- API Key -->
                         <div>
-                            <label id="ai-key-label" style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">API 密钥 (API Key)</label>
+                            <label id="ai-key-label" style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">API Key</label>
                             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <input type="password" id="gemini-api-key-input" placeholder="输入 API Key..." style="flex: 1; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
-                                <button id="btn-save-key" class="primary-btn" style="height: 28px; width: 64px; font-size: 11px; padding: 0; flex-shrink: 0;" title="保存设置至本地">保存</button>
+                                <input type="password" id="gemini-api-key-input" placeholder="Enter API key..." style="flex: 1; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                                <button id="btn-save-key" class="primary-btn" style="height: 28px; width: 64px; font-size: 11px; padding: 0; flex-shrink: 0;" title="Save settings locally">Save</button>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button id="btn-test-ai" class="secondary-btn" style="flex: 1; height: 28px; font-size: 11px; padding: 0;" title="使用当前输入的 API 配置测试与 AI 服务商的连接">测试 API 连接</button>
+                                <button id="btn-test-ai" class="secondary-btn" style="flex: 1; height: 28px; font-size: 11px; padding: 0;" title="Test the current AI connection">Test API connection</button>
                             </div>
                             <div id="ai-test-result" class="hidden" style="margin-top: 8px; font-size: 10px; padding: 6px 8px; border-radius: 6px; line-height: 1.4; word-break: break-all; max-height: 120px; overflow-y: auto; font-family: monospace;"></div>
                         </div>
                         
-                        <!-- 提示获取 Key 的链接 -->
+                        <!-- API key links -->
                         <p id="ai-key-hint-google" style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> 获取免费的 Gemini API Key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> Get a Gemini API key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
                         </p>
                         <p id="ai-key-hint-openai" class="hidden" style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> 获取 OpenAI API Key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                            <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> Get an OpenAI API key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
                         </p>
                         <p id="ai-key-hint-deepseek" class="hidden" style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://platform.deepseek.com/" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> 获取 DeepSeek API Key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                            <a href="https://platform.deepseek.com/" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> Get a DeepSeek API key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
                         </p>
                         <p id="ai-key-hint-qwen" class="hidden" style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://dashscope.console.aliyun.com/apiKey" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> 获取阿里通义千问 API Key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                            <a href="https://dashscope.console.aliyun.com/apiKey" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> Get a Qwen API key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
                         </p>
                         <p id="ai-key-hint-kimi" class="hidden" style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://platform.moonshot.cn/console/api-keys" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> 获取 Moonshot Kimi API Key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                            <a href="https://platform.moonshot.cn/console/api-keys" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> Get a Moonshot Kimi API key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
                         </p>
                         <p id="ai-key-hint-zhipu" class="hidden" style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> 获取智谱清言 API Key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                            <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-circle-question"></i> Get a Zhipu GLM API key <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
                         </p>
                         <p id="ai-key-hint-ollama" class="hidden" style="font-size: 10px; margin-top: 8px; margin-bottom: 0; color: var(--text-secondary); line-height: 1.4;">
-                            <i class="fa-solid fa-circle-info"></i> Ollama 为本地大模型运行框架。使用前请确保本地已开启 Ollama 服务（默认端口 11434）且已拉取对应模型。本地运行时不需要 API Key。
+                            <i class="fa-solid fa-circle-info"></i> Ollama runs local models. Make sure the Ollama service is running on port 11434 and the selected model has been pulled. No API key is required for local use.
                         </p>
                     </div>
                     
-                    <!-- 2. 已配置密钥状态 -->
+                    <!-- Saved key status -->
                     <div id="ai-key-active-panel" class="ai-key-active hidden" style="font-size: 11px; background-color: rgba(99, 102, 241, 0.05); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2); margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span id="ai-active-status-text" style="color: #6366f1; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Gemini 密钥已就绪</span>
-                            <button id="btn-clear-key" style="background: transparent; color: #ef4444; font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 6px; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; background-color: #fff5f5;">清除</button>
+                            <span id="ai-active-status-text" style="color: #6366f1; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> AI provider ready</span>
+                            <button id="btn-clear-key" style="background: transparent; color: #ef4444; font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 6px; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; background-color: #fff5f5;">Clear</button>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button id="btn-test-ai-active" class="secondary-btn" style="flex: 1; height: 26px; font-size: 11px; padding: 0;" title="测试当前已保存的 API 连接">测试 API 连接</button>
+                            <button id="btn-test-ai-active" class="secondary-btn" style="flex: 1; height: 26px; font-size: 11px; padding: 0;" title="Test the saved AI connection">Test API connection</button>
                         </div>
                         <div id="ai-test-result-active" class="hidden" style="margin-top: 8px; font-size: 10px; padding: 6px 8px; border-radius: 6px; line-height: 1.4; word-break: break-all; max-height: 120px; overflow-y: auto; font-family: monospace;"></div>
                     </div>
                 </div>
 
-                <!-- AI 智能发现助手 (选项卡) -->
+                <!-- AI discovery assistant -->
                 <div class="sidebar-section ai-discovery-section">
-                    <h2><i class="fa-solid fa-brain"></i> AI 智能发现助手</h2>
+                    <h2><i class="fa-solid fa-brain"></i> AI Discovery Assistant</h2>
                     <div class="search-tabs" style="margin-bottom: 12px;">
-                        <button class="search-tab active" id="tab-ai-gene-btn" style="font-size: 11px; padding: 6px 0;">按功能特征</button>
-                        <button class="search-tab" id="tab-ai-pathway-btn" style="font-size: 11px; padding: 6px 0;">按代谢通路</button>
+                        <button class="search-tab active" id="tab-ai-gene-btn" style="font-size: 11px; padding: 6px 0;">By feature</button>
+                        <button class="search-tab" id="tab-ai-pathway-btn" style="font-size: 11px; padding: 6px 0;">By pathway</button>
                     </div>
 
-                    <!-- 选项卡1：按功能特征 -->
+                    <!-- Feature tab -->
                     <div id="ai-gene-tab-content" class="ai-tab-content">
                         <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
-                             输入功能或特性描述（如：抗逆、热激），AI 将智能分析其调控网络。
+                             Enter a functional trait or phenotype. The assistant will search for relevant genes and regulatory links.
                         </p>
                         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                            <input type="text" id="ai-gene-input" placeholder="例如：抗逆 / 调节因子 / 热激蛋白" style="flex: 1; font-size: 12px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
-                            <button id="btn-analyze-gene" class="primary-btn" style="height: 32px; width: 56px; font-size: 12px; padding: 0; flex-shrink: 0;" title="分析特征"><i class="fa-solid fa-search"></i> 分析</button>
+                            <input type="text" id="ai-gene-input" placeholder="Example: stress response / regulator / heat shock protein" style="flex: 1; font-size: 12px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                            <button id="btn-analyze-gene" class="primary-btn" style="height: 32px; width: 64px; font-size: 12px; padding: 0; flex-shrink: 0;" title="Analyze feature"><i class="fa-solid fa-search"></i> Analyze</button>
                         </div>
                         <div id="ai-gene-result" class="ai-gene-card hidden"></div>
                     </div>
 
-                    <!-- 选项卡2：按代谢通路 -->
+                    <!-- Pathway tab -->
                     <div id="ai-pathway-tab-content" class="ai-tab-content hidden">
                         <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
-                            输入代谢通路名称，AI 会自动提取基因并一键生成调控子网。
+                            Enter a metabolic pathway or biological process. The assistant can extract genes and build a regulatory subnetwork.
                         </p>
                         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                            <input type="text" id="ai-pathway-input" placeholder="例如：赖氨酸合成 / biotin / 糖酵解" style="flex: 1; font-size: 12px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
-                            <button id="btn-analyze-pathway" class="primary-btn" style="height: 32px; width: 56px; font-size: 12px; padding: 0; flex-shrink: 0;" title="分析该通路"><i class="fa-solid fa-search"></i> 分析</button>
+                            <input type="text" id="ai-pathway-input" placeholder="Example: lysine biosynthesis / biotin / glycolysis" style="flex: 1; font-size: 12px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                            <button id="btn-analyze-pathway" class="primary-btn" style="height: 32px; width: 64px; font-size: 12px; padding: 0; flex-shrink: 0;" title="Analyze pathway"><i class="fa-solid fa-search"></i> Analyze</button>
                         </div>
                         <div id="ai-pathway-result" class="ai-pathway-card hidden"></div>
                     </div>
                 </div>
 
-                <!-- 底栏操作区域 -->
+                <!-- Actions -->
                 <div class="sidebar-section action-section">
-                    <button id="reset-view-btn" class="secondary-btn"><i class="fa-solid fa-compress"></i> 适应画布</button>
+                    <button id="reset-view-btn" class="secondary-btn"><i class="fa-solid fa-compress"></i> Fit canvas</button>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <button id="export-png-btn" class="secondary-btn" style="padding: 10px 4px; font-size: 12px;"><i class="fa-solid fa-file-image"></i> 导出图片</button>
-                        <button id="export-csv-btn" class="secondary-btn" style="padding: 10px 4px; font-size: 12px;"><i class="fa-solid fa-file-csv"></i> 导出 CSV</button>
+                        <button id="export-png-btn" class="secondary-btn" style="padding: 10px 4px; font-size: 12px;"><i class="fa-solid fa-file-image"></i> Export PNG</button>
+                        <button id="export-csv-btn" class="secondary-btn" style="padding: 10px 4px; font-size: 12px;"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
                     </div>
                 </div>
             </aside>
 
-            <!-- 中间可视化画布 -->
+            <!-- Network canvas -->
             <main id="canvas-container">
                 <div id="cy"></div>
                 <div id="canvas-overlay" class="empty-state">
                     <div class="overlay-content">
                         <i class="fa-solid fa-dharmachakra pulse-slow"></i>
-                        <h3>请输入基因开始分析</h3>
-                        <p>在左侧搜索栏中输入基因 Locus Tag (如 cg0350) 或常用名称 (如 whiB4, sigH, cspA)，即可动态生成一阶调控网络图。</p>
+                        <h3>Enter a gene to start analysis</h3>
+                        <p>Search a locus tag such as cg0350, or a common name such as whiB4, sigH, or cspA to generate a first-order regulatory network.</p>
                         <div class="quick-examples">
-                            <span>快速尝试:</span>
+                            <span>Try examples:</span>
                             <button class="example-tag">cg0350</button>
                             <button class="example-tag">sigH</button>
                             <button class="example-tag">whiB4</button>
@@ -434,90 +559,90 @@
                         </div>
                     </div>
                 </div>
-                <!-- 历史导航浮窗 -->
+                <!-- History navigation -->
                 <div id="canvas-history-container" class="canvas-floating-box hidden">
-                    <button id="btn-history-back" class="history-btn" disabled title="返回上一步">
-                        <i class="fa-solid fa-chevron-left"></i> 返回上一步
+                    <button id="btn-history-back" class="history-btn" disabled title="Go back">
+                        <i class="fa-solid fa-chevron-left"></i> Back
                     </button>
-                    <button id="btn-history-forward" class="history-btn" disabled title="前进">
+                    <button id="btn-history-forward" class="history-btn" disabled title="Forward">
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
                 </div>
 
-                <!-- 画布内检索与定位浮窗 -->
+                <!-- Canvas search -->
                 <div id="canvas-search-container" class="canvas-floating-box">
                     <div class="canvas-search-wrapper">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="canvas-search-input" placeholder="在当前画布中搜索定位基因..." autocomplete="off">
+                        <input type="text" id="canvas-search-input" placeholder="Find a node in the current network..." autocomplete="off">
                         <button id="canvas-search-clear-btn" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <div id="canvas-search-results" class="canvas-search-results hidden"></div>
                 </div>
 
-                <!-- 当前网络统计分析面板 -->
+                <!-- Current network stats -->
                 <div id="canvas-stats-container" class="canvas-floating-box">
                     <div class="canvas-stats-header">
-                        <span><i class="fa-solid fa-chart-simple"></i> 当前网络特征</span>
+                        <span><i class="fa-solid fa-chart-simple"></i> Current Network</span>
                         <i class="fa-solid fa-chevron-down toggle-icon"></i>
                     </div>
                     <div class="canvas-stats-content">
                         <div class="stat-grid">
-                            <div class="stat-item"><span class="stat-val" id="stats-nodes">0</span><span class="stat-lbl">节点数</span></div>
-                            <div class="stat-item"><span class="stat-val" id="stats-edges">0</span><span class="stat-lbl">关系数</span></div>
+                            <div class="stat-item"><span class="stat-val" id="stats-nodes">0</span><span class="stat-lbl">Nodes</span></div>
+                            <div class="stat-item"><span class="stat-val" id="stats-edges">0</span><span class="stat-lbl">Edges</span></div>
                             <div class="stat-item"><span class="stat-val" id="stats-tfs">0</span><span class="stat-lbl">TF</span></div>
                             <div class="stat-item"><span class="stat-val" id="stats-srnas">0</span><span class="stat-lbl">sRNA</span></div>
                         </div>
                         <div class="stat-details">
                             <div class="stat-detail-row">
-                                <span>激活/抑制比:</span>
+                                <span>Activation / repression:</span>
                                 <span id="stats-act-rep-ratio" style="font-family: monospace; font-weight: 500;">0/0</span>
                             </div>
                             <div class="stat-detail-row" style="margin-top: 4px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
-                                <span>网络核心 Hubs:</span>
-                                <span id="stats-hubs" style="font-size: 11px; color: var(--text-secondary); word-break: break-all; text-align: left; line-height: 1.3;">无</span>
+                                <span>Network hubs:</span>
+                                <span id="stats-hubs" style="font-size: 11px; color: var(--text-secondary); word-break: break-all; text-align: left; line-height: 1.3;">None</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 提示/控制浮窗 -->
+                <!-- Canvas controls -->
                 <div id="canvas-controls">
-                    <button id="zoom-in" title="放大"><i class="fa-solid fa-plus"></i></button>
-                    <button id="zoom-out" title="缩小"><i class="fa-solid fa-minus"></i></button>
-                    <button id="fit-canvas" title="适应屏幕"><i class="fa-solid fa-expand"></i></button>
+                    <button id="zoom-in" title="Zoom in"><i class="fa-solid fa-plus"></i></button>
+                    <button id="zoom-out" title="Zoom out"><i class="fa-solid fa-minus"></i></button>
+                    <button id="fit-canvas" title="Fit screen"><i class="fa-solid fa-expand"></i></button>
                 </div>
-                <button id="right-sidebar-toggle" class="right-sidebar-toggle collapsed" title="显示详情栏" aria-label="显示详情栏" aria-controls="right-sidebar" aria-expanded="false">
+                <button id="right-sidebar-toggle" class="right-sidebar-toggle collapsed" title="Show detail panel" aria-label="Show detail panel" aria-controls="right-sidebar" aria-expanded="false">
                     <i class="fa-solid fa-chevron-left"></i>
-                    <span>详情</span>
+                    <span>Details</span>
                 </button>
             </main>
 
-            <!-- 右侧详情侧边栏 -->
+            <!-- Right detail sidebar -->
             <aside id="right-sidebar" class="sidebar collapsed">
-                <div id="sidebar-resizer" class="sidebar-resizer" title="拖动调整详情栏宽度" aria-label="拖动调整详情栏宽度"></div>
-                <button id="close-detail-btn" class="close-btn" title="隐藏详情栏" aria-label="隐藏详情栏"><i class="fa-solid fa-xmark"></i></button>
+                <div id="sidebar-resizer" class="sidebar-resizer" title="Drag to resize the detail panel" aria-label="Drag to resize the detail panel"></div>
+                <button id="close-detail-btn" class="close-btn" title="Hide detail panel" aria-label="Hide detail panel"><i class="fa-solid fa-xmark"></i></button>
                 <div class="detail-header">
                     <span class="gene-badge" id="detail-type-badge">Gene</span>
                     <h2 id="detail-gene-name">-</h2>
                     <p class="locus-tag" id="detail-locus-tag">-</p>
                     <button id="view-network-btn" class="view-network-btn" style="display: none;">
-                        <i class="fa-solid fa-network-wired"></i> 查看其调控网络
+                        <i class="fa-solid fa-network-wired"></i> View regulatory network
                     </button>
                 </div>
                 <div class="detail-content">
                     <div class="detail-section">
-                        <h3><i class="fa-solid fa-circle-info"></i> 基本信息</h3>
+                        <h3><i class="fa-solid fa-circle-info"></i> Basic Information</h3>
                         <table class="info-table">
                             <tr>
-                                <th>标识符/Locus Tag</th>
+                                <th>Locus tag</th>
                                 <td id="info-locus">-</td>
                             </tr>
                             <tr>
-                                <th>显示名称</th>
+                                <th>Display name</th>
                                 <td id="info-name">-</td>
                             </tr>
                             <tr>
-                                <th>分子类型</th>
+                                <th>Molecule type</th>
                                 <td id="info-type">-</td>
                             </tr>
                              <tr id="info-cgl-row" style="display: none;">
@@ -525,15 +650,15 @@
                                 <td id="info-cgl">-</td>
                             </tr>
                             <tr id="info-operon-row" style="display: none;">
-                                <th>所属操纵子</th>
+                                <th>Operon</th>
                                 <td id="info-operon" style="white-space: normal; font-size: 12px; line-height: 1.4; color: var(--text-secondary);">-</td>
                             </tr>
                             <tr id="info-product-row" style="display: none;">
-                                <th>功能描述</th>
+                                <th>Functional description</th>
                                 <td id="info-product" style="font-family: var(--font-primary); font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: normal; word-break: break-all; text-align: justify;">-</td>
                             </tr>
                             <tr id="info-pathway-row" style="display: none;">
-                                <th>所属通路 (KEGG/GO)</th>
+                                <th>Pathways (KEGG/GO)</th>
                                 <td id="info-pathway" style="font-family: var(--font-primary); font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: normal; word-break: break-all;">
                                     <div class="pathway-container" id="info-pathway-container"></div>
                                 </td>
@@ -541,36 +666,36 @@
                         </table>
                     </div>
 
-                    <!-- 基因组物理图谱与实验数据整合 (Genomic Physical Map) -->
+                    <!-- Genomic physical map and expression data -->
                     <div class="detail-section" id="detail-genomic-map-section">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <h3 style="margin:0; font-size:12px; font-weight:600;"><i class="fa-solid fa-dna" style="color: #0284c7;"></i> 基因组物理图谱与表达量</h3>
+                            <h3 style="margin:0; font-size:12px; font-weight:600;"><i class="fa-solid fa-dna" style="color: #0284c7;"></i> Genomic Context & Expression</h3>
                             <button id="btn-import-rnaseq" class="secondary-btn" style="font-size:9.5px; padding:2px 8px; height:20px; width:auto; border:1px solid #0284c7; background:rgba(2, 132, 199, 0.04); color:#0284c7; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:4px;">
-                                <i class="fa-solid fa-file-import"></i> 导入 RNA-seq
+                                <i class="fa-solid fa-file-import"></i> Import RNA-seq
                             </button>
                             <input type="file" id="rnaseq-upload-input" accept=".csv" style="display:none;">
                         </div>
                         <p style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
-                            展示相邻基因及所属操纵子结构。点击基因可跳转。
+                            Shows neighboring genes and operon structure. Click a gene to navigate.
                         </p>
-                        <!-- SVG 物理图谱容器 -->
+                        <!-- SVG physical map container -->
                         <div id="genomic-map-container" style="width:100%; height:120px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; padding: 4px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.01); display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative; overflow:hidden;">
-                            <!-- 动态绘制 SVG -->
+                            <!-- Dynamic SVG rendering -->
                         </div>
                         
-                        <!-- 表达量与说明图例 -->
+                        <!-- Expression legend -->
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:9px; color:var(--text-muted);">
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <span style="display:inline-block; width:10px; height:10px; background:#fca5a5; border:1px solid #ef4444; border-radius:2px;"></span> 上调
-                                <span style="display:inline-block; width:10px; height:10px; background:#93c5fd; border:1px solid #3b82f6; border-radius:2px;"></span> 下调
+                                <span style="display:inline-block; width:10px; height:10px; background:#fca5a5; border:1px solid #ef4444; border-radius:2px;"></span> Up-regulated
+                                <span style="display:inline-block; width:10px; height:10px; background:#93c5fd; border:1px solid #3b82f6; border-radius:2px;"></span> Down-regulated
                             </div>
-                            <span id="rnaseq-status-badge" style="font-weight:600; color:#10b981;">(默认数据)</span>
+                            <span id="rnaseq-status-badge" style="font-weight:600; color:#10b981;">Default data</span>
                         </div>
                     </div>
 
-                    <!-- 蛋白结构域 & 结合基序预测 -->
+                    <!-- Protein domains and motif prediction -->
                     <div class="detail-section protein-analysis-section" id="detail-protein-domain-section" style="display: none;">
-                        <h3><i class="fa-solid fa-shapes" style="color: #7c3aed;"></i> 蛋白结构域 & 结合基序预测</h3>
+                        <h3><i class="fa-solid fa-shapes" style="color: #7c3aed;"></i> Protein Domains & Motif Prediction</h3>
                         
                         <!-- Top Part: Enlarged Premium 3D folded structure model card -->
                         <div class="protein-structure-card">
@@ -591,19 +716,19 @@
                             
                             <!-- Floating interaction controls -->
                             <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; z-index: 2;">
-                                <button id="btn-spin-structure" class="structure-control-btn" title="自动旋转观察"><i class="fa-solid fa-rotate-right"></i></button>
-                                <button id="btn-zoom-structure" class="structure-control-btn" title="放大模型"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-                                <button id="btn-reset-structure" class="structure-control-btn" title="重置视角"><i class="fa-solid fa-arrows-to-eye"></i></button>
+                                <button id="btn-spin-structure" class="structure-control-btn" title="Auto-rotate"><i class="fa-solid fa-rotate-right"></i></button>
+                                <button id="btn-zoom-structure" class="structure-control-btn" title="Zoom model"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                                <button id="btn-reset-structure" class="structure-control-btn" title="Reset view"><i class="fa-solid fa-arrows-to-eye"></i></button>
                             </div>
                         </div>
 
                         <!-- Brief Structure Description -->
                         <div style="background: rgba(124, 58, 237, 0.02); border: 1px solid rgba(124, 58, 237, 0.06); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; margin-top: 6px;">
                             <div style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                                <i class="fa-solid fa-cube" style="color: #7c3aed; font-size: 10px;"></i> 螺旋-转角-螺旋 (HTH) 结构域定位
+                                <i class="fa-solid fa-cube" style="color: #7c3aed; font-size: 10px;"></i> Helix-turn-helix domain context
                             </div>
                             <div style="font-size: 10px; color: var(--text-secondary); line-height: 1.45;">
-                                展示了转录调节因子的空间折叠形态，已高亮显示参与特异性识别并物理结合靶基因上游 DNA 启动子的螺旋-转角-螺旋 (HTH) 序列区。
+                                Predicted structural context for DNA-binding transcription regulators, including putative HTH regions involved in promoter recognition.
                             </div>
                         </div>
 
@@ -611,7 +736,7 @@
                         <div class="motif-dashboard-card">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(124, 58, 237, 0.08); padding-bottom: 6px;">
                                 <span style="font-size: 11px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 5px;">
-                                    <i class="fa-solid fa-fingerprint" style="color: #7c3aed; font-size: 10px;"></i> 结合基序预测 (Binding Motif)
+                                    <i class="fa-solid fa-fingerprint" style="color: #7c3aed; font-size: 10px;"></i> Binding Motif
                                 </span>
                                 <span id="motif-badge-info" style="font-size: 9px; background: rgba(124, 58, 237, 0.08); color: #7c3aed; padding: 2px 6px; border-radius: 4px; font-weight: 600;">MEME Suite</span>
                             </div>
@@ -619,14 +744,14 @@
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <div>
                                     <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between;">
-                                        <span>基序序列 (WebLogo)</span>
+                                        <span>Sequence logo</span>
                                         <span id="right-motif-consensus-label" style="font-family: monospace; font-weight: 600; color: #7c3aed; font-size: 10px;">-</span>
                                     </div>
                                     <canvas id="right-motif-logo-canvas" width="310" height="60" class="premium-canvas-card" style="display:block; width:100%; height:55px;"></canvas>
                                 </div>
                                 
                                 <div>
-                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">位置概率权重矩阵 (PWM)</div>
+                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Position weight matrix (PWM)</div>
                                     <canvas id="right-motif-heatmap-canvas" width="310" height="70" class="premium-canvas-card" style="display:block; width:100%; height:62px;"></canvas>
                                 </div>
                             </div>
@@ -635,22 +760,22 @@
                         <!-- Result text domain analysis -->
                         <div id="right-protein-domain-result" style="margin-top: 8px; font-size: 11px; color: var(--text-secondary); line-height: 1.45; max-height: 130px; overflow-y: auto; background: var(--bg-card); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);"></div>
 
-                        <!-- 启动子序列结合扫描 (Promoter Motif Scanner) -->
+                        <!-- Promoter motif scanner -->
                         <div style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 14px; margin-bottom: 4px; display:flex; align-items:center; gap:5px;">
-                            <i class="fa-solid fa-dna" style="color: #7c3aed; font-size: 10px;"></i> 启动子序列结合扫描 (Motif Scanner)
+                            <i class="fa-solid fa-dna" style="color: #7c3aed; font-size: 10px;"></i> Promoter Motif Scanner
                         </div>
                         <p style="font-size: 9.5px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
-                            输入启动子/DNA序列，利用该 TF 的基序矩阵扫描预测潜在的特异性结合位点（正反双链）。
+                            Paste a promoter DNA sequence to scan for putative TF binding sites on both strands.
                         </p>
-                        <textarea id="scan-sequence-input" placeholder="请粘贴 DNA 序列，如：TGTGACGTGTGTGTGACTTG (支持大小写，自动过滤空格/数字)" style="width: 100%; height: 42px; font-family: var(--font-mono); font-size: 9.5px; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; resize: none; margin-bottom: 6px; line-height: 1.3; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></textarea>
+                        <textarea id="scan-sequence-input" placeholder="Paste DNA sequence, e.g. TGTGACGTGTGTGTGACTTG" style="width: 100%; height: 42px; font-family: var(--font-mono); font-size: 9.5px; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; resize: none; margin-bottom: 6px; line-height: 1.3; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></textarea>
                         
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                             <span style="font-size:9px; color:var(--text-muted);">
-                                相似度阈值: <span id="scan-threshold-val" style="font-weight:600; color:#7c3aed;">80%</span>
+                                Similarity threshold: <span id="scan-threshold-val" style="font-weight:600; color:#7c3aed;">80%</span>
                             </span>
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <input type="range" id="scan-threshold-slider" min="60" max="95" value="80" style="width: 70px; height: 3px; cursor: pointer;">
-                                <button id="btn-run-scan" class="secondary-btn" style="font-size:9px; padding:2px 8px; height:20px; width:auto; background:var(--color-primary-accent); color:#ffffff; border:none; border-radius:4px; font-weight:600; cursor:pointer;"><i class="fa-solid fa-magnifying-glass"></i> 开始扫描</button>
+                                <button id="btn-run-scan" class="secondary-btn" style="font-size:9px; padding:2px 8px; height:20px; width:auto; background:var(--color-primary-accent); color:#ffffff; border:none; border-radius:4px; font-weight:600; cursor:pointer;"><i class="fa-solid fa-magnifying-glass"></i> Scan</button>
                             </div>
                         </div>
 
@@ -658,98 +783,98 @@
                             <table style="width:100%; font-size:9px; border-collapse: collapse; text-align:left;">
                                 <thead>
                                     <tr style="background:#f8fafc; border-bottom:1px solid var(--border-color); font-weight:600; color:var(--text-secondary);">
-                                        <th style="padding:4px 6px;">位置</th>
-                                        <th style="padding:4px 6px;">链</th>
-                                        <th style="padding:4px 6px;">匹配序列</th>
-                                        <th style="padding:4px 6px; text-align:right; padding-right:10px;">相似度</th>
+                                        <th style="padding:4px 6px;">Position</th>
+                                        <th style="padding:4px 6px;">Strand</th>
+                                        <th style="padding:4px 6px;">Matched sequence</th>
+                                        <th style="padding:4px 6px; text-align:right; padding-right:10px;">Similarity</th>
                                     </tr>
                                 </thead>
                                 <tbody id="scan-results-body" style="font-family: var(--font-mono);"></tbody>
                             </table>
                         </div>
 
-                        <!-- 靶基因代谢通路富集分析 (Regulon Enrichment) -->
+                        <!-- Regulon enrichment -->
                         <div style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 14px; margin-bottom: 4px; display:flex; align-items:center; gap:5px;">
-                            <i class="fa-solid fa-diagram-project" style="color: #7c3aed; font-size: 10px;"></i> 靶基因通路富集分析 (Regulon Enrichment)
+                            <i class="fa-solid fa-diagram-project" style="color: #7c3aed; font-size: 10px;"></i> Regulon Pathway Enrichment
                         </div>
                         <p style="font-size: 9.5px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
-                            对该 TF 的直接靶标进行超几何富集分析，评估其显著调控的谷棒代谢途径。
+                            Hypergeometric enrichment for direct target genes to estimate regulated metabolic or functional modules.
                         </p>
                         
                         <div id="enrichment-results-box" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; margin-bottom: 12px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);">
                             <table style="width:100%; font-size:9px; border-collapse: collapse; text-align:left;">
                                 <thead>
                                     <tr style="background:#f8fafc; border-bottom:1px solid var(--border-color); font-weight:600; color:var(--text-secondary);">
-                                        <th style="padding:4px 6px; width:50%;">代谢通路 (KEGG Pathway)</th>
-                                        <th style="padding:4px 6px; text-align:center;">靶基因数</th>
+                                        <th style="padding:4px 6px; width:50%;">Pathway</th>
+                                        <th style="padding:4px 6px; text-align:center;">Targets</th>
                                         <th style="padding:4px 6px; text-align:right; padding-right:10px;">p-value</th>
                                     </tr>
                                 </thead>
                                 <tbody id="enrichment-results-body">
-                                    <!-- 动态渲染 -->
+                                    <!-- Dynamic rendering -->
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- 跨物种同源蛋白序列比对 (Needleman-Wunsch Alignment) -->
+                        <!-- Cross-species homology alignment -->
                         <div style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 14px; margin-bottom: 4px; display:flex; align-items:center; gap:5px;">
-                            <i class="fa-solid fa-align-left" style="color: #7c3aed; font-size: 10px;"></i> 跨物种同源比对 (Needleman-Wunsch)
+                            <i class="fa-solid fa-align-left" style="color: #7c3aed; font-size: 10px;"></i> Cross-species Homology Alignment
                         </div>
                         <p style="font-size: 9.5px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
-                            与结核分枝杆菌 (M. tuberculosis H37Rv) 中同源蛋白的保守氨基酸序列特征比对。
+                            Compares candidate homologs with reference protein sequences when available.
                         </p>
                         <div id="homolog-alignment-box" style="padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: #f8fafc; font-family: var(--font-mono); font-size: 9px; line-height: 1.35; overflow-x: auto; white-space: pre; margin-bottom: 10px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02); max-height: 140px;">
-                            <span style="color:var(--text-muted);">正在加载同源比对数据...</span>
+                            <span style="color:var(--text-muted);">Loading homolog alignment data...</span>
                         </div>
                     </div>
 
-                    <!-- 蛋白结合位点 & 占位分析 -->
+                    <!-- Binding sites and occupancy -->
                     <div class="detail-section binding-analysis-section" id="detail-binding-site-section" style="display: none;">
-                        <h3><i class="fa-solid fa-chart-line" style="color: #dc2626;"></i> 蛋白结合位点 & 占位分析</h3>
+                        <h3><i class="fa-solid fa-chart-line" style="color: #dc2626;"></i> Binding Sites & Occupancy</h3>
                         <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.45;">
-                            ChIP-seq 结合丰度 (染色体区域结合强度)。波峰越高，结合富集强度越强。
+                            ChIP-seq occupancy profile. Higher peaks indicate stronger binding enrichment.
                         </p>
-                        <!-- ChIP-seq 占位彩虹图 -->
+                        <!-- ChIP-seq occupancy plot -->
                         <canvas id="right-chipseq-peak-canvas" width="310" height="90" class="premium-canvas-card" style="margin-bottom:8px; display:block; width:100%; height:85px;"></canvas>
                         
-                        <!-- 占位条件切换 -->
+                        <!-- Occupancy condition toggle -->
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; background:rgba(99, 102, 241, 0.04); padding:5px 10px; border-radius:6px; border:1px solid rgba(99, 102, 241, 0.1);">
-                            <span style="font-size:9.5px; color:var(--text-secondary); font-weight:600;"><i class="fa-solid fa-sliders"></i> 环境响应模拟:</span>
+                            <span style="font-size:9.5px; color:var(--text-secondary); font-weight:600;"><i class="fa-solid fa-sliders"></i> Condition:</span>
                             <div style="display:flex; gap:4px;">
                                 <button id="btn-right-cond-ctrl" class="secondary-btn active" style="font-size:8.5px; padding:2px 6px; height:18px; border-radius:3px; width:auto; border:1px solid var(--color-primary-accent); background-color:rgba(30, 58, 138, 0.08); color:var(--color-primary-accent); font-weight:600; cursor:pointer;">Control</button>
                                 <button id="btn-right-cond-stress" class="secondary-btn" style="font-size:8.5px; padding:2px 6px; height:18px; border-radius:3px; width:auto; border:1px solid var(--border-color); background-color:#ffffff; color:var(--text-secondary); cursor:pointer;">Stress</button>
                             </div>
                         </div>
 
-                        <!-- 结合位点表格 -->
+                        <!-- Binding site table -->
                         <div style="margin-top: 8px; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 6px;">
                             <table class="relations-table" id="right-binding-sites-table" style="width: 100%; font-size: 10.5px; border-collapse: collapse;">
                                 <thead>
                                     <tr style="background-color: var(--bg-card); border-bottom: 1px solid var(--border-color);">
-                                        <th style="padding: 6px 8px; text-align: left; font-weight: 600; color: var(--text-secondary);">DNA 结合位点</th>
-                                        <th style="padding: 6px 8px; text-align: left; font-weight: 600; color: var(--text-secondary);">基因组位置</th>
+                                        <th style="padding: 6px 8px; text-align: left; font-weight: 600; color: var(--text-secondary);">DNA binding site</th>
+                                        <th style="padding: 6px 8px; text-align: left; font-weight: 600; color: var(--text-secondary);">Genomic position</th>
                                         <th style="padding: 6px 8px; text-align: right; font-weight: 600; color: var(--text-secondary);">ChIP-seq occupancy</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-family: monospace;">
-                                    <!-- 动态渲染 -->
+                                    <!-- Dynamic rendering -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    <!-- 扰动效应预测模拟面板 -->
+                    <!-- Perturbation response prediction -->
                     <div class="detail-section perturbation-section" style="display: none;" id="detail-perturbation-panel">
-                        <h3><i class="fa-solid fa-flask"></i> 靶基因表达效应预测 (扰动模拟)</h3>
+                        <h3><i class="fa-solid fa-flask"></i> Target Expression Response Prediction</h3>
                         <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
-                            模拟对当前基因进行遗传扰动，预测下游靶标的转录水平响应：
+                            Simulate genetic perturbation of the selected regulator and estimate downstream target responses.
                         </p>
                         <div style="display: flex; gap: 8px;">
                             <button id="btn-sim-oe" class="secondary-btn" style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(46, 125, 50, 0.2); background-color: rgba(46, 125, 50, 0.03); color: var(--color-activation); font-weight: 600;">
-                                <i class="fa-solid fa-circle-arrow-up"></i> 上调
+                                <i class="fa-solid fa-circle-arrow-up"></i> Overexpress
                             </button>
                             <button id="btn-sim-ko" class="secondary-btn" style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(211, 47, 47, 0.2); background-color: rgba(211, 47, 47, 0.03); color: var(--color-repression); font-weight: 600;">
-                                <i class="fa-solid fa-circle-arrow-down"></i> 下调
+                                <i class="fa-solid fa-circle-arrow-down"></i> Knock down
                             </button>
                             <button id="btn-sim-reset" class="secondary-btn hidden" style="flex: 0 0 40px; font-size: 11px; padding: 6px 0; border: 1px solid var(--border-color); color: var(--text-secondary);">
                                 <i class="fa-solid fa-rotate-left"></i>
@@ -757,29 +882,29 @@
                         </div>
                         <div id="sim-export-row" class="hidden" style="margin-top: 8px; display: flex;">
                             <button id="btn-sim-export" class="secondary-btn" style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(25, 118, 210, 0.2); background-color: rgba(25, 118, 210, 0.03); color: #1976d2; font-weight: 600;">
-                                <i class="fa-solid fa-file-csv"></i> <span id="btn-sim-export-text">导出预测效应表格</span>
+                                <i class="fa-solid fa-file-csv"></i> <span id="btn-sim-export-text">Export predicted response table</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- 外部数据库 & 文献追踪 -->
+                    <!-- External databases and literature -->
                     <div class="detail-section">
-                        <h3><i class="fa-solid fa-share-nodes"></i> 外部数据库 & 文献追踪</h3>
+                        <h3><i class="fa-solid fa-share-nodes"></i> External Databases & Literature</h3>
                         <div id="info-links" class="db-links-grid">
-                            <!-- 动态生成链接按钮 -->
+                            <!-- Dynamic link buttons -->
                         </div>
                     </div>
 
                     <div class="detail-section">
-                        <h3><i class="fa-solid fa-circle-nodes"></i> 调控关系汇总</h3>
+                        <h3><i class="fa-solid fa-circle-nodes"></i> Regulatory Summary</h3>
                         <div class="summary-cards">
-                            <div class="summary-card" id="btn-regulators-summary" title="点击分析并绘制所有上游调控因子联合网络">
+                            <div class="summary-card" id="btn-regulators-summary" title="Analyze and draw all upstream regulators">
                                 <span class="card-num" id="regulators-count">0</span>
-                                <span class="card-label">上游调控因子</span>
+                                <span class="card-label">Upstream regulators</span>
                             </div>
-                            <div class="summary-card" id="btn-targets-summary" title="点击分析并绘制所有下游靶标联合网络">
+                            <div class="summary-card" id="btn-targets-summary" title="Analyze and draw all downstream targets">
                                 <span class="card-num" id="targets-count">0</span>
-                                <span class="card-label">下游靶标</span>
+                                <span class="card-label">Downstream targets</span>
                             </div>
                         </div>
                     </div>
@@ -787,38 +912,38 @@
                     <div class="detail-section" id="detail-metabolic-impact-section">
                         <h3><i class="fa-solid fa-route" style="color:#0f766e;"></i> Metabolic Impact</h3>
                         <div id="metabolic-impact-content" class="metabolic-impact-card">
-                            <span class="metabolic-muted">点击基因或转录因子后加载模型映射层...</span>
+                            <span class="metabolic-muted">Select a gene or transcription factor to load metabolic model mapping.</span>
                         </div>
                     </div>
 
                     <div class="detail-section ai-summary-section">
-                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI 文献与功能智能总结</h3>
+                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Literature & Function Summary</h3>
                         
-                        <!-- 3. AI 运行控制按钮 -->
+                        <!-- AI run control -->
                         <button id="btn-trigger-ai" class="view-network-btn" style="margin-top: 0; margin-bottom: 12px; background-color: #6366f1; font-weight: 600; border: none;" disabled>
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI 一键总结文献与功能
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Summarize literature and function
                         </button>
 
-                        <!-- 4. 总结内容输出框 -->
+                        <!-- Summary output -->
                         <div id="ai-summary-result" class="ai-summary-card hidden">
-                            <!-- 动态渲染 markdown 文本 -->
+                            <!-- Dynamic markdown rendering -->
                         </div>
                     </div>
 
                     <div class="detail-section table-section">
-                        <h3><i class="fa-solid fa-list"></i> 调控详情列表</h3>
+                        <h3><i class="fa-solid fa-list"></i> Regulatory Details</h3>
                         <div class="table-scroll-container">
                             <table id="detail-relations-table" class="relations-table">
                                 <thead>
                                     <tr>
-                                        <th>关联基因</th>
-                                        <th>方向</th>
-                                        <th>调控作用</th>
-                                        <th>来源/分值</th>
+                                        <th>Related gene</th>
+                                        <th>Direction</th>
+                                        <th>Regulatory effect</th>
+                                        <th>Source / score</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- 动态渲染 -->
+                                    <!-- Dynamic rendering -->
                                 </tbody>
                             </table>
                         </div>
@@ -833,7 +958,12 @@
     <script src="lib/vendor/papaparse.min.js"></script>
     <script src="lib/vendor/jquery-3.6.0.min.js"></script>
     <script src="lib/vendor/3Dmol-min.js"></script>
+    <script src="lib/metabolicModelAdapter.js?v=1.0"></script>
+    <script src="lib/regulationMetabolismBridge.js?v=1.0"></script>
+    <script src="lib/tfMetabolicImpactRanking.js?v=1.0"></script>
+    <script src="lib/pathwayRegulatoryView.js?v=1.0"></script>
+    <script src="lib/candidateEngineeringTargets.js?v=1.0"></script>
     <!-- Custom Application Logic -->
-    <script src="app.js?v=1.9"></script>
+    <script src="app.js?v=2.6"></script>
 </body>
 </html>

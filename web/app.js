@@ -44,6 +44,8 @@ let currentSimulationMode = null;
 
 let currentSimulationRegulator = null;
 
+const DEFAULT_EXAMPLE_LOCUS = 'cg0350';
+
 
 
 // Query Navigation History Stacks
@@ -202,7 +204,7 @@ async function loadNetworkData() {
 
     try {
 
-        updateStatus('正在加载基因命名映射数据...', 'loading');
+        updateStatus('Loading gene name mapping data...', 'loading');
 
         const mapResponse = await fetch(MAPPING_URL);
 
@@ -222,11 +224,11 @@ async function loadNetworkData() {
 
 
 
-        updateStatus('正在加载 TF-TG 调控数据...', 'loading');
+        updateStatus('Loading TF-target regulatory data...', 'loading');
 
         const tfResponse = await fetch(REGULATIONS_URL);
 
-        if (!tfResponse.ok) throw new Error('无法读取 regulations.csv，请确认本地服务已启动。');
+        if (!tfResponse.ok) throw new Error('Unable to read regulations.csv. Please confirm the local server is running.');
 
         const tfText = await tfResponse.text();
 
@@ -238,7 +240,7 @@ async function loadNetworkData() {
 
 
 
-        updateStatus('正在加载 sRNA-mRNA 调控数据...', 'loading');
+        updateStatus('Loading sRNA-mRNA regulatory data...', 'loading');
 
         const rnaResponse = await fetch(RNA_REGULATIONS_URL);
 
@@ -264,7 +266,7 @@ async function loadNetworkData() {
 
 
 
-        updateStatus('正在加载操纵子结构数据...', 'loading');
+        updateStatus('Loading operon structure data...', 'loading');
 
         const operonResponse = await fetch(OPERONS_URL);
 
@@ -287,43 +289,21 @@ async function loadNetworkData() {
         buildGeneIndex();
         normalizeNetworkData();
 
-        // Pre-load default RNA-seq data
-        try {
-            const rnaSeqResp = await fetch('data/mock_rnaseq.csv');
-            if (rnaSeqResp.ok) {
-                const text = await rnaSeqResp.text();
-                const parsed = Papa.parse(text, {
-                    header: true,
-                    skipEmptyLines: true,
-                    dynamicTyping: true
-                });
-                rnaseqData = {};
-                parsed.data.forEach(row => {
-                    let locus = cleanStr(row.locus_tag).trim().toLowerCase();
-                    let fc = parseFloat(row.log2fc);
-                    let pval = parseFloat(row.pvalue) || 1.0;
-                    if (locus && !isNaN(fc)) {
-                        if (cglToCg[locus]) {
-                            locus = cglToCg[locus].toLowerCase();
-                        }
-                        rnaseqData[locus] = { log2fc: fc, pvalue: isNaN(pval) ? 1.0 : pval };
-                    }
-                });
-                console.log(`Pre-loaded default RNA-seq data with ${Object.keys(rnaseqData).length} genes.`);
-            }
-        } catch (e) {
-            console.warn('Failed to pre-load default RNA-seq data:', e);
-        }
+        rnaseqData = null;
 
-        updateStatus('数据已就绪', 'success');
+        updateStatus('Data ready', 'success');
+        initGlobalMetabolicImpactRanking();
+        initPathwayRegulatoryView();
+        initEngineeringTargetFinder();
+        loadDefaultExampleNetwork();
 
     } catch (err) {
 
         console.error(err);
 
-        updateStatus('数据加载失败: ' + err.message, 'error');
+        updateStatus('Data loading failed: ' + err.message, 'error');
 
-        alert('错误：无法加载 CSV 文件。请确保运行了 python run_server.py 以便浏览器加载数据。');
+        alert('Error: unable to load CSV files. Please run python run_server.py so the browser can load local data.');
 
     }
 
@@ -428,12 +408,12 @@ function confidenceLevel(score) {
 }
 
 function roleLabelFromType(role, regulationType) {
-    if (regulationType === 'activation' || role === 'A') return '激活 (+)';
-    if (regulationType === 'repression' || role === 'R') return '抑制 (-)';
-    if (regulationType === 'post_transcriptional_repression' || role === 'sRNA') return 'sRNA/转录后抑制';
-    if (regulationType === 'sigma') return 'Sigma 因子';
-    if (regulationType === 'dual' || role === 'Dual') return '双重调控';
-    return '未知/待定';
+    if (regulationType === 'activation' || role === 'A') return 'Activation (+)';
+    if (regulationType === 'repression' || role === 'R') return 'Repression (-)';
+    if (regulationType === 'post_transcriptional_repression' || role === 'sRNA') return 'sRNA / post-transcriptional repression';
+    if (regulationType === 'sigma') return 'Sigma factor';
+    if (regulationType === 'dual' || role === 'Dual') return 'Dual regulation';
+    return 'Unknown / pending';
 }
 
 function confidenceSummary(edge) {
@@ -588,6 +568,495 @@ function normalizeNetworkData() {
     });
 
     console.log(`Normalized regulatory graph: ${Object.keys(normalizedNodes).length} nodes, ${normalizedEdges.length} edges.`);
+}
+
+let globalMetabolicImpactRanks = [];
+let globalMetabolicImpactLoading = false;
+
+function buildGlobalRegulatoryGraphForRanking() {
+    const nodes = Object.values(normalizedNodes || {}).map(node => ({
+        data: {
+            id: node.id,
+            label: node.label || node.id,
+            name: node.label || node.id,
+            type: node.type
+        }
+    }));
+    const edges = (normalizedEdges || [])
+        .filter(edge => edge && edge.sourceType === 'TF')
+        .map(edge => ({
+            data: {
+                source: edge.source,
+                target: edge.target,
+                type: 'regulates',
+                regulation: edge.regulationType || 'unknown',
+                confidence: edge.confidenceScore || 0,
+                confidenceScore: edge.confidenceScore || 0
+            }
+        }));
+    return { nodes, edges };
+}
+
+function renderGlobalMetabolicImpactRanking() {
+    const tbody = document.getElementById('global-metabolic-impact-tbody');
+    const status = document.getElementById('global-metabolic-impact-status');
+    const filterInput = document.getElementById('global-metabolic-pathway-filter');
+    if (!tbody) return;
+
+    const filter = String(filterInput?.value || '').trim().toLowerCase();
+    const filtered = filter
+        ? globalMetabolicImpactRanks.filter(rank => {
+            const pathways = [
+                ...(rank.keyPathways || []),
+                ...((rank.pathwaySummary || []).map(p => p.pathwayName || p.pathwayId || ''))
+            ].join(' ').toLowerCase();
+            return pathways.includes(filter);
+        })
+        : globalMetabolicImpactRanks;
+
+    if (status) {
+        status.textContent = globalMetabolicImpactLoading
+            ? 'Calculating TF metabolic impact ranking...'
+            : `${filtered.length} TFs shown${filter ? ` for "${filter}"` : ''}`;
+    }
+
+    if (globalMetabolicImpactLoading && globalMetabolicImpactRanks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8">Calculating ranking...</td></tr>';
+        return;
+    }
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8">No TF metabolic impact ranking available for the current filter.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map((rank, index) => `
+        <tr class="global-metabolic-row" data-tf-id="${escapeHtml(rank.tfId)}" title="${escapeHtml(rank.explanation || '')}">
+            <td>${index + 1}</td>
+            <td><strong>${escapeHtml(rank.tfLabel || rank.tfId)}</strong><div class="metabolic-muted">${escapeHtml(rank.tfId)}</div></td>
+            <td><span class="global-metabolic-score">${escapeHtml(Number(rank.impactScore || 0).toFixed(2))}</span></td>
+            <td>${escapeHtml(rank.totalTargetGenes || 0)}</td>
+            <td>${escapeHtml(rank.mappedTargetGenes || 0)}</td>
+            <td>${escapeHtml(rank.totalReactions || 0)}</td>
+            <td>${escapeHtml(rank.totalPathways || 0)}</td>
+            <td>${escapeHtml((rank.keyPathways || []).slice(0, 3).join(', ') || '-')}</td>
+        </tr>
+    `).join('');
+
+    tbody.querySelectorAll('.global-metabolic-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const tfId = row.getAttribute('data-tf-id');
+            if (!tfId) return;
+            querySingleGene(tfId);
+            showNodeDetails(tfId);
+        });
+    });
+}
+
+async function refreshGlobalMetabolicImpactRanking() {
+    const ranking = window.tfMetabolicImpactRanking;
+    const tbody = document.getElementById('global-metabolic-impact-tbody');
+    const status = document.getElementById('global-metabolic-impact-status');
+    if (!ranking || !tbody) return;
+
+    globalMetabolicImpactLoading = true;
+    if (status) status.textContent = 'Calculating TF metabolic impact ranking...';
+    tbody.innerHTML = '<tr><td colspan="8">Calculating ranking...</td></tr>';
+
+    try {
+        const graph = buildGlobalRegulatoryGraphForRanking();
+        globalMetabolicImpactRanks = await ranking.rankTFsByMetabolicImpactAsync(graph, {
+            limit: 50,
+            includeZeroImpact: false,
+            batchSize: 8
+        });
+    } catch (err) {
+        console.error('Failed to calculate global metabolic impact ranking:', err);
+        globalMetabolicImpactRanks = [];
+        if (status) status.textContent = 'Failed to calculate ranking.';
+    } finally {
+        globalMetabolicImpactLoading = false;
+        renderGlobalMetabolicImpactRanking();
+    }
+}
+
+function initGlobalMetabolicImpactRanking() {
+    const filterInput = document.getElementById('global-metabolic-pathway-filter');
+    const refreshBtn = document.getElementById('global-metabolic-refresh-btn');
+    if (filterInput && !filterInput.dataset.bound) {
+        filterInput.dataset.bound = '1';
+        filterInput.addEventListener('input', renderGlobalMetabolicImpactRanking);
+    }
+    if (refreshBtn && !refreshBtn.dataset.bound) {
+        refreshBtn.dataset.bound = '1';
+        refreshBtn.addEventListener('click', refreshGlobalMetabolicImpactRanking);
+    }
+    document.querySelectorAll('[data-pathway-filter]').forEach(btn => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', () => {
+            if (filterInput) {
+                filterInput.value = btn.getAttribute('data-pathway-filter') || '';
+                renderGlobalMetabolicImpactRanking();
+            }
+        });
+    });
+    refreshGlobalMetabolicImpactRanking();
+}
+
+let pathwayViewOptionsLoaded = false;
+
+function highlightPathwayRegulator(tfId, geneIds) {
+    if (!cy || !tfId) return;
+    const tfLower = String(tfId).toLowerCase();
+    const genes = new Set((geneIds || []).map(g => String(g || '').toLowerCase()));
+
+    cy.elements().removeClass('dimmed');
+    cy.elements().removeClass('highlighted');
+    cy.elements().addClass('dimmed');
+
+    const tfNode = cy.getElementById(tfId);
+    if (tfNode && tfNode.length > 0) {
+        tfNode.removeClass('dimmed');
+        tfNode.addClass('highlighted');
+    }
+
+    genes.forEach(gene => {
+        const node = cy.getElementById(gene);
+        if (node && node.length > 0) {
+            node.removeClass('dimmed');
+            node.addClass('highlighted');
+        }
+    });
+
+    cy.edges().forEach(edge => {
+        const source = String(edge.data('source') || '').toLowerCase();
+        const target = String(edge.data('target') || '').toLowerCase();
+        if (source === tfLower && genes.has(target)) {
+            edge.removeClass('dimmed');
+            edge.addClass('highlighted');
+        }
+    });
+}
+
+async function populatePathwayViewOptions() {
+    const pathwayView = window.pathwayRegulatoryView;
+    const datalist = document.getElementById('pathway-view-options');
+    const status = document.getElementById('pathway-view-status');
+    if (!pathwayView || !datalist || pathwayViewOptionsLoaded) return;
+
+    try {
+        const pathways = await pathwayView.loadPathwayOptions();
+        datalist.innerHTML = (pathways || []).slice(0, 200).map(pathway => {
+            const label = pathway.pathwayName || pathway.name || pathway.pathwayId || pathway.id;
+            return `<option value="${escapeHtml(label)}"></option>`;
+        }).join('');
+        pathwayViewOptionsLoaded = true;
+        if (status) status.textContent = `${(pathways || []).length} model pathways loaded.`;
+    } catch (err) {
+        console.error('Failed to load pathway options:', err);
+        if (status) status.textContent = 'Failed to load pathway options.';
+    }
+}
+
+function renderPathwayRegulatorySummary(summary) {
+    const result = document.getElementById('pathway-view-result');
+    const status = document.getElementById('pathway-view-status');
+    if (!result) return;
+
+    if (!summary || summary.totalGenes === 0) {
+        result.innerHTML = '<div class="metabolic-empty">No metabolic model mapping available for this pathway.</div>';
+        if (status) status.textContent = 'No pathway mapping found.';
+        return;
+    }
+
+    if (status) status.textContent = `${summary.totalRegulators} upstream TFs found.`;
+    const regulatorsHtml = summary.regulators.length > 0
+        ? summary.regulators.slice(0, 10).map((regulator, index) => `
+            <button type="button" class="pathway-view-regulator" data-tf-id="${escapeHtml(regulator.tfId)}" data-genes="${encodeMetabolicList(regulator.regulatedGenes)}" title="${escapeHtml(regulator.explanation || '')}">
+                <div><span class="pathway-view-title">${index + 1}. ${escapeHtml(regulator.tfLabel || regulator.tfId)}</span> <span class="pathway-view-score">score ${escapeHtml(Number(regulator.regulatorScore || 0).toFixed(2))}</span></div>
+                <div class="metabolic-muted">regulates ${escapeHtml((regulator.regulatedGenes || []).length)} pathway genes - ${escapeHtml((regulator.regulationTypes || []).join(', ') || 'unknown')}</div>
+            </button>
+        `).join('')
+        : '<div class="metabolic-empty">No upstream transcription factors were found for this pathway based on the current regulatory network.</div>';
+
+    const genesHtml = summary.genes.slice(0, 20).map(gene => `
+        <div class="pathway-view-gene">
+            <div class="pathway-view-title">${escapeHtml(gene.geneLabel || gene.geneId)} <span class="metabolic-muted">${escapeHtml(gene.geneId)}</span></div>
+            <div class="metabolic-reaction-list">
+                ${(gene.reactions || []).slice(0, 8).map(reaction => `<span class="metabolic-reaction-badge" title="${escapeHtml(reaction.reactionName || '')}">${escapeHtml(reaction.reactionId)}</span>`).join('')}
+            </div>
+        </div>
+    `).join('');
+
+    result.innerHTML = `
+        <div class="pathway-view-summary">
+            <div><strong>Pathway:</strong> ${escapeHtml(summary.pathwayName || summary.pathwayId)}</div>
+            <div><strong>Genes:</strong> ${escapeHtml(summary.totalGenes)} &nbsp; <strong>Reactions:</strong> ${escapeHtml(summary.totalReactions)} &nbsp; <strong>Upstream TFs:</strong> ${escapeHtml(summary.totalRegulators)}</div>
+            <div style="margin-top:5px;">${escapeHtml(summary.explanation || '')}</div>
+        </div>
+        <div class="metabolic-subtitle">Top predicted regulators</div>
+        <div class="pathway-view-regulators">${regulatorsHtml}</div>
+        <div class="metabolic-subtitle">Pathway genes</div>
+        <div class="pathway-view-genes">${genesHtml || '<div class="metabolic-empty">No pathway genes found.</div>'}</div>
+    `;
+
+    result.querySelectorAll('.pathway-view-regulator').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tfId = btn.getAttribute('data-tf-id');
+            const genes = decodeMetabolicList(btn.getAttribute('data-genes'));
+            if (!tfId) return;
+            querySingleGene(tfId);
+            showNodeDetails(tfId);
+            highlightPathwayRegulator(tfId, genes);
+        });
+    });
+}
+
+async function runPathwayRegulatoryView() {
+    const pathwayView = window.pathwayRegulatoryView;
+    const input = document.getElementById('pathway-view-input');
+    const status = document.getElementById('pathway-view-status');
+    const result = document.getElementById('pathway-view-result');
+    const query = String(input?.value || '').trim();
+    if (!pathwayView || !query) return;
+
+    if (status) status.textContent = 'Analyzing pathway regulators...';
+    if (result) result.innerHTML = '<div class="metabolic-empty">Analyzing pathway regulators...</div>';
+
+    try {
+        const graph = buildGlobalRegulatoryGraphForRanking();
+        const summary = await pathwayView.getPathwayRegulatorySummaryAsync(graph, query);
+        renderPathwayRegulatorySummary(summary);
+    } catch (err) {
+        console.error('Failed to analyze pathway regulatory view:', err);
+        if (status) status.textContent = 'Failed to analyze pathway.';
+        if (result) result.innerHTML = '<div class="metabolic-empty">Failed to analyze pathway.</div>';
+    }
+}
+
+function initPathwayRegulatoryView() {
+    const input = document.getElementById('pathway-view-input');
+    const runBtn = document.getElementById('pathway-view-run-btn');
+    if (!input || !runBtn) return;
+
+    if (!input.dataset.bound) {
+        input.dataset.bound = '1';
+        input.addEventListener('change', runPathwayRegulatoryView);
+        input.addEventListener('keydown', event => {
+            if (event.key === 'Enter') runPathwayRegulatoryView();
+        });
+    }
+    if (!runBtn.dataset.bound) {
+        runBtn.dataset.bound = '1';
+        runBtn.addEventListener('click', runPathwayRegulatoryView);
+    }
+    document.querySelectorAll('[data-pathway-view-query]').forEach(btn => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', () => {
+            input.value = btn.getAttribute('data-pathway-view-query') || '';
+            runPathwayRegulatoryView();
+        });
+    });
+    populatePathwayViewOptions();
+}
+
+let engineeringTargetCandidates = [];
+let engineeringTargetLoading = false;
+
+function renderEngineeringTargetCandidates() {
+    const tbody = document.getElementById('engineering-target-tbody');
+    const status = document.getElementById('engineering-target-status');
+    const searchInput = document.getElementById('engineering-target-search');
+    const pathwayInput = document.getElementById('engineering-target-pathway-filter');
+    const levelSelect = document.getElementById('engineering-target-level-filter');
+    const minScoreInput = document.getElementById('engineering-target-min-score');
+    const minScoreValue = document.getElementById('engineering-target-min-score-value');
+    if (!tbody) return;
+
+    const search = String(searchInput?.value || '').trim().toLowerCase();
+    const pathwayFilter = String(pathwayInput?.value || '').trim().toLowerCase();
+    const level = String(levelSelect?.value || '').trim().toLowerCase();
+    const minScore = Number(minScoreInput?.value || 0);
+    if (minScoreValue) minScoreValue.textContent = minScore.toFixed(2);
+
+    const filtered = engineeringTargetCandidates
+        .filter(candidate => !search || `${candidate.tfId} ${candidate.tfLabel}`.toLowerCase().includes(search))
+        .filter(candidate => !pathwayFilter || (candidate.keyPathways || []).some(pathway => String(pathway).toLowerCase().includes(pathwayFilter)))
+        .filter(candidate => !level || candidate.recommendationLevel === level)
+        .filter(candidate => Number(candidate.candidateScore || 0) >= minScore);
+
+    if (status) {
+        status.textContent = engineeringTargetLoading
+            ? 'Ranking candidate engineering regulators...'
+            : `${filtered.length} candidate regulators shown`;
+    }
+
+    if (engineeringTargetLoading && engineeringTargetCandidates.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9">Ranking candidate engineering regulators...</td></tr>';
+        return;
+    }
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9">No candidate engineering regulators found with the current filters.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map((candidate, index) => {
+        const profile = candidate.regulationProfile || {};
+        const regulationText = `${profile.activationCount || 0} activation / ${profile.repressionCount || 0} repression`;
+        return `
+            <tr class="engineering-target-row" data-tf-id="${escapeHtml(candidate.tfId)}" data-genes="${encodeMetabolicList(candidate.regulatedKeyGenes || [])}" title="${escapeHtml(candidate.rationale || '')}">
+                <td>${index + 1}</td>
+                <td><strong>${escapeHtml(candidate.tfLabel || candidate.tfId)}</strong><div class="metabolic-muted">${escapeHtml(candidate.tfId)}</div></td>
+                <td><span class="engineering-target-score">${escapeHtml(Number(candidate.candidateScore || 0).toFixed(2))}</span></td>
+                <td><span class="engineering-target-level ${escapeHtml(candidate.recommendationLevel || 'low')}">${escapeHtml(candidate.recommendationLevel || 'low')}</span></td>
+                <td>${escapeHtml(candidate.mappedTargetGenes || 0)}</td>
+                <td>${escapeHtml(candidate.totalReactions || 0)}</td>
+                <td>${escapeHtml(candidate.totalPathways || 0)}</td>
+                <td>${escapeHtml((candidate.keyPathways || []).slice(0, 3).join(', ') || '-')}</td>
+                <td>${escapeHtml(regulationText)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    tbody.querySelectorAll('.engineering-target-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const tfId = row.getAttribute('data-tf-id');
+            const genes = decodeMetabolicList(row.getAttribute('data-genes'));
+            if (!tfId) return;
+            querySingleGene(tfId);
+            showNodeDetails(tfId);
+            highlightPathwayRegulator(tfId, genes);
+        });
+    });
+}
+
+async function refreshEngineeringTargetCandidates() {
+    const finder = window.candidateEngineeringTargets;
+    const tbody = document.getElementById('engineering-target-tbody');
+    const status = document.getElementById('engineering-target-status');
+    if (!finder || !tbody) return;
+
+    engineeringTargetLoading = true;
+    if (status) status.textContent = 'Ranking candidate engineering regulators...';
+    tbody.innerHTML = '<tr><td colspan="9">Ranking candidate engineering regulators...</td></tr>';
+
+    try {
+        const graph = buildGlobalRegulatoryGraphForRanking();
+        engineeringTargetCandidates = await finder.findEngineeringTargetCandidatesAsync(graph, {
+            limit: 100,
+            minCandidateScore: 0,
+            includeLowConfidence: false,
+            batchSize: 8
+        });
+    } catch (err) {
+        console.error('Failed to rank candidate engineering targets:', err);
+        engineeringTargetCandidates = [];
+        if (status) status.textContent = 'Candidate ranking requires metabolic model mapping data.';
+    } finally {
+        engineeringTargetLoading = false;
+        renderEngineeringTargetCandidates();
+    }
+}
+
+function initEngineeringTargetFinder() {
+    const controls = [
+        document.getElementById('engineering-target-search'),
+        document.getElementById('engineering-target-pathway-filter'),
+        document.getElementById('engineering-target-level-filter'),
+        document.getElementById('engineering-target-min-score')
+    ];
+    controls.forEach(control => {
+        if (!control || control.dataset.bound) return;
+        control.dataset.bound = '1';
+        control.addEventListener('input', renderEngineeringTargetCandidates);
+        control.addEventListener('change', renderEngineeringTargetCandidates);
+    });
+    const refreshBtn = document.getElementById('engineering-target-refresh-btn');
+    if (refreshBtn && !refreshBtn.dataset.bound) {
+        refreshBtn.dataset.bound = '1';
+        refreshBtn.addEventListener('click', refreshEngineeringTargetCandidates);
+    }
+    refreshEngineeringTargetCandidates();
+}
+
+function resolveDefaultExampleLocus() {
+    const candidates = [DEFAULT_EXAMPLE_LOCUS, 'sigH', 'whiB4'];
+    for (const candidate of candidates) {
+        const lower = candidate.toLowerCase();
+        if (geneIndex[lower]) return geneIndex[lower].locusTag;
+        if (nameToCg[lower] && geneIndex[nameToCg[lower].toLowerCase()]) {
+            return geneIndex[nameToCg[lower].toLowerCase()].locusTag;
+        }
+        if (cglToCg[lower] && geneIndex[cglToCg[lower].toLowerCase()]) {
+            return geneIndex[cglToCg[lower].toLowerCase()].locusTag;
+        }
+    }
+    const firstTf = Object.values(normalizedNodes || {}).find(node => node && node.type === 'TF');
+    return firstTf ? firstTf.id : '';
+}
+
+function loadDefaultExampleNetwork() {
+    if (currentQueryGene || cy) return;
+    const example = resolveDefaultExampleLocus();
+    if (!example) return;
+    window.setTimeout(() => {
+        if (!currentQueryGene && !cy) {
+            querySingleGene(example);
+        }
+    }, 120);
+}
+
+function setActiveWorkflowEntry(workflow) {
+    document.querySelectorAll('.workflow-entry').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-workflow') === workflow);
+    });
+}
+
+function scrollLeftSidebarTo(selector) {
+    const sidebar = document.getElementById('left-sidebar');
+    const target = document.querySelector(selector);
+    if (!sidebar || !target) return;
+    const top = target.offsetTop - sidebar.offsetTop - 12;
+    sidebar.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
+
+function initWorkflowEntrypoints() {
+    const geneEntry = document.getElementById('workflow-entry-gene');
+    const pathwayEntry = document.getElementById('workflow-entry-pathway');
+    const engineeringEntry = document.getElementById('workflow-entry-engineering');
+
+    if (geneEntry && !geneEntry.dataset.bound) {
+        geneEntry.dataset.bound = '1';
+        geneEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('gene');
+            scrollLeftSidebarTo('.search-section');
+            const input = geneInputsContainer?.querySelector('.gene-input');
+            if (input) input.focus();
+            loadDefaultExampleNetwork();
+        });
+    }
+    if (pathwayEntry && !pathwayEntry.dataset.bound) {
+        pathwayEntry.dataset.bound = '1';
+        pathwayEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('pathway');
+            scrollLeftSidebarTo('.pathway-regulatory-view-section');
+            const input = document.getElementById('pathway-view-input');
+            if (input) {
+                input.focus();
+                if (!input.value) input.value = 'glutamate metabolism';
+            }
+        });
+    }
+    if (engineeringEntry && !engineeringEntry.dataset.bound) {
+        engineeringEntry.dataset.bound = '1';
+        engineeringEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('engineering');
+            scrollLeftSidebarTo('.engineering-targets-section');
+            const input = document.getElementById('engineering-target-pathway-filter');
+            if (input) input.focus();
+        });
+    }
 }
 
 
@@ -1016,7 +1485,7 @@ function triggerSearchFromInputs() {
 
     if (queries.length === 0) {
 
-        alert('请输入或粘贴至少一个基因或sRNA进行分析。');
+        alert('Enter or paste at least one gene or sRNA to analyze.');
 
         return;
 
@@ -1062,7 +1531,7 @@ function triggerSearchFromInputs() {
 
     if (resolvedLoci.length === 0) {
 
-        alert(`未在本地数据库中匹配到输入的基因/sRNA："${queries.join(', ')}"。`);
+        alert(`No matching genes/sRNAs were found in the local database: "${queries.join(', ')}".`);
 
         return;
 
@@ -1106,7 +1575,7 @@ function renderNetwork(locusTag) {
 
     if (elements.nodes.length === 0) {
 
-        alert("基于当前的过滤条件，该基因没有任何可见的调控关系。");
+        alert("This gene has no visible regulatory relationships under the current filters.");
 
         return;
 
@@ -2018,7 +2487,7 @@ function showNodeDetails(locusTag) {
     detailTypeBadge.style.backgroundColor = '';
     detailTypeBadge.style.color = '';
     detailTypeBadge.className = `gene-badge ${meta.type.toLowerCase()}`;
-    detailTypeBadge.textContent = meta.type === 'TF' ? '转录因子 (TF)' : meta.type === 'sRNA' ? '小RNA (sRNA)' : '靶基因 (Target)';
+    detailTypeBadge.textContent = meta.type === 'TF' ? 'Transcription factor (TF)' : meta.type === 'sRNA' ? 'sRNA' : 'Target gene';
     
     const cgl = cgToCgl[resolvedLower] || (locusTag.toLowerCase().startsWith('cgl') ? locusTag : '');
 
@@ -2138,7 +2607,7 @@ function showNodeDetails(locusTag) {
 
         pathwayRow.style.display = 'none';
 
-        pathwayContainer.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> 正在加载通路数据...</span>';
+        pathwayContainer.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading pathway data...</span>'; 
 
         
 
@@ -2188,7 +2657,7 @@ function showNodeDetails(locusTag) {
 
                     badge.target = '_blank';
 
-                    badge.title = `KEGG通路: ${p.id} (点击在新标签页中查看地图并高亮基因)`;
+                    badge.title = `KEGG pathway: ${p.id} (open map in a new tab and highlight this gene)`;
 
                     badge.innerHTML = `<i class="fa-solid fa-map"></i> ${p.name} <i class="fa-solid fa-arrow-up-right-from-square"></i>`;
 
@@ -2288,15 +2757,15 @@ function showNodeDetails(locusTag) {
 
         infoOperon.innerHTML = `
 
-            <div style="font-weight: 600; color: var(--text-primary);">${operonMeta.operon} (${operonMeta.orientation} 向)</div>
+            <div style="font-weight: 600; color: var(--text-primary);">${operonMeta.operon} (${operonMeta.orientation} strand)</div>
 
-            <div style="font-size: 11px; margin-top: 4px; color: var(--text-secondary);">包含基因: ${geneLinks}</div>
+            <div style="font-size: 11px; margin-top: 4px; color: var(--text-secondary);">Genes: ${geneLinks}</div>
 
             <div style="display: flex; gap: 6px; margin-top: 8px;">
 
-                <button id="btn-draw-operon-network" class="secondary-btn" style="flex: 1; font-size: 11px; padding: 6px 4px; height: auto; border: 1px solid rgba(30, 58, 138, 0.15); color: var(--color-primary-accent); background-color: rgba(30, 58, 138, 0.03);" title="在画布中载入所有成员基因及其调控网络">
+                <button id="btn-draw-operon-network" class="secondary-btn" style="flex: 1; font-size: 11px; padding: 6px 4px; height: auto; border: 1px solid rgba(30, 58, 138, 0.15); color: var(--color-primary-accent); background-color: rgba(30, 58, 138, 0.03);" title="Load all member genes and their regulatory network on the canvas">
 
-                    <i class="fa-solid fa-network-wired"></i> 联合分析
+                    <i class="fa-solid fa-network-wired"></i> Joint analysis
 
                 </button>
 
@@ -2410,7 +2879,7 @@ function showNodeDetails(locusTag) {
 
     if (cglLocusForKegg.toLowerCase().startsWith('cgl')) {
 
-        dbLinks.push(`<a href="https://www.kegg.jp/entry/cgl:${cglLocusForKegg}" target="_blank" class="ext-link" title="在 KEGG 中查看代谢通路"><i class="fa-solid fa-diagram-project"></i> KEGG</a>`);
+        dbLinks.push(`<a href="https://www.kegg.jp/entry/cgl:${cglLocusForKegg}" target="_blank" class="ext-link" title="View metabolic pathway in KEGG"><i class="fa-solid fa-diagram-project"></i> KEGG</a>`);
 
     } else if (standardCgForLinks.toLowerCase().startsWith('cg')) {
 
@@ -2418,7 +2887,7 @@ function showNodeDetails(locusTag) {
 
         const predictedCgl = standardCgForLinks.replace('cg', 'Cgl');
 
-        dbLinks.push(`<a href="https://www.kegg.jp/entry/cgl:${predictedCgl}" target="_blank" class="ext-link" title="在 KEGG 中查看代谢通路"><i class="fa-solid fa-diagram-project"></i> KEGG</a>`);
+        dbLinks.push(`<a href="https://www.kegg.jp/entry/cgl:${predictedCgl}" target="_blank" class="ext-link" title="View metabolic pathway in KEGG"><i class="fa-solid fa-diagram-project"></i> KEGG</a>`);
 
     }
 
@@ -2426,35 +2895,35 @@ function showNodeDetails(locusTag) {
 
     if (standardCgForLinks.toLowerCase().startsWith('cg')) {
 
-        dbLinks.push(`<a href="https://www.ncbi.nlm.nih.gov/gene/?term=${standardCgForLinks}" target="_blank" class="ext-link" title="在 NCBI Gene 查看官方注释"><i class="fa-solid fa-dna"></i> NCBI</a>`);
+        dbLinks.push(`<a href="https://www.ncbi.nlm.nih.gov/gene/?term=${standardCgForLinks}" target="_blank" class="ext-link" title="View official annotation in NCBI Gene"><i class="fa-solid fa-dna"></i> NCBI</a>`);
 
-        dbLinks.push(`<a href="https://biocyc.org/getid?id=CORYNE:${standardCgForLinks}" target="_blank" class="ext-link" title="在 BioCyc / CoryneCyc 谷棒专属数据库中查看详细通路"><i class="fa-solid fa-database"></i> BioCyc</a>`);
+        dbLinks.push(`<a href="https://biocyc.org/getid?id=CORYNE:${standardCgForLinks}" target="_blank" class="ext-link" title="View detailed pathway context in BioCyc / CoryneCyc"><i class="fa-solid fa-database"></i> BioCyc</a>`);
 
     } else {
 
-        dbLinks.push(`<a href="https://www.ncbi.nlm.nih.gov/search/all/?term=${standardCgForLinks}" target="_blank" class="ext-link" title="在 NCBI 中检索"><i class="fa-solid fa-magnifying-glass"></i> NCBI</a>`);
+        dbLinks.push(`<a href="https://www.ncbi.nlm.nih.gov/search/all/?term=${standardCgForLinks}" target="_blank" class="ext-link" title="Search in NCBI"><i class="fa-solid fa-magnifying-glass"></i> NCBI</a>`);
 
     }
 
     
 
-    dbLinks.push(`<a href="https://cosy.bio/coryneregnet" target="_blank" class="ext-link" title="在 CoryneRegNet 谷棒转录调控网络数据库中检索"><i class="fa-solid fa-network-wired"></i> CoryneRegNet</a>`);
+    dbLinks.push(`<a href="https://cosy.bio/coryneregnet" target="_blank" class="ext-link" title="Search CoryneRegNet regulatory network database"><i class="fa-solid fa-network-wired"></i> CoryneRegNet</a>`);
 
-    dbLinks.push(`<a href="https://www.uniprot.org/uniprotkb?query=gene:${standardCgForLinks}" target="_blank" class="ext-link" title="在 UniProt 中查看蛋白功能"><i class="fa-solid fa-graduation-cap"></i> UniProt</a>`);
+    dbLinks.push(`<a href="https://www.uniprot.org/uniprotkb?query=gene:${standardCgForLinks}" target="_blank" class="ext-link" title="View protein function in UniProt"><i class="fa-solid fa-graduation-cap"></i> UniProt</a>`);
 
     
 
-    // 文献追踪链接
+    // Literature tracking links
 
     const pubmedQuery = encodeURIComponent(`"Corynebacterium glutamicum" AND (${standardCgForLinks}${meta.name && meta.name !== '--' && meta.name !== standardCgForLinks ? ' OR ' + meta.name : ''})`);
 
-    dbLinks.push(`<a href="https://pubmed.ncbi.nlm.nih.gov/?term=${pubmedQuery}" target="_blank" class="ext-link" title="在 PubMed 检索该基因相关的科研文献"><i class="fa-solid fa-book-open"></i> PubMed 文献</a>`);
+    dbLinks.push(`<a href="https://pubmed.ncbi.nlm.nih.gov/?term=${pubmedQuery}" target="_blank" class="ext-link" title="Search related scientific literature in PubMed"><i class="fa-solid fa-book-open"></i> PubMed</a>`);
 
     
 
     const scholarQuery = encodeURIComponent(`"Corynebacterium glutamicum" "${standardCgForLinks}"${meta.name && meta.name !== '--' && meta.name !== standardCgForLinks ? ' OR "' + meta.name + '"' : ''}`);
 
-    dbLinks.push(`<a href="https://scholar.google.com/scholar?q=${scholarQuery}" target="_blank" class="ext-link" title="在 Google 学术中检索该基因文献"><i class="fa-solid fa-graduation-cap"></i> 谷歌学术</a>`);
+    dbLinks.push(`<a href="https://scholar.google.com/scholar?q=${scholarQuery}" target="_blank" class="ext-link" title="Search related literature in Google Scholar"><i class="fa-solid fa-graduation-cap"></i> Google Scholar</a>`);
 
     
 
@@ -2540,7 +3009,7 @@ function showNodeDetails(locusTag) {
 
         } else {
 
-            alert('该基因暂无上游调控因子。');
+            alert('No upstream regulators are available for this gene.');
 
         }
 
@@ -2556,7 +3025,7 @@ function showNodeDetails(locusTag) {
 
         } else {
 
-            alert('该基因暂无下游靶标。');
+            alert('No downstream targets are available for this gene.');
 
         }
 
@@ -2572,7 +3041,7 @@ function showNodeDetails(locusTag) {
 
     if (relations.length === 0) {
 
-        relationsTableBody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center;">暂无调控明细数据</td></tr>`;
+        relationsTableBody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center;">No regulatory detail data available</td></tr>`;
 
     } else {
 
@@ -2598,7 +3067,7 @@ function showNodeDetails(locusTag) {
 
                 <td><a href="#" class="gene-link" data-locus="${rel.locusTag}">${rel.gene}</a></td>
 
-                <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? '← 上游' : '下游 →'}</span></td>
+                <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? '? Upstream' : 'Downstream ?'}</span></td>
 
                 <td><span class="badge-role ${roleClass}">${roleText}</span></td>
 
@@ -2808,13 +3277,13 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
     detailTypeBadge.style.color = '#ffffff';
 
-    detailTypeBadge.textContent = '操纵子 (Operon)';
+    detailTypeBadge.textContent = 'Operon';
 
 
 
-    detailGeneName.textContent = `${operonMeta.operon} 操纵子`;
+    detailGeneName.textContent = `${operonMeta.operon} operon`;
 
-    detailLocusTag.textContent = `方向: ${operonMeta.orientation}向 | 包含 ${operonMeta.genes.length} 个基因`;
+    detailLocusTag.textContent = `Orientation: ${operonMeta.orientation} strand | ${operonMeta.genes.length} genes`;
 
 
 
@@ -2822,7 +3291,7 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
     infoName.textContent = operonMeta.operon;
 
-    infoType.textContent = 'Operon (操纵子)';
+    infoType.textContent = 'Operon';
 
 
 
@@ -2868,7 +3337,7 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
             const lower = g.toLowerCase();
 
-            const product = cgToProduct[lower] || '暂无描述';
+            const product = cgToProduct[lower] || 'No description available';
 
             const prioritized = getPrioritizedLabel(g, g);
 
@@ -2920,13 +3389,13 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
         infoOperon.innerHTML = `
 
-            <div style="font-size: 11px; color: var(--text-secondary);">包含基因: ${geneLinks}</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">Genes: ${geneLinks}</div>
 
             <div style="display: flex; gap: 6px; margin-top: 8px;">
 
                 <button id="btn-draw-operon-network-details" class="secondary-btn" style="flex: 1; font-size: 10px; padding: 4px 6px; height: auto; border: 1px solid rgba(30, 58, 138, 0.15); color: var(--color-primary-accent); background-color: rgba(30, 58, 138, 0.03);">
 
-                    <i class="fa-solid fa-network-wired"></i> 联合分析
+                    <i class="fa-solid fa-network-wired"></i> Joint analysis
 
                 </button>
 
@@ -3018,7 +3487,7 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
                         <a href="https://www.ncbi.nlm.nih.gov/gene/?term=${g}" target="_blank" class="ext-link" style="font-size: 10px; padding: 2px 4px;"><i class="fa-solid fa-dna"></i> NCBI</a>
 
-                        <a href="https://pubmed.ncbi.nlm.nih.gov/?term=${pubmedQuery}" target="_blank" class="ext-link" style="font-size: 10px; padding: 2px 4px;"><i class="fa-solid fa-book-open"></i> 文献</a>
+                        <a href="https://pubmed.ncbi.nlm.nih.gov/?term=${pubmedQuery}" target="_blank" class="ext-link" style="font-size: 10px; padding: 2px 4px;"><i class="fa-solid fa-book-open"></i> Literature</a>
 
                     </div>
 
@@ -3108,7 +3577,7 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
         } else {
 
-            alert('该操纵子暂无上游调控因子。');
+            alert('No upstream regulators are available for this operon.');
 
         }
 
@@ -3124,7 +3593,7 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
         } else {
 
-            alert('该操纵子暂无下游靶标。');
+            alert('No downstream targets are available for this operon.');
 
         }
 
@@ -3138,7 +3607,7 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
     if (relations.length === 0) {
 
-        relationsTableBody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center;">暂无调控明细数据</td></tr>`;
+        relationsTableBody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center;">No regulatory detail data available</td></tr>`;
 
     } else {
 
@@ -3156,9 +3625,9 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
             const assocGeneText = rel.dir === 'incoming' 
 
-                ? ` (调控 ${rel.targetGene})` 
+                ? ` (regulates ${rel.targetGene})` 
 
-                : ` (受 ${rel.sourceGene} 调控)`;
+                : ` (regulated by ${rel.sourceGene})`;
 
 
 
@@ -3172,7 +3641,7 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
                 </td>
 
-                <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? '← 上游' : '下游 →'}</span></td>
+                <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? '? Upstream' : 'Downstream ?'}</span></td>
 
                 <td><span class="badge-role ${roleClass}">${roleText}</span></td>
 
@@ -3361,6 +3830,7 @@ function initEventListeners() {
     // Initialize first empty input row
 
     clearAllInputs();
+    initWorkflowEntrypoints();
 
 
 
@@ -3783,7 +4253,7 @@ function addNewInputRow() {
 
     input.className = 'gene-input';
 
-    input.placeholder = '输入基因/sRNA名称';
+    input.placeholder = 'Enter gene/sRNA name';
 
     input.autocomplete = 'off';
 
@@ -3805,7 +4275,7 @@ function addNewInputRow() {
 
         removeBtn.className = 'remove-row-btn';
 
-        removeBtn.title = '删除基因栏';
+        removeBtn.title = 'Remove gene row';
 
         removeBtn.innerHTML = '<i class="fa-solid fa-minus"></i>';
 
@@ -3831,7 +4301,7 @@ function addNewInputRow() {
 
         addBtn.className = 'add-row-btn';
 
-        addBtn.title = '添加基因栏';
+        addBtn.title = 'Add gene row';
 
         addBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
 
@@ -4091,11 +4561,11 @@ function initAiSummaryFeature() {
         'google': 'Google Gemini',
         'openai': 'OpenAI',
         'deepseek': 'DeepSeek',
-        'qwen': '通义千问',
+        'qwen': 'Qwen',
         'kimi': 'Kimi',
-        'zhipu': '智谱清言',
+        'zhipu': 'Zhipu GLM',
         'ollama': 'Ollama',
-        'custom': '自定义接口'
+        'custom': 'Custom endpoint'
     };
 
     const providerDefaults = {
@@ -4143,19 +4613,19 @@ function initAiSummaryFeature() {
             
             // Adjust placeholders based on provider
             if (modelInput) {
-                if (provider === 'custom') modelInput.placeholder = '例如: gpt-4o-mini';
-                else modelInput.placeholder = `例如: ${providerDefaults[provider].model}`;
+                if (provider === 'custom') modelInput.placeholder = 'Example: gpt-4o-mini';
+                else modelInput.placeholder = `Example: ${providerDefaults[provider].model}`;
             }
         }
 
         // Adjust API Key label & requirements for Ollama
         const keyLabel = document.getElementById('ai-key-label');
         if (provider === 'ollama') {
-            if (keyLabel) keyLabel.textContent = 'API 密钥 (Ollama 本地运行可选)';
-            if (apiKeyInput) apiKeyInput.placeholder = '本地运行无需密钥，可为空...';
+            if (keyLabel) keyLabel.textContent = 'API Key (optional for local Ollama)';
+            if (apiKeyInput) apiKeyInput.placeholder = 'No key required for local use; may be left empty...';
         } else {
-            if (keyLabel) keyLabel.textContent = 'API 密钥 (API Key)';
-            if (apiKeyInput) apiKeyInput.placeholder = '输入 API Key...';
+            if (keyLabel) keyLabel.textContent = 'API Key';
+            if (apiKeyInput) apiKeyInput.placeholder = 'Enter API key...';
         }
     }
 
@@ -4207,7 +4677,7 @@ function initAiSummaryFeature() {
             keyActivePanel.classList.remove('hidden');
             if (activeStatusText) {
                 const name = providerNames[savedProvider] || 'AI';
-                activeStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${name} 已就绪`;
+                activeStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${name} ready`;
             }
             btnTriggerAi.disabled = false;
         } else {
@@ -4227,12 +4697,12 @@ function initAiSummaryFeature() {
         const baseUrl = baseUrlInput.value.trim();
 
         if (!key && provider !== 'ollama') {
-            alert('请输入 API 密钥！');
+            alert('Please enter an API key.');
             return;
         }
 
         if (provider === 'custom' && !baseUrl) {
-            alert('使用自定义服务商时，必须输入接口基址 (Base URL)！');
+            alert('A Base URL is required when using a custom provider.');
             return;
         }
 
@@ -4293,19 +4763,19 @@ function initAiSummaryFeature() {
             resultEl.style.backgroundColor = '#fff5f5';
             resultEl.style.color = '#ef4444';
             resultEl.style.border = '1px solid rgba(239, 68, 68, 0.2)';
-            resultEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> 提示：请输入 API 密钥！`;
+            resultEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Please enter an API key.`;
             return;
         }
 
         testBtn.disabled = true;
         const originalText = testBtn.innerHTML || testBtn.textContent;
-        testBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 正在测试...`;
+        testBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Testing...`;
         
         resultEl.classList.remove('hidden');
         resultEl.style.backgroundColor = '#f8fafc';
         resultEl.style.color = '#475569';
         resultEl.style.border = '1px solid var(--border-color)';
-        resultEl.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> 正在发起 API 连接测试，请稍候...`;
+        resultEl.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Testing API connection, please wait...`;
 
         try {
             const headers = {
@@ -4318,7 +4788,7 @@ function initAiSummaryFeature() {
             const response = await fetch('/api/test_ai', { headers });
             
             if (!response.ok) {
-                throw new Error(`HTTP 错误: ${response.status} ${response.statusText}`);
+                throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -4332,13 +4802,13 @@ function initAiSummaryFeature() {
                 resultEl.style.backgroundColor = '#fff5f5';
                 resultEl.style.color = '#991b1b';
                 resultEl.style.border = '1px solid rgba(239, 68, 68, 0.2)';
-                resultEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> 连接失败！<br><span style="font-size: 10px; color: #ef4444; margin-top: 4px; display: block;">${data.message}</span>`;
+                resultEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Connection failed.<br><span style="font-size: 10px; color: #ef4444; margin-top: 4px; display: block;">${data.message}</span>`;
             }
         } catch (err) {
             resultEl.style.backgroundColor = '#fff5f5';
             resultEl.style.color = '#991b1b';
             resultEl.style.border = '1px solid rgba(239, 68, 68, 0.2)';
-            resultEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> 网络请求错误：<br><span style="font-size: 10px; color: #ef4444; margin-top: 4px; display: block;">${err.message}</span>`;
+            resultEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Network request error:<br><span style="font-size: 10px; color: #ef4444; margin-top: 4px; display: block;">${err.message}</span>`;
         } finally {
             testBtn.disabled = false;
             testBtn.innerHTML = originalText;
@@ -4425,7 +4895,7 @@ function initRnaSeqOverlay() {
                     processRnaSeqData(results.data);
                 },
                 error: function(err) {
-                    alert('解析 CSV 文件失败: ' + err.message);
+                    alert('Failed to parse CSV file: ' + err.message);
                 }
             });
         };
@@ -4438,7 +4908,7 @@ function initRnaSeqOverlay() {
         });
     }
 
-    // 添加过滤参数控件的事件监听
+    // Attach filter control listeners
     const filterEnable = document.getElementById('rnaseq-filter-enable');
     const lfcThreshold = document.getElementById('rnaseq-lfc-threshold');
     const pThreshold = document.getElementById('rnaseq-p-threshold');
@@ -4464,7 +4934,7 @@ function initRnaSeqOverlay() {
 
 function processRnaSeqData(dataRows) {
     if (!dataRows || dataRows.length === 0) {
-        alert('CSV 文件中没有有效 dataRows 行！');
+        alert('No valid dataRows were found in the CSV file.');
         return;
     }
 
@@ -4495,7 +4965,7 @@ function processRnaSeqData(dataRows) {
     }
 
     if (!locusCol || !fcCol) {
-        alert('无法自动识别 CSV 的列！请确保您的 CSV 包含类似以下的列名：\n- 基因Locus Tag: locus_tag, gene_id, gene\n- 差异倍数: log2fc, log2FoldChange\n- 显著值 (可选): pvalue, padj');
+        alert('Unable to infer CSV columns automatically. Please include columns such as:\n- Gene locus tag: locus_tag, gene_id, gene\n- Fold change: log2fc, log2FoldChange\n- Significance (optional): pvalue, padj');
         return;
     }
 
@@ -4517,7 +4987,7 @@ function processRnaSeqData(dataRows) {
     });
 
     if (loadedCount === 0) {
-        alert('未在 CSV 文件中匹配到有效的基因/sRNA 数据！');
+        alert('No valid gene/sRNA data matched the local database from the CSV file.');
         rnaseqData = null;
         return;
     }
@@ -4529,9 +4999,9 @@ function processRnaSeqData(dataRows) {
 
     if (btnClear) btnClear.classList.remove('hidden');
     if (legendContainer) legendContainer.classList.remove('hidden');
-    if (loadedCountDisp) loadedCountDisp.textContent = `已叠加 ${loadedCount} 个基因`;
+    if (loadedCountDisp) loadedCountDisp.textContent = `Loaded ${loadedCount} genes`;
     if (btnUpload) {
-        btnUpload.innerHTML = `<i class="fa-solid fa-check"></i> 已加载组学数据`;
+        btnUpload.innerHTML = `<i class="fa-solid fa-check"></i> Omics data loaded`;
         btnUpload.style.backgroundColor = 'rgba(46, 125, 50, 0.05)';
         btnUpload.style.borderColor = 'var(--color-activation)';
     }
@@ -4544,7 +5014,7 @@ function processRnaSeqData(dataRows) {
     // Update details sidebar status badge and map if visible
     const badge = document.getElementById('rnaseq-status-badge');
     if (badge) {
-        badge.textContent = `(已导入 ${loadedCount} 个基因)`;
+        badge.textContent = `(imported ${loadedCount} genes)`;
         badge.style.color = '#3b82f6';
     }
     if (currentQueryGene) {
@@ -4563,12 +5033,12 @@ function clearRnaSeqOverlay() {
     if (btnClear) btnClear.classList.add('hidden');
     if (legendContainer) legendContainer.classList.add('hidden');
     if (btnUpload) {
-        btnUpload.innerHTML = `<i class="fa-solid fa-file-arrow-up"></i> 上传 CSV 数据`;
+        btnUpload.innerHTML = `<i class="fa-solid fa-file-arrow-up"></i> Upload CSV`;
         btnUpload.style.backgroundColor = '';
         btnUpload.style.borderColor = '';
     }
 
-    // 重置过滤控件状态
+    // Reset filter control state
     const filterEnable = document.getElementById('rnaseq-filter-enable');
     const lfcThreshold = document.getElementById('rnaseq-lfc-threshold');
     const pThreshold = document.getElementById('rnaseq-p-threshold');
@@ -4577,7 +5047,7 @@ function clearRnaSeqOverlay() {
     if (lfcThreshold) lfcThreshold.value = 1.0;
     if (pThreshold) pThreshold.value = 0.05;
 
-    // 重置显示数值
+    // Reset displayed values
     const lfcValDisp = document.getElementById('rnaseq-lfc-val');
     if (lfcValDisp) lfcValDisp.textContent = "1.0";
     const pValDisp = document.getElementById('rnaseq-p-val');
@@ -4592,7 +5062,7 @@ function clearRnaSeqOverlay() {
 
     const badge = document.getElementById('rnaseq-status-badge');
     if (badge) {
-        badge.textContent = `(数据已清除)`;
+        badge.textContent = `(data cleared)`;
         badge.style.color = 'var(--text-muted)';
     }
     if (currentQueryGene) {
@@ -4628,7 +5098,7 @@ function applyRnaSeqFilters() {
     const lfcThresh = lfcEl ? parseFloat(lfcEl.value) : 1.0;
     const pThresh = pvalEl ? parseFloat(pvalEl.value) : 0.05;
 
-    // 更新文本显示
+    // Update displayed text
     const lfcValDisp = document.getElementById('rnaseq-lfc-val');
     if (lfcValDisp && lfcEl) lfcValDisp.textContent = parseFloat(lfcEl.value).toFixed(1);
     const pValDisp = document.getElementById('rnaseq-p-val');
@@ -4636,7 +5106,7 @@ function applyRnaSeqFilters() {
 
     if (isFilterActive) {
         cy.nodes().forEach(node => {
-            // 始终保留搜索的 query 锚点节点，避免呈现空图
+            // Always keep searched query anchor nodes to avoid empty graphs
             if (node.data('type') === 'query') {
                 node.removeClass('rnaseq-hidden');
                 return;
@@ -4653,19 +5123,19 @@ function applyRnaSeqFilters() {
                     node.addClass('rnaseq-hidden');
                 }
             } else {
-                // 如果基因没有 RNA-Seq 数据，则在启用差异筛选时予以隐藏
+                // Hide genes without RNA-seq data when expression filtering is enabled
                 node.addClass('rnaseq-hidden');
             }
         });
     } else {
-        // 如果未开启过滤，移除所有隐藏类
+        // Remove hidden classes when the filter is disabled
         cy.nodes().removeClass('rnaseq-hidden');
     }
 
-    // 重新应用 Cytoscape 样式表 (这会触发动态计算霓虹/粗细 border)
+    // Reapply Cytoscape stylesheet for dynamic border styling
     cy.style().update();
     
-    // 更新网络特征统计数据
+    // Update network statistics
     updateNetworkStatistics();
 }
 
@@ -4681,11 +5151,11 @@ async function triggerAiSummary() {
     const baseUrl = localStorage.getItem('ai_base_url') || '';
     
     if (!locus || locus === '-') {
-        alert('请先选择一个基因进行分析。');
+        alert('Please select a gene first.');
         return;
     }
     if (!apiKey && provider !== 'ollama') {
-        alert('请先在上方配置您的 API Key。');
+        alert('Please configure your API key in the panel first.');
         return;
     }
     
@@ -4695,7 +5165,7 @@ async function triggerAiSummary() {
     summaryCard.classList.add('loading');
     summaryCard.innerHTML = `
         <div class="ai-spinner"></div>
-        <span style="font-weight: 500;">正在检索 PubMed 文献并请求 AI 总结中...</span>
+        <span style="font-weight: 500;">Searching PubMed and requesting an AI summary...</span>
     `;
     
     try {
@@ -4715,7 +5185,7 @@ async function triggerAiSummary() {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP 错误: ${response.status}`);
+            throw new Error(`HTTP error: ${response.status}`);
         }
         
         const result = await response.json();
@@ -4734,14 +5204,14 @@ async function triggerAiSummary() {
         if (result.papers && result.papers.length > 0) {
             htmlContent += `
                 <div class="ai-sources-list">
-                    <div class="ai-sources-title"><i class="fa-solid fa-book"></i> 参考 PubMed 文献 (${result.papers.length} 篇)</div>
+                    <div class="ai-sources-title"><i class="fa-solid fa-book"></i> PubMed references (${result.papers.length})</div>
             `;
             
             result.papers.forEach(p => {
                 htmlContent += `
                     <div class="ai-source-item">
                         <i class="fa-solid fa-file-lines"></i>
-                        <a href="https://pubmed.ncbi.nlm.nih.gov/${p.pmid}" target="_blank" class="ai-source-link" title="点击在 PubMed 查看原始文献">
+                        <a href="https://pubmed.ncbi.nlm.nih.gov/${p.pmid}" target="_blank" class="ai-source-link" title="Open original paper in PubMed">
                             ${p.title} (PMID: ${p.pmid}) <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i>
                         </a>
                     </div>
@@ -4755,7 +5225,7 @@ async function triggerAiSummary() {
         if (result.rag_sources && result.rag_sources.length > 0) {
             htmlContent += `
                 <div class="ai-sources-list" style="margin-top: 10px; border-top: 1px dashed rgba(99, 102, 241, 0.15); padding-top: 10px;">
-                    <div class="ai-sources-title" style="color: #6366f1;"><i class="fa-solid fa-database"></i> 参考局域知识库 RAG 文献 (${result.rag_sources.length} 篇)</div>
+                    <div class="ai-sources-title" style="color: #6366f1;"><i class="fa-solid fa-database"></i> Local RAG references (${result.rag_sources.length})</div>
             `;
             
             result.rag_sources.forEach(r => {
@@ -4764,7 +5234,7 @@ async function triggerAiSummary() {
                     <div class="ai-source-item" style="font-size: 11px;">
                         <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i>
                         <span class="ai-source-link" style="color: var(--text-secondary); text-decoration: none; cursor: default;">
-                            ${r.file} <span style="color: var(--text-muted); font-size: 10px;">(匹配度: ${scorePercentage}%)</span>
+                            ${r.file} <span style="color: var(--text-muted); font-size: 10px;">(match: ${scorePercentage}%)</span>
                         </span>
                     </div>
                 `;
@@ -4780,10 +5250,10 @@ async function triggerAiSummary() {
         summaryCard.classList.remove('loading');
         summaryCard.innerHTML = `
             <div style="color: #ef4444; font-weight: 500; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                <i class="fa-solid fa-circle-exclamation"></i> 总结生成失败
+                <i class="fa-solid fa-circle-exclamation"></i> Summary generation failed
             </div>
             <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
-                \${err.message || '未知网络错误，请检查您的 API Key 是否正确或网络连接状态。'}
+                ${err.message || 'Unknown network error. Please check your API key and network connection.'}
             </p>
         `;
     } finally {
@@ -4905,90 +5375,154 @@ function escapeHtml(value) {
     }[char]));
 }
 
+function metabolicEmptyMessage() {
+    return '<div class="metabolic-empty">No metabolic model mapping available for this node.</div>';
+}
+
+function encodeMetabolicList(values) {
+    return encodeURIComponent(JSON.stringify(Array.from(new Set(values || []))));
+}
+
+function decodeMetabolicList(value) {
+    try {
+        return JSON.parse(decodeURIComponent(value || '[]'));
+    } catch (err) {
+        return [];
+    }
+}
+
+function highlightMetabolicPathwayGenes(geneIds, reactionIds) {
+    if (!cy) return;
+
+    const ids = new Set();
+    (geneIds || []).forEach(id => {
+        const lower = String(id || '').toLowerCase();
+        if (!lower) return;
+        ids.add(lower);
+        if (cgToCgl[lower]) ids.add(cgToCgl[lower].toLowerCase());
+        if (cglToCg[lower]) ids.add(cglToCg[lower].toLowerCase());
+    });
+    (reactionIds || []).forEach(id => {
+        const lower = String(id || '').toLowerCase();
+        if (lower) ids.add(lower);
+    });
+
+    if (ids.size === 0) return;
+
+    cy.elements().removeClass('dimmed');
+    cy.elements().removeClass('highlighted');
+    cy.elements().addClass('dimmed');
+
+    cy.nodes().forEach(node => {
+        const id = String(node.id() || '').toLowerCase();
+        if (!ids.has(id)) return;
+        node.removeClass('dimmed');
+        node.addClass('highlighted');
+        node.connectedEdges().removeClass('dimmed');
+        node.connectedEdges().addClass('highlighted');
+    });
+}
+
 function renderMetabolicImpact(data, detailLocus) {
     const section = document.getElementById('detail-metabolic-impact-section');
     const container = document.getElementById('metabolic-impact-content');
     if (!section || !container) return;
     section.style.display = '';
 
-    const mapping = data.model_mapping || {};
-    const summary = data.summary || {};
-    const pathways = data.pathways || [];
-    const genes = data.affected_genes || [];
-    const isTf = data.mode === 'tf';
+    const mapping = data?.model_mapping || {};
+    const summary = data?.summary || {};
+    const pathways = data?.pathways || [];
+    const genes = data?.affected_genes || [];
+    const isTf = data?.mode === 'tf';
+    const bridge = window.regulationMetabolismBridge;
 
     if (!mapping.loaded) {
-        const warning = (mapping.warnings || [])[0] || 'No model mapping files found.';
-        container.innerHTML = `
-            <div class="metabolic-empty">
-                <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">
-                    模型映射层已就绪，等待 iCGB21FR / iCW773 gene-reaction mapping
-                </div>
-                <div>请将映射表放入 <code>data/metabolic_models/</code>。支持 <code>iCGB21FR_gene_reaction_mapping.csv</code>、<code>iCW773_gene_reaction_mapping.csv</code> 或通用 <code>gene_reaction_mapping.csv</code>。</div>
-                <div style="margin-top:6px; color:var(--text-muted);">当前状态：${escapeHtml(warning)}</div>
-            </div>
-        `;
+        container.innerHTML = metabolicEmptyMessage();
         return;
     }
 
-    const statHtml = `
-        <div class="metabolic-stat-grid">
-            <div><strong>${escapeHtml(summary.target_gene_count || 0)}</strong><span>${isTf ? '靶基因' : '查询基因'}</span></div>
-            <div><strong>${escapeHtml(summary.mapped_gene_count || 0)}</strong><span>映射基因</span></div>
-            <div><strong>${escapeHtml(summary.reaction_count || 0)}</strong><span>反应</span></div>
-            <div><strong>${escapeHtml(summary.pathway_count || 0)}</strong><span>通路/模块</span></div>
-        </div>
-    `;
+    const pathwaySummary = pathways.map(p => ({
+        pathwayId: p.id || p.name || 'Unassigned pathway',
+        pathwayName: p.name || p.id || 'Unassigned pathway',
+        geneCount: Number(p.gene_count || 0),
+        reactionCount: Number(p.reaction_count || 0),
+        genes: p.genes || [],
+        reactions: p.reactions || []
+    }));
+    const bridgeImpact = {
+        tfId: detailLocus,
+        totalTargetGenes: Number(summary.target_gene_count || 0),
+        mappedTargetGenes: Number(summary.mapped_gene_count || 0),
+        totalReactions: Number(summary.reaction_count || 0),
+        totalPathways: Number(summary.pathway_count || pathways.length || 0),
+        pathwaySummary
+    };
+    const explanation = bridge?.generateMetabolicImpactExplanation
+        ? bridge.generateMetabolicImpactExplanation(bridgeImpact)
+        : 'No metabolic model mapping available for this node.';
+    const files = (mapping.files || []).map(f => String(f.model || 'model') + ':' + String(f.rows || 0)).join(' - ');
 
-    const pathwayHtml = pathways.length > 0
-        ? pathways.slice(0, 8).map(p => `
-            <div class="metabolic-pathway-row">
-                <div>
-                    <div class="metabolic-pathway-name">${escapeHtml(p.name)}</div>
-                    <div class="metabolic-muted">${escapeHtml(p.model || '')}${p.id ? ` · ${escapeHtml(p.id)}` : ''}</div>
-                </div>
-                <div class="metabolic-counts">${escapeHtml(p.gene_count)} genes · ${escapeHtml(p.reaction_count)} rxns</div>
-            </div>
-        `).join('')
-        : '<div class="metabolic-empty">当前查询基因尚未映射到代谢通路/模块。</div>';
+    if (isTf) {
+        const statHtml = '<div class="metabolic-stat-grid">'
+            + '<div><strong>' + escapeHtml(bridgeImpact.totalTargetGenes) + '</strong><span>Target genes</span></div>'
+            + '<div><strong>' + escapeHtml(bridgeImpact.mappedTargetGenes) + '</strong><span>Mapped metabolic genes</span></div>'
+            + '<div><strong>' + escapeHtml(bridgeImpact.totalReactions) + '</strong><span>Associated reactions</span></div>'
+            + '<div><strong>' + escapeHtml(bridgeImpact.totalPathways) + '</strong><span>Affected pathways</span></div>'
+            + '</div>';
+        const pathwayHtml = pathwaySummary.length > 0
+            ? pathwaySummary.slice(0, 8).map((p, index) => (
+                '<button type="button" class="metabolic-pathway-row metabolic-pathway-button" data-genes="' + encodeMetabolicList(p.genes) + '" data-reactions="' + encodeMetabolicList(p.reactions) + '" title="Highlight mapped genes in the current network">'
+                + '<span><span class="metabolic-pathway-name">' + (index + 1) + '. ' + escapeHtml(p.pathwayName) + '</span>'
+                + '<span class="metabolic-muted">' + escapeHtml(p.pathwayId) + '</span></span>'
+                + '<span class="metabolic-counts">' + escapeHtml(p.geneCount) + ' genes, ' + escapeHtml(p.reactionCount) + ' reactions</span>'
+                + '</button>'
+            )).join('')
+            : '<div class="metabolic-empty">No affected pathways are mapped for this TF.</div>';
 
-    const mappedGenes = genes.filter(g => (g.mapped_reaction_count || 0) > 0);
-    const geneHtml = mappedGenes.length > 0
-        ? mappedGenes.slice(0, 8).map(g => {
-            const reactionBadges = (g.reactions || []).slice(0, 5).map(r => `
-                <span class="metabolic-reaction-badge" title="${escapeHtml(r.equation || r.gpr_rule || '')}">
-                    ${escapeHtml(r.id)}
-                </span>
-            `).join('');
-            return `
-                <div class="metabolic-gene-row">
-                    <button class="metabolic-gene-link" data-locus="${escapeHtml(g.locus)}">${escapeHtml(getPrioritizedLabel(g.locus, g.name || g.locus))}</button>
-                    <div class="metabolic-muted">${escapeHtml(g.mapped_reaction_count)} reactions</div>
-                    <div class="metabolic-reaction-list">${reactionBadges}</div>
-                </div>
-            `;
-        }).join('')
-        : '<div class="metabolic-empty">没有靶基因映射到 reaction。导入模型映射表后会在这里显示。</div>';
+        container.innerHTML = '<div class="metabolic-intro">' + escapeHtml(explanation) + '</div>'
+            + statHtml
+            + '<div class="metabolic-subtitle">Top affected pathways</div>'
+            + '<div class="metabolic-pathway-list">' + pathwayHtml + '</div>'
+            + '<div class="metabolic-source">Models: ' + escapeHtml((mapping.models || []).join(', ') || 'none') + (files ? ' - Files: ' + escapeHtml(files) : '') + '</div>';
+    } else {
+        const gene = genes.find(g => String(g.locus || '').toLowerCase() === String(detailLocus || '').toLowerCase()) || genes[0] || {};
+        const reactions = Array.from(new Map((gene.reactions || []).map(r => [String(r.model || 'model') + ':' + String(r.id), r])).values());
+        if (reactions.length === 0 && pathways.length === 0) {
+            container.innerHTML = metabolicEmptyMessage();
+            return;
+        }
 
-    const files = (mapping.files || []).map(f => `${f.model || 'model'}:${f.rows || 0}`).join(' · ');
-    container.innerHTML = `
-        <div class="metabolic-intro">
-            ${isTf
-                ? `该 TF 调控 ${escapeHtml(summary.target_gene_count || 0)} 个靶基因，其中 ${escapeHtml(summary.mapped_gene_count || 0)} 个已映射到代谢反应。`
-                : `该基因已映射到 ${escapeHtml(summary.reaction_count || 0)} 个模型反应。`}
-        </div>
-        ${statHtml}
-        <div class="metabolic-subtitle">Affected pathways / modules</div>
-        <div class="metabolic-pathway-list">${pathwayHtml}</div>
-        <div class="metabolic-subtitle">${isTf ? 'Mapped target genes' : 'Associated reactions'}</div>
-        <div class="metabolic-gene-list">${geneHtml}</div>
-        <div class="metabolic-source">Models: ${escapeHtml((mapping.models || []).join(', ') || 'none')} ${files ? ` · Files: ${escapeHtml(files)}` : ''}</div>
-    `;
+        const reactionHtml = reactions.length > 0
+            ? reactions.slice(0, 12).map(r => (
+                '<div class="metabolic-gene-row">'
+                + '<div class="metabolic-pathway-name">' + escapeHtml(r.id) + ': ' + escapeHtml(r.label || r.id) + '</div>'
+                + '<div class="metabolic-muted">' + escapeHtml(r.gpr_rule || r.equation || r.model || '') + '</div>'
+                + '</div>'
+            )).join('')
+            : '<div class="metabolic-empty">No associated reactions are mapped for this gene.</div>';
+        const pathwayHtml = pathwaySummary.length > 0
+            ? pathwaySummary.slice(0, 8).map(p => (
+                '<button type="button" class="metabolic-pathway-row metabolic-pathway-button" data-genes="' + encodeMetabolicList(p.genes) + '" data-reactions="' + encodeMetabolicList(p.reactions) + '">'
+                + '<span><span class="metabolic-pathway-name">' + escapeHtml(p.pathwayName) + '</span>'
+                + '<span class="metabolic-muted">' + escapeHtml(p.pathwayId) + '</span></span>'
+                + '<span class="metabolic-counts">' + escapeHtml(p.reactionCount) + ' reactions</span>'
+                + '</button>'
+            )).join('')
+            : '<div class="metabolic-empty">No pathway annotation is available for this gene.</div>';
 
-    container.querySelectorAll('.metabolic-gene-link').forEach(btn => {
+        container.innerHTML = '<div class="metabolic-subtitle">Associated reactions</div>'
+            + '<div class="metabolic-gene-list">' + reactionHtml + '</div>'
+            + '<div class="metabolic-subtitle">Pathways</div>'
+            + '<div class="metabolic-pathway-list">' + pathwayHtml + '</div>'
+            + '<div class="metabolic-source">Models: ' + escapeHtml((mapping.models || []).join(', ') || 'none') + (files ? ' - Files: ' + escapeHtml(files) : '') + '</div>';
+    }
+
+    container.querySelectorAll('.metabolic-pathway-button').forEach(btn => {
         btn.addEventListener('click', () => {
-            const locus = btn.getAttribute('data-locus');
-            if (locus) querySingleGene(locus);
+            highlightMetabolicPathwayGenes(
+                decodeMetabolicList(btn.getAttribute('data-genes')),
+                decodeMetabolicList(btn.getAttribute('data-reactions'))
+            );
         });
     });
 }
@@ -4998,10 +5532,14 @@ function fetchMetabolicImpact(locusTag, nodeType) {
     const container = document.getElementById('metabolic-impact-content');
     if (!section || !container || !locusTag) return;
     section.style.display = '';
-    container.innerHTML = '<span class="metabolic-muted"><i class="fa-solid fa-spinner fa-spin"></i> 正在加载模型映射层...</span>';
+    container.innerHTML = '<span class="metabolic-muted"><i class="fa-solid fa-spinner fa-spin"></i> Loading metabolic model mapping...</span>'; 
 
-    fetch(`/api/metabolic_impact?gene=${encodeURIComponent(locusTag)}`)
-        .then(response => response.json())
+    const adapter = window.metabolicModelAdapter;
+    const loadImpact = adapter?.loadMetabolicImpact
+        ? adapter.loadMetabolicImpact(locusTag)
+        : fetch(`/api/metabolic_impact?gene=${encodeURIComponent(locusTag)}`).then(response => response.json());
+
+    loadImpact
         .then(data => {
             if (detailLocusTag.textContent !== locusTag) return;
             renderMetabolicImpact(data, locusTag, nodeType);
@@ -5009,7 +5547,7 @@ function fetchMetabolicImpact(locusTag, nodeType) {
         .catch(err => {
             console.error('Error fetching metabolic impact:', err);
             if (detailLocusTag.textContent === locusTag) {
-                container.innerHTML = '<div class="metabolic-empty">代谢模型映射加载失败。</div>';
+                container.innerHTML = '<div class="metabolic-empty">Failed to load metabolic model mapping.</div>'; 
             }
         });
 }
@@ -5064,12 +5602,12 @@ function renderPathwayRegulation(regulation) {
     return `
         <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-color);">
             <div style="font-size:11px; font-weight:700; color:var(--text-primary); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                <i class="fa-solid fa-diagram-project" style="color:#0f766e;"></i> KEGG 通路 - TF 调控投影
+                <i class="fa-solid fa-diagram-project" style="color:#0f766e;"></i> KEGG Pathway - TF Regulatory Projection
             </div>
             <div style="font-size:10px; color:var(--text-secondary); line-height:1.5; margin-bottom:8px;">
-                匹配通路：${matchHtml}<br>
-                通路基因 ${escapeHtml(regulation.pathway_gene_count || 0)} 个；已有调控记录覆盖 ${escapeHtml(regulation.regulated_gene_count || 0)} 个；上游 TF ${escapeHtml(regulation.regulator_count || 0)} 个。
-                ${cacheInfo.enabled ? `<br>KEGG 缓存：${cacheInfo.loaded_from_disk ? '已使用本地缓存' : '本次联网生成缓存'}` : ''}
+                Matched pathway: ${matchHtml}<br>
+                Pathway genes: ${escapeHtml(regulation.pathway_gene_count || 0)}; regulatory records cover ${escapeHtml(regulation.regulated_gene_count || 0)} genes; upstream TFs: ${escapeHtml(regulation.regulator_count || 0)}.
+                ${cacheInfo.enabled ? `<br>KEGG cache: ${cacheInfo.loaded_from_disk ? 'loaded from local cache' : 'generated online this run'}` : ''}
             </div>
             ${regulators.length > 0 ? `
                 <div style="max-height:190px; overflow:auto; border:1px solid var(--border-color); border-radius:6px; background:#fff;">
@@ -5078,10 +5616,10 @@ function renderPathwayRegulation(regulation) {
                             <tr style="background:#f8fafc; color:var(--text-secondary); border-bottom:1px solid var(--border-color);">
                                 <th style="padding:5px 6px; text-align:left;">TF</th>
                                 <th style="padding:5px 6px;">Score</th>
-                                <th style="padding:5px 6px;">靶基因</th>
-                                <th style="padding:5px 6px; text-align:left;">方向</th>
-                                <th style="padding:5px 6px; text-align:left;">证据</th>
-                                <th style="padding:5px 6px; text-align:left;">通路靶基因</th>
+                                <th style="padding:5px 6px;">Target gene</th>
+                                <th style="padding:5px 6px; text-align:left;">Direction</th>
+                                <th style="padding:5px 6px; text-align:left;">Evidence</th>
+                                <th style="padding:5px 6px; text-align:left;">Pathway target gene</th>
                             </tr>
                         </thead>
                         <tbody>${regulatorRows}</tbody>
@@ -5089,11 +5627,11 @@ function renderPathwayRegulation(regulation) {
                 </div>
             ` : `
                 <div style="font-size:10px; color:var(--text-secondary); padding:8px; background:#f8fafc; border-radius:6px;">
-                    暂未在本地调控表中找到指向该 KEGG 通路基因的 TF 边。
+                    No TF edges targeting this KEGG pathway gene set were found in the local regulatory table.
                 </div>
             `}
             ${geneBadges ? `
-                <div style="font-size:10px; font-weight:700; color:var(--text-primary); margin-top:9px; margin-bottom:5px;">通路基因候选</div>
+                <div style="font-size:10px; font-weight:700; color:var(--text-primary); margin-top:9px; margin-bottom:5px;">Candidate pathway genes</div>
                 <div class="ai-pathway-genes-list">${geneBadges}</div>
             ` : ''}
         </div>
@@ -5120,7 +5658,7 @@ function initAiPathwayFeature() {
 
         if (!query) {
 
-            alert('请输入要分析的代谢通路或生理功能名称。');
+            alert('Enter a metabolic pathway or biological function to analyze.');
 
             return;
 
@@ -5150,7 +5688,7 @@ function initAiPathwayFeature() {
 
             <div class="ai-spinner"></div>
 
-            <span style="font-weight: 500;">AI 正在分析通路基因...</span>
+            <span style="font-weight: 500;">AI is analyzing pathway genes...</span>
 
         `;
 
@@ -5188,7 +5726,7 @@ function initAiPathwayFeature() {
 
             if (!response.ok) {
 
-                throw new Error(`HTTP 错误: ${response.status}`);
+                throw new Error(`HTTP error: ${response.status}`);
 
             }
 
@@ -5218,7 +5756,7 @@ function initAiPathwayFeature() {
 
             } else {
 
-                genesBadgesHtml = '<span style="color: var(--text-secondary); font-size: 11px;">未识别到关联 locus tags</span>';
+                genesBadgesHtml = '<span style="color: var(--text-secondary); font-size: 11px;">No associated locus tags recognized</span>'; 
 
             }
 
@@ -5228,9 +5766,9 @@ function initAiPathwayFeature() {
 
             resultCard.innerHTML = `
 
-                <div class="ai-pathway-summary">${result.summary || '无总结信息'}</div>
+                <div class="ai-pathway-summary">${result.summary || 'No summary available'}</div>
 
-                <div class="ai-pathway-genes-title"><i class="fa-solid fa-dna"></i> 关联基因 (${genes.length})</div>
+                <div class="ai-pathway-genes-title"><i class="fa-solid fa-dna"></i> Associated genes (${genes.length})</div>
 
                 <div class="ai-pathway-genes-list">${genesBadgesHtml}</div>
 
@@ -5240,7 +5778,7 @@ function initAiPathwayFeature() {
 
                     <button class="ai-pathway-draw-btn" id="btn-draw-pathway-network">
 
-                        <i class="fa-solid fa-network-wired"></i> 一键绘制该通路调控网络
+                        <i class="fa-solid fa-network-wired"></i> Draw pathway regulatory network
 
                     </button>
 
@@ -5294,13 +5832,13 @@ function initAiPathwayFeature() {
 
                 <div style="color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
 
-                    <i class="fa-solid fa-circle-exclamation"></i> 分析失败
+                    <i class="fa-solid fa-circle-exclamation"></i> Analysis failed
 
                 </div>
 
                 <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
 
-                    ${err.message || '未知网络错误，请检查您的 API Key 是否正确或网络连接状态。'}
+                    ${err.message || 'Unknown network error. Please check your API key and network connection.'}
 
                 </p>
 
@@ -5356,7 +5894,7 @@ function initAiGeneFeature() {
 
         if (!query) {
 
-            alert('请输入要分析的基因功能描述、转录因子或特征。');
+            alert('Enter a gene function, transcription factor, or feature to analyze.');
 
             return;
 
@@ -5376,7 +5914,7 @@ function initAiGeneFeature() {
 
         if (!apiKey && provider !== 'ollama') {
 
-            alert('要使用 AI 基因分析，请先在左侧控制面板配置您的 API Key！');
+            alert('To use AI gene analysis, configure your API key in the left control panel first.');
 
             // Highlight the key input in the left sidebar
 
@@ -5414,7 +5952,7 @@ function initAiGeneFeature() {
 
             <div class="ai-spinner"></div>
 
-            <span style="font-weight: 500;">AI 正在分析基因特征...</span>
+            <span style="font-weight: 500;">AI is analyzing gene features...</span>
 
         `;
 
@@ -5448,7 +5986,7 @@ function initAiGeneFeature() {
 
             if (!response.ok) {
 
-                throw new Error(`HTTP 错误: ${response.status}`);
+                throw new Error(`HTTP error: ${response.status}`);
 
             }
 
@@ -5478,7 +6016,7 @@ function initAiGeneFeature() {
 
             } else {
 
-                genesBadgesHtml = '<span style="color: var(--text-secondary); font-size: 11px;">未识别到关联 locus tags</span>';
+                genesBadgesHtml = '<span style="color: var(--text-secondary); font-size: 11px;">No associated locus tags recognized</span>'; 
 
             }
 
@@ -5486,9 +6024,9 @@ function initAiGeneFeature() {
 
             resultCard.innerHTML = `
 
-                <div class="ai-pathway-summary">${result.summary || '无总结信息'}</div>
+                <div class="ai-pathway-summary">${result.summary || 'No summary available'}</div>
 
-                <div class="ai-pathway-genes-title"><i class="fa-solid fa-dna"></i> 关联基因 (${genes.length})</div>
+                <div class="ai-pathway-genes-title"><i class="fa-solid fa-dna"></i> Associated genes (${genes.length})</div>
 
                 <div class="ai-pathway-genes-list">${genesBadgesHtml}</div>
 
@@ -5496,7 +6034,7 @@ function initAiGeneFeature() {
 
                     <button class="ai-pathway-draw-btn" id="btn-draw-gene-network">
 
-                        <i class="fa-solid fa-network-wired"></i> 一键绘制该基因调控网络
+                        <i class="fa-solid fa-network-wired"></i> Draw gene regulatory network
 
                     </button>
 
@@ -5550,13 +6088,13 @@ function initAiGeneFeature() {
 
                 <div style="color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
 
-                    <i class="fa-solid fa-circle-exclamation"></i> 分析失败
+                    <i class="fa-solid fa-circle-exclamation"></i> Analysis failed
 
                 </div>
 
                 <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
 
-                    ${err.message || '未知网络错误，请检查您的 API Key 是否正确或网络连接状态。'}
+                    ${err.message || 'Unknown network error. Please check your API key and network connection.'}
 
                 </p>
 
@@ -5744,9 +6282,9 @@ function syncRightSidebarToggleState(isOpen) {
 
     toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 
-    toggleBtn.setAttribute('title', isOpen ? '隐藏详情栏' : '显示详情栏');
+    toggleBtn.setAttribute('title', isOpen ? 'Hide detail panel' : 'Show detail panel');
 
-    toggleBtn.setAttribute('aria-label', isOpen ? '隐藏详情栏' : '显示详情栏');
+    toggleBtn.setAttribute('aria-label', isOpen ? 'Hide detail panel' : 'Show detail panel');
 
 }
 
@@ -5807,7 +6345,7 @@ function exportNetworkToCsv() {
 
     if (!cy) {
 
-        alert('当前没有可导出的网络。');
+        alert('There is no network to export.');
 
         return;
 
@@ -5819,7 +6357,7 @@ function exportNetworkToCsv() {
 
     if (edges.length === 0) {
 
-        alert('当前网络中无任何调控边关系。');
+        alert('The current network has no regulatory edges.');
 
         return;
 
@@ -5831,13 +6369,13 @@ function exportNetworkToCsv() {
 
     let csvContent = '\uFEFF';
 
-    csvContent += '源节点Locus Tag(Source Locus),源节点名称(Source Name),源节点功能(Source Function),目标节点Locus Tag(Target Locus),目标节点名称(Target Name),目标节点功能(Target Function),调控类型(Interaction),调控作用(Role),数据来源/分数(Source)';
+    csvContent += 'Source Locus,Source Name,Source Function,Target Locus,Target Name,Target Function,Interaction,Role,Source/Score';
 
     
 
     if (currentSimulationMode) {
 
-        csvContent += `,预测转录效应(Predicted Effect under ${currentSimulationMode === 'OE' ? 'OE' : 'KO'})`;
+        csvContent += `,Predicted Effect under ${currentSimulationMode === 'OE' ? 'OE' : 'KO'}`;
 
     }
 
@@ -5901,9 +6439,9 @@ function exportNetworkToCsv() {
 
         // Resolve functions
 
-        const sourceFunc = cgToProduct[sourceLower] || '暂无详细功能描述';
+        const sourceFunc = cgToProduct[sourceLower] || 'No detailed functional description available';
 
-        const targetFunc = cgToProduct[targetLower] || '暂无详细功能描述';
+        const targetFunc = cgToProduct[targetLower] || 'No detailed functional description available';
 
 
 
@@ -5951,7 +6489,7 @@ function exportNetworkToCsv() {
 
         if (currentSimulationMode) {
 
-            let effectText = '无明显效应';
+            let effectText = 'No obvious effect';
 
             if (currentSimulationRegulator && sourceId.toLowerCase() === currentSimulationRegulator.toLowerCase()) {
 
@@ -6077,7 +6615,7 @@ function initCanvasSearch() {
 
         if (matches.length === 0) {
 
-            resultsBox.innerHTML = `<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 11px;">画布中未找到该基因</div>`;
+            resultsBox.innerHTML = `<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 11px;">This gene was not found on the canvas</div>`;
 
             resultsBox.classList.remove('hidden');
 
@@ -6385,11 +6923,11 @@ function updateNetworkStatistics() {
 
     if (topHubs.length > 0) {
 
-        hubsSpan.innerHTML = topHubs.map(h => `<strong style="font-family: monospace; color: var(--color-primary-accent);">${h.label}</strong> (${h.degree}条)`).join(', ');
+        hubsSpan.innerHTML = topHubs.map(h => `<strong style="font-family: monospace; color: var(--color-primary-accent);">${h.label}</strong> (${h.degree} edges)`).join(', ');
 
     } else {
 
-        hubsSpan.textContent = '无';
+        hubsSpan.textContent = 'None';
 
     }
 
@@ -6872,7 +7410,7 @@ function runPerturbationSimulation(regLocus, mode) {
 
             
 
-            let effectText = '无明显效应';
+            let effectText = 'No obvious effect';
 
             let effectStyle = 'color: var(--text-muted);';
 
@@ -6932,7 +7470,7 @@ function runPerturbationSimulation(regLocus, mode) {
 
         th.className = 'th-predicted-effect';
 
-        th.textContent = '预测效应';
+        th.textContent = 'Predicted effect';
 
         tableHeader.appendChild(th);
 
@@ -6960,7 +7498,7 @@ function runPerturbationSimulation(regLocus, mode) {
 
         if (exportText) {
 
-            exportText.textContent = `导出预测效应表格 (${mode === 'OE' ? '上调' : '下调'})`;
+            exportText.textContent = `Export predicted response table (${mode === 'OE' ? 'overexpression' : 'knockdown'})`;
 
         }
 
@@ -7054,7 +7592,7 @@ function exportPerturbationToCsv() {
 
     if (!cy || !currentSimulationRegulator || !currentSimulationMode) {
 
-        alert('当前无活跃的扰动模拟结果可供导出。');
+        alert('There is no active perturbation simulation result to export.');
 
         return;
 
@@ -7104,7 +7642,7 @@ function exportPerturbationToCsv() {
 
     if (outgoingEdges.length === 0) {
 
-        alert('当前调控因子没有下游靶基因关系。');
+        alert('The current regulator has no downstream target gene relationships.');
 
         return;
 
@@ -7132,7 +7670,7 @@ function exportPerturbationToCsv() {
 
     let csvContent = '\uFEFF';
 
-    csvContent += '调控基因Locus Tag(Regulator Locus),调控基因名称(Regulator Name),靶基因Locus Tag(Target Locus),靶基因名称(Target Name),调控关系(Interaction Role),标准化调控类型(Normalized Regulation Type),置信度分数(Confidence Score),置信度等级(Confidence Level),证据摘要(Evidence Summary),扰动模式(Perturbation Mode),预测表达效应(Predicted Effect),靶基因功能描述(Target Function)\n';
+    csvContent += 'Regulator Locus,Regulator Name,Target Locus,Target Name,Interaction Role,Normalized Regulation Type,Confidence Score,Confidence Level,Evidence Summary,Perturbation Mode,Predicted Effect,Target Function\n';
 
 
 
@@ -7222,7 +7760,7 @@ function exportPerturbationToCsv() {
 
 
 
-        let effectText = '无明显效应';
+        let effectText = 'No obvious effect';
 
         if (dualCount > 0 || (upCount > 0 && downCount > 0)) {
 
@@ -7293,13 +7831,13 @@ function exportPerturbationToCsv() {
 
 
 
-        const effectText = targetCombinedEffects[targetId] || '无明显效应';
+        const effectText = targetCombinedEffects[targetId] || 'No obvious effect';
 
-        const targetFunc = cgToProduct[targetLower] || '暂无详细功能描述';
+        const targetFunc = cgToProduct[targetLower] || 'No detailed functional description available';
 
 
 
-        csvContent += `${cleanVal(sourceId)},${cleanVal(sourceName)},${cleanVal(targetId)},${cleanVal(targetName)},${cleanVal(roleText)},${cleanVal(regulationType)},${cleanVal(score.toFixed ? score.toFixed(3) : score)},${cleanVal(level)},${cleanVal(evidenceSummary)},${cleanVal(mode === 'OE' ? '上调' : '下调')},${cleanVal(effectText)},${cleanVal(targetFunc)}\n`;
+        csvContent += `${cleanVal(sourceId)},${cleanVal(sourceName)},${cleanVal(targetId)},${cleanVal(targetName)},${cleanVal(roleText)},${cleanVal(regulationType)},${cleanVal(score.toFixed ? score.toFixed(3) : score)},${cleanVal(level)},${cleanVal(evidenceSummary)},${cleanVal(mode === 'OE' ? 'overexpression' : 'knockdown')},${cleanVal(effectText)},${cleanVal(targetFunc)}\n`;
 
     });
 
@@ -7396,7 +7934,7 @@ function customizeProteinStructureViewer(tfLocus) {
     if (zoomBtn) {
         zoomBtn.classList.remove('active');
         zoomBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
-        zoomBtn.setAttribute('title', '放大模型');
+        zoomBtn.setAttribute('title', 'Zoom model');
     }
     
     // 3. Generate unique mock PDB ID & Resolution
@@ -7479,7 +8017,7 @@ function fetchReal3DStructure(tfLocus) {
         container.innerHTML = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; font-size:10px; color:var(--text-muted);">
                 <i class="fa-solid fa-spinner fa-spin fa-lg" style="color:#7c3aed; margin-bottom:8px;"></i>
-                <span>正在获取 UniProt / AlphaFold 3D 结构...</span>
+                <span>Fetching UniProt / AlphaFold 3D structure...</span>
             </div>
         `;
     }
@@ -7615,10 +8153,10 @@ function initProteinDomainFeature() {
                 updateProteinImgTransform(img);
                 if (isZoomed) {
                     btnZoom.innerHTML = '<i class="fa-solid fa-magnifying-glass-minus"></i>';
-                    btnZoom.setAttribute('title', '还原大小');
+                    btnZoom.setAttribute('title', 'Restore size');
                 } else {
                     btnZoom.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
-                    btnZoom.setAttribute('title', '放大模型');
+                    btnZoom.setAttribute('title', 'Zoom model');
                 }
             } else if (activeViewer) {
                 // Real 3Dmol viewer case
@@ -7626,11 +8164,11 @@ function initProteinDomainFeature() {
                 if (isZoomed) {
                     activeViewer.zoom(1.4, 250);
                     btnZoom.innerHTML = '<i class="fa-solid fa-magnifying-glass-minus"></i>';
-                    btnZoom.setAttribute('title', '还原大小');
+                    btnZoom.setAttribute('title', 'Restore size');
                 } else {
                     activeViewer.zoom(0.71, 250);
                     btnZoom.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
-                    btnZoom.setAttribute('title', '放大模型');
+                    btnZoom.setAttribute('title', 'Zoom model');
                 }
             }
             return;
@@ -7660,7 +8198,7 @@ function initProteinDomainFeature() {
             if (zoomBtn) {
                 zoomBtn.classList.remove('active');
                 zoomBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus"></i>';
-                zoomBtn.setAttribute('title', '放大模型');
+                zoomBtn.setAttribute('title', 'Zoom model');
             }
             return;
         }
@@ -7685,7 +8223,7 @@ function loadMotifAndBindingSites(tfLocus) {
     fetchReal3DStructure(tfLocus);
 
     if (proteinDomainResult) {
-        proteinDomainResult.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> 正在预测结合基序及结构域...</span>';
+        proteinDomainResult.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Predicting binding motif and domains...</span>'; 
     }
     
     if (consensusLabel) {
@@ -7752,12 +8290,12 @@ function loadMotifAndBindingSites(tfLocus) {
                     if (proteinDomainResult) {
                         let text = '';
                         if (domainData.error) {
-                            text = `<div style="color: var(--text-secondary); margin-bottom: 4px;">预测来源: ${data.source} (样本数: ${data.nsites})</div>`;
+                            text = `<div style="color: var(--text-secondary); margin-bottom: 4px;">Prediction source: ${data.source} (sites: ${data.nsites})</div>`;
                             text += `<div style="font-weight: 500; margin-bottom: 4px;">Consensus: <span style="font-family: monospace; font-weight: 600; color: #7c3aed;">${data.consensus}</span></div>`;
-                            text += `<div style="color: var(--text-muted); font-size: 10px;">（若要获取 AI 详细结构域分析，请在左侧面板配置 API Key）</div>`;
+                            text += `<div style="color: var(--text-muted); font-size: 10px;">Configure an API key in the left panel for detailed AI domain analysis.</div>`;
                         } else {
                             text = `<div style="color: var(--text-secondary); margin-bottom: 6px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px;">`;
-                            text += `预测来源: <strong>${data.source}</strong> (样本数: ${data.nsites})<br/>`;
+                            text += `Prediction source: <strong>${data.source}</strong> (sites: ${data.nsites})<br/>`;
                             text += `Consensus Sequence: <strong style="font-family: monospace; color: #7c3aed; font-size:12px;">${data.consensus}</strong>`;
                             text += `</div>`;
                             text += parseMarkdownToHtml(domainData.summary);
@@ -7768,7 +8306,7 @@ function loadMotifAndBindingSites(tfLocus) {
                 .catch(err => {
                     console.error('Error fetching protein domain:', err);
                     if (proteinDomainResult) {
-                        proteinDomainResult.innerHTML = `<div style="color: var(--text-secondary);">预测来源: ${data.source} (样本数: ${data.nsites})</div>` +
+                        proteinDomainResult.innerHTML = `<div style="color: var(--text-secondary);">Prediction source: ${data.source} (sites: ${data.nsites})</div>` +
                             `<div style="font-weight: 500;">Consensus: <span style="font-family: monospace; font-weight: 600; color: #7c3aed;">${data.consensus}</span></div>`;
                     }
                 });
@@ -7777,7 +8315,7 @@ function loadMotifAndBindingSites(tfLocus) {
             console.error('Error predicting motif:', err);
             const detailLocusTag = document.getElementById('detail-locus-tag');
             if (proteinDomainResult && detailLocusTag && detailLocusTag.textContent === tfLocus) {
-                proteinDomainResult.innerHTML = `<span style="color: var(--color-repression);">预测结合基序失败: ${err.message}</span>`;
+                proteinDomainResult.innerHTML = `<span style="color: var(--color-repression);">Binding motif prediction failed: ${err.message}</span>`;
             }
         });
 
@@ -7790,7 +8328,7 @@ function loadMotifAndBindingSites(tfLocus) {
     const bindingSitesTableBody = document.querySelector('#right-binding-sites-table tbody');
     
     if (bindingSitesTableBody) {
-        bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> 正在读取 ChIP-seq 数据...</td></tr>`;
+        bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading ChIP-seq data...</td></tr>`;
     }
     if (peakCanvas) {
         const ctx = peakCanvas.getContext('2d');
@@ -7852,7 +8390,7 @@ function loadMotifAndBindingSites(tfLocus) {
             if (bindingSitesTableBody) {
                 bindingSitesTableBody.innerHTML = '';
                 if (sites.length === 0) {
-                    bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center;">暂无已知结合位点</td></tr>`;
+                    bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center;">No known binding sites available</td></tr>`;
                 } else {
                     sites.forEach(s => {
                         const tr = document.createElement('tr');
@@ -7932,7 +8470,7 @@ function loadMotifAndBindingSites(tfLocus) {
             console.error('Error fetching binding site data:', err);
             const detailLocusTag = document.getElementById('detail-locus-tag');
             if (bindingSitesTableBody && detailLocusTag && detailLocusTag.textContent === tfLocus) {
-                bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; color: var(--color-repression);">获取绑定数据失败</td></tr>`;
+                bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; color: var(--color-repression);">Failed to fetch binding data</td></tr>`;
             }
         });
 }
@@ -8255,7 +8793,7 @@ function fetchRegulonPathwayEnrichment(tfLocus) {
     const tbody = document.getElementById('enrichment-results-body');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0;"><i class="fa-solid fa-spinner fa-spin"></i> 正在计算通路富集...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0;"><i class="fa-solid fa-spinner fa-spin"></i> Calculating pathway enrichment...</td></tr>`;
 
     fetch(`/api/regulon_enrichment?tf=${encodeURIComponent(tfLocus)}`)
         .then(res => {
@@ -8270,7 +8808,7 @@ function fetchRegulonPathwayEnrichment(tfLocus) {
 
             const pathways = data.pathways || [];
             if (pathways.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0;">该转录因子的靶标未富集到显著代谢通路</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0;">This TF has no significantly enriched metabolic pathways among its targets</td></tr>`;
                 return;
             }
 
@@ -8294,7 +8832,7 @@ function fetchRegulonPathwayEnrichment(tfLocus) {
 
                 tr.innerHTML = `
                     <td style="padding:6px; text-align:left;">
-                        <a href="${keggUrl}" target="_blank" title="在新窗口打开 KEGG 通路图并标记靶基因" style="color:var(--color-primary-accent); text-decoration:none; font-weight:500;">
+                        <a href="${keggUrl}" target="_blank" title="Open the KEGG pathway map in a new window and mark target genes" style="color:var(--color-primary-accent); text-decoration:none; font-weight:500;">
                             ${p.pathway_name} <i class="fa-solid fa-arrow-up-right-from-square fa-xs" style="font-size:7px; opacity:0.7;"></i>
                         </a>
                         <div style="font-size:7.5px; color:var(--text-muted); margin-top:2px;">ID: ${p.pathway_id} | FE: ${p.fold_enrichment.toFixed(2)}x</div>
@@ -8311,7 +8849,7 @@ function fetchRegulonPathwayEnrichment(tfLocus) {
         })
         .catch(err => {
             console.error("Failed to load regulon pathway enrichment:", err);
-            tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0; color:var(--color-repression);">计算通路富集失败</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0; color:var(--color-repression);">Failed to calculate pathway enrichment</td></tr>`;
         });
 }
 
@@ -8326,20 +8864,20 @@ function scanSequenceForMotif(seq, pwm, threshold) {
     // 1. Standardize and clean input sequence (only allow A, C, G, T)
     const cleanSeq = seq.toUpperCase().replace(/[^ACGT]/g, '');
     if (!cleanSeq) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">请输入有效的 DNA 序列</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">Enter a valid DNA sequence</td></tr>`;
         box.classList.remove('hidden');
         return;
     }
 
     const pwmLen = pwm.length;
     if (pwmLen === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">基序权重矩阵为空</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">Motif weight matrix is empty</td></tr>`;
         box.classList.remove('hidden');
         return;
     }
 
     if (cleanSeq.length < pwmLen) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">序列长度必须大于等于基序长度 (${pwmLen}bp)</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">Sequence length must be at least the motif length (${pwmLen} bp)</td></tr>`;
         box.classList.remove('hidden');
         return;
     }
@@ -8393,7 +8931,7 @@ function scanSequenceForMotif(seq, pwm, threshold) {
 
     // 4. Render hits
     if (hits.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">未扫描到匹配位点 (低于阈值 ${threshold}%)</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding:8px 0;">No matching sites found below threshold ${threshold}%</td></tr>`;
         box.classList.remove('hidden');
         return;
     }
@@ -8436,7 +8974,7 @@ function renderGenomicLocusMap(locusTag) {
     // Extract the numeric part of RefSeq locus tag, e.g. cg0279 -> 279
     const numMatch = cleanLocus.match(/\d+/);
     if (!numMatch) {
-        container.innerHTML = `<span style="font-size: 10px; color:var(--text-muted);">无法获取基因组坐标位置</span>`;
+        container.innerHTML = `<span style="font-size: 10px; color:var(--text-muted);">Unable to retrieve genomic coordinates</span>`;
         return;
     }
 
@@ -8452,7 +8990,7 @@ function renderGenomicLocusMap(locusTag) {
         
         const item = geneIndex[key] || { name: padLocus.toUpperCase(), type: 'Target' };
         const geneName = (item.name && item.name !== '--') ? item.name : padLocus.toUpperCase();
-        const product = cgToProduct[key] || '暂无描述';
+        const product = cgToProduct[key] || 'No description available';
         const type = item.type || 'Target';
         
         const operonMeta = geneToOperon[key];
@@ -8543,7 +9081,10 @@ function renderGenomicLocusMap(locusTag) {
 
         svgHtml += `
             <polygon class="gene-chevron" data-locus="${g.locus}" points="${points}" fill="${fill}" ${highlightStyle} style="cursor:pointer; transition: opacity 0.15s;">
-                <title>${g.locus.toUpperCase()} (${g.name})\n功能: ${g.product}\n链: ${g.strand}\nlog2FC: ${g.log2fc !== undefined ? g.log2fc.toFixed(2) : '无数据'}</title>
+                <title>${g.locus.toUpperCase()} (${g.name})
+Function: ${g.product}
+Strand: ${g.strand}
+log2FC: ${g.log2fc !== undefined ? g.log2fc.toFixed(2) : 'No data'}</title>
             </polygon>
         `;
 
@@ -8571,7 +9112,9 @@ function renderGenomicLocusMap(locusTag) {
             
             svgHtml += `
                 <path d="M ${peakX - 6},${y + h/2} Q ${peakX},${y - 8} ${peakX + 6},${y + h/2}" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" stroke-width="1.2">
-                    <title>预测结合位点:\n${regRow.Binding_site}\n类型: ${regRow.Role}</title>
+                    <title>Predicted binding site:
+${regRow.Binding_site}
+Type: ${regRow.Role}</title>
                 </path>
                 <circle cx="${peakX}" cy="${y - 8}" r="2" fill="#ef4444"></circle>
             `;
@@ -8612,7 +9155,7 @@ function initAdvancedFeatures() {
     if (btnScan && seqInput && thresholdSlider) {
         btnScan.addEventListener('click', () => {
             if (!currentTfPwm) {
-                alert('请先选择一个有效的转录因子以获取其基序权重矩阵 (PWM)！');
+                alert('Select a valid transcription factor first to retrieve its PWM.');
                 return;
             }
             const seq = seqInput.value;
@@ -8646,7 +9189,7 @@ function initAdvancedFeatures() {
                         fileInput.value = '';
                     },
                     error: function(err) {
-                        alert('解析 CSV 文件失败: ' + err.message);
+                        alert('Failed to parse CSV file: ' + err.message);
                     }
                 });
             };
@@ -8685,7 +9228,7 @@ function initAdvancedFeatures() {
             const opt = orgSelect.selectedOptions[0];
             const hasRna = opt ? opt.getAttribute('data-has-rna') === 'true' : false;
             
-            updateStatus('正在切换物种/菌株...', 'loading');
+            updateStatus('Switching organism / strain...', 'loading');
             
             if (orgId === 'C_g_DSM_20300_=_ATCC_13032') {
                 // Use default files
@@ -8729,7 +9272,7 @@ function initAdvancedFeatures() {
             if (overlay) {
                 overlay.style.display = 'flex';
                 const h3 = overlay.querySelector('h3');
-                if (h3) h3.textContent = `已载入 ${opt ? opt.textContent : '新物种'}，请输入基因开始分析`;
+                if (h3) h3.textContent = `Loaded ${opt ? opt.textContent : 'new organism'}, enter a gene to start analysis`; 
             }
             
             try {
@@ -8737,7 +9280,7 @@ function initAdvancedFeatures() {
                 updateExampleTags();
             } catch (err) {
                 console.error("Failed to load new organism network data:", err);
-                updateStatus('载入数据失败: ' + err.message, 'error');
+                updateStatus('Failed to load data: ' + err.message, 'error');
             }
         });
     }
@@ -8778,7 +9321,7 @@ function updateExampleTags() {
             container.appendChild(span);
         } else {
             const newSpan = document.createElement('span');
-            newSpan.textContent = '快速尝试:';
+            newSpan.textContent = 'Try examples:';
             container.appendChild(newSpan);
         }
         sortedTfs.forEach(tf => {
@@ -8792,10 +9335,3 @@ function updateExampleTags() {
         });
     }
 }
-
-
-
-
-
-
-

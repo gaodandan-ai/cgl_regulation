@@ -31,6 +31,8 @@
     
     /* Dynamic Layout Variables */
     --right-sidebar-width: 380px;
+    --header-height: 64px;
+    --workflow-height: 108px;
 }
 
 
@@ -93,6 +95,96 @@ h1, h2, h3, th {
     z-index: 100;
 }
 
+#workflow-entrybar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    padding: 12px 20px;
+    min-height: var(--workflow-height);
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    z-index: 90;
+}
+
+.workflow-entry {
+    min-width: 0;
+    height: 84px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--text-primary);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+}
+
+.workflow-entry:hover,
+.workflow-entry.active {
+    border-color: rgba(15, 118, 110, 0.35);
+    background: rgba(15, 118, 110, 0.035);
+    transform: translateY(-1px);
+}
+
+.workflow-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(15, 118, 110, 0.08);
+    color: #0f766e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+.workflow-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.workflow-copy strong {
+    font-size: 14px;
+    line-height: 1.15;
+    color: var(--text-primary);
+}
+
+.workflow-copy small {
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+@media (max-width: 1180px) {
+    :root {
+        --workflow-height: 192px;
+    }
+
+    #workflow-entrybar {
+        grid-template-columns: 1fr;
+    }
+
+    .workflow-entry {
+        height: 52px;
+        grid-template-columns: 32px minmax(0, 1fr);
+    }
+
+    .workflow-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .workflow-copy small {
+        display: none;
+    }
+}
+
 #app-header .logo {
     display: flex;
     align-items: center;
@@ -137,7 +229,7 @@ h1, h2, h3, th {
 #main-layout {
     display: flex;
     flex: 1;
-    height: calc(100vh - 64px);
+    height: calc(100vh - var(--header-height) - var(--workflow-height));
     position: relative;
     overflow: hidden;
 }
@@ -157,6 +249,26 @@ h1, h2, h3, th {
     overflow-y: auto;
     z-index: 10;
     transition: var(--transition-smooth);
+}
+
+.organism-section { order: 1; }
+.search-section { order: 2; }
+.filter-layout-section { order: 3; }
+.global-metabolic-impact-section { order: 4; }
+.pathway-regulatory-view-section { order: 5; }
+.engineering-targets-section { order: 6; }
+.filter-layout-section {
+    opacity: 0.86;
+}
+.filter-layout-section h2 {
+    font-size: 12px;
+    letter-spacing: 0.4px;
+}
+.rnaseq-section,
+.ai-config-section,
+.ai-discovery-section,
+.action-section {
+    order: 30;
 }
 
 #left-sidebar {
@@ -906,7 +1018,22 @@ input[type="range"] {
     gap: 8px;
 }
 
+.metabolic-pathway-button {
+    width: 100%;
+    border: 1px solid var(--border-color);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.metabolic-pathway-button:hover {
+    border-color: rgba(15, 118, 110, 0.35);
+    background: rgba(15, 118, 110, 0.04);
+}
+
 .metabolic-pathway-name {
+    display: block;
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1.25;
@@ -973,6 +1100,264 @@ input[type="range"] {
     background: rgba(15, 118, 110, 0.03);
     color: var(--text-secondary);
     line-height: 1.45;
+}
+
+.global-metabolic-controls {
+    display: grid;
+    grid-template-columns: 1fr 34px;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.global-metabolic-controls input {
+    min-width: 0;
+    height: 32px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 11px;
+}
+
+.global-metabolic-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 7px;
+}
+
+.global-metabolic-keywords button {
+    border: 1px solid rgba(15, 118, 110, 0.18);
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.04);
+    color: #0f766e;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    cursor: pointer;
+}
+
+.global-metabolic-table-wrap {
+    max-height: 260px;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #fff;
+}
+
+.global-metabolic-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5px;
+}
+
+.global-metabolic-table th,
+.global-metabolic-table td {
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    text-align: left;
+}
+
+.global-metabolic-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.global-metabolic-row {
+    cursor: pointer;
+}
+
+.global-metabolic-row:hover {
+    background: rgba(15, 118, 110, 0.04);
+}
+
+.global-metabolic-score {
+    font-weight: 800;
+    color: #0f766e;
+}
+
+.pathway-view-controls {
+    display: grid;
+    grid-template-columns: 1fr 34px;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.pathway-view-controls input {
+    min-width: 0;
+    height: 32px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 11px;
+}
+
+.pathway-view-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 7px;
+}
+
+.pathway-view-keywords button {
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    border-radius: 999px;
+    background: rgba(14, 165, 233, 0.05);
+    color: #0369a1;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    cursor: pointer;
+}
+
+.pathway-view-result {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.pathway-view-summary {
+    padding: 8px 10px;
+    border: 1px solid rgba(14, 165, 233, 0.18);
+    border-radius: 6px;
+    background: rgba(14, 165, 233, 0.04);
+    color: var(--text-primary);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.pathway-view-regulator,
+.pathway-view-gene {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #fff;
+    padding: 7px 8px;
+    font-size: 10.5px;
+}
+
+.pathway-view-regulator {
+    width: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.pathway-view-regulator:hover {
+    border-color: rgba(14, 165, 233, 0.35);
+    background: rgba(14, 165, 233, 0.04);
+}
+
+.pathway-view-title {
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.pathway-view-score {
+    color: #0369a1;
+    font-weight: 800;
+}
+
+.engineering-target-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 84px 34px;
+    gap: 6px;
+    margin-bottom: 7px;
+}
+
+.engineering-target-controls input,
+.engineering-target-controls select {
+    min-width: 0;
+    height: 32px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 10.5px;
+}
+
+.engineering-target-score-row {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr) 36px;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 7px;
+    color: var(--text-secondary);
+    font-size: 10px;
+}
+
+.engineering-target-table-wrap {
+    max-height: 280px;
+    overflow: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #fff;
+}
+
+.engineering-target-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5px;
+}
+
+.engineering-target-table th,
+.engineering-target-table td {
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    text-align: left;
+}
+
+.engineering-target-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.engineering-target-row {
+    cursor: pointer;
+}
+
+.engineering-target-row:hover {
+    background: rgba(124, 58, 237, 0.04);
+}
+
+.engineering-target-score {
+    font-weight: 800;
+    color: #6d28d9;
+}
+
+.engineering-target-level {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 8.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.engineering-target-level.high {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.engineering-target-level.medium {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.engineering-target-level.low {
+    background: #f8fafc;
+    color: #64748b;
 }
 
 /* Relations Details Table */
