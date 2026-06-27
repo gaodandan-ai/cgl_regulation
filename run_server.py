@@ -438,6 +438,241 @@ def infer_model_name_from_file(path):
             return name[: -len(suffix)]
     return name
 
+def safe_float(value):
+    try:
+        if value is None or value == "":
+            return None
+        parsed = float(value)
+        return parsed if math.isfinite(parsed) else None
+    except Exception:
+        return None
+
+def extract_genes_from_gpr_rule(rule):
+    text = str(rule or "")
+    if not text:
+        return []
+    genes = re.findall(r"\b(?:Cgl|cg|cgb|NCgl|cgR)[:_ -]?\d{3,5}\b", text, flags=re.IGNORECASE)
+    cleaned = []
+    for gene in genes:
+        gene = re.sub(r"[:_ -]+", "", gene).strip()
+        if gene and gene not in cleaned:
+            cleaned.append(gene)
+    if cleaned:
+        return cleaned
+    tokens = re.split(r"\s+and\s+|\s+or\s+|[(),;|]+", text, flags=re.IGNORECASE)
+    return [token.strip() for token in tokens if token.strip() and token.strip().lower() not in {"and", "or"}]
+
+def reaction_equation_from_metabolites(metabolites):
+    if not isinstance(metabolites, dict) or not metabolites:
+        return ""
+    reactants = []
+    products = []
+    for metabolite, coefficient in metabolites.items():
+        value = safe_float(coefficient)
+        if value is None or value == 0:
+            continue
+        label = str(metabolite)
+        amount = abs(value)
+        term = label if amount == 1 else f"{amount:g} {label}"
+        if value < 0:
+            reactants.append(term)
+        else:
+            products.append(term)
+    if not reactants and not products:
+        return ""
+    return f"{' + '.join(reactants) or '0'} -> {' + '.join(products) or '0'}"
+
+def find_ecgl1_root():
+    candidates = [
+        os.path.join("data", "model", "ecCGL1-main", "ecCGL1-main"),
+        os.path.join("data", "model", "ecCGL1-main"),
+        os.path.join("data", "model", "ecCGL1"),
+    ]
+    for candidate in candidates:
+        if os.path.isdir(candidate):
+            model_dir = os.path.join(candidate, "model")
+            if os.path.isdir(model_dir):
+                return candidate
+    return ""
+
+def load_ecgl1_metadata(ecgl1_root):
+    gene_uniprot = {}
+    gene_mass = {}
+    reaction_metrics = {}
+    reaction_kcat_sources = {}
+
+    if not ecgl1_root:
+        return gene_uniprot, gene_mass, reaction_metrics, reaction_kcat_sources
+
+    gene_json = os.path.join(ecgl1_root, "model", "iCW773_uniprot_modification.json")
+    if not os.path.exists(gene_json):
+        gene_json = os.path.join(ecgl1_root, "model", "iCW773_uniprot.json")
+    try:
+        with open(gene_json, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        for gene in payload.get("genes", []):
+            gene_id = str(gene.get("id", "")).strip()
+            uniprot = gene.get("annotation", {}).get("uniprot")
+            if gene_id and uniprot:
+                values = uniprot if isinstance(uniprot, list) else [uniprot]
+                gene_uniprot[gene_id.lower()] = [str(v) for v in values if v]
+    except Exception:
+        pass
+
+    mass_json = os.path.join(ecgl1_root, "iCW773_get_data", "iCW773_mean_protein_id_mass_mapping.json")
+    try:
+        with open(mass_json, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        for gene_id, mass in payload.items():
+            parsed = safe_float(mass)
+            if parsed is not None:
+                gene_mass[str(gene_id).lower()] = parsed
+    except Exception:
+        pass
+
+    metrics_csv = os.path.join(ecgl1_root, "iCW773_get_data", "reaction_kcat_MW.csv")
+    try:
+        with open(metrics_csv, "r", encoding="utf-8-sig", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                reaction_id = first_row_value(row, ["", "reaction", "reaction_id", "id"]) or next(iter(row.values()), "")
+                reaction_id = str(reaction_id or "").strip()
+                if not reaction_id:
+                    continue
+                reaction_metrics[reaction_id] = {
+                    "kcat": safe_float(first_row_value(row, ["kcat"])),
+                    "molecular_weight": safe_float(first_row_value(row, ["MW", "mw", "molecular_weight"])),
+                    "kcat_MW": safe_float(first_row_value(row, ["kcat_MW", "kcat_mw"]))
+                }
+    except Exception:
+        pass
+
+    kcat_json = os.path.join(ecgl1_root, "iCW773_get_data", "iCW773_mean_reactions_kcat_mapping_combined.json")
+    try:
+        with open(kcat_json, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        for reaction_id, data in payload.items():
+            if not isinstance(data, dict):
+                continue
+            species = []
+            for key in ("forward_species_list", "reverse_species_list"):
+                values = data.get(key) or []
+                if isinstance(values, list):
+                    for item in values:
+                        if item and item not in species:
+                            species.append(str(item))
+            reaction_kcat_sources[str(reaction_id)] = {
+                "forward": safe_float(data.get("forward")),
+                "reverse": safe_float(data.get("reverse")),
+                "species_count": len(species),
+                "species_sample": species[:8]
+            }
+    except Exception:
+        pass
+
+    return gene_uniprot, gene_mass, reaction_metrics, reaction_kcat_sources
+
+def parse_ecgl1_json_mappings(ecgl1_root):
+    if not ecgl1_root:
+        return []
+
+    gene_uniprot, gene_mass, reaction_metrics, reaction_kcat_sources = load_ecgl1_metadata(ecgl1_root)
+    model_dir = os.path.join(ecgl1_root, "model")
+    json_names = [
+        "iCW773_irr_enz_constraint.json",
+        "iCW773_irr_enz_constraint_adj.json",
+        "iCW773_irr_enz_constraint_adj_PDH.json",
+        "iCW773_irr_enz_constraint_irreversible.json",
+        "iCW773_uniprot_modification_del_irreversible.json",
+    ]
+    records = []
+
+    for filename in json_names:
+        path = os.path.join(model_dir, filename)
+        if not os.path.exists(path):
+            continue
+        model_name = "ecCGL1:" + os.path.splitext(filename)[0]
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+        except Exception:
+            continue
+
+        global_constraint = payload.get("enzyme_constraint") if isinstance(payload.get("enzyme_constraint"), dict) else {}
+        variant_name = os.path.splitext(filename)[0]
+        for reaction in payload.get("reactions", []):
+            reaction_id = str(reaction.get("id", "")).strip()
+            if not reaction_id:
+                continue
+            genes = extract_genes_from_gpr_rule(reaction.get("gene_reaction_rule", ""))
+            if not genes:
+                continue
+            metrics = reaction_metrics.get(reaction_id, {})
+            kcat = safe_float(reaction.get("kcat"))
+            if kcat is None:
+                kcat = metrics.get("kcat")
+            kcat_mw = safe_float(reaction.get("kcat_MW"))
+            if kcat_mw is None:
+                kcat_mw = metrics.get("kcat_MW")
+            molecular_weight = metrics.get("molecular_weight")
+            kcat_source = reaction_kcat_sources.get(reaction_id, {})
+            annotation = reaction.get("annotation") if isinstance(reaction.get("annotation"), dict) else {}
+            notes = reaction.get("notes") if isinstance(reaction.get("notes"), dict) else {}
+            uniprot_ids = []
+            protein_masses = []
+            for gene in genes:
+                key = gene.lower()
+                for uniprot_id in gene_uniprot.get(key, []):
+                    if uniprot_id not in uniprot_ids:
+                        uniprot_ids.append(uniprot_id)
+                mass = gene_mass.get(key)
+                if mass is not None:
+                    protein_masses.append(mass)
+
+            if molecular_weight is None and protein_masses:
+                molecular_weight = sum(protein_masses) / len(protein_masses)
+
+            for gene in genes:
+                records.append({
+                    "model": model_name,
+                    "gene": gene,
+                    "reaction_id": reaction_id,
+                    "reaction_name": reaction.get("name") or reaction_id,
+                    "equation": reaction_equation_from_metabolites(reaction.get("metabolites")),
+                    "gpr_rule": reaction.get("gene_reaction_rule", ""),
+                    "pathway_id": "enzyme_constrained_model",
+                    "pathway_name": "Enzyme-constrained model reactions",
+                    "source_file": filename,
+                    "ec_number": annotation.get("ec-code") or annotation.get("ec_code") or "",
+                    "kcat": kcat,
+                    "molecular_weight": molecular_weight,
+                    "kcat_MW": kcat_mw,
+                    "uniprot_ids": uniprot_ids,
+                    "protein_masses": protein_masses,
+                    "variant_of": notes.get("reflection", ""),
+                    "reaction_variant": variant_name,
+                    "lower_bound": reaction.get("lower_bound"),
+                    "upper_bound": reaction.get("upper_bound"),
+                    "kcat_source_count": kcat_source.get("species_count", 0),
+                    "kcat_species_sample": kcat_source.get("species_sample", []),
+                    "enzyme_constraint": {
+                        "model_variant": variant_name,
+                        "kcat": kcat,
+                        "molecular_weight": molecular_weight,
+                        "kcat_MW": kcat_mw,
+                        "uniprot_ids": uniprot_ids,
+                        "protein_masses": protein_masses,
+                        "ec_number": annotation.get("ec-code") or annotation.get("ec_code") or "",
+                        "variant_of": notes.get("reflection", ""),
+                        "lower_bound": reaction.get("lower_bound"),
+                        "upper_bound": reaction.get("upper_bound"),
+                        "kcat_source_count": kcat_source.get("species_count", 0),
+                        "kcat_species_sample": kcat_source.get("species_sample", []),
+                        "global_parameters": global_constraint
+                    }
+                })
+    return records
+
 def ns_attr(element, namespace, name):
     return element.attrib.get(f"{{{namespace}}}{name}") or element.attrib.get(name, "")
 
@@ -550,6 +785,14 @@ def load_metabolic_model_mappings():
             "pathway_name": record.get("pathway_name") or "Unassigned pathway",
             "source_file": record.get("source_file", "")
         }
+        for optional_key in (
+            "ec_number", "kcat", "molecular_weight", "kcat_MW", "uniprot_ids",
+            "protein_masses", "variant_of", "reaction_variant", "lower_bound",
+            "upper_bound", "kcat_source_count", "kcat_species_sample",
+            "enzyme_constraint"
+        ):
+            if optional_key in record and record.get(optional_key) not in (None, "", []):
+                reaction[optional_key] = record.get(optional_key)
         reaction_key = f"{model}:{reaction_id}"
         reaction_to_pathways[reaction_key] = {
             "id": reaction["pathway_id"] or reaction["pathway_name"],
@@ -650,6 +893,25 @@ def load_metabolic_model_mappings():
                 files_loaded.append({"file": os.path.basename(path), "model": parsed_model, "rows": total_rows})
         except Exception as e:
             warnings.append(f"{os.path.basename(path)}: {e}")
+
+    ecgl1_root = find_ecgl1_root()
+    if ecgl1_root:
+        try:
+            ec_records = parse_ecgl1_json_mappings(ecgl1_root)
+            rows_by_model = {}
+            for record in ec_records:
+                if add_mapping_record(record):
+                    model_name = record.get("model") or "ecCGL1"
+                    rows_by_model[model_name] = rows_by_model.get(model_name, 0) + 1
+            for model_name, row_count in sorted(rows_by_model.items()):
+                files_loaded.append({
+                    "file": "ecCGL1-main",
+                    "model": model_name,
+                    "rows": row_count,
+                    "type": "enzyme_constrained"
+                })
+        except Exception as e:
+            warnings.append(f"ecCGL1-main: {e}")
 
     models = sorted({f["model"] for f in files_loaded})
     METABOLIC_MODEL_CACHE = {
@@ -773,7 +1035,14 @@ def handle_metabolic_impact(query):
                 "type": "reaction",
                 "label": reaction.get("label") or reaction["id"],
                 "equation": reaction.get("equation", ""),
-                "model": reaction.get("model", "")
+                "model": reaction.get("model", ""),
+                "ec_number": reaction.get("ec_number", ""),
+                "kcat": reaction.get("kcat"),
+                "molecular_weight": reaction.get("molecular_weight"),
+                "kcat_MW": reaction.get("kcat_MW"),
+                "uniprot_ids": reaction.get("uniprot_ids", []),
+                "reaction_variant": reaction.get("reaction_variant", ""),
+                "enzyme_constraint": reaction.get("enzyme_constraint", {})
             }
             nodes[pathway_node_id] = {
                 "id": pathway_node_id,
@@ -870,7 +1139,14 @@ def handle_metabolic_pathways(query=""):
             entry["reactions"][reaction_id] = {
                 "reactionId": reaction_id,
                 "reactionName": reaction.get("label") or reaction_id,
-                "model": model
+                "model": model,
+                "ecNumber": reaction.get("ec_number", ""),
+                "kcat": reaction.get("kcat"),
+                "molecularWeight": reaction.get("molecular_weight"),
+                "kcatMW": reaction.get("kcat_MW"),
+                "uniprotIds": reaction.get("uniprot_ids", []),
+                "reactionVariant": reaction.get("reaction_variant", ""),
+                "enzymeConstraint": reaction.get("enzyme_constraint", {})
             }
             gene_entry = entry["genes"].setdefault(locus, {
                 "geneId": locus,
@@ -879,7 +1155,14 @@ def handle_metabolic_pathways(query=""):
             })
             gene_entry["reactions"][reaction_id] = {
                 "reactionId": reaction_id,
-                "reactionName": reaction.get("label") or reaction_id
+                "reactionName": reaction.get("label") or reaction_id,
+                "model": model,
+                "ecNumber": reaction.get("ec_number", ""),
+                "kcat": reaction.get("kcat"),
+                "molecularWeight": reaction.get("molecular_weight"),
+                "kcatMW": reaction.get("kcat_MW"),
+                "uniprotIds": reaction.get("uniprot_ids", []),
+                "reactionVariant": reaction.get("reaction_variant", "")
             }
 
     pathways = []

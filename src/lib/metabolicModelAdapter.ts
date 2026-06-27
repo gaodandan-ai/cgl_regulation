@@ -13,6 +13,33 @@ export type MetabolicReaction = {
   pathway_id?: string;
   pathway_name?: string;
   source_file?: string;
+  ec_number?: string;
+  kcat?: number;
+  molecular_weight?: number;
+  kcat_MW?: number;
+  uniprot_ids?: string[];
+  protein_masses?: number[];
+  variant_of?: string;
+  reaction_variant?: string;
+  lower_bound?: number;
+  upper_bound?: number;
+  kcat_source_count?: number;
+  kcat_species_sample?: string[];
+  enzyme_constraint?: {
+    model_variant?: string;
+    kcat?: number;
+    molecular_weight?: number;
+    kcat_MW?: number;
+    uniprot_ids?: string[];
+    protein_masses?: number[];
+    ec_number?: string;
+    variant_of?: string;
+    lower_bound?: number;
+    upper_bound?: number;
+    kcat_source_count?: number;
+    kcat_species_sample?: string[];
+    global_parameters?: Record<string, unknown>;
+  };
 };
 
 export type MetabolicPathway = {
@@ -97,6 +124,22 @@ export function getPathwaysForGene(geneId: string): MetabolicPathway[] {
   }
 
   return Array.from(pathways.values());
+}
+
+export function getEnzymeConstrainedReactionsForGene(geneId: string): MetabolicReaction[] {
+  return getReactionsForGene(geneId).filter(reaction =>
+    Boolean(reaction.enzyme_constraint || reaction.kcat || reaction.molecular_weight || reaction.kcat_MW)
+  );
+}
+
+export function getReactionVariantsForGene(geneId: string): Record<string, MetabolicReaction[]> {
+  const grouped: Record<string, MetabolicReaction[]> = {};
+  for (const reaction of getEnzymeConstrainedReactionsForGene(geneId)) {
+    const baseId = reaction.variant_of || reaction.id;
+    if (!grouped[baseId]) grouped[baseId] = [];
+    grouped[baseId].push(reaction);
+  }
+  return grouped;
 }
 
 export function getMetabolicImpactForTF(tfId: string, graph?: RegulatoryGraph): MetabolicImpactSummary {

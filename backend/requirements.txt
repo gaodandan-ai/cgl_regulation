@@ -1,0 +1,4 @@
+cobra>=0.22.0
+fastapi>=0.95.0
+uvicorn>=0.20.0
+pydantic>=2.0

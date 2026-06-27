@@ -77,7 +77,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css?v=1.6">
+    <link rel="stylesheet" href="style.css?v=1.7">
 </head>
 <body class="light-theme">
     <noscript>
@@ -100,7 +100,7 @@
         <header id="app-header">
             <div class="logo">
                 <i class="fa-solid fa-network-wired"></i>
-                <h1>C. glutamicum Regulatory Network Explorer</h1>
+                <h1>Cgl Regulation Explorer <span class="badge-v">v0.1.0</span></h1>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
                 <a href="mailto:gdandan756@gmail.com" class="header-contact-link" style="font-size: 12.5px; color: var(--text-secondary); text-decoration: none; display: flex; align-items: center; gap: 5px; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15); padding: 5px 12px; border-radius: 20px; font-weight: 500; transition: var(--transition-smooth);">
@@ -115,25 +115,32 @@
 
         <nav id="workflow-entrybar" aria-label="Primary research workflows">
             <button class="workflow-entry active" id="workflow-entry-gene" data-workflow="gene">
-                <span class="workflow-icon"><i class="fa-solid fa-network-wired"></i></span>
-                <span class="workflow-copy">
-                    <strong>Gene / TF Explorer</strong>
-                    <small>Start from a regulator such as cg0350 and inspect targets, evidence, and metabolic impact.</small>
-                </span>
+                <i class="fa-solid fa-network-wired"></i>
+                <span>Gene / TF Explorer</span>
             </button>
             <button class="workflow-entry" id="workflow-entry-pathway" data-workflow="pathway">
-                <span class="workflow-icon"><i class="fa-solid fa-diagram-project"></i></span>
-                <span class="workflow-copy">
-                    <strong>Pathway View</strong>
-                    <small>Start from glutamate metabolism, TCA, or amino acid modules and find upstream TFs.</small>
-                </span>
+                <i class="fa-solid fa-diagram-project"></i>
+                <span>Pathway View</span>
             </button>
             <button class="workflow-entry" id="workflow-entry-engineering" data-workflow="engineering">
-                <span class="workflow-icon"><i class="fa-solid fa-bullseye"></i></span>
-                <span class="workflow-copy">
-                    <strong>Engineering Targets</strong>
-                    <small>Rank candidate regulators by mapped genes, reactions, pathways, and confidence.</small>
-                </span>
+                <i class="fa-solid fa-bullseye"></i>
+                <span>Engineering Targets</span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-quality" data-workflow="quality">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Data & Model Quality</span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-examples" data-workflow="examples">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>Examples</span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-release" data-workflow="release">
+                <i class="fa-solid fa-list-check"></i>
+                <span>Release Notes</span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-references" data-workflow="references">
+                <i class="fa-solid fa-book"></i>
+                <span>References & Attribution</span>
             </button>
         </nav>
 
@@ -545,19 +552,593 @@
             <main id="canvas-container">
                 <div id="cy"></div>
                 <div id="canvas-overlay" class="empty-state">
-                    <div class="overlay-content">
-                        <i class="fa-solid fa-dharmachakra pulse-slow"></i>
-                        <h3>Enter a gene to start analysis</h3>
-                        <p>Search a locus tag such as cg0350, or a common name such as whiB4, sigH, or cspA to generate a first-order regulatory network.</p>
-                        <div class="quick-examples">
-                            <span>Try examples:</span>
-                            <button class="example-tag">cg0350</button>
-                            <button class="example-tag">sigH</button>
-                            <button class="example-tag">whiB4</button>
-                            <button class="example-tag">cg0444</button>
-                            <button class="example-tag">cgb_01363</button>
+                    <div class="overlay-content scrollable-overlay">
+                        <!-- Hero Section -->
+                        <div class="landing-hero">
+                            <i class="fa-solid fa-dharmachakra pulse-slow hero-icon"></i>
+                            <h3>Cgl Regulation Explorer</h3>
+                            <p class="hero-description">
+                                An interactive regulatory-metabolic analysis platform for <em>Corynebacterium glutamicum</em>. 
+                                It integrates transcriptional regulatory networks, Random Forest-based edge confidence scoring, 
+                                genome-scale metabolic model mapping, and ecCGL1 enzyme-constrained annotations to support 
+                                regulatory-metabolic hypothesis generation and candidate engineering target prioritization.
+                            </p>
+                        </div>
+
+                        <!-- Search Invitation -->
+                        <div class="landing-search-tip">
+                            <p><strong>Get Started:</strong> Search a locus tag (e.g. <code>cg0350</code>, <code>cg0444</code>) or common name (<code>sigH</code>, <code>whiB4</code>) in the left sidebar to generate a regulatory network.</p>
+                            <div class="quick-examples">
+                                <span>Try examples:</span>
+                                <button class="example-tag">cg0350</button>
+                                <button class="example-tag">sigH</button>
+                                <button class="example-tag">whiB4</button>
+                                <button class="example-tag">cg0444</button>
+                                <button class="example-tag">cgb_01363</button>
+                            </div>
+                        </div>
+
+                        <!-- Value Bullets Grid -->
+                        <div class="landing-grid-bullets">
+                            <div class="bullet-card">
+                                <i class="fa-solid fa-square-check"></i>
+                                <h4>Network Explorer</h4>
+                                <p>Explore transcription factor, sRNA, operon, and multi-evidence regulatory links.</p>
+                            </div>
+                            <div class="bullet-card">
+                                <i class="fa-solid fa-square-check"></i>
+                                <h4>Metabolic Mappings</h4>
+                                <p>Connect regulated genes to metabolic reactions and pathways in the iCW773 model.</p>
+                            </div>
+                            <div class="bullet-card">
+                                <i class="fa-solid fa-square-check"></i>
+                                <h4>Engineering Targets</h4>
+                                <p>Prioritize candidate engineering regulators using confidence and global pathway impact.</p>
+                            </div>
+                        </div>
+
+                        <!-- Platform Workflow Section -->
+                        <div class="landing-section">
+                            <h4><i class="fa-solid fa-route"></i> Platform Workflow Pipeline</h4>
+                            <div class="workflow-roadmap">
+                                <div class="roadmap-step">
+                                    <div class="step-num">1</div>
+                                    <h5>Evidence Network</h5>
+                                    <p>Curated and predicted links</p>
+                                </div>
+                                <div class="roadmap-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                <div class="roadmap-step">
+                                    <div class="step-num">2</div>
+                                    <h5>RF Confidence</h5>
+                                    <p>ML score prioritization</p>
+                                </div>
+                                <div class="roadmap-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                <div class="roadmap-step">
+                                    <div class="step-num">3</div>
+                                    <h5>Model Mapping</h5>
+                                    <p>iCW773 reaction links</p>
+                                </div>
+                                <div class="roadmap-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                <div class="roadmap-step">
+                                    <div class="step-num">4</div>
+                                    <h5>Enzyme Constrained</h5>
+                                    <p>ecCGL1 parameters</p>
+                                </div>
+                                <div class="roadmap-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                <div class="roadmap-step">
+                                    <div class="step-num">5</div>
+                                    <h5>Pathway View</h5>
+                                    <p>Upstream regulator search</p>
+                                </div>
+                                <div class="roadmap-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                <div class="roadmap-step">
+                                    <div class="step-num">6</div>
+                                    <h5>Prioritized Targets</h5>
+                                    <p>Engineering score ranks</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Citation & Limitations Section -->
+                        <div class="landing-grid-about">
+                            <div class="about-card citation-card">
+                                <h4><i class="fa-solid fa-quote-left"></i> How to Cite</h4>
+                                <p>If you use Cgl Regulation Explorer in your research, please cite:</p>
+                                <pre class="citation-text">Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum. Version 0.1.0. Available at: https://cgl-regulation.vercel.app/</pre>
+                                <p class="citation-muted">Zenodo DOI: <code style="font-family: monospace; font-size: 11px; background: rgba(99, 102, 241, 0.08); padding: 2px 6px; border-radius: 4px; color: var(--color-primary-accent);">10.5281/zenodo.placeholder</code></p>
+                            </div>
+                            <div class="about-card attribution-card">
+                                <h4><i class="fa-solid fa-database"></i> Data Attribution</h4>
+                                <p>This platform integrates public databases and models. Please cite the original resources:</p>
+                                <ul style="padding-left: 14px; font-size: 11px; display: flex; flex-direction: column; gap: 4px; line-height: 1.4; color: var(--text-secondary);">
+                                    <li><strong>TRNs</strong>: CoryneRegNet 7 / Extended regulatory network & sRNA-mediated regulation</li>
+                                    <li><strong>Metabolic Models</strong>: iCW773 genome-scale model (and iCGB21FR support context)</li>
+                                    <li><strong>Enzyme Constraints</strong>: ecCGL1 parameter annotations</li>
+                                    <li><strong>Pathway maps</strong>: KEGG-compatible pathway mapping</li>
+                                    <li><strong>Methods</strong>: RF edge confidence, reaction-pathway mapping, engineering target ranking</li>
+                                </ul>
+                            </div>
+                            <div class="about-card limitations-card">
+                                <h4><i class="fa-solid fa-circle-exclamation"></i> Current Limitations</h4>
+                                <ul>
+                                    <li><strong>ML Scores:</strong> Edge confidence metrics are prioritization markers, not biophysical probabilities.</li>
+                                    <li><strong>Mapping-only:</strong> Metabolic impact analysis is based on static structural mapping, not dynamic Flux Balance Analysis (FBA) calculations.</li>
+                                    <li><strong>Enzyme annotations:</strong> ecCGL1 parameters are annotated for pathway context; no active enzyme-constrained simulations are run in v0.1.</li>
+                                    <li><strong>Validation:</strong> All engineering prioritizations are hypothesis-generating; experimental wet-lab validation is required before drawing biological conclusions.</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Data & Model Quality Dashboard Overlay -->
+                <div id="quality-dashboard-overlay" class="quality-dashboard-container hidden">
+                    <div class="dashboard-header">
+                        <div class="dashboard-title-area">
+                            <h2><i class="fa-solid fa-chart-line"></i> Data & Model Quality Dashboard</h2>
+                            <p class="dashboard-subtitle">Platform-wide statistics, evidence reliability, metabolic mappings, and ecCGL1 enzyme constraint coverage.</p>
+                        </div>
+                        <div class="dashboard-actions">
+                            <button id="btn-export-quality-json" class="primary-btn"><i class="fa-solid fa-download"></i> Export JSON</button>
+                            <button id="btn-export-quality-csv" class="secondary-btn"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                        </div>
+                    </div>
+
+                    <!-- Warning banner if coverage is low -->
+                    <div id="quality-warning-banner" class="dashboard-warning-banner hidden">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span id="quality-warning-text">Warning: Metabolic model mapping or enzyme coverage is low!</span>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <!-- Card 1: Regulatory Network -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-network-wired"></i> Regulatory Network</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-main-row">
+                                    <div class="stat-main-col">
+                                        <div class="large-stat" id="stat-reg-nodes">0</div>
+                                        <div class="large-stat-label">Total Nodes</div>
+                                    </div>
+                                    <div class="stat-main-col">
+                                        <div class="large-stat" id="stat-reg-edges">0</div>
+                                        <div class="large-stat-label">Total Edges</div>
+                                    </div>
+                                </div>
+                                <hr class="card-divider">
+                                <div class="stats-subgrid">
+                                    <div class="sub-stat-item"><span>Transcription Factors (TF)</span><strong id="stat-reg-tfs">0</strong></div>
+                                    <div class="sub-stat-item"><span>Target Genes</span><strong id="stat-reg-genes">0</strong></div>
+                                    <div class="sub-stat-item"><span>sRNAs</span><strong id="stat-reg-srnas">0</strong></div>
+                                    <div class="sub-stat-item"><span>Operons</span><strong id="stat-reg-operons">0</strong></div>
+                                    <div class="sub-stat-item"><span>TF-Target Edges</span><strong id="stat-reg-tf-tg">0</strong></div>
+                                    <div class="sub-stat-item"><span>sRNA-Target Edges</span><strong id="stat-reg-srna-tg">0</strong></div>
+                                    <div class="sub-stat-item"><span>Activation Edges (+)</span><strong id="stat-reg-act">0</strong></div>
+                                    <div class="sub-stat-item"><span>Repression Edges (-)</span><strong id="stat-reg-rep">0</strong></div>
+                                    <div class="sub-stat-item"><span>Predicted Edges</span><strong id="stat-reg-pred">0</strong></div>
+                                    <div class="sub-stat-item"><span>Unknown Mode Edges</span><strong id="stat-reg-unknown">0</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Confidence Scores -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-circle-check"></i> Edge Confidence Scores</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-main-row">
+                                    <div class="stat-main-col">
+                                        <div class="large-stat" id="stat-conf-avg">0.00</div>
+                                        <div class="large-stat-label">Average Confidence</div>
+                                    </div>
+                                    <div class="stat-main-col">
+                                        <div class="large-stat" id="stat-conf-med">0.00</div>
+                                        <div class="large-stat-label">Median Confidence</div>
+                                    </div>
+                                </div>
+                                <hr class="card-divider">
+                                <div class="stats-subgrid">
+                                    <div class="sub-stat-item"><span>Edges with Confidence</span><strong id="stat-conf-total">0</strong></div>
+                                    <div class="sub-stat-item"><span>High Confidence (&ge;0.75)</span><strong id="stat-conf-high">0</strong></div>
+                                    <div class="sub-stat-item"><span>Medium Confidence (0.45-0.75)</span><strong id="stat-conf-med-count">0</strong></div>
+                                    <div class="sub-stat-item"><span>Low Confidence (&lt;0.45)</span><strong id="stat-conf-low">0</strong></div>
+                                    <div class="sub-stat-item"><span>RF Scores Available</span><strong id="stat-conf-rf">0</strong></div>
+                                    <div class="sub-stat-item"><span>Heuristic Scores Available</span><strong id="stat-conf-heur">0</strong></div>
+                                    <div class="sub-stat-item"><span>Average RF Score</span><strong id="stat-conf-rf-avg">0.00</strong></div>
+                                    <div class="sub-stat-item"><span>Average Heuristic Score</span><strong id="stat-conf-heur-avg">0.00</strong></div>
+                                </div>
+                                <div class="diff-box" id="stat-conf-diff-container">
+                                    <span>Average RF vs. Heuristic Absolute Difference:</span>
+                                    <strong id="stat-conf-diff">0.00</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Metabolic Model Mapping -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-route"></i> Metabolic Mapping (iCW773)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-main-row">
+                                    <div class="stat-main-col" style="flex: 2;">
+                                        <div class="large-stat" id="stat-meta-coverage">0.0%</div>
+                                        <div class="large-stat-label">Gene Mapping Coverage</div>
+                                    </div>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-fill" id="stat-meta-progress" style="width: 0%"></div>
+                                </div>
+                                <div class="stats-subgrid" style="margin-top: 12px;">
+                                    <div class="sub-stat-item"><span>Total Regulatory Genes</span><strong id="stat-meta-total-genes">0</strong></div>
+                                    <div class="sub-stat-item"><span>Genes Mapped to Reactions</span><strong id="stat-meta-rxn-genes">0</strong></div>
+                                    <div class="sub-stat-item"><span>Genes Mapped to Pathways</span><strong id="stat-meta-path-genes">0</strong></div>
+                                    <div class="sub-stat-item"><span>Unique Mapped Reactions</span><strong id="stat-meta-rxns">0</strong></div>
+                                    <div class="sub-stat-item"><span>Unique Mapped Pathways</span><strong id="stat-meta-paths">0</strong></div>
+                                </div>
+                                <hr class="card-divider">
+                                <div class="scroll-list-title">Unmapped Regulatory Genes (<span id="stat-meta-unmapped-count">0</span>)</div>
+                                <div class="scroll-list" id="list-meta-unmapped">
+                                    <!-- Dynamic list of unmapped genes -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: ecCGL1 Enzyme Coverage -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-dna"></i> Enzyme Constraints (ecCGL1)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-main-row">
+                                    <div class="stat-main-col" style="flex: 2;">
+                                        <div class="large-stat" id="stat-enz-coverage">0.0%</div>
+                                        <div class="large-stat-label">Enzyme Mapping Coverage</div>
+                                    </div>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-fill progress-bar-enzyme" id="stat-enz-progress" style="width: 0%"></div>
+                                </div>
+                                <div class="stats-subgrid" style="margin-top: 12px;">
+                                    <div class="sub-stat-item"><span>Genes with Enzyme Data</span><strong id="stat-enz-genes">0</strong></div>
+                                    <div class="sub-stat-item"><span>Enzyme Associated Reactions</span><strong id="stat-enz-rxns">0</strong></div>
+                                    <div class="sub-stat-item"><span>Reactions with kcat</span><strong id="stat-enz-kcat">0</strong></div>
+                                    <div class="sub-stat-item"><span>Reactions with MW</span><strong id="stat-enz-mw">0</strong></div>
+                                    <div class="sub-stat-item"><span>Reactions with kcat/MW</span><strong id="stat-enz-kcat-mw">0</strong></div>
+                                    <div class="sub-stat-item"><span>Reactions with EC Number</span><strong id="stat-enz-ec">0</strong></div>
+                                    <div class="sub-stat-item"><span>Reactions with UniProt ID</span><strong id="stat-enz-uniprot">0</strong></div>
+                                    <div class="sub-stat-item"><span>Potential Enzyme-Constrained</span><strong id="stat-enz-potential">0</strong></div>
+                                </div>
+                                <hr class="card-divider">
+                                <div class="scroll-list-title">Genes Missing ecCGL1 Enzyme Mapping (<span id="stat-enz-unmapped-count">0</span>)</div>
+                                <div class="scroll-list" id="list-enz-unmapped">
+                                    <!-- Dynamic list of genes missing enzyme mapping -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Examples & Case Studies Dashboard Overlay -->
+                <div id="examples-dashboard-overlay" class="examples-dashboard-container hidden">
+                    <div class="dashboard-header">
+                        <div class="dashboard-title-area">
+                            <h2><i class="fa-solid fa-graduation-cap"></i> Examples & Case Studies</h2>
+                            <p class="dashboard-subtitle">Reproducible example workflows demonstrating biological questions and strain engineering target analyses.</p>
+                        </div>
+                    </div>
+
+                    <div class="examples-grid">
+                        <!-- Card 1: Glutamate-associated Regulatory Analysis -->
+                        <div class="example-card" id="case-card-glutamate">
+                            <div class="example-card-header">
+                                <span class="case-badge mode-pathway">Pathway View</span>
+                                <h3>Glutamate-associated Regulatory Analysis</h3>
+                            </div>
+                            <div class="example-card-body">
+                                <p class="scientific-question"><strong>Question:</strong> Which transcription factors may regulate glutamate-associated metabolic modules?</p>
+                                <p class="case-description">Focuses on highlighting regulatory networks surrounding glutamate metabolism, mapping TF control over glutamate biosynthesis and transport.</p>
+                                
+                                <div class="workflow-steps">
+                                    <h4>Workflow Steps:</h4>
+                                    <ul>
+                                        <li>Identify all genes and reactions mapped to glutamate metabolism.</li>
+                                        <li>Retrieve upstream transcription factors targeting these genes.</li>
+                                        <li>Evaluate regulatory confidence scores and ecCGL1 constraint coverage.</li>
+                                    </ul>
+                                </div>
+
+                                <div class="case-meta-box">
+                                    <div class="meta-item"><strong>Expected Outputs:</strong> Upstream TFs, Regulated Genes/Reactions, ecCGL1 Coverage.</div>
+                                    <div class="meta-item"><strong>Limitations:</strong> Predicted relationships; does not simulate metabolic fluxes; requires validation.</div>
+                                </div>
+
+                                <div class="case-action-row">
+                                    <button class="primary-btn run-case-btn" data-case-id="glutamate-regulation"><i class="fa-solid fa-play"></i> Run example</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: TCA Cycle Upstream Regulator Discovery -->
+                        <div class="example-card" id="case-card-tca">
+                            <div class="example-card-header">
+                                <span class="case-badge mode-pathway">Pathway View</span>
+                                <h3>TCA Cycle Upstream Regulator Discovery</h3>
+                            </div>
+                            <div class="example-card-body">
+                                <p class="scientific-question"><strong>Question:</strong> Which regulators may influence TCA cycle reactions?</p>
+                                <p class="case-description">Focuses on the tricarboxylic acid (TCA) cycle, discovering transcription factors that target structural genes in citrate, succinate, or malate reactions.</p>
+                                
+                                <div class="workflow-steps">
+                                    <h4>Workflow Steps:</h4>
+                                    <ul>
+                                        <li>Identify genes and reactions involved in the citric acid cycle (TCA cycle).</li>
+                                        <li>Retrieve all transcription factors regulating these structural genes.</li>
+                                        <li>Sort regulators by target gene count and average link confidence.</li>
+                                    </ul>
+                                </div>
+
+                                <div class="case-meta-box">
+                                    <div class="meta-item"><strong>Expected Outputs:</strong> TCA Genes & Regulators, Confidence Averages, RF vs Heuristic comparisons.</div>
+                                    <div class="meta-item"><strong>Limitations:</strong> Predicted links; physiological significance varies; requires experimental validation.</div>
+                                </div>
+
+                                <div class="case-action-row">
+                                    <button class="primary-btn run-case-btn" data-case-id="tca-cycle-regulators"><i class="fa-solid fa-play"></i> Run example</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Amino Acid Biosynthesis Engineering Target Ranking -->
+                        <div class="example-card" id="case-card-amino-acid">
+                            <div class="example-card-header">
+                                <span class="case-badge mode-engineering">Engineering Targets</span>
+                                <h3>Amino Acid Biosynthesis Engineering Target Ranking</h3>
+                            </div>
+                            <div class="example-card-body">
+                                <p class="scientific-question"><strong>Question:</strong> Which TFs are prioritized as candidate regulators for amino acid biosynthesis?</p>
+                                <p class="case-description">Ranks transcription factors based on their potential impact on amino acid biosynthesis pathways, prioritizing candidates regulating multiple reactions.</p>
+                                
+                                <div class="workflow-steps">
+                                    <h4>Workflow Steps:</h4>
+                                    <ul>
+                                        <li>Query candidates prioritized by global metabolic impact.</li>
+                                        <li>Filter candidates by regulation of amino acid pathways.</li>
+                                        <li>Check recommendation levels, kcat coverage, and regulatory mode.</li>
+                                    </ul>
+                                </div>
+
+                                <div class="case-meta-box">
+                                    <div class="meta-item"><strong>Expected Outputs:</strong> Target prioritization tables, recommendation levels, reaction/pathway counts.</div>
+                                    <div class="meta-item"><strong>Limitations:</strong> Prioritization score represents impact potential; requires validation.</div>
+                                </div>
+
+                                <div class="case-action-row">
+                                    <button class="primary-btn run-case-btn" data-case-id="amino-acid-engineering-targets"><i class="fa-solid fa-play"></i> Run example</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case Study Results Presentation Panel -->
+                    <div id="case-study-results-panel" class="case-results-panel hidden">
+                        <div class="results-panel-header">
+                            <h3><i class="fa-solid fa-square-poll-vertical"></i> Case Study Results: <span id="results-case-title">-</span></h3>
+                            <button id="btn-export-case-report" class="secondary-btn"><i class="fa-solid fa-file-invoice"></i> Export case report JSON</button>
+                        </div>
+                        
+                        <div id="case-warning-banner" class="case-warning-banner hidden">
+                            <!-- Dynamic warning text -->
+                        </div>
+
+                        <div class="results-panel-content">
+                            <div class="results-narrative-box">
+                                <strong>Analysis Narrative:</strong>
+                                <p id="results-narrative-text">-</p>
+                            </div>
+                            
+                            <div class="results-details-columns">
+                                <div class="results-column">
+                                    <h4>Top Regulatory / Engineering Candidates</h4>
+                                    <div class="table-scroll-container">
+                                        <table class="case-results-table" id="case-results-table">
+                                            <thead>
+                                                <!-- Dynamic headers -->
+                                            </thead>
+                                            <tbody>
+                                                <!-- Dynamic rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="results-column">
+                                    <h4>Data Coverage & Quality Verification</h4>
+                                    <div class="case-quality-stats">
+                                        <div class="quality-stat-row">
+                                            <span>Regulatory Genes Mapped to iCW773:</span>
+                                            <strong id="results-qual-meta">-</strong>
+                                        </div>
+                                        <div class="quality-stat-row">
+                                            <span>Reactions Mapped / Mapped Pathways:</span>
+                                            <strong id="results-qual-reactions">-</strong>
+                                        </div>
+                                        <div class="quality-stat-row">
+                                            <span>Genes Mapped to ecCGL1:</span>
+                                            <strong id="results-qual-enz">-</strong>
+                                        </div>
+                                        <div class="quality-stat-row">
+                                            <span>Enzyme Constraint Reactions:</span>
+                                            <strong id="results-qual-enz-rxns">-</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Release Notes Dashboard Overlay -->
+                <div id="release-notes-overlay" class="release-notes-container hidden">
+                    <div class="dashboard-header">
+                        <div class="dashboard-title-area">
+                            <h2><i class="fa-solid fa-list-check"></i> Release Notes & Changelog</h2>
+                            <p class="dashboard-subtitle">Current release metadata, completed features, limitations, and citation requirements.</p>
+                        </div>
+                    </div>
+
+                    <div class="release-card">
+                        <div class="release-card-header">
+                            <span class="version-badge-lg">v0.1.0</span>
+                            <h3>Version v0.1.0 MVP - Regulatory-metabolic integration MVP</h3>
+                            <span class="release-date">June 2026</span>
+                        </div>
+                        <div class="release-card-body">
+                            <p class="release-intro">
+                                The v0.1.0 MVP establishes the core infrastructure for cross-linking biological transcriptional regulation 
+                                with structural metabolic reaction equations and protein constraints in <em>Corynebacterium glutamicum</em>.
+                            </p>
+
+                            <div class="release-section">
+                                <h4>Completed MVP Features</h4>
+                                <div class="features-checklist-grid">
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Workflow-based interface (Gene, Pathway, Engineering, Quality, Examples)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Default example network (cg0350 / whiB4 / sigH example loader)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Unified node / edge schema supporting dual-source transcription & sRNA inputs</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>RF-based regulatory edge confidence scoring (Random Forest ML prioritization scores)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>iCW773 metabolic model mapping (gene-reaction-pathway context bridging)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>ecCGL1 enzyme-constrained annotation support (kcat, MW, EC numbers, UniProt mapping)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Global Metabolic Impact ranking (ranking transcription factors by target reaction count)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Engineering Targets workflow (strain optimization prioritizations)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Pathway-centered Regulatory View (upstream regulators list for pathways)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Data & Model Quality Dashboard (comprehensive platform coverage audit)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Built-in Case Studies (glutamate, TCA cycle, and amino acid example workflows)</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>JSON / CSV data export support (cytoscape networks, quality stats, case reports)</span></div>
+                                </div>
+                            </div>
+
+                            <hr class="card-divider">
+
+                            <div class="release-grid-columns">
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-quote-left"></i> How to Cite</h4>
+                                    <p>If you use Cgl Regulation Explorer in your research, please cite:</p>
+                                    <pre class="release-citation">Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum. Version 0.1.0. Available at: https://cgl-regulation.vercel.app/</pre>
+                                    <p class="citation-muted">Zenodo DOI: <code style="font-family: monospace; font-size: 11px; background: rgba(99, 102, 241, 0.08); padding: 2px 6px; border-radius: 4px; color: var(--color-primary-accent);">10.5281/zenodo.placeholder</code></p>
+                                </div>
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-circle-exclamation"></i> Current Limitations</h4>
+                                    <ul class="release-limitations-list">
+                                        <li><strong>ML Scores:</strong> Edge confidence metrics are prioritization markers, not biophysical probabilities.</li>
+                                        <li><strong>Mapping-only:</strong> Metabolic impact analysis is based on static structural mapping, not dynamic Flux Balance Analysis (FBA) calculations.</li>
+                                        <li><strong>Enzyme annotations:</strong> ecCGL1 parameters are annotated for pathway context; no active enzyme-constrained simulations are run in v0.1.</li>
+                                        <li><strong>Validation:</strong> All engineering prioritizations are hypothesis-generating; experimental wet-lab validation is required before drawing biological conclusions.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- References & Data Attribution Dashboard Overlay -->
+                <div id="references-overlay" class="release-notes-container hidden">
+                    <div class="dashboard-header">
+                        <div class="dashboard-title-area">
+                            <h2><i class="fa-solid fa-book"></i> References & Data Attribution</h2>
+                            <p class="dashboard-subtitle">Citations for integrated public databases, metabolic models, enzyme constraint mappings, and algorithms.</p>
+                        </div>
+                    </div>
+
+                    <div class="release-card">
+                        <div class="release-card-body" style="padding-top: 0;">
+                            <div class="results-narrative-box" style="margin-bottom: 20px;">
+                                <strong>Platform Data Attribution Statement:</strong>
+                                <p style="margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--text-primary);">
+                                    Cgl Regulation Explorer integrates public regulatory network resources, genome-scale metabolic model annotations, enzyme-constrained model annotations, and pathway annotations for interactive regulatory-metabolic analysis. Original resources remain attributable to their respective authors and providers.
+                                </p>
+                            </div>
+
+                            <div class="release-grid-columns" style="margin-top: 0;">
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-network-wired"></i> Regulatory Network Resources</h4>
+                                    <ul class="release-limitations-list" style="margin-bottom: 16px;">
+                                        <li>
+                                            <strong>CoryneRegNet 7:</strong><br>
+                                            Parise, M.T.D. et al. <em>CoryneRegNet 7, the reference database and analysis platform for corynebacterial gene regulatory networks.</em> Scientific Data 7, 142 (2020).
+                                        </li>
+                                        <li>
+                                            <strong>Extended C. glutamicum TRN:</strong><br>
+                                            Parise, M.T.D. et al. <em>The transcriptional regulatory network of Corynebacterium glutamicum: an update.</em> BMC Genomics 12, 608 (2011).
+                                        </li>
+                                    </ul>
+
+                                    <h4><i class="fa-solid fa-route"></i> Genome-Scale Metabolic Models</h4>
+                                    <ul class="release-limitations-list" style="margin-bottom: 16px;">
+                                        <li>
+                                            <strong>iCW773 Model:</strong><br>
+                                            Zhang, Y. et al. <em>A new genome-scale metabolic model of Corynebacterium glutamicum and its application.</em> Biotechnology for Biofuels 10, 169 (2017).
+                                        </li>
+                                        <li>
+                                            <strong>iCGB21FR Model (Support Context):</strong><br>
+                                            Feierabend, M. et al. <em>High-Quality Genome-Scale Reconstruction of Corynebacterium glutamicum ATCC 13032.</em> Frontiers in Microbiology 12, 750206 (2021).
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-dna"></i> Enzyme-Constrained Models</h4>
+                                    <ul class="release-limitations-list" style="margin-bottom: 16px;">
+                                        <li>
+                                            <strong>ecCGL1 Model:</strong><br>
+                                            Niu, J. et al. <em>Construction and Analysis of an Enzyme-Constrained Metabolic Model of Corynebacterium glutamicum.</em> Biomolecules 12, 1499 (2022).
+                                        </li>
+                                    </ul>
+
+                                    <h4><i class="fa-solid fa-diagram-project"></i> Pathway Annotation Resources</h4>
+                                    <ul class="release-limitations-list" style="margin-bottom: 16px;">
+                                        <li>
+                                            <strong>KEGG Database:</strong><br>
+                                            Kanehisa, M. and Goto, S. <em>KEGG: Kyoto Encyclopedia of Genes and Genomes.</em> Nucleic Acids Research 28, 27–30 (2000).
+                                        </li>
+                                        <li>
+                                            <strong>KEGG Pathways Update:</strong><br>
+                                            Kanehisa, M. et al. <em>KEGG for taxonomy-based analysis of pathways and genomes.</em> Nucleic Acids Research 51, D587–D592 (2023).
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <hr class="card-divider" style="margin: 20px 0;">
+
+                            <div class="release-grid-columns" style="margin-top: 0; grid-template-columns: 1.5fr 1fr;">
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-quote-left"></i> How to Cite This Platform</h4>
+                                    <p>If you use Cgl Regulation Explorer in your research, please cite:</p>
+                                    <pre class="release-citation" style="margin-bottom: 8px;">Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum. Version 0.1.0. Available at: https://cgl-regulation.vercel.app/</pre>
+                                    <p class="citation-muted" style="margin-top: 4px; font-size: 10px; color: var(--text-muted);">Zenodo DOI: <code style="font-family: monospace; font-size: 11px; background: rgba(99, 102, 241, 0.08); padding: 2px 6px; border-radius: 4px; color: var(--color-primary-accent);">10.5281/zenodo.placeholder</code></p>
+                                </div>
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-file-shield"></i> Data Usage Disclaimer</h4>
+                                    <p style="font-size: 11.5px; line-height: 1.5; color: var(--text-secondary); margin: 0;">
+                                        Users should cite both this platform and the original data/model resources (CoryneRegNet, iCW773, ecCGL1, and KEGG) when using exported results, figures, or derived hypotheses.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Case Study Narrative Notification -->
+                <div id="case-floating-narrative" class="canvas-floating-box hidden" style="position: absolute; bottom: 80px; right: 20px; max-width: 320px; z-index: 15; padding: 14px; border-top: 3px solid var(--color-primary-accent); background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15); border-radius: 8px; backdrop-filter: blur(8px);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                        <strong style="font-size: 13px; color: var(--color-primary-accent);"><i class="fa-solid fa-graduation-cap"></i> Case Study Active</strong>
+                        <button id="btn-close-floating-narrative" style="background: none; border: none; font-size: 14px; cursor: pointer; color: var(--text-secondary); padding: 0 4px;"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <p id="floating-narrative-text" style="font-size: 11.5px; margin: 0 0 10px 0; line-height: 1.5; color: var(--text-primary);"></p>
+                    <div id="floating-case-warnings" style="font-size: 11px; color: #b45309; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 4px; padding: 6px 8px; margin-bottom: 10px;" class="hidden"></div>
+                    <button id="btn-floating-export-report" class="secondary-btn" style="width: 100%; height: 28px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;"><i class="fa-solid fa-file-invoice"></i> Export case report JSON</button>
                 </div>
                 <!-- History navigation -->
                 <div id="canvas-history-container" class="canvas-floating-box hidden">
@@ -911,10 +1492,114 @@
 
                     <div class="detail-section" id="detail-metabolic-impact-section">
                         <h3><i class="fa-solid fa-route" style="color:#0f766e;"></i> Metabolic Impact</h3>
+                        <p class="source-note" style="font-size: 10px; color: var(--text-secondary); margin: 4px 0 8px 0; font-style: italic; line-height: 1.4;"><i class="fa-solid fa-info-circle"></i> Gene–reaction–pathway mappings are derived from local GEM model adapters.</p>
                         <div id="metabolic-impact-content" class="metabolic-impact-card">
                             <span class="metabolic-muted">Select a gene or transcription factor to load metabolic model mapping.</span>
                         </div>
                     </div>
+
+                    <!-- FBA Simulation Panel -->
+                    <div class="detail-section" id="detail-fba-simulation-section" style="display: none;">
+                        <h3><i class="fa-solid fa-flask" style="color:#1e3a8a;"></i> FBA Metabolic Simulation</h3>
+                        <p class="source-note" style="font-size: 10px; color: var(--text-secondary); margin: 4px 0 8px 0; font-style: italic; line-height: 1.4;"><i class="fa-solid fa-info-circle"></i> Perform standard Flux Balance Analysis (FBA) simulation of gene knockout or TF perturbation.</p>
+                        
+                        <div class="fba-simulation-card" style="background: rgba(30, 58, 138, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-top: 8px;">
+                            <!-- Backend Status indicator -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 11px;">
+                                <span style="color: var(--text-secondary); font-weight: 500;">Model Status:</span>
+                                <span id="fba-backend-status" style="font-weight: 600; color: var(--text-muted);">Checking...</span>
+                            </div>
+                            
+                            <!-- FBA Configurations -->
+                            <div style="margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                <!-- Objective Selector -->
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Optimization Objective:</label>
+                                    <select id="fba-objective-select" style="width: 100%; height: 28px; font-size: 11px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
+                                        <option value="biomass">Growth / biomass objective</option>
+                                        <option value="reaction">Custom reaction objective</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Custom Reaction Search -->
+                                <div id="fba-custom-objective-container" class="hidden" style="margin-bottom: 10px; background: rgba(99, 102, 241, 0.03); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 6px; padding: 8px;">
+                                    <label style="display: block; font-size: 10px; font-weight: 600; color: var(--color-primary-accent); margin-bottom: 4px;">Set Custom Objective Reaction:</label>
+                                    <div style="display: flex; gap: 4px;">
+                                        <input type="text" id="fba-obj-reaction-search" placeholder="Search reaction (e.g. EX_glu_L_e)..." style="flex: 1; height: 26px; font-size: 11px; padding: 2px 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
+                                        <button id="btn-fba-obj-reaction-search" class="secondary-btn" style="height: 26px; padding: 0 8px; font-size: 10.5px; display: flex; align-items: center; justify-content: center;" title="Search reaction in model"><i class="fa-solid fa-search"></i></button>
+                                    </div>
+                                    <select id="fba-obj-reaction-select" style="width: 100%; height: 28px; font-size: 11px; margin-top: 6px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); display: none;">
+                                    </select>
+                                    <div id="fba-obj-reaction-equation" style="font-size: 10px; color: var(--text-secondary); margin-top: 4px; font-family: monospace; white-space: pre-wrap; line-height: 1.3;"></div>
+                                </div>
+
+                                <!-- Tracked Product Reaction -->
+                                <div style="margin-top: 10px;">
+                                    <label style="display: block; font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Track Reaction Flux:</label>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <input type="text" id="fba-track-reaction-search" placeholder="Search product (e.g. glutamate)..." style="flex: 1; height: 26px; font-size: 11px; padding: 2px 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
+                                        <button id="btn-fba-track-reaction-search" class="secondary-btn" style="height: 26px; padding: 0 8px; font-size: 10.5px; display: flex; align-items: center; justify-content: center;" title="Search tracked reaction"><i class="fa-solid fa-search"></i></button>
+                                    </div>
+                                    
+                                    <!-- Glutamate Discovery Helper Link -->
+                                    <div style="margin-top: 4px; display: flex; justify-content: space-between; align-items: center;">
+                                        <button id="btn-find-glutamate-helper" style="background: none; border: none; padding: 0; color: var(--color-primary-accent); font-size: 10px; cursor: pointer; text-decoration: underline; font-weight: 500;" title="Search and list L-glutamate reactions">
+                                            <i class="fa-solid fa-lightbulb"></i> Find glutamate-related reactions
+                                        </button>
+                                    </div>
+
+                                    <select id="fba-track-reaction-select" style="width: 100%; height: 28px; font-size: 11px; margin-top: 6px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); display: none;">
+                                    </select>
+                                    <div id="fba-track-reaction-equation" style="font-size: 10px; color: var(--text-secondary); margin-top: 4px; font-family: monospace; white-space: pre-wrap; line-height: 1.3;"></div>
+                                </div>
+                            </div>
+
+                            <div id="fba-action-container">
+                                <button id="btn-run-fba-simulation" class="secondary-btn" style="width: 100%; height: 32px; font-weight: 600; background: var(--color-primary-accent); color: #ffffff; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; border-radius: 4px;" disabled>
+                                    <i class="fa-solid fa-play"></i> Run Knockout Simulation
+                                </button>
+                            </div>
+                            
+                            <!-- Results Container -->
+                            <div id="fba-result-container" class="hidden" style="margin-top: 12px; border-top: 1px dashed var(--border-color); padding-top: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11.5px;">
+                                    <span style="color: var(--text-secondary);">Baseline Biomass:</span>
+                                    <strong id="fba-baseline-obj" style="color: var(--text-primary);">-</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11.5px;">
+                                    <span style="color: var(--text-secondary);">Knockout Biomass:</span>
+                                    <strong id="fba-perturbed-obj" style="color: var(--text-primary);">-</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11.5px;">
+                                    <span id="fba-change-label" style="color: var(--text-secondary);">Growth Change:</span>
+                                    <strong id="fba-change-pct" style="color: var(--text-primary);">-</strong>
+                                </div>
+
+                                <!-- Tracked reaction flux results table/div -->
+                                <div id="fba-tracked-flux-results" class="hidden" style="margin-top: 8px; border-top: 1px solid rgba(0, 0, 0, 0.05); padding-top: 8px;">
+                                    <div style="font-size: 11px; font-weight: 600; color: var(--color-primary-accent); margin-bottom: 6px;"><i class="fa-solid fa-chart-line"></i> Tracked Reaction Flux:</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 11.5px;">
+                                        <span style="color: var(--text-secondary);" id="fba-tracked-rxn-label">Reaction Flux:</span>
+                                        <strong id="fba-tracked-rxn-change-pct" style="color: var(--text-primary);">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 11px;">
+                                        <span style="color: var(--text-secondary); font-size: 10.5px;">- Baseline:</span>
+                                        <span id="fba-tracked-rxn-baseline" style="font-family: monospace; color: var(--text-primary); font-size: 10.5px;">-</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px;">
+                                        <span style="color: var(--text-secondary); font-size: 10.5px;">- Perturbed:</span>
+                                        <span id="fba-tracked-rxn-perturbed" style="font-family: monospace; color: var(--text-primary); font-size: 10.5px;">-</span>
+                                    </div>
+                                </div>
+                                
+                                <div id="fba-cautious-interpretation" style="font-size: 10.5px; line-height: 1.4; color: #b45309; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 8px; margin-top: 10px;">
+                                    <strong>Interpretation Note:</strong>
+                                    <p id="fba-interpretation-text" style="margin: 3px 0 0 0;">This growth rate is predicted under the current model objective and does not represent an actual experimental or production increase.</p>
+                                </div>
+                            </div>
+                            
+                            <div id="fba-error-container" class="hidden" style="margin-top: 10px; font-size: 11px; color: #d32f2f; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px; padding: 8px;"></div>
+                        </div>
 
                     <div class="detail-section ai-summary-section">
                         <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Literature & Function Summary</h3>
@@ -947,6 +1632,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        <p class="source-note" style="font-size: 10px; color: var(--text-secondary); margin: 6px 0 0 0; font-style: italic; line-height: 1.4;"><i class="fa-solid fa-info-circle"></i> RF confidence scores are prioritization scores generated by the platform and are not experimental validation probabilities.</p>
                     </div>
                 </div>
             </aside>
@@ -963,7 +1649,12 @@
     <script src="lib/tfMetabolicImpactRanking.js?v=1.0"></script>
     <script src="lib/pathwayRegulatoryView.js?v=1.0"></script>
     <script src="lib/candidateEngineeringTargets.js?v=1.0"></script>
+    <script src="lib/analysisQuality.js?v=1.0"></script>
+    <script src="lib/caseStudies.js?v=1.0"></script>
     <!-- Custom Application Logic -->
-    <script src="app.js?v=2.6"></script>
+    <script src="lib/modelObjectives.js?v=1.0"></script>
+    <script src="lib/objectiveInterpretation.js?v=1.0"></script>
+    <script src="lib/simulationClient.js?v=1.0"></script>
+<script src="app.js?v=2.8"></script>
 </body>
 </html>

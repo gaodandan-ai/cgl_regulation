@@ -27,3 +27,6 @@ desktop.ini
 # Local generated output visualization files
 *_network.png
 *_network_interactive.html
+
+# Large downloaded model directories
+data/model/ecCGL1-main/

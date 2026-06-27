@@ -5,3 +5,7 @@ matplotlib
 
 # Interactive HTML network visualization (optional, highly recommended)
 pyvis
+
+# Edge confidence modeling
+scikit-learn
+joblib

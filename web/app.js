@@ -14,6 +14,10 @@ let regulations = [];
 
 let rnaRegulations = [];
 
+let edgeConfidenceScores = [];
+
+let rfConfidenceByEdge = new Map();
+
 let normalizedNodes = {};
 
 let normalizedEdges = [];
@@ -143,6 +147,8 @@ let REGULATIONS_URL = 'data/regulations.csv';
 let RNA_REGULATIONS_URL = 'data/rna_regulation.csv';
 let MAPPING_URL = 'data/gene_mapping.csv';
 let OPERONS_URL = 'data/operons.csv';
+
+let EDGE_CONFIDENCE_SCORES_URL = 'data/edge_confidence/tf_gene_edge_scores.csv';
 
 
 
@@ -284,6 +290,10 @@ async function loadNetworkData() {
 
         }
 
+        updateStatus('Loading RF edge confidence scores...', 'loading');
+
+        await loadEdgeConfidenceScores();
+
 
 
         buildGeneIndex();
@@ -325,6 +335,99 @@ function parseCSV(text) {
 
     return parsed.data;
 
+}
+
+async function loadEdgeConfidenceScores() {
+    edgeConfidenceScores = [];
+    rfConfidenceByEdge = new Map();
+
+    try {
+        const response = await fetch(EDGE_CONFIDENCE_SCORES_URL);
+        if (!response.ok) {
+            console.warn('RF edge confidence scores not found. Falling back to heuristic confidence scoring.');
+            return;
+        }
+
+        const text = await response.text();
+        edgeConfidenceScores = parseCSV(text);
+        indexRfConfidenceScores(edgeConfidenceScores);
+        console.log(`Loaded ${edgeConfidenceScores.length} RF edge confidence scores.`);
+    } catch (err) {
+        console.warn('Unable to load RF edge confidence scores. Falling back to heuristic confidence scoring.', err);
+        edgeConfidenceScores = [];
+        rfConfidenceByEdge = new Map();
+    }
+}
+
+function edgePairKey(source, target) {
+    const src = cleanStr(source).toLowerCase();
+    const tgt = cleanStr(target).toLowerCase();
+    if (!src || !tgt) return '';
+    return `${src}=>${tgt}`;
+}
+
+function parseConfidenceScore(value) {
+    const parsed = parseFloat(value);
+    if (Number.isNaN(parsed)) return null;
+    return Math.max(0, Math.min(1, parsed));
+}
+
+function addRfConfidenceIndexEntry(source, target, row) {
+    const key = edgePairKey(source, target);
+    if (!key || rfConfidenceByEdge.has(key)) return;
+    const predictedConfidence = parseConfidenceScore(row.predicted_confidence);
+    if (predictedConfidence === null) return;
+
+    rfConfidenceByEdge.set(key, {
+        predictedConfidence,
+        confidenceRank: cleanStr(row.confidence_rank),
+        label: cleanStr(row.label),
+        sampleType: cleanStr(row.sample_type),
+        featureMissingCount: cleanStr(row.feature_missing_count),
+        expressionFeatureAvailable: cleanStr(row.expression_feature_available),
+        targetMappedReactionCount: cleanStr(row.target_mapped_reaction_count),
+        targetMappedPathwayCount: cleanStr(row.target_mapped_pathway_count),
+        targetEnzymeConstrainedReactionCount: cleanStr(row.target_enzyme_constrained_reaction_count),
+        targetKcatMedian: cleanStr(row.target_kcat_median),
+        targetKcatMwMedian: cleanStr(row.target_kcat_mw_median),
+        original: row
+    });
+}
+
+function indexRfConfidenceScores(rows) {
+    rfConfidenceByEdge = new Map();
+    (rows || []).forEach(row => {
+        addRfConfidenceIndexEntry(row.tf_locus, row.target_locus, row);
+        addRfConfidenceIndexEntry(row.tf_name, row.target_locus, row);
+        addRfConfidenceIndexEntry(row.tf_locus, row.target_name, row);
+        addRfConfidenceIndexEntry(row.tf_name, row.target_name, row);
+    });
+}
+
+function candidateGeneIdsForConfidenceLookup(id) {
+    const cleanId = cleanStr(id);
+    if (!cleanId) return [];
+    const lower = cleanId.toLowerCase();
+    const candidates = new Set([cleanId, lower]);
+    if (cgToCgl[lower]) candidates.add(cgToCgl[lower]);
+    if (cglToCg[lower]) candidates.add(cglToCg[lower]);
+    const meta = geneIndex[lower];
+    if (meta?.name) candidates.add(meta.name);
+    if (meta?.locusTag) candidates.add(meta.locusTag);
+    return Array.from(candidates).filter(Boolean);
+}
+
+function getRfConfidencePrediction(source, target) {
+    if (!rfConfidenceByEdge || rfConfidenceByEdge.size === 0) return null;
+    const sourceCandidates = candidateGeneIdsForConfidenceLookup(source);
+    const targetCandidates = candidateGeneIdsForConfidenceLookup(target);
+    for (const src of sourceCandidates) {
+        for (const tgt of targetCandidates) {
+            const match = rfConfidenceByEdge.get(edgePairKey(src, tgt));
+            if (match) return match;
+        }
+    }
+    return null;
 }
 
 function normalizeRegulationType(role, sourceType = 'TF-TG') {
@@ -420,7 +523,15 @@ function confidenceSummary(edge) {
     if (!edge) return '';
     const factors = edge.confidenceFactors || {};
     const percent = Math.round((edge.confidenceScore || 0) * 100);
-    return `Conf ${percent}% (${edge.confidenceLevel || 'low'}; motif ${Math.round((factors.motif || 0) * 100)} / ChIP ${Math.round((factors.chip || 0) * 100)} / expr ${Math.round((factors.expression || 0) * 100)} / db ${Math.round((factors.database || 0) * 100)})`;
+    const rf = edge.predictedConfidence ?? edge.rfConfidence ?? factors.randomForest;
+    const heuristic = edge.heuristicConfidenceScore;
+    const modelText = rf !== undefined && rf !== null && !Number.isNaN(Number(rf))
+        ? `RF ${Math.round(Number(rf) * 100)}%`
+        : `heuristic ${percent}%`;
+    const heuristicText = heuristic !== undefined && heuristic !== null
+        ? `; heuristic ${Math.round(Number(heuristic) * 100)}%`
+        : '';
+    return `Conf ${percent}% (${edge.confidenceLevel || 'low'}; ${modelText}${heuristicText}; motif ${Math.round((factors.motif || 0) * 100)} / ChIP ${Math.round((factors.chip || 0) * 100)} / expr ${Math.round((factors.expression || 0) * 100)} / db ${Math.round((factors.database || 0) * 100)})`;
 }
 
 function getNodeMetaForDetails(locus) {
@@ -477,7 +588,12 @@ function normalizeTfEdge(row, index) {
         expression: confidenceFromExpression(row, 'TF-TG'),
         database: confidenceFromEvidence(row.Evidence || row.Source)
     };
-    const confidenceScore = combineConfidenceScores(factors);
+    const heuristicConfidenceScore = combineConfidenceScores(factors);
+    const rfPrediction = getRfConfidencePrediction(source, target);
+    const confidenceScore = rfPrediction?.predictedConfidence ?? heuristicConfidenceScore;
+    if (rfPrediction) {
+        factors.randomForest = rfPrediction.predictedConfidence;
+    }
     const role = cleanStr(row.Role);
     return {
         id: `edge_${source}_${target}_${index}`,
@@ -490,6 +606,10 @@ function normalizeTfEdge(row, index) {
         legacyRole: role,
         interactionClass: 'TF-TG',
         confidenceScore,
+        heuristicConfidenceScore,
+        predictedConfidence: rfPrediction?.predictedConfidence ?? null,
+        confidenceModel: rfPrediction ? 'random_forest' : 'heuristic',
+        rfConfidenceRank: rfPrediction?.confidenceRank || '',
         confidenceLevel: confidenceLevel(confidenceScore),
         confidenceFactors: factors,
         evidence: {
@@ -497,7 +617,17 @@ function normalizeTfEdge(row, index) {
             databaseEvidence: cleanStr(row.Evidence),
             source: cleanStr(row.Source),
             pmid: cleanStr(row.PMID),
-            expressionCorrelation: cleanStr(row.expression_correlation ?? row.Expression_correlation ?? row.correlation ?? '')
+            expressionCorrelation: cleanStr(row.expression_correlation ?? row.Expression_correlation ?? row.correlation ?? ''),
+            rfConfidenceRank: rfPrediction?.confidenceRank || '',
+            rfSampleType: rfPrediction?.sampleType || '',
+            rfLabel: rfPrediction?.label || '',
+            rfFeatureMissingCount: rfPrediction?.featureMissingCount || '',
+            rfExpressionFeatureAvailable: rfPrediction?.expressionFeatureAvailable || '',
+            rfTargetMappedReactionCount: rfPrediction?.targetMappedReactionCount || '',
+            rfTargetMappedPathwayCount: rfPrediction?.targetMappedPathwayCount || '',
+            rfTargetEnzymeConstrainedReactionCount: rfPrediction?.targetEnzymeConstrainedReactionCount || '',
+            rfTargetKcatMedian: rfPrediction?.targetKcatMedian || '',
+            rfTargetKcatMwMedian: rfPrediction?.targetKcatMwMedian || ''
         },
         original: row
     };
@@ -1011,6 +1141,48 @@ function setActiveWorkflowEntry(workflow) {
     document.querySelectorAll('.workflow-entry').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-workflow') === workflow);
     });
+
+    // Toggle quality dashboard container
+    const qualityDashboard = document.getElementById('quality-dashboard-overlay');
+    if (qualityDashboard) {
+        if (workflow === 'quality') {
+            qualityDashboard.classList.remove('hidden');
+            updateQualityDashboard();
+        } else {
+            qualityDashboard.classList.add('hidden');
+        }
+    }
+
+    // Toggle examples dashboard container
+    const examplesDashboard = document.getElementById('examples-dashboard-overlay');
+    if (examplesDashboard) {
+        if (workflow === 'examples') {
+            examplesDashboard.classList.remove('hidden');
+            initExamplesDashboard();
+        } else {
+            examplesDashboard.classList.add('hidden');
+        }
+    }
+
+    // Toggle release notes container
+    const releaseDashboard = document.getElementById('release-notes-overlay');
+    if (releaseDashboard) {
+        if (workflow === 'release') {
+            releaseDashboard.classList.remove('hidden');
+        } else {
+            releaseDashboard.classList.add('hidden');
+        }
+    }
+
+    // Toggle references container
+    const referencesDashboard = document.getElementById('references-overlay');
+    if (referencesDashboard) {
+        if (workflow === 'references') {
+            referencesDashboard.classList.remove('hidden');
+        } else {
+            referencesDashboard.classList.add('hidden');
+        }
+    }
 }
 
 function scrollLeftSidebarTo(selector) {
@@ -1025,6 +1197,9 @@ function initWorkflowEntrypoints() {
     const geneEntry = document.getElementById('workflow-entry-gene');
     const pathwayEntry = document.getElementById('workflow-entry-pathway');
     const engineeringEntry = document.getElementById('workflow-entry-engineering');
+    const qualityEntry = document.getElementById('workflow-entry-quality');
+    const examplesEntry = document.getElementById('workflow-entry-examples');
+    const releaseEntry = document.getElementById('workflow-entry-release');
 
     if (geneEntry && !geneEntry.dataset.bound) {
         geneEntry.dataset.bound = '1';
@@ -1055,6 +1230,31 @@ function initWorkflowEntrypoints() {
             scrollLeftSidebarTo('.engineering-targets-section');
             const input = document.getElementById('engineering-target-pathway-filter');
             if (input) input.focus();
+        });
+    }
+    if (qualityEntry && !qualityEntry.dataset.bound) {
+        qualityEntry.dataset.bound = '1';
+        qualityEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('quality');
+        });
+    }
+    if (examplesEntry && !examplesEntry.dataset.bound) {
+        examplesEntry.dataset.bound = '1';
+        examplesEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('examples');
+        });
+    }
+    if (releaseEntry && !releaseEntry.dataset.bound) {
+        releaseEntry.dataset.bound = '1';
+        releaseEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('release');
+        });
+    }
+    const referencesEntry = document.getElementById('workflow-entry-references');
+    if (referencesEntry && !referencesEntry.dataset.bound) {
+        referencesEntry.dataset.bound = '1';
+        referencesEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('references');
         });
     }
 }
@@ -2315,6 +2515,10 @@ function buildElements(queryLoci) {
                 type: edge.interactionClass,
                 regulationType,
                 confidenceScore: edge.confidenceScore,
+                heuristicConfidenceScore: edge.heuristicConfidenceScore,
+                predictedConfidence: edge.predictedConfidence,
+                confidenceModel: edge.confidenceModel,
+                rfConfidenceRank: edge.rfConfidenceRank,
                 confidencePercent: Math.round((edge.confidenceScore || 0) * 100),
                 confidenceLevel: edge.confidenceLevel,
                 confidenceFactors: edge.confidenceFactors,
@@ -3243,6 +3447,279 @@ function showNodeDetails(locusTag) {
 
     // Slide open sidebar
     toggleRightSidebar(true);
+
+    // Initialize FBA simulation
+    initFbaSimulation(meta.locusTag, meta.type);
+}
+
+async function initFbaSimulation(locusTag, nodeType) {
+    const fbaSection = document.getElementById('detail-fba-simulation-section');
+    const fbaStatus = document.getElementById('fba-backend-status');
+    const fbaBtn = document.getElementById('btn-run-fba-simulation');
+    const fbaResult = document.getElementById('fba-result-container');
+    const fbaError = document.getElementById('fba-error-container');
+    
+    // Config controls
+    const objSelect = document.getElementById('fba-objective-select');
+    const customObjContainer = document.getElementById('fba-custom-objective-container');
+    const objSearchInput = document.getElementById('fba-obj-reaction-search');
+    const btnObjSearch = document.getElementById('btn-fba-obj-reaction-search');
+    const objRxnSelect = document.getElementById('fba-obj-reaction-select');
+    const objEquation = document.getElementById('fba-obj-reaction-equation');
+    
+    const trackSearchInput = document.getElementById('fba-track-reaction-search');
+    const btnTrackSearch = document.getElementById('btn-fba-track-reaction-search');
+    const trackRxnSelect = document.getElementById('fba-track-reaction-select');
+    const trackEquation = document.getElementById('fba-track-reaction-equation');
+    const btnFindGlutamate = document.getElementById('btn-find-glutamate-helper');
+    
+    // Outputs
+    const changeLabel = document.getElementById('fba-change-label');
+    const trackedResultsBox = document.getElementById('fba-tracked-flux-results');
+    const interpretationText = document.getElementById('fba-interpretation-text');
+    
+    if (!fbaSection || !fbaStatus || !fbaBtn || !fbaResult || !fbaError) return;
+    
+    // Show section
+    fbaSection.style.display = 'block';
+    
+    // Clear previous results & errors
+    fbaResult.classList.add('hidden');
+    fbaError.classList.add('hidden');
+    
+    // Reset inputs but preserve state if appropriate
+    if (objSelect) {
+        objSelect.value = 'biomass';
+        if (customObjContainer) customObjContainer.classList.add('hidden');
+        objSelect.onchange = () => {
+            if (objSelect.value === 'reaction') {
+                customObjContainer.classList.remove('hidden');
+            } else {
+                customObjContainer.classList.add('hidden');
+            }
+        };
+    }
+    
+    const equationsMap = new Map();
+    
+    const populateReactionsSelect = (selectElement, equationDiv, matches) => {
+        selectElement.innerHTML = '';
+        if (!matches || matches.length === 0) {
+            selectElement.style.display = 'none';
+            equationDiv.textContent = 'No matching reactions found.';
+            return;
+        }
+        
+        selectElement.style.display = 'block';
+        
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = `-- Select verified reaction (${matches.length} matches) --`;
+        selectElement.appendChild(placeholder);
+        
+        matches.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.reactionId;
+            opt.textContent = `[${m.reactionId}] ${m.name || 'Unnamed'}`;
+            selectElement.appendChild(opt);
+            equationsMap.set(m.reactionId, m.equation);
+        });
+        
+        selectElement.onchange = () => {
+            const rxnId = selectElement.value;
+            if (rxnId && equationsMap.has(rxnId)) {
+                equationDiv.textContent = `Equation: ${equationsMap.get(rxnId)}`;
+            } else {
+                equationDiv.textContent = '';
+            }
+        };
+    };
+    
+    // Wire Search actions
+    if (btnObjSearch && objSearchInput && objRxnSelect && objEquation) {
+        btnObjSearch.onclick = async () => {
+            const q = objSearchInput.value.trim();
+            if (!q) return;
+            btnObjSearch.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            const data = await window.simulationClient.searchReactions(q);
+            btnObjSearch.innerHTML = '<i class="fa-solid fa-search"></i>';
+            populateReactionsSelect(objRxnSelect, objEquation, data.matches);
+        };
+    }
+    
+    if (btnTrackSearch && trackSearchInput && trackRxnSelect && trackEquation) {
+        btnTrackSearch.onclick = async () => {
+            const q = trackSearchInput.value.trim();
+            if (!q) return;
+            btnTrackSearch.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            const data = await window.simulationClient.searchReactions(q);
+            btnTrackSearch.innerHTML = '<i class="fa-solid fa-search"></i>';
+            populateReactionsSelect(trackRxnSelect, trackEquation, data.matches);
+        };
+    }
+    
+    if (btnFindGlutamate && trackSearchInput && btnTrackSearch) {
+        btnFindGlutamate.onclick = () => {
+            trackSearchInput.value = 'glutamate';
+            btnTrackSearch.click();
+        };
+    }
+    
+    // Set loading status
+    fbaStatus.textContent = 'Checking...';
+    fbaStatus.style.color = 'var(--text-muted)';
+    fbaBtn.disabled = true;
+    
+    // Update button text depending on nodeType
+    const isTf = (nodeType === 'TF' || nodeType === 'sRNA');
+    fbaBtn.innerHTML = isTf 
+        ? '<i class="fa-solid fa-play"></i> Run TF Target Perturbation'
+        : '<i class="fa-solid fa-play"></i> Run Gene Knockout';
+        
+    // Check backend status
+    const status = await window.simulationClient.getModelStatus();
+    if (status && status.loaded) {
+        fbaStatus.textContent = `Model Loaded (${status.reaction_count} rxns)`;
+        fbaStatus.style.color = 'var(--color-activation)';
+        fbaBtn.disabled = false;
+    } else {
+        fbaStatus.textContent = status && status.error ? `Offline (${status.error})` : 'Offline (backend unreachable)';
+        fbaStatus.style.color = 'var(--color-repression)';
+        fbaBtn.disabled = true;
+    }
+    
+    // Wire button action
+    fbaBtn.onclick = async () => {
+        fbaBtn.disabled = true;
+        fbaBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Simulating...';
+        fbaResult.classList.add('hidden');
+        fbaError.classList.add('hidden');
+        
+        const objective = {
+            objectiveType: objSelect ? objSelect.value : 'biomass',
+            reactionId: null
+        };
+        if (objective.objectiveType === 'reaction') {
+            const rxn = objRxnSelect ? objRxnSelect.value : '';
+            if (!rxn) {
+                fbaBtn.disabled = false;
+                fbaBtn.innerHTML = isTf 
+                    ? '<i class="fa-solid fa-play"></i> Run TF Target Perturbation'
+                    : '<i class="fa-solid fa-play"></i> Run Gene Knockout';
+                fbaError.classList.remove('hidden');
+                fbaError.textContent = 'Please select a custom objective reaction first.';
+                return;
+            }
+            objective.reactionId = rxn;
+        }
+        
+        const trackReactionIds = [];
+        if (trackRxnSelect && trackRxnSelect.value) {
+            trackReactionIds.push(trackRxnSelect.value);
+        }
+        
+        let res;
+        if (isTf) {
+            const targetGeneIds = [];
+            if (window.cy) {
+                window.cy.edges(`[source = "${locusTag}"]`).targets().forEach(node => {
+                    targetGeneIds.push(node.id());
+                });
+            }
+            res = await window.simulationClient.runTFPerturbation(locusTag, targetGeneIds, objective, trackReactionIds);
+        } else {
+            res = await window.simulationClient.runGeneKnockout(locusTag, objective, trackReactionIds);
+        }
+        
+        fbaBtn.disabled = false;
+        fbaBtn.innerHTML = isTf 
+            ? '<i class="fa-solid fa-play"></i> Run TF Target Perturbation'
+            : '<i class="fa-solid fa-play"></i> Run Gene Knockout';
+            
+        if (res && res.status && res.status !== 'error') {
+            fbaResult.classList.remove('hidden');
+            
+            const baseline = res.baselineObjective;
+            const perturbed = res.perturbedObjective;
+            const change = res.objectiveChange;
+            const pct = res.objectiveChangePercent;
+            
+            const unit = " mmol/gDCW/h";
+            document.getElementById('fba-baseline-obj').textContent = baseline.toFixed(4) + unit;
+            document.getElementById('fba-perturbed-obj').textContent = perturbed.toFixed(4) + unit;
+            
+            if (changeLabel) {
+                changeLabel.textContent = objective.objectiveType === 'biomass' ? 'Growth Change:' : 'Objective Change:';
+            }
+            
+            const changeEl = document.getElementById('fba-change-pct');
+            changeEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + "%";
+            
+            if (pct < -0.01) {
+                changeEl.style.color = 'var(--color-repression)';
+            } else if (pct > 0.01) {
+                changeEl.style.color = 'var(--color-activation)';
+            } else {
+                changeEl.style.color = 'var(--text-primary)';
+            }
+            
+            // Render Tracked Fluxes
+            if (trackedResultsBox) {
+                if (res.trackedFluxes && res.trackedFluxes.length > 0) {
+                    trackedResultsBox.classList.remove('hidden');
+                    const tf = res.trackedFluxes[0];
+                    
+                    const labelSpan = document.getElementById('fba-tracked-rxn-label');
+                    if (labelSpan) labelSpan.textContent = `Reaction [${tf.reactionId}]:`;
+                    
+                    const tfPct = tf.fluxChangePercent;
+                    const changeVal = tf.fluxChange;
+                    const changeText = (changeVal >= 0 ? '+' : '') + changeVal.toFixed(4) + ` (${(tfPct >= 0 ? '+' : '')}${tfPct.toFixed(1)}%)`;
+                    
+                    const tfPctEl = document.getElementById('fba-tracked-rxn-change-pct');
+                    if (tfPctEl) {
+                        tfPctEl.textContent = changeText;
+                        if (changeVal < -1e-5) {
+                            tfPctEl.style.color = 'var(--color-repression)';
+                        } else if (changeVal > 1e-5) {
+                            tfPctEl.style.color = 'var(--color-activation)';
+                        } else {
+                            tfPctEl.style.color = 'var(--text-primary)';
+                        }
+                    }
+                    
+                    const baselineEl = document.getElementById('fba-tracked-rxn-baseline');
+                    if (baselineEl) baselineEl.textContent = tf.baselineFlux.toFixed(4) + " mmol/gDCW/h";
+                    
+                    const perturbedEl = document.getElementById('fba-tracked-rxn-perturbed');
+                    if (perturbedEl) perturbedEl.textContent = tf.perturbedFlux.toFixed(4) + " mmol/gDCW/h";
+                } else {
+                    trackedResultsBox.classList.add('hidden');
+                }
+            }
+            
+            // Render Interpretation text
+            if (interpretationText && window.objectiveInterpretation) {
+                interpretationText.textContent = window.objectiveInterpretation.generateObjectiveSimulationInterpretation(res);
+            }
+            
+            // Show warnings if any
+            if (res.warnings && res.warnings.length > 0) {
+                fbaError.classList.remove('hidden');
+                fbaError.style.color = '#b45309';
+                fbaError.style.background = '#fffbeb';
+                fbaError.style.borderColor = '#fef3c7';
+                fbaError.innerHTML = '<strong>Warnings:</strong><ul style="margin: 4px 0 0 0; padding-left: 14px;">' + 
+                    res.warnings.map(w => `<li>${w}</li>`).join('') + '</ul>';
+            }
+        } else {
+            fbaError.classList.remove('hidden');
+            fbaError.style.color = '#d32f2f';
+            fbaError.style.background = '#fef2f2';
+            fbaError.style.borderColor = '#fee2e2';
+            fbaError.textContent = res && res.error ? `Simulation failed: ${res.error}` : 'Simulation failed: Backend offline or model loading failed.';
+        }
+    };
 }
 
 
@@ -5423,6 +5900,41 @@ function highlightMetabolicPathwayGenes(geneIds, reactionIds) {
     });
 }
 
+function formatMetabolicNumber(value, digits = 3) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return '';
+    if (Math.abs(parsed) >= 1000) return parsed.toExponential(2);
+    return parsed.toFixed(digits).replace(/\.?0+$/, '');
+}
+
+function renderEnzymeConstraintBadges(reaction) {
+    if (!reaction) return '';
+    const enzyme = reaction.enzyme_constraint || {};
+    const badges = [];
+    const ecNumber = reaction.ec_number || enzyme.ec_number;
+    const kcat = reaction.kcat ?? enzyme.kcat;
+    const molecularWeight = reaction.molecular_weight ?? enzyme.molecular_weight;
+    const kcatMw = reaction.kcat_MW ?? enzyme.kcat_MW;
+    const uniprotIds = reaction.uniprot_ids || enzyme.uniprot_ids || [];
+    const variant = reaction.reaction_variant || enzyme.model_variant;
+    const variantOf = reaction.variant_of || enzyme.variant_of;
+    const sourceCount = reaction.kcat_source_count ?? enzyme.kcat_source_count;
+
+    if (ecNumber) badges.push('EC ' + escapeHtml(ecNumber));
+    if (kcat !== undefined && kcat !== null) badges.push('kcat ' + escapeHtml(formatMetabolicNumber(kcat, 3)));
+    if (molecularWeight !== undefined && molecularWeight !== null) badges.push('MW ' + escapeHtml(formatMetabolicNumber(molecularWeight, 1)) + ' Da');
+    if (kcatMw !== undefined && kcatMw !== null) badges.push('kcat/MW ' + escapeHtml(formatMetabolicNumber(kcatMw, 3)));
+    if (Array.isArray(uniprotIds) && uniprotIds.length > 0) badges.push('UniProt ' + escapeHtml(uniprotIds.slice(0, 3).join(', ')));
+    if (variant) badges.push('variant ' + escapeHtml(variant));
+    if (variantOf) badges.push('paired ' + escapeHtml(variantOf));
+    if (sourceCount) badges.push('kcat sources ' + escapeHtml(sourceCount));
+
+    if (badges.length === 0) return '';
+    return '<div class="metabolic-enzyme-badges">'
+        + badges.map(text => '<span class="metabolic-enzyme-badge">' + text + '</span>').join('')
+        + '</div>';
+}
+
 function renderMetabolicImpact(data, detailLocus) {
     const section = document.getElementById('detail-metabolic-impact-section');
     const container = document.getElementById('metabolic-impact-content');
@@ -5483,7 +5995,7 @@ function renderMetabolicImpact(data, detailLocus) {
             + statHtml
             + '<div class="metabolic-subtitle">Top affected pathways</div>'
             + '<div class="metabolic-pathway-list">' + pathwayHtml + '</div>'
-            + '<div class="metabolic-source">Models: ' + escapeHtml((mapping.models || []).join(', ') || 'none') + (files ? ' - Files: ' + escapeHtml(files) : '') + '</div>';
+            + '<div class="metabolic-source">Models: ' + escapeHtml((mapping.models || []).join(', ') || 'none') + (files ? ' - Files: ' + escapeHtml(files) : '') + '<br><span class="source-attribution-note" style="font-size: 10px; font-style: italic; opacity: 0.85; margin-top: 4px; display: inline-block;">Gene–reaction–pathway mappings are derived from local GEM model adapters. Enzyme annotations are parsed from ecCGL1-derived model fields.</span></div>';
     } else {
         const gene = genes.find(g => String(g.locus || '').toLowerCase() === String(detailLocus || '').toLowerCase()) || genes[0] || {};
         const reactions = Array.from(new Map((gene.reactions || []).map(r => [String(r.model || 'model') + ':' + String(r.id), r])).values());
@@ -5497,6 +6009,7 @@ function renderMetabolicImpact(data, detailLocus) {
                 '<div class="metabolic-gene-row">'
                 + '<div class="metabolic-pathway-name">' + escapeHtml(r.id) + ': ' + escapeHtml(r.label || r.id) + '</div>'
                 + '<div class="metabolic-muted">' + escapeHtml(r.gpr_rule || r.equation || r.model || '') + '</div>'
+                + renderEnzymeConstraintBadges(r)
                 + '</div>'
             )).join('')
             : '<div class="metabolic-empty">No associated reactions are mapped for this gene.</div>';
@@ -5514,7 +6027,7 @@ function renderMetabolicImpact(data, detailLocus) {
             + '<div class="metabolic-gene-list">' + reactionHtml + '</div>'
             + '<div class="metabolic-subtitle">Pathways</div>'
             + '<div class="metabolic-pathway-list">' + pathwayHtml + '</div>'
-            + '<div class="metabolic-source">Models: ' + escapeHtml((mapping.models || []).join(', ') || 'none') + (files ? ' - Files: ' + escapeHtml(files) : '') + '</div>';
+            + '<div class="metabolic-source">Models: ' + escapeHtml((mapping.models || []).join(', ') || 'none') + (files ? ' - Files: ' + escapeHtml(files) : '') + '<br><span class="source-attribution-note" style="font-size: 10px; font-style: italic; opacity: 0.85; margin-top: 4px; display: inline-block;">Gene–reaction–pathway mappings are derived from local GEM model adapters. Enzyme annotations are parsed from ecCGL1-derived model fields.</span></div>';
     }
 
     container.querySelectorAll('.metabolic-pathway-button').forEach(btn => {
@@ -6369,7 +6882,7 @@ function exportNetworkToCsv() {
 
     let csvContent = '\uFEFF';
 
-    csvContent += 'Source Locus,Source Name,Source Function,Target Locus,Target Name,Target Function,Interaction,Role,Source/Score';
+    csvContent += 'Source Locus,Source Name,Source Function,Target Locus,Target Name,Target Function,Interaction,Role,Regulation Type,Confidence Score,Confidence Level,Confidence Model,Predicted RF Confidence,Heuristic Confidence,Motif Score,ChIP Score,Expression Score,Database Score,Schema Version,Source/Score';
 
     
 
@@ -6459,6 +6972,12 @@ function exportNetworkToCsv() {
 
         const factors = edge.data('confidenceFactors') || {};
 
+        const confidenceModel = edge.data('confidenceModel') || 'heuristic';
+
+        const predictedConfidence = edge.data('predictedConfidence');
+
+        const heuristicConfidenceScore = edge.data('heuristicConfidenceScore');
+
         const schemaVersion = edge.data('schemaVersion') || 'legacy';
 
         const evidence = edge.data('evidence') || {};
@@ -6479,11 +6998,17 @@ function exportNetworkToCsv() {
 
         }
 
-        sourceVal = `${sourceVal}; ${confidenceSummary({ confidenceScore, confidenceLevel: edgeConfidenceLevel, confidenceFactors: factors })}`;
+        sourceVal = `${sourceVal}; ${confidenceSummary({
+            confidenceScore,
+            confidenceLevel: edgeConfidenceLevel,
+            confidenceFactors: factors,
+            predictedConfidence,
+            heuristicConfidenceScore
+        })}`;
 
 
 
-        let line = `${cleanVal(sourceId)},${cleanVal(sourceLabel)},${cleanVal(sourceFunc)},${cleanVal(targetId)},${cleanVal(targetLabel)},${cleanVal(targetFunc)},${cleanVal(type)},${cleanVal(roleText)},${cleanVal(regulationType)},${cleanVal(confidenceScore.toFixed ? confidenceScore.toFixed(3) : confidenceScore)},${cleanVal(edgeConfidenceLevel)},${cleanVal(factors.motif || 0)},${cleanVal(factors.chip || 0)},${cleanVal(factors.expression || 0)},${cleanVal(factors.database || 0)},${cleanVal(schemaVersion)},${cleanVal(sourceVal)}`;
+        let line = `${cleanVal(sourceId)},${cleanVal(sourceLabel)},${cleanVal(sourceFunc)},${cleanVal(targetId)},${cleanVal(targetLabel)},${cleanVal(targetFunc)},${cleanVal(type)},${cleanVal(roleText)},${cleanVal(regulationType)},${cleanVal(confidenceScore.toFixed ? confidenceScore.toFixed(3) : confidenceScore)},${cleanVal(edgeConfidenceLevel)},${cleanVal(confidenceModel)},${cleanVal(predictedConfidence !== undefined && predictedConfidence !== null ? Number(predictedConfidence).toFixed(3) : '')},${cleanVal(heuristicConfidenceScore !== undefined && heuristicConfidenceScore !== null ? Number(heuristicConfidenceScore).toFixed(3) : '')},${cleanVal(factors.motif || 0)},${cleanVal(factors.chip || 0)},${cleanVal(factors.expression || 0)},${cleanVal(factors.database || 0)},${cleanVal(schemaVersion)},${cleanVal(sourceVal)}`;
 
 
 
@@ -7826,7 +8351,9 @@ function exportPerturbationToCsv() {
         const evidenceSummary = confidenceSummary({
             confidenceScore: score,
             confidenceLevel: level,
-            confidenceFactors: factors
+            confidenceFactors: factors,
+            predictedConfidence: edge.data('predictedConfidence'),
+            heuristicConfidenceScore: edge.data('heuristicConfidenceScore')
         });
 
 
@@ -9334,4 +9861,481 @@ function updateExampleTags() {
             container.appendChild(btn);
         });
     }
+}
+
+// ==========================================================================
+// 8. Data & Model Quality Dashboard Logic
+// ==========================================================================
+
+function getGlobalPlatformGraph() {
+    const nodes = Object.values(normalizedNodes || {}).map(node => ({
+        id: node.id,
+        label: node.label || node.id,
+        type: node.type,
+        nodeType: node.type
+    }));
+    
+    const edges = (normalizedEdges || []).map(edge => ({
+        source: edge.source,
+        target: edge.target,
+        type: edge.regulationType || 'unknown',
+        regulationType: edge.regulationType || 'unknown',
+        role: edge.role,
+        interactionClass: edge.interactionClass,
+        sourceType: edge.sourceType,
+        confidenceScore: edge.confidenceScore,
+        confidence: edge.confidenceScore,
+        heuristicConfidenceScore: edge.heuristicConfidenceScore,
+        predictedConfidence: edge.predictedConfidence,
+        confidenceFactors: edge.confidenceFactors
+    }));
+    
+    return { nodes, edges };
+}
+
+function renderGeneTagList(containerId, geneList) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!geneList || geneList.length === 0) {
+        container.innerHTML = '<span class="metabolic-muted" style="font-size: 11px;">None</span>';
+        return;
+    }
+    container.innerHTML = geneList.map(gene => `
+        <span class="gene-tag" title="Click to view details of ${gene}">${escapeHtml(gene)}</span>
+    `).join('');
+    
+    container.querySelectorAll('.gene-tag').forEach(tag => {
+        tag.addEventListener('click', () => {
+            const gene = tag.textContent.trim();
+            setActiveWorkflowEntry('gene');
+            scrollLeftSidebarTo('.search-section');
+            const searchInput = geneInputsContainer?.querySelector('.gene-input');
+            if (searchInput) searchInput.value = gene;
+            querySingleGene(gene);
+        });
+    });
+}
+
+function updateQualityDashboard() {
+    if (!window.analysisQuality) {
+        console.error("analysisQuality library not loaded!");
+        return;
+    }
+
+    const jsonBtn = document.getElementById('btn-export-quality-json');
+    if (jsonBtn && !jsonBtn.dataset.bound) {
+        jsonBtn.dataset.bound = '1';
+        jsonBtn.addEventListener('click', exportQualityReportJSON);
+    }
+    const csvBtn = document.getElementById('btn-export-quality-csv');
+    if (csvBtn && !csvBtn.dataset.bound) {
+        csvBtn.dataset.bound = '1';
+        csvBtn.addEventListener('click', exportQualityReportCSV);
+    }
+
+    const graph = getGlobalPlatformGraph();
+    const report = window.analysisQuality.getAnalysisQualityReport(graph);
+
+    document.getElementById('stat-reg-nodes').textContent = report.regulatoryNetwork.totalNodes;
+    document.getElementById('stat-reg-edges').textContent = report.regulatoryNetwork.totalEdges;
+    document.getElementById('stat-reg-tfs').textContent = report.regulatoryNetwork.tfCount;
+    document.getElementById('stat-reg-genes').textContent = report.regulatoryNetwork.geneCount;
+    document.getElementById('stat-reg-srnas').textContent = report.regulatoryNetwork.srnaCount;
+    document.getElementById('stat-reg-operons').textContent = report.regulatoryNetwork.operonCount;
+    document.getElementById('stat-reg-tf-tg').textContent = report.regulatoryNetwork.tfGeneEdgeCount;
+    document.getElementById('stat-reg-srna-tg').textContent = report.regulatoryNetwork.srnaEdgeCount;
+    document.getElementById('stat-reg-act').textContent = report.regulatoryNetwork.activationCount;
+    document.getElementById('stat-reg-rep').textContent = report.regulatoryNetwork.repressionCount;
+    document.getElementById('stat-reg-pred').textContent = report.regulatoryNetwork.predictedCount;
+    document.getElementById('stat-reg-unknown').textContent = report.regulatoryNetwork.unknownRegulationCount;
+
+    document.getElementById('stat-conf-avg').textContent = report.confidenceScores.averageConfidence.toFixed(2);
+    document.getElementById('stat-conf-med').textContent = report.confidenceScores.medianConfidence.toFixed(2);
+    document.getElementById('stat-conf-total').textContent = report.confidenceScores.totalEdgesWithConfidence;
+    document.getElementById('stat-conf-high').textContent = report.confidenceScores.highConfidenceEdgeCount;
+    document.getElementById('stat-conf-med-count').textContent = report.confidenceScores.mediumConfidenceEdgeCount;
+    document.getElementById('stat-conf-low').textContent = report.confidenceScores.lowConfidenceEdgeCount;
+    document.getElementById('stat-conf-rf').textContent = report.confidenceScores.rfConfidenceAvailableCount;
+    document.getElementById('stat-conf-heur').textContent = report.confidenceScores.heuristicConfidenceAvailableCount;
+    document.getElementById('stat-conf-rf-avg').textContent = report.confidenceScores.averageRfConfidence ? report.confidenceScores.averageRfConfidence.toFixed(2) : 'N/A';
+    document.getElementById('stat-conf-heur-avg').textContent = report.confidenceScores.averageHeuristicConfidence ? report.confidenceScores.averageHeuristicConfidence.toFixed(2) : 'N/A';
+
+    const diffContainer = document.getElementById('stat-conf-diff-container');
+    const diffText = document.getElementById('stat-conf-diff');
+    if (report.confidenceScores.averageAbsoluteDifference !== null && report.confidenceScores.averageAbsoluteDifference !== undefined) {
+        if (diffContainer) diffContainer.classList.remove('hidden');
+        if (diffText) diffText.textContent = report.confidenceScores.averageAbsoluteDifference.toFixed(2);
+    } else {
+        if (diffContainer) diffContainer.classList.add('hidden');
+    }
+
+    const metaGeneCount = report.metabolicMapping.regulatoryGeneCount;
+    const metaMappedCount = report.metabolicMapping.genesMappedToReactions;
+    const metaCoveragePercent = metaGeneCount > 0 ? (metaMappedCount / metaGeneCount) * 100 : 0;
+    
+    document.getElementById('stat-meta-coverage').textContent = `${metaCoveragePercent.toFixed(1)}%`;
+    document.getElementById('stat-meta-progress').style.width = `${metaCoveragePercent}%`;
+    document.getElementById('stat-meta-total-genes').textContent = metaGeneCount;
+    document.getElementById('stat-meta-rxn-genes').textContent = metaMappedCount;
+    document.getElementById('stat-meta-path-genes').textContent = report.metabolicMapping.genesMappedToPathways;
+    document.getElementById('stat-meta-rxns').textContent = report.metabolicMapping.mappedReactionCount;
+    document.getElementById('stat-meta-paths').textContent = report.metabolicMapping.mappedPathwayCount;
+    document.getElementById('stat-meta-unmapped-count').textContent = report.metabolicMapping.unmappedGeneCount;
+    
+    renderGeneTagList('list-meta-unmapped', report.metabolicMapping.unmappedGenes);
+
+    const enzGeneCount = report.metabolicMapping.regulatoryGeneCount;
+    const enzMappedCount = report.enzymeConstraintCoverage.genesWithEnzymeMapping;
+    const enzCoveragePercent = enzGeneCount > 0 ? (enzMappedCount / enzGeneCount) * 100 : 0;
+    
+    document.getElementById('stat-enz-coverage').textContent = `${enzCoveragePercent.toFixed(1)}%`;
+    document.getElementById('stat-enz-progress').style.width = `${enzCoveragePercent}%`;
+    document.getElementById('stat-enz-genes').textContent = enzMappedCount;
+    document.getElementById('stat-enz-rxns').textContent = report.enzymeConstraintCoverage.enzymeAssociatedReactionCount;
+    document.getElementById('stat-enz-kcat').textContent = report.enzymeConstraintCoverage.reactionsWithKcat;
+    document.getElementById('stat-enz-mw').textContent = report.enzymeConstraintCoverage.reactionsWithMolecularWeight;
+    document.getElementById('stat-enz-kcat-mw').textContent = report.enzymeConstraintCoverage.reactionsWithKcatPerMW;
+    document.getElementById('stat-enz-ec').textContent = report.enzymeConstraintCoverage.reactionsWithECNumber;
+    document.getElementById('stat-enz-uniprot').textContent = report.enzymeConstraintCoverage.reactionsWithUniProtId;
+    document.getElementById('stat-enz-potential').textContent = report.enzymeConstraintCoverage.potentialEnzymeConstrainedReactionCount;
+    document.getElementById('stat-enz-unmapped-count').textContent = report.enzymeConstraintCoverage.unmappedEnzymeGenes.length;
+    
+    renderGeneTagList('list-enz-unmapped', report.enzymeConstraintCoverage.unmappedEnzymeGenes);
+
+    const warningBanner = document.getElementById('quality-warning-banner');
+    const warningText = document.getElementById('quality-warning-text');
+    if (warningBanner && warningText) {
+        const warnings = [];
+        if (metaCoveragePercent < 45) {
+            warnings.push(`Metabolic mapping coverage is low (${metaCoveragePercent.toFixed(1)}%). Some regulatory genes are not captured in the iCW773 model.`);
+        }
+        if (enzCoveragePercent < 25) {
+            warnings.push(`ecCGL1 enzyme constraint coverage is low (${enzCoveragePercent.toFixed(1)}%). Many mapped reactions lack enzyme parameters (kcat, molecular weight).`);
+        }
+        
+        if (warnings.length > 0) {
+            warningText.innerHTML = warnings.join('<br>');
+            warningBanner.classList.remove('hidden');
+        } else {
+            warningBanner.classList.add('hidden');
+        }
+    }
+}
+
+function exportQualityReportJSON() {
+    const graph = getGlobalPlatformGraph();
+    const report = window.analysisQuality.getAnalysisQualityReport(graph);
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cgl_regulation_quality_report_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function exportQualityReportCSV() {
+    const graph = getGlobalPlatformGraph();
+    const report = window.analysisQuality.getAnalysisQualityReport(graph);
+    
+    const rows = [
+        ['Category', 'Metric', 'Value'],
+        ['Regulatory Network', 'Total Nodes', report.regulatoryNetwork.totalNodes],
+        ['Regulatory Network', 'Total Edges', report.regulatoryNetwork.totalEdges],
+        ['Regulatory Network', 'Transcription Factors (TF)', report.regulatoryNetwork.tfCount],
+        ['Regulatory Network', 'Target Genes', report.regulatoryNetwork.geneCount],
+        ['Regulatory Network', 'sRNAs', report.regulatoryNetwork.srnaCount],
+        ['Regulatory Network', 'Operons', report.regulatoryNetwork.operonCount],
+        ['Regulatory Network', 'TF-Target Edges', report.regulatoryNetwork.tfGeneEdgeCount],
+        ['Regulatory Network', 'sRNA-mRNA Edges', report.regulatoryNetwork.srnaEdgeCount],
+        ['Regulatory Network', 'Activation Edges (+)', report.regulatoryNetwork.activationCount],
+        ['Regulatory Network', 'Repression Edges (-)', report.regulatoryNetwork.repressionCount],
+        ['Regulatory Network', 'Predicted Edges', report.regulatoryNetwork.predictedCount],
+        ['Regulatory Network', 'Unknown Mode Edges', report.regulatoryNetwork.unknownRegulationCount],
+        
+        ['Confidence Scores', 'Edges with Confidence', report.confidenceScores.totalEdgesWithConfidence],
+        ['Confidence Scores', 'Average Confidence', report.confidenceScores.averageConfidence.toFixed(4)],
+        ['Confidence Scores', 'Median Confidence', report.confidenceScores.medianConfidence.toFixed(4)],
+        ['Confidence Scores', 'High Confidence Edges (>=0.75)', report.confidenceScores.highConfidenceEdgeCount],
+        ['Confidence Scores', 'Medium Confidence Edges (0.45-0.75)', report.confidenceScores.mediumConfidenceEdgeCount],
+        ['Confidence Scores', 'Low Confidence Edges (<0.45)', report.confidenceScores.lowConfidenceEdgeCount],
+        ['Confidence Scores', 'RF Scores Available', report.confidenceScores.rfConfidenceAvailableCount],
+        ['Confidence Scores', 'Heuristic Scores Available', report.confidenceScores.heuristicConfidenceAvailableCount],
+        ['Confidence Scores', 'Average RF Score', report.confidenceScores.averageRfConfidence ? report.confidenceScores.averageRfConfidence.toFixed(4) : 'N/A'],
+        ['Confidence Scores', 'Average Heuristic Score', report.confidenceScores.averageHeuristicConfidence ? report.confidenceScores.averageHeuristicConfidence.toFixed(4) : 'N/A'],
+        ['Confidence Scores', 'Average Absolute Difference (RF vs Heur)', report.confidenceScores.averageAbsoluteDifference ? report.confidenceScores.averageAbsoluteDifference.toFixed(4) : 'N/A'],
+        
+        ['Metabolic Mapping (iCW773)', 'Total Regulatory Genes', report.metabolicMapping.regulatoryGeneCount],
+        ['Metabolic Mapping (iCW773)', 'Genes Mapped to Reactions', report.metabolicMapping.genesMappedToReactions],
+        ['Metabolic Mapping (iCW773)', 'Genes Mapped to Pathways', report.metabolicMapping.genesMappedToPathways],
+        ['Metabolic Mapping (iCW773)', 'Unique Mapped Reactions', report.metabolicMapping.mappedReactionCount],
+        ['Metabolic Mapping (iCW773)', 'Unique Mapped Pathways', report.metabolicMapping.mappedPathwayCount],
+        ['Metabolic Mapping (iCW773)', 'Unmapped Regulatory Genes', report.metabolicMapping.unmappedGeneCount],
+        
+        ['Enzyme Constraints (ecCGL1)', 'Genes with Enzyme Mapping', report.enzymeConstraintCoverage.genesWithEnzymeMapping],
+        ['Enzyme Constraints (ecCGL1)', 'Enzyme Associated Reactions', report.enzymeConstraintCoverage.enzymeAssociatedReactionCount],
+        ['Enzyme Constraints (ecCGL1)', 'Reactions with kcat', report.enzymeConstraintCoverage.reactionsWithKcat],
+        ['Enzyme Constraints (ecCGL1)', 'Reactions with MW', report.enzymeConstraintCoverage.reactionsWithMolecularWeight],
+        ['Enzyme Constraints (ecCGL1)', 'Reactions with kcat/MW', report.enzymeConstraintCoverage.reactionsWithKcatPerMW],
+        ['Enzyme Constraints (ecCGL1)', 'Reactions with EC Number', report.enzymeConstraintCoverage.reactionsWithECNumber],
+        ['Enzyme Constraints (ecCGL1)', 'Reactions with UniProt ID', report.enzymeConstraintCoverage.reactionsWithUniProtId],
+        ['Enzyme Constraints (ecCGL1)', 'Potential Enzyme-Constrained Reactions', report.enzymeConstraintCoverage.potentialEnzymeConstrainedReactionCount]
+    ];
+    
+    const csvContent = rows.map(row => row.map(cell => {
+        const cellStr = cell === null || cell === undefined ? '' : String(cell);
+        return `"${cellStr.replace(/"/g, '""')}"`;
+    }).join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cgl_regulation_quality_metrics_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ==========================================================================
+// 9. Examples & Case Studies Logic
+// ==========================================================================
+
+let activeCaseStudyResult = null;
+
+function initExamplesDashboard() {
+    const runButtons = document.querySelectorAll('.run-case-btn');
+    runButtons.forEach(btn => {
+        if (!btn.dataset.bound) {
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', () => {
+                const caseId = btn.getAttribute('data-case-id');
+                runAndDisplayCaseStudy(caseId);
+            });
+        }
+    });
+
+    const exportBtn = document.getElementById('btn-export-case-report');
+    if (exportBtn && !exportBtn.dataset.bound) {
+        exportBtn.dataset.bound = '1';
+        exportBtn.addEventListener('click', () => {
+            if (activeCaseStudyResult) {
+                exportCaseReportJSON(activeCaseStudyResult);
+            }
+        });
+    }
+
+    const floatingExportBtn = document.getElementById('btn-floating-export-report');
+    if (floatingExportBtn && !floatingExportBtn.dataset.bound) {
+        floatingExportBtn.dataset.bound = '1';
+        floatingExportBtn.addEventListener('click', () => {
+            if (activeCaseStudyResult) {
+                exportCaseReportJSON(activeCaseStudyResult);
+            }
+        });
+    }
+
+    const closeFloatingBtn = document.getElementById('btn-close-floating-narrative');
+    if (closeFloatingBtn && !closeFloatingBtn.dataset.bound) {
+        closeFloatingBtn.dataset.bound = '1';
+        closeFloatingBtn.addEventListener('click', () => {
+            document.getElementById('case-floating-narrative').classList.add('hidden');
+        });
+    }
+}
+
+function runAndDisplayCaseStudy(caseId) {
+    if (!window.caseStudies) {
+        console.error("caseStudies library not loaded!");
+        return;
+    }
+
+    const graph = getGlobalPlatformGraph();
+    const result = window.caseStudies.runCaseStudy(caseId, graph);
+    activeCaseStudyResult = result;
+
+    const resultsPanel = document.getElementById('case-study-results-panel');
+    if (resultsPanel) {
+        resultsPanel.classList.remove('hidden');
+    }
+
+    document.getElementById('results-case-title').textContent = result.caseStudy.title;
+    document.getElementById('results-narrative-text').textContent = result.narrative;
+
+    const warningBanner = document.getElementById('case-warning-banner');
+    if (warningBanner) {
+        if (result.warnings && result.warnings.length > 0) {
+            warningBanner.innerHTML = result.warnings.join('<br>');
+            warningBanner.classList.remove('hidden');
+        } else {
+            warningBanner.classList.add('hidden');
+        }
+    }
+
+    const floatingCard = document.getElementById('case-floating-narrative');
+    const floatingText = document.getElementById('floating-narrative-text');
+    const floatingWarnings = document.getElementById('floating-case-warnings');
+    
+    if (floatingText) floatingText.textContent = result.narrative;
+    if (floatingWarnings) {
+        if (result.warnings && result.warnings.length > 0) {
+            floatingWarnings.innerHTML = result.warnings.join('<br>');
+            floatingWarnings.classList.remove('hidden');
+        } else {
+            floatingWarnings.classList.add('hidden');
+        }
+    }
+    if (floatingCard) {
+        floatingCard.classList.remove('hidden');
+    }
+
+    const table = document.getElementById('case-results-table');
+    if (table) {
+        const thead = table.querySelector('thead');
+        const tbody = table.querySelector('tbody');
+        tbody.innerHTML = '';
+
+        if (caseId === "glutamate-regulation" || caseId === "tca-cycle-regulators") {
+            thead.innerHTML = `
+                <tr>
+                    <th>Transcription Factor</th>
+                    <th>Target Genes count</th>
+                    <th>Avg Confidence</th>
+                    <th>Regulator Score</th>
+                    <th>Action</th>
+                </tr>
+            `;
+            const ranking = result.results.tfRanking || [];
+            if (ranking.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="metabolic-muted" style="text-align: center;">No upstream regulators found.</td></tr>';
+            } else {
+                tbody.innerHTML = ranking.slice(0, 10).map(tf => `
+                    <tr>
+                        <td><strong>${escapeHtml(tf.tfLabel || tf.tfId)}</strong></td>
+                        <td>${tf.regulatedGenes ? tf.regulatedGenes.length : 0} genes</td>
+                        <td>${tf.averageConfidence.toFixed(3)}</td>
+                        <td>${tf.regulatorScore.toFixed(3)}</td>
+                        <td><button class="secondary-btn search-tf-btn" data-tf="${escapeHtml(tf.tfId)}" style="height: 24px; font-size: 10px; padding: 0 8px;">Inspect TF</button></td>
+                    </tr>
+                `).join('');
+            }
+        } else if (caseId === "amino-acid-engineering-targets") {
+            thead.innerHTML = `
+                <tr>
+                    <th>Transcription Factor</th>
+                    <th>Candidate Score</th>
+                    <th>Recommendation</th>
+                    <th>Regulated Key Genes</th>
+                    <th>Avg Confidence</th>
+                    <th>Action</th>
+                </tr>
+            `;
+            const candidates = result.results.engineeringCandidates || [];
+            if (candidates.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="metabolic-muted" style="text-align: center;">No engineering candidates found.</td></tr>';
+            } else {
+                tbody.innerHTML = candidates.slice(0, 10).map(candidate => {
+                    const badgeClass = candidate.recommendationLevel === "high" ? "mode-engineering" : "mode-pathway";
+                    return `
+                        <tr>
+                            <td><strong>${escapeHtml(candidate.tfLabel || candidate.tfId)}</strong></td>
+                            <td><strong style="color: var(--color-primary-accent);">${candidate.candidateScore.toFixed(3)}</strong></td>
+                            <td><span class="case-badge ${badgeClass}">${candidate.recommendationLevel}</span></td>
+                            <td>${candidate.regulatedKeyGenes ? candidate.regulatedKeyGenes.length : 0} genes</td>
+                            <td>${candidate.averageConfidence.toFixed(3)}</td>
+                            <td><button class="secondary-btn search-tf-btn" data-tf="${escapeHtml(candidate.tfId)}" style="height: 24px; font-size: 10px; padding: 0 8px;">Inspect TF</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        tbody.querySelectorAll('.search-tf-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tfId = btn.getAttribute('data-tf');
+                setActiveWorkflowEntry('gene');
+                scrollLeftSidebarTo('.search-section');
+                const searchInput = geneInputsContainer?.querySelector('.gene-input');
+                if (searchInput) searchInput.value = tfId;
+                querySingleGene(tfId);
+            });
+        });
+    }
+
+    const qual = result.results.qualitySummary;
+    const enz = result.results.enzymeConstraintSummary;
+
+    document.getElementById('results-qual-meta').textContent = qual ? `${((qual.genesMappedToReactions / qual.regulatoryGeneCount) * 100).toFixed(1)}% (${qual.genesMappedToReactions}/${qual.regulatoryGeneCount})` : '-';
+    document.getElementById('results-qual-reactions').textContent = qual ? `${qual.mappedReactionCount} rxns / ${qual.mappedPathwayCount} pathways` : '-';
+    document.getElementById('results-qual-enz').textContent = qual && enz ? `${((enz.genesWithEnzymeMapping / qual.regulatoryGeneCount) * 100).toFixed(1)}% (${enz.genesWithEnzymeMapping}/${qual.regulatoryGeneCount})` : '-';
+    document.getElementById('results-qual-enz-rxns').textContent = enz ? `${enz.enzymeAssociatedReactionCount} reactions` : '-';
+
+    setTimeout(() => {
+        if (result.caseStudy.entryMode === "pathway") {
+            setActiveWorkflowEntry('pathway');
+            scrollLeftSidebarTo('.pathway-regulatory-view-section');
+            const pathInput = document.getElementById('pathway-view-input');
+            if (pathInput) {
+                const kw = result.caseStudy.pathwayKeyword;
+                pathInput.value = kw === 'glutamate' ? 'glutamate metabolism' : 'citric acid cycle (tca cycle)';
+                runPathwayRegulatoryView();
+            }
+        } else if (result.caseStudy.entryMode === "engineering-targets") {
+            setActiveWorkflowEntry('engineering');
+            scrollLeftSidebarTo('.engineering-targets-section');
+            const searchInput = document.getElementById('engineering-target-search');
+            const minScoreInput = document.getElementById('engineering-target-min-score');
+            const pathFilter = document.getElementById('engineering-target-pathway-filter');
+            
+            if (searchInput) searchInput.value = '';
+            if (minScoreInput) minScoreInput.value = '0';
+            if (pathFilter) {
+                pathFilter.value = result.caseStudy.pathwayKeyword || '';
+                refreshEngineeringTargetCandidates();
+            }
+        }
+    }, 1500);
+}
+
+function exportCaseReportJSON(caseResult) {
+    if (!caseResult) return;
+    
+    let topResults = [];
+    if (caseResult.caseStudy.id === "glutamate-regulation" || caseResult.caseStudy.id === "tca-cycle-regulators") {
+        topResults = (caseResult.results.tfRanking || []).slice(0, 10).map(tf => ({
+            tfId: tf.tfId,
+            tfLabel: tf.tfLabel,
+            regulatedGenesCount: tf.regulatedGenes ? tf.regulatedGenes.length : 0,
+            averageConfidence: tf.averageConfidence,
+            regulatorScore: tf.regulatorScore
+        }));
+    } else if (caseResult.caseStudy.id === "amino-acid-engineering-targets") {
+        topResults = (caseResult.results.engineeringCandidates || []).slice(0, 10).map(candidate => ({
+            tfId: candidate.tfId,
+            tfLabel: candidate.tfLabel,
+            candidateScore: candidate.candidateScore,
+            recommendationLevel: candidate.recommendationLevel,
+            regulatedKeyGenesCount: candidate.regulatedKeyGenes ? candidate.regulatedKeyGenes.length : 0,
+            averageConfidence: candidate.averageConfidence
+        }));
+    }
+
+    const report = {
+        reportType: "Case Study Analysis Report",
+        caseStudyId: caseResult.caseStudy.id,
+        caseStudyTitle: caseResult.caseStudy.title,
+        question: caseResult.caseStudy.question,
+        workflow: caseResult.caseStudy.workflow,
+        topResults: topResults,
+        qualityWarnings: caseResult.warnings,
+        limitations: caseResult.caseStudy.limitations,
+        generatedTimestamp: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cgl_case_report_${caseResult.caseStudy.id}_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
 }

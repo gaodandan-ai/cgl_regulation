@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use Cgl Regulation Explorer in your research, please cite it as below."
+authors:
+  - name: "Cgl Regulation Explorer Contributors"
+title: "Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum"
+version: 0.1.0
+doi: "10.5281/zenodo.placeholder"
+date-released: 2026-06-27
+url: "https://cgl-regulation.vercel.app/"
+repository-code: "https://github.com/gaodandan-ai/cgl_regulation"
+abstract: >-
+  Cgl Regulation Explorer is an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum.
+  It integrates transcriptional regulatory networks, Random Forest edge confidence scores, genome-scale metabolic model mapping (iCW773),
+  and ecCGL1 enzyme-constrained annotations to prioritize strain engineering targets.
+keywords:
+  - Corynebacterium glutamicum
+  - transcriptional regulatory network
+  - metabolic model mapping
+  - enzyme-constrained model
+  - strain engineering
+license: MIT

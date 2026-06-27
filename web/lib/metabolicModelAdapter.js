@@ -56,6 +56,22 @@
         return Array.from(pathways.values());
     }
 
+    function getEnzymeConstrainedReactionsForGene(geneId) {
+        return getReactionsForGene(geneId).filter(reaction =>
+            Boolean(reaction.enzyme_constraint || reaction.kcat || reaction.molecular_weight || reaction.kcat_MW)
+        );
+    }
+
+    function getReactionVariantsForGene(geneId) {
+        const grouped = {};
+        getEnzymeConstrainedReactionsForGene(geneId).forEach(reaction => {
+            const baseId = reaction.variant_of || reaction.id;
+            if (!grouped[baseId]) grouped[baseId] = [];
+            grouped[baseId].push(reaction);
+        });
+        return grouped;
+    }
+
     function getMetabolicImpactForTF(tfId, graph) {
         const normalizedTf = normalizeGeneId(tfId);
         const targets = new Set();
@@ -158,6 +174,8 @@
         normalizeGeneId,
         getReactionsForGene,
         getPathwaysForGene,
+        getEnzymeConstrainedReactionsForGene,
+        getReactionVariantsForGene,
         getMetabolicImpactForTF,
         loadMetabolicImpact,
         loadMetabolicPathways,
