@@ -324,6 +324,55 @@ h1, h2, h3, th {
     transform: rotate(180deg);
 }
 
+.left-sidebar-toggle {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 24;
+    height: 72px;
+    width: 32px;
+    border: 1px solid var(--border-color);
+    border-left: none;
+    border-radius: 0 10px 10px 0;
+    background: #ffffff;
+    color: var(--text-secondary);
+    box-shadow: 4px 0 14px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.left-sidebar-toggle span {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.left-sidebar-toggle i {
+    font-size: 11px;
+}
+
+.left-sidebar-toggle:hover {
+    color: var(--color-primary-accent);
+    border-color: rgba(99, 102, 241, 0.25);
+    box-shadow: 6px 0 18px rgba(15, 23, 42, 0.12);
+}
+
+.left-sidebar-toggle.collapsed i {
+    transform: rotate(180deg);
+}
+
+.left-sidebar-toggle:not(.collapsed) i {
+    transform: rotate(0deg);
+}
+
 .sidebar-section h2 {
     font-size: 14px;
     font-weight: 600;

@@ -79,6 +79,7 @@ const rightSidebar = document.getElementById('right-sidebar');
 const closeDetailBtn = document.getElementById('close-detail-btn');
 
 const rightSidebarToggle = document.getElementById('right-sidebar-toggle');
+const leftSidebarToggle = document.getElementById('left-sidebar-toggle');
 
 let activeInput = null;
 
@@ -1257,8 +1258,18 @@ function setActiveWorkflowEntry(workflow) {
         
         if (isFullscreen) {
             leftSidebar.classList.add('collapsed');
+            syncLeftSidebarToggleState(false);
+            if (leftSidebarToggle) leftSidebarToggle.style.display = 'none';
         } else {
-            leftSidebar.classList.remove('collapsed');
+            const isSavedCollapsed = localStorage.getItem('left-sidebar-collapsed') === 'true';
+            if (isSavedCollapsed) {
+                leftSidebar.classList.add('collapsed');
+                syncLeftSidebarToggleState(false);
+            } else {
+                leftSidebar.classList.remove('collapsed');
+                syncLeftSidebarToggleState(true);
+            }
+            if (leftSidebarToggle) leftSidebarToggle.style.display = '';
         }
         
         // Match sidebar sections to specific active workflows
@@ -4631,6 +4642,18 @@ function initEventListeners() {
 
     }
 
+    if (leftSidebarToggle) {
+
+        leftSidebarToggle.addEventListener('click', () => {
+
+            const isCollapsed = document.getElementById('left-sidebar')?.classList.contains('collapsed');
+
+            toggleLeftSidebar(isCollapsed);
+
+        });
+
+    }
+
 
 
     // Zooming & view fit controls
@@ -5512,6 +5535,8 @@ function initAiSummaryFeature() {
 // RNA-Seq Data Integration Features
 // ==========================================================================
 let rnaseqData = null; // object mapping lowercase locus -> { log2fc, pvalue }
+let rnaseqDatasets = []; // Array of { name, data }
+let activeRnaseqDatasetIndex = -1;
 
 function getRnaSeqColor(log2fc) {
     if (log2fc === undefined || isNaN(log2fc)) return '#f5f5f5';
@@ -5531,10 +5556,69 @@ function getRnaSeqColor(log2fc) {
     }
 }
 
+function updateRnaSeqDatasetsDropdown() {
+    const select = document.getElementById('rnaseq-dataset-select');
+    const container = document.getElementById('rnaseq-dataset-container');
+    const btnUpload = document.getElementById('btn-upload-rnaseq');
+    const btnClear = document.getElementById('btn-clear-rnaseq');
+    const legendContainer = document.getElementById('rnaseq-legend-container');
+    const loadedCountDisp = document.getElementById('rnaseq-loaded-count');
+    const badge = document.getElementById('rnaseq-status-badge');
+
+    if (!select || !container) return;
+
+    select.innerHTML = '';
+
+    if (rnaseqDatasets.length === 0) {
+        container.classList.add('hidden');
+        if (legendContainer) legendContainer.classList.add('hidden');
+        if (btnClear) btnClear.classList.add('hidden');
+        if (btnUpload) {
+            btnUpload.innerHTML = '<i class="fa-solid fa-file-arrow-up"></i> Upload CSV';
+            btnUpload.style.backgroundColor = '';
+            btnUpload.style.borderColor = '';
+        }
+        if (badge) {
+            badge.textContent = '';
+        }
+        return;
+    }
+
+    container.classList.remove('hidden');
+    if (legendContainer) legendContainer.classList.remove('hidden');
+    if (btnClear) btnClear.classList.remove('hidden');
+
+    rnaseqDatasets.forEach((dataset, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `${dataset.name} (${Object.keys(dataset.data).length} genes)`;
+        if (idx === activeRnaseqDatasetIndex) {
+            opt.selected = true;
+        }
+        select.appendChild(opt);
+    });
+
+    if (btnUpload) {
+        btnUpload.innerHTML = '<i class="fa-solid fa-plus"></i> Add More CSVs';
+        btnUpload.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+        btnUpload.style.borderColor = 'var(--color-primary-accent)';
+    }
+
+    const activeDataset = rnaseqDatasets[activeRnaseqDatasetIndex];
+    const loadedCount = Object.keys(activeDataset.data).length;
+    if (loadedCountDisp) loadedCountDisp.textContent = `Loaded ${loadedCount} genes`;
+    if (badge) {
+        badge.textContent = `(imported ${loadedCount} genes)`;
+        badge.style.color = '#3b82f6';
+    }
+}
+
 function initRnaSeqOverlay() {
     const btnUpload = document.getElementById('btn-upload-rnaseq');
     const fileInput = document.getElementById('rnaseq-file-input');
     const btnClear = document.getElementById('btn-clear-rnaseq');
+    const select = document.getElementById('rnaseq-dataset-select');
+    const btnRemove = document.getElementById('btn-remove-dataset');
 
     if (!btnUpload || !fileInput) return;
 
@@ -5554,7 +5638,7 @@ function initRnaSeqOverlay() {
                 skipEmptyLines: true,
                 dynamicTyping: true,
                 complete: function(results) {
-                    processRnaSeqData(results.data);
+                    processRnaSeqData(results.data, file.name);
                 },
                 error: function(err) {
                     alert('Failed to parse CSV file: ' + err.message);
@@ -5562,11 +5646,73 @@ function initRnaSeqOverlay() {
             });
         };
         reader.readAsText(file);
+        // Clear input value so same file can be re-uploaded
+        fileInput.value = '';
     });
 
     if (btnClear) {
         btnClear.addEventListener('click', () => {
             clearRnaSeqOverlay();
+        });
+    }
+
+    if (select) {
+        select.addEventListener('change', (e) => {
+            const idx = parseInt(e.target.value);
+            if (!isNaN(idx) && rnaseqDatasets[idx]) {
+                activeRnaseqDatasetIndex = idx;
+                rnaseqData = rnaseqDatasets[idx].data;
+                updateRnaSeqDatasetsDropdown();
+
+                if (cy && cy.nodes().length > 0) {
+                    applyRnaSeqStyling();
+                    applyRnaSeqFilters();
+                }
+                if (currentQueryGene) {
+                    renderGenomicLocusMap(currentQueryGene);
+                }
+
+                showToast(
+                    'Active RNA-seq Condition Switched',
+                    `Switched active condition visualization to <b>${rnaseqDatasets[idx].name}</b>.`,
+                    'info',
+                    4000
+                );
+            }
+        });
+    }
+
+    if (btnRemove) {
+        btnRemove.addEventListener('click', () => {
+            if (activeRnaseqDatasetIndex >= 0 && activeRnaseqDatasetIndex < rnaseqDatasets.length) {
+                const removedName = rnaseqDatasets[activeRnaseqDatasetIndex].name;
+                rnaseqDatasets.splice(activeRnaseqDatasetIndex, 1);
+
+                if (rnaseqDatasets.length === 0) {
+                    activeRnaseqDatasetIndex = -1;
+                    rnaseqData = null;
+                } else {
+                    activeRnaseqDatasetIndex = 0;
+                    rnaseqData = rnaseqDatasets[0].data;
+                }
+
+                updateRnaSeqDatasetsDropdown();
+
+                if (cy) {
+                    applyRnaSeqStyling();
+                    applyRnaSeqFilters();
+                }
+                if (currentQueryGene) {
+                    renderGenomicLocusMap(currentQueryGene);
+                }
+
+                showToast(
+                    'Dataset Removed',
+                    `Removed RNA-seq condition <b>${removedName}</b>.`,
+                    'warning',
+                    4000
+                );
+            }
         });
     }
 
@@ -5594,7 +5740,7 @@ function initRnaSeqOverlay() {
     }
 }
 
-function processRnaSeqData(dataRows) {
+function processRnaSeqData(dataRows, filename = 'Dataset') {
     if (!dataRows || dataRows.length === 0) {
         alert('No valid dataRows were found in the CSV file.');
         return;
@@ -5631,7 +5777,7 @@ function processRnaSeqData(dataRows) {
         return;
     }
 
-    rnaseqData = {};
+    const datasetData = {};
     let loadedCount = 0;
 
     dataRows.forEach(row => {
@@ -5643,30 +5789,30 @@ function processRnaSeqData(dataRows) {
             if (cglToCg[locus]) {
                 locus = cglToCg[locus].toLowerCase();
             }
-            rnaseqData[locus] = { log2fc: fc, pvalue: isNaN(pval) ? 1.0 : pval };
+            datasetData[locus] = { log2fc: fc, pvalue: isNaN(pval) ? 1.0 : pval };
             loadedCount++;
         }
     });
 
     if (loadedCount === 0) {
         alert('No valid gene/sRNA data matched the local database from the CSV file.');
-        rnaseqData = null;
         return;
     }
 
-    const btnClear = document.getElementById('btn-clear-rnaseq');
-    const legendContainer = document.getElementById('rnaseq-legend-container');
-    const loadedCountDisp = document.getElementById('rnaseq-loaded-count');
-    const btnUpload = document.getElementById('btn-upload-rnaseq');
-
-    if (btnClear) btnClear.classList.remove('hidden');
-    if (legendContainer) legendContainer.classList.remove('hidden');
-    if (loadedCountDisp) loadedCountDisp.textContent = `Loaded ${loadedCount} genes`;
-    if (btnUpload) {
-        btnUpload.innerHTML = `<i class="fa-solid fa-check"></i> Omics data loaded`;
-        btnUpload.style.backgroundColor = 'rgba(46, 125, 50, 0.05)';
-        btnUpload.style.borderColor = 'var(--color-activation)';
+    // Deduplicate dataset name
+    const rawName = filename.replace(/\.[^/.]+$/, "");
+    let finalName = rawName;
+    let suffix = 1;
+    while (rnaseqDatasets.some(d => d.name === finalName)) {
+        finalName = `${rawName}_${suffix}`;
+        suffix++;
     }
+
+    rnaseqDatasets.push({ name: finalName, data: datasetData });
+    activeRnaseqDatasetIndex = rnaseqDatasets.length - 1;
+    rnaseqData = datasetData;
+
+    updateRnaSeqDatasetsDropdown();
 
     let hasActiveNetwork = false;
     if (cy && cy.nodes().length > 0) {
@@ -5675,12 +5821,6 @@ function processRnaSeqData(dataRows) {
         hasActiveNetwork = true;
     }
 
-    // Update details sidebar status badge and map if visible
-    const badge = document.getElementById('rnaseq-status-badge');
-    if (badge) {
-        badge.textContent = `(imported ${loadedCount} genes)`;
-        badge.style.color = '#3b82f6';
-    }
     if (currentQueryGene) {
         renderGenomicLocusMap(currentQueryGene);
     }
@@ -5688,15 +5828,15 @@ function processRnaSeqData(dataRows) {
     // Send clear interactive guidance toast message
     if (hasActiveNetwork) {
         showToast(
-            'RNA-seq Data Overlay Applied',
-            'Expression fold changes have been overlayed on the active network nodes (<b>Red</b>: Upregulated, <b>Blue</b>: Downregulated). Nodes passing significance filters feature pulsing breathing borders. Adjust the thresholds in the sidebar to dynamically filter the network!',
+            'RNA-seq Condition Loaded & Overlayed',
+            `Expression data for <b>${finalName}</b> (${loadedCount} genes) has been overlayed on the active network nodes. Nodes passing significance thresholds feature breathing borders. Adjust filters in the sidebar to dynamically filter nodes!`,
             'success',
             10000
         );
     } else {
         showToast(
-            'Omics Data Imported Successfully',
-            `Successfully matched and loaded <b>${loadedCount}</b> genes! <br/><br/><b>What to do next:</b> Query any transcription factor (e.g. <i>sigH</i>, <i>cg0041</i>) in the <b>Gene / TF Explorer</b> sidebar or choose an example from the <b>Examples</b> panel to render the network with your expression overlay.`,
+            'Omics Condition Imported Successfully',
+            `Successfully matched and loaded <b>${finalName}</b> (${loadedCount} genes)! <br/><br/><b>What to do next:</b> Query any transcription factor (e.g. <i>sigH</i>, <i>cg0041</i>) in the <b>Gene / TF Explorer</b> sidebar or choose an example from the <b>Examples</b> panel to render the network with your expression overlay.`,
             'info',
             12000
         );
@@ -5704,20 +5844,12 @@ function processRnaSeqData(dataRows) {
 }
 
 function clearRnaSeqOverlay() {
+    rnaseqDatasets = [];
+    activeRnaseqDatasetIndex = -1;
     rnaseqData = null;
     document.getElementById('rnaseq-file-input').value = '';
-    
-    const btnClear = document.getElementById('btn-clear-rnaseq');
-    const legendContainer = document.getElementById('rnaseq-legend-container');
-    const btnUpload = document.getElementById('btn-upload-rnaseq');
 
-    if (btnClear) btnClear.classList.add('hidden');
-    if (legendContainer) legendContainer.classList.add('hidden');
-    if (btnUpload) {
-        btnUpload.innerHTML = `<i class="fa-solid fa-file-arrow-up"></i> Upload CSV`;
-        btnUpload.style.backgroundColor = '';
-        btnUpload.style.borderColor = '';
-    }
+    updateRnaSeqDatasetsDropdown();
 
     // Reset filter control state
     const filterEnable = document.getElementById('rnaseq-filter-enable');
@@ -5749,6 +5881,13 @@ function clearRnaSeqOverlay() {
     if (currentQueryGene) {
         renderGenomicLocusMap(currentQueryGene);
     }
+
+    showToast(
+        'All RNA-seq Datasets Cleared',
+        'Cleared all time-series conditions and reset network styles.',
+        'warning',
+        4000
+    );
 }
 
 function applyRnaSeqStyling() {
@@ -6978,13 +7117,37 @@ function initSidebarResizer() {
 
 
         document.addEventListener('pointermove', onPointerMove);
-
         document.addEventListener('pointerup', onPointerUp);
-
         document.addEventListener('pointercancel', onPointerUp);
-
     });
+}
 
+function syncLeftSidebarToggleState(isOpen) {
+    const toggleBtn = document.getElementById('left-sidebar-toggle');
+    if (!toggleBtn) return;
+    toggleBtn.classList.toggle('collapsed', !isOpen);
+    toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    toggleBtn.setAttribute('title', isOpen ? 'Hide control panel' : 'Show control panel');
+    toggleBtn.setAttribute('aria-label', isOpen ? 'Hide control panel' : 'Show control panel');
+}
+
+function toggleLeftSidebar(open) {
+    const leftSidebar = document.getElementById('left-sidebar');
+    if (!leftSidebar) return;
+
+    if (open) {
+        leftSidebar.classList.remove('collapsed');
+        syncLeftSidebarToggleState(true);
+        localStorage.setItem('left-sidebar-collapsed', 'false');
+    } else {
+        leftSidebar.classList.add('collapsed');
+        syncLeftSidebarToggleState(false);
+        localStorage.setItem('left-sidebar-collapsed', 'true');
+    }
+    
+    if (cy) {
+        setTimeout(() => cy.resize(), 350);
+    }
 }
 
 

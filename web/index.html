@@ -378,6 +378,17 @@
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
+
+                    <!-- Dataset Selector for multiple files -->
+                    <div id="rnaseq-dataset-container" class="hidden" style="margin-top: 8px; margin-bottom: 8px;">
+                        <label style="display: block; font-size: 10px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Active Condition / Timepoint:</label>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <select id="rnaseq-dataset-select" style="flex: 1; height: 28px; font-size: 11px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); cursor: pointer;"></select>
+                            <button id="btn-remove-dataset" class="secondary-btn" style="height: 28px; width: 28px; padding: 0; font-size: 11px; display: flex; align-items: center; justify-content: center; color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: none;" title="Remove current dataset">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
                     
                     <!-- Legend shown after upload -->
                     <div id="rnaseq-legend-container" class="hidden" style="background-color: var(--bg-card); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 8px;">
@@ -555,6 +566,10 @@
 
             <!-- Network canvas -->
             <main id="canvas-container">
+                <button id="left-sidebar-toggle" class="left-sidebar-toggle" title="Hide control panel" aria-label="Hide control panel" aria-controls="left-sidebar" aria-expanded="true">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Controls</span>
+                </button>
                 <div id="cy"></div>
                 <div id="canvas-overlay" class="empty-state">
                     <div class="overlay-content scrollable-overlay">
