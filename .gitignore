@@ -29,6 +29,10 @@ outputs/
 
 # Large downloaded model directories
 data/model/ecCGL1-main/
+data/reference/model/ecCGL1-main/
+data/reference/model/iCW773.omex
+data/reference/AllOrganismsFiles/
+data/AllOrganismsFiles/
 
 # ── Unpublished heat stress experimental data ──────────────────────────────────
 # These files exist locally and are used by the .bat launcher.
