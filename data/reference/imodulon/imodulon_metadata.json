@@ -1,0 +1,220 @@
+[
+  {
+    "id": "iM_RpsA_ribosome",
+    "name": "Ribosome_translation",
+    "linked_regulator": null,
+    "linked_regulator_locus": null,
+    "category": "Translation",
+    "stimulus": "growth_rate",
+    "variance_explained": 0.062,
+    "gene_count": 18,
+    "pmid": [],
+    "description": "Growth-rate correlated ribosomal protein module. Activity strongly tracks dilution rate in continuous culture."
+  },
+  {
+    "id": "iM_GlxR_carbon",
+    "name": "GlxR_cAMP_carbon_catabolite",
+    "linked_regulator": "glxR",
+    "linked_regulator_locus": "cg2181",
+    "category": "Carbon_metabolism",
+    "stimulus": "cAMP_glucose_limitation",
+    "variance_explained": 0.052,
+    "gene_count": 18,
+    "pmid": [
+      "16385111",
+      "22178972"
+    ],
+    "description": "Global carbon catabolite repression by GlxR. Largest single iModulon in C. glutamicum, controlling TCA, glyoxylate shunt, and sugar uptake PTS."
+  },
+  {
+    "id": "iM_SigH",
+    "name": "SigH_stress_regulon",
+    "linked_regulator": "sigH",
+    "linked_regulator_locus": "cg0876",
+    "category": "Stress_response",
+    "stimulus": "heat_stress, oxidative_stress, diamide",
+    "variance_explained": 0.043,
+    "gene_count": 18,
+    "pmid": [
+      "19270092",
+      "25404703",
+      "16385111"
+    ],
+    "description": "SigH-controlled heat shock and oxidative stress genes. Activates thioredoxin, disulfide reductases, and heat shock proteins."
+  },
+  {
+    "id": "iM_AmtR_nitrogen",
+    "name": "AmtR_nitrogen_regulon",
+    "linked_regulator": "amtR",
+    "linked_regulator_locus": "cg2384",
+    "category": "Nitrogen_metabolism",
+    "stimulus": "nitrogen_starvation",
+    "variance_explained": 0.041,
+    "gene_count": 15,
+    "pmid": [
+      "15516578",
+      "16385111"
+    ],
+    "description": "Master nitrogen regulator AmtR. Represses ammonium transport (amt), glutamine synthetase, and urea cycle genes under N-replete conditions."
+  },
+  {
+    "id": "iM_RamA_glycolysis",
+    "name": "RamA_acetate_TCA",
+    "linked_regulator": "ramA",
+    "linked_regulator_locus": "cg2831",
+    "category": "Carbon_metabolism",
+    "stimulus": "acetate, propionate",
+    "variance_explained": 0.038,
+    "gene_count": 12,
+    "pmid": [
+      "17449638"
+    ],
+    "description": "RamA-controlled acetate assimilation and TCA cycle upregulation under acetate carbon source."
+  },
+  {
+    "id": "iM_GluABCD_glutamate",
+    "name": "GDH_glutamate_synthesis",
+    "linked_regulator": "amtR",
+    "linked_regulator_locus": "cg2384",
+    "category": "Amino_acid_biosynthesis",
+    "stimulus": "nitrogen_limitation",
+    "variance_explained": 0.033,
+    "gene_count": 12,
+    "pmid": [
+      "16385111",
+      "25404703"
+    ],
+    "description": "AmtR nitrogen regulon controlling glutamate dehydrogenase and nitrogen assimilation pathway."
+  },
+  {
+    "id": "iM_SigB",
+    "name": "SigB_general_stress",
+    "linked_regulator": "sigB",
+    "linked_regulator_locus": "cg2102",
+    "category": "Stress_response",
+    "stimulus": "osmotic_stress, stationary_phase, heat",
+    "variance_explained": 0.031,
+    "gene_count": 15,
+    "pmid": [
+      "15516578",
+      "19376865"
+    ],
+    "description": "SigB-dependent general stress response. Regulates osmoprotectant biosynthesis and carbon starvation genes."
+  },
+  {
+    "id": "iM_LysR_lysine",
+    "name": "LysR_lysine_regulon",
+    "linked_regulator": "lysG",
+    "linked_regulator_locus": "cg1271",
+    "category": "Amino_acid_biosynthesis",
+    "stimulus": "lysine_accumulation",
+    "variance_explained": 0.028,
+    "gene_count": 9,
+    "pmid": [
+      "16385111",
+      "21075931"
+    ],
+    "description": "LysG-controlled lysine export and biosynthesis regulation. Central to industrial L-lysine production."
+  },
+  {
+    "id": "iM_DtxR_iron",
+    "name": "DtxR_iron_regulon",
+    "linked_regulator": "dtxR",
+    "linked_regulator_locus": "cg2194",
+    "category": "Metal_homeostasis",
+    "stimulus": "iron_limitation",
+    "variance_explained": 0.026,
+    "gene_count": 12,
+    "pmid": [
+      "16385111",
+      "19376865"
+    ],
+    "description": "DtxR iron-dependent repressor. Controls siderophore biosynthesis (catecholate), iron uptake, and DtxR autoregulation."
+  },
+  {
+    "id": "iM_SigE",
+    "name": "SigE_envelope_stress",
+    "linked_regulator": "sigE",
+    "linked_regulator_locus": "cg1271",
+    "category": "Stress_response",
+    "stimulus": "cell_envelope_stress, detergents",
+    "variance_explained": 0.024,
+    "gene_count": 12,
+    "pmid": [
+      "23298179",
+      "16385111"
+    ],
+    "description": "SigE regulon controlling cell envelope integrity and mycolate biosynthesis under membrane stress."
+  },
+  {
+    "id": "iM_OsR_osmotic",
+    "name": "OsR_osmotic_compatible_solutes",
+    "linked_regulator": "mtrB",
+    "linked_regulator_locus": "cg0146",
+    "category": "Osmoregulation",
+    "stimulus": "osmotic_upshift_NaCl",
+    "variance_explained": 0.022,
+    "gene_count": 12,
+    "pmid": [
+      "22178972",
+      "21075931"
+    ],
+    "description": "Osmotic stress response controlling betaine/ectoine biosynthesis and compatible solute uptake."
+  },
+  {
+    "id": "iM_FasR_fatty_acids",
+    "name": "FasR_fatty_acid_biosynthesis",
+    "linked_regulator": "fasR",
+    "linked_regulator_locus": "cg2737",
+    "category": "Lipid_metabolism",
+    "stimulus": "fatty_acid_availability",
+    "variance_explained": 0.021,
+    "gene_count": 12,
+    "pmid": [
+      "21075931"
+    ],
+    "description": "FasR regulon controlling fatty acid and mycolic acid biosynthesis."
+  },
+  {
+    "id": "iM_PhoSR_phosphate",
+    "name": "PhoSR_phosphate_starvation",
+    "linked_regulator": "phoR",
+    "linked_regulator_locus": "cg1674",
+    "category": "Phosphate_homeostasis",
+    "stimulus": "phosphate_starvation",
+    "variance_explained": 0.019,
+    "gene_count": 12,
+    "pmid": [
+      "16385111"
+    ],
+    "description": "PhoSR two-component system controlling phosphate uptake and scavenging under phosphate-limiting conditions."
+  },
+  {
+    "id": "iM_SigM",
+    "name": "SigM_oxidative_stress",
+    "linked_regulator": "sigM",
+    "linked_regulator_locus": "cg3420",
+    "category": "Stress_response",
+    "stimulus": "superoxide, methyl_viologen",
+    "variance_explained": 0.018,
+    "gene_count": 9,
+    "pmid": [
+      "21075931"
+    ],
+    "description": "SigM regulon for superoxide and oxidative stress defense."
+  },
+  {
+    "id": "iM_WhiB_cell_cycle",
+    "name": "WhiB4_redox_cell_division",
+    "linked_regulator": "whiB4",
+    "linked_regulator_locus": "cg1890",
+    "category": "Cell_cycle",
+    "stimulus": "redox_imbalance, ROS",
+    "variance_explained": 0.017,
+    "gene_count": 12,
+    "pmid": [
+      "25876601"
+    ],
+    "description": "WhiB4 iron-sulphur cluster protein controlling cell division and septum formation under oxidative conditions."
+  }
+]

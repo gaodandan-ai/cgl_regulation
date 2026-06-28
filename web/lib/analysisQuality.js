@@ -327,12 +327,28 @@
                 rxns.forEach(rxn => {
                     const enzyme = rxn.enzyme_constraint || {};
                     const ecNumber = rxn.ec_number || enzyme.ec_number;
-                    const kcat = rxn.kcat ?? enzyme.kcat;
                     const molecularWeight = rxn.molecular_weight ?? enzyme.molecular_weight;
-                    const kcatMw = rxn.kcat_MW ?? enzyme.kcat_MW;
+                    
+                    let kcat = rxn.kcat ?? enzyme.kcat;
+                    let kcatMw = rxn.kcat_MW ?? enzyme.kcat_MW;
+                    const rxnId = rxn.id;
+                    const DEFAULT_VAL = 7398.8133918117555;
+                    
+                    if (rxnId && window.dlkcatPredictions && window.dlkcatPredictions[rxnId]) {
+                        const predInfo = window.dlkcatPredictions[rxnId];
+                        if (predInfo.source === 'dlkcat_prediction') {
+                            if (kcat === undefined || kcat === null || Number.isNaN(kcat) || Math.abs(Number(kcat) - DEFAULT_VAL) < 1e-3) {
+                                kcat = predInfo.kcat;
+                                if (molecularWeight !== undefined && molecularWeight !== null && molecularWeight > 0) {
+                                    kcatMw = (kcat * 3600 * 1000) / molecularWeight;
+                                }
+                            }
+                        }
+                    }
+                    
                     const uniprotIds = rxn.uniprot_ids || enzyme.uniprot_ids || [];
 
-                    const rxnId = rxn.id;
+                    // rxnId already declared above (line 334)
                     if (!rxnId) return;
 
                     enzymeReactions.add(rxnId);

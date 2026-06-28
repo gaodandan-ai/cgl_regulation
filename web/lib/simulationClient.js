@@ -1,5 +1,5 @@
 (function (global) {
-    const BASE_URL = 'http://localhost:8001';
+    const BASE_URL = (window.location.protocol === 'file:') ? 'http://localhost:8000' : '';
 
     async function getModelStatus() {
         try {
@@ -129,6 +129,49 @@
         }
     }
 
+    async function runDynamicRFBA(tfPerturbations, initialGlucose, initialBiomass, timeSteps = 24) {
+        try {
+            const res = await fetch(`${BASE_URL}/api/simulation/rfba`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tfPerturbations, initialGlucose, initialBiomass, timeSteps })
+            });
+            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            return {
+                status: "error",
+                time: [],
+                growth_rate: [],
+                glutamate_export: [],
+                glucose_uptake: [],
+                glucose_concentration: [],
+                biomass_concentration: [],
+                error: err.message || "FastAPI backend offline"
+            };
+        }
+    }
+
+    async function runECFBA(proteinPoolLimit, enzymePerturbations, targetProduct, temperature = 30.0, calibrateTimepoint = null) {
+        try {
+            const res = await fetch(`${BASE_URL}/api/simulation/ecfba`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ proteinPoolLimit, enzymePerturbations, targetProduct, temperature, calibrateTimepoint })
+            });
+            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            return {
+                status: "error",
+                flux: 0.0,
+                poolLimit: proteinPoolLimit,
+                poolUsage: 0.0,
+                error: err.message || "FastAPI backend offline"
+            };
+        }
+    }
+
     global.simulationClient = {
         getModelStatus,
         searchReactions,
@@ -136,6 +179,27 @@
         runGeneKnockout,
         runGeneSetKnockout,
         runTFPerturbation,
-        runFluxVariabilityAnalysis
+        runFluxVariabilityAnalysis,
+        runDynamicRFBA,
+        runECFBA,
+        runMFAComparison
     };
+
+    async function runMFAComparison() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/simulation/mfa_comparison`);
+            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            return {
+                status: "error",
+                items: [],
+                pearson_r: 0,
+                rmse: 0,
+                mean_deviation_pct: 0,
+                warnings: [],
+                error: err.message || "FastAPI backend offline"
+            };
+        }
+    }
 })(window);

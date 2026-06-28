@@ -1,0 +1,7402 @@
+{
+  "ALAR": {
+    "kcat": 275.128125,
+    "source": "experimental"
+  },
+  "ALATA_L": {
+    "kcat": 52.82854166666666,
+    "source": "experimental"
+  },
+  "ASNN": {
+    "kcat": 270.275545,
+    "source": "experimental"
+  },
+  "ASNS1": {
+    "kcat": 2.0377777777777784,
+    "source": "experimental"
+  },
+  "ASPT": {
+    "kcat": 131.90357142857144,
+    "source": "experimental"
+  },
+  "ASPTA": {
+    "kcat": 161.435,
+    "source": "experimental"
+  },
+  "DAAD": {
+    "kcat": 255.1264642857143,
+    "source": "experimental"
+  },
+  "2METS": {
+    "kcat": 18.301538461538463,
+    "source": "experimental"
+  },
+  "ACNML": {
+    "kcat": 24.75333333333333,
+    "source": "experimental"
+  },
+  "ADNUC_num1": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "AGDC": {
+    "kcat": 131.68615625,
+    "source": "experimental"
+  },
+  "ALCD19_num1": {
+    "kcat": 292.8888888888889,
+    "source": "experimental"
+  },
+  "ALDD19x": {
+    "kcat": 31.249047619047623,
+    "source": "experimental"
+  },
+  "ALDD2x": {
+    "kcat": 2.22,
+    "source": "experimental"
+  },
+  "AMALT1": {
+    "kcat": 1169.6714,
+    "source": "experimental"
+  },
+  "AMALT2": {
+    "kcat": 1169.6714,
+    "source": "experimental"
+  },
+  "AMALT3": {
+    "kcat": 1169.6714,
+    "source": "experimental"
+  },
+  "AMALT4": {
+    "kcat": 1169.6714,
+    "source": "experimental"
+  },
+  "ARAI_num1": {
+    "kcat": 111.08642857142857,
+    "source": "experimental"
+  },
+  "DRPA": {
+    "kcat": 107.5737,
+    "source": "experimental"
+  },
+  "FFSD_num1": {
+    "kcat": 322071.52695652173,
+    "source": "experimental"
+  },
+  "G6PDA": {
+    "kcat": 224.3142857142857,
+    "source": "experimental"
+  },
+  "GLCRD": {
+    "kcat": 21.762727272727275,
+    "source": "experimental"
+  },
+  "GLYK": {
+    "kcat": 3285.0,
+    "source": "experimental"
+  },
+  "GNK_num1": {
+    "kcat": 9.4,
+    "source": "experimental"
+  },
+  "GUI1": {
+    "kcat": 67.86666666666666,
+    "source": "experimental"
+  },
+  "HCO3E": {
+    "kcat": 2907913.6363636362,
+    "source": "experimental"
+  },
+  "HXCT": {
+    "kcat": 290.0,
+    "source": "experimental"
+  },
+  "MALGT": {
+    "kcat": 105.02,
+    "source": "experimental"
+  },
+  "MAN1PG": {
+    "kcat": 104.49166666666667,
+    "source": "experimental"
+  },
+  "MAN6PI": {
+    "kcat": 22925.153333333332,
+    "source": "experimental"
+  },
+  "MCITL2_num1": {
+    "kcat": 63.21666666666667,
+    "source": "experimental"
+  },
+  "MM_COA_ADD5": {
+    "kcat": 3.84,
+    "source": "experimental"
+  },
+  "MMM2": {
+    "kcat": 134.3590909090909,
+    "source": "experimental"
+  },
+  "MSDH_num1": {
+    "kcat": 1.8809090909090909,
+    "source": "experimental"
+  },
+  "PFK_2": {
+    "kcat": 84.62,
+    "source": "experimental"
+  },
+  "PGLYCP_num1": {
+    "kcat": 22.739444444444448,
+    "source": "experimental"
+  },
+  "PGMT": {
+    "kcat": 142.13625,
+    "source": "experimental"
+  },
+  "PMANM_num1": {
+    "kcat": 24.803846153846155,
+    "source": "experimental"
+  },
+  "RBK_num1": {
+    "kcat": 16.708571428571428,
+    "source": "experimental"
+  },
+  "TRE6PP": {
+    "kcat": 9.856923076923078,
+    "source": "experimental"
+  },
+  "TRE6PS": {
+    "kcat": 147.36857142857144,
+    "source": "experimental"
+  },
+  "UDPG4E": {
+    "kcat": 4496.622911923077,
+    "source": "experimental"
+  },
+  "UDPGPpp_num1": {
+    "kcat": 349.05,
+    "source": "experimental"
+  },
+  "XYLI1": {
+    "kcat": 4.944916666666667,
+    "source": "experimental"
+  },
+  "XYLI2": {
+    "kcat": 4.944916666666667,
+    "source": "experimental"
+  },
+  "XYLK": {
+    "kcat": 765.177,
+    "source": "experimental"
+  },
+  "GALKr": {
+    "kcat": 30.78983,
+    "source": "experimental"
+  },
+  "M1PD": {
+    "kcat": 67.8875,
+    "source": "experimental"
+  },
+  "MAN2D": {
+    "kcat": 38.034214285714285,
+    "source": "experimental"
+  },
+  "ICL": {
+    "kcat": 7.475,
+    "source": "experimental"
+  },
+  "MALS": {
+    "kcat": 140.03,
+    "source": "experimental"
+  },
+  "ME1_num1": {
+    "kcat": 90.28821428571429,
+    "source": "experimental"
+  },
+  "ME2": {
+    "kcat": 177.70632352941178,
+    "source": "experimental"
+  },
+  "PPA": {
+    "kcat": 816.96656,
+    "source": "experimental"
+  },
+  "PPA2": {
+    "kcat": 816.96656,
+    "source": "experimental"
+  },
+  "PPC": {
+    "kcat": 0.055,
+    "source": "experimental"
+  },
+  "PPCK": {
+    "kcat": 337.43333333333334,
+    "source": "experimental"
+  },
+  "ABTA": {
+    "kcat": 23.7028325,
+    "source": "experimental"
+  },
+  "ACGK": {
+    "kcat": 38.25,
+    "source": "experimental"
+  },
+  "ACGS": {
+    "kcat": 2.1999998,
+    "source": "experimental"
+  },
+  "ACODA": {
+    "kcat": 1314.0,
+    "source": "experimental"
+  },
+  "ACOTA": {
+    "kcat": 1.185,
+    "source": "experimental"
+  },
+  "AMPTASEPG_num1": {
+    "kcat": 239.12731707317073,
+    "source": "experimental"
+  },
+  "ARGSL": {
+    "kcat": 401.496,
+    "source": "experimental"
+  },
+  "CBPS": {
+    "kcat": 3.3582539523809523,
+    "source": "experimental"
+  },
+  "OCBT": {
+    "kcat": 1190.9444444444443,
+    "source": "experimental"
+  },
+  "P5CD": {
+    "kcat": 6.331666666666668,
+    "source": "experimental"
+  },
+  "P5CR": {
+    "kcat": 995.5918027272728,
+    "source": "experimental"
+  },
+  "PROD2": {
+    "kcat": 14.677777777777774,
+    "source": "experimental"
+  },
+  "SPMDAT1": {
+    "kcat": 1.9095,
+    "source": "experimental"
+  },
+  "SPMDAT2_num1": {
+    "kcat": 1.9095,
+    "source": "experimental"
+  },
+  "SPMS": {
+    "kcat": 89.61916666666669,
+    "source": "experimental"
+  },
+  "SSALy_num1": {
+    "kcat": 4.7780000000000005,
+    "source": "experimental"
+  },
+  "UREAAH": {
+    "kcat": 3186.4445,
+    "source": "experimental"
+  },
+  "3HAD100": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD120": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD121": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD140": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD141": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD160": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD161": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD180": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD181": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD60": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3HAD80": {
+    "kcat": 9.280531818181819,
+    "source": "experimental"
+  },
+  "3OAR100": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR120": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR140": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR160": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR180": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR40": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR60": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR80": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAS100_num1": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS120_num1": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS140_num1": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS60_num1": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "AACPS8_num1": {
+    "kcat": 0.016,
+    "source": "experimental"
+  },
+  "AACPS9_num1": {
+    "kcat": 0.016,
+    "source": "experimental"
+  },
+  "ALAALAr": {
+    "kcat": 1.5493431307692307,
+    "source": "experimental"
+  },
+  "EAR100x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR100y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR120x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR120y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR121x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR121y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR140x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR140y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR141x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR141y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR160x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR160y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR161x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR161y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR180x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR180y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR181x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR181y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR40x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR40y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR60x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR60y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "EAR80x": {
+    "kcat": 15.538513333333333,
+    "source": "experimental"
+  },
+  "EAR80y": {
+    "kcat": 26.96333333333333,
+    "source": "experimental"
+  },
+  "FA100ACPHi_num1": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA120ACPHi_num1": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA140ACPHi_num1": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA141ACPHi_num1": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA160ACPHi_num1": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA161ACPHi_num1": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA80ACPHi_num1": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FACOAL100t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL120t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL140t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL141t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL160t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL161t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL180t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL181t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL60t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "FACOAL80t2pp_num1": {
+    "kcat": 2.569,
+    "source": "experimental"
+  },
+  "G1PACT": {
+    "kcat": 18.397000000000002,
+    "source": "experimental"
+  },
+  "GF6PTA": {
+    "kcat": 12.19958375,
+    "source": "experimental"
+  },
+  "GLUR": {
+    "kcat": 3855.6993939393933,
+    "source": "experimental"
+  },
+  "INPTH": {
+    "kcat": 2.0381400000000003,
+    "source": "experimental"
+  },
+  "MI1PP_num1": {
+    "kcat": 108.48764705882351,
+    "source": "experimental"
+  },
+  "PGAMT": {
+    "kcat": 1.5664,
+    "source": "experimental"
+  },
+  "TDPGDH_num1": {
+    "kcat": 79.22800000000002,
+    "source": "experimental"
+  },
+  "UAAGDS": {
+    "kcat": 3.7085714285714286,
+    "source": "experimental"
+  },
+  "UAGCVT_num1": {
+    "kcat": 0.5996874999999999,
+    "source": "experimental"
+  },
+  "UAGDP": {
+    "kcat": 18.397000000000002,
+    "source": "experimental"
+  },
+  "UAGPT3": {
+    "kcat": 2.1988888888888893,
+    "source": "experimental"
+  },
+  "UAMAGS": {
+    "kcat": 94.14696981818182,
+    "source": "experimental"
+  },
+  "UAMAS": {
+    "kcat": 46.16935483870968,
+    "source": "experimental"
+  },
+  "UAMDH_num1": {
+    "kcat": 30.20769230769231,
+    "source": "experimental"
+  },
+  "UDCPDP": {
+    "kcat": 82.04444444444445,
+    "source": "experimental"
+  },
+  "UDPGALM": {
+    "kcat": 19.487721052631574,
+    "source": "experimental"
+  },
+  "UDPGD_num1": {
+    "kcat": 8.88748,
+    "source": "experimental"
+  },
+  "UGMDDS": {
+    "kcat": 508.5,
+    "source": "experimental"
+  },
+  "3OAR121": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR141": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR161": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR181": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "G1PTT": {
+    "kcat": 6.081253846153847,
+    "source": "experimental"
+  },
+  "GALUi_num1": {
+    "kcat": 104.56153846153845,
+    "source": "experimental"
+  },
+  "PAPPT3": {
+    "kcat": 204.05200000000002,
+    "source": "experimental"
+  },
+  "ACONTa": {
+    "kcat": 202.78,
+    "source": "experimental"
+  },
+  "ACONTb": {
+    "kcat": 202.78,
+    "source": "experimental"
+  },
+  "AKGDH": {
+    "kcat": 502.85,
+    "source": "experimental"
+  },
+  "CS_num1": {
+    "kcat": 103.70476667142857,
+    "source": "experimental"
+  },
+  "FUM": {
+    "kcat": 374.33333333333326,
+    "source": "experimental"
+  },
+  "ICDHyr": {
+    "kcat": 16.592,
+    "source": "experimental"
+  },
+  "MDH": {
+    "kcat": 327.54545454545456,
+    "source": "experimental"
+  },
+  "PYRC": {
+    "kcat": 5.78695,
+    "source": "experimental"
+  },
+  "SUCOAS": {
+    "kcat": 75.5012,
+    "source": "experimental"
+  },
+  "ACBIPGT": {
+    "kcat": 2.1918333333333333,
+    "source": "experimental"
+  },
+  "ACPS1_num1": {
+    "kcat": 0.3851849019607843,
+    "source": "experimental"
+  },
+  "ADCS": {
+    "kcat": 0.29811170000000003,
+    "source": "experimental"
+  },
+  "ADOCBIK": {
+    "kcat": 0.221,
+    "source": "experimental"
+  },
+  "ALATA_D2": {
+    "kcat": 34.82536217391304,
+    "source": "experimental"
+  },
+  "ALATA_L2": {
+    "kcat": 34.82536217391304,
+    "source": "experimental"
+  },
+  "AMAOTr": {
+    "kcat": 58.97429411588235,
+    "source": "experimental"
+  },
+  "AMPMS2": {
+    "kcat": 999.0,
+    "source": "experimental"
+  },
+  "ASP1DC": {
+    "kcat": 2.744285714285714,
+    "source": "experimental"
+  },
+  "BTS4": {
+    "kcat": 202.58011294,
+    "source": "experimental"
+  },
+  "CPPPGO2": {
+    "kcat": 225.02,
+    "source": "experimental"
+  },
+  "DBTS": {
+    "kcat": 17.365760416875,
+    "source": "experimental"
+  },
+  "DHFR": {
+    "kcat": 55.85,
+    "source": "experimental"
+  },
+  "DHPPDA2_num1": {
+    "kcat": 6.1666669999999995,
+    "source": "experimental"
+  },
+  "DHPS2_num1": {
+    "kcat": 77.02221538461538,
+    "source": "experimental"
+  },
+  "DMATT_num1": {
+    "kcat": 0.675,
+    "source": "experimental"
+  },
+  "DMPPS": {
+    "kcat": 2.64,
+    "source": "experimental"
+  },
+  "DPCOAK": {
+    "kcat": 7.0812333333333335,
+    "source": "experimental"
+  },
+  "DPR": {
+    "kcat": 16.84285714285714,
+    "source": "experimental"
+  },
+  "DXPRIi": {
+    "kcat": 4.420241000000001,
+    "source": "experimental"
+  },
+  "DXPS": {
+    "kcat": 49.35031818181818,
+    "source": "experimental"
+  },
+  "FCLT": {
+    "kcat": 0.0799,
+    "source": "experimental"
+  },
+  "FMNAT": {
+    "kcat": 0.045602915,
+    "source": "experimental"
+  },
+  "G1SAT": {
+    "kcat": 0.51,
+    "source": "experimental"
+  },
+  "GDPTPDP": {
+    "kcat": 2.6358333333333333,
+    "source": "experimental"
+  },
+  "GLUCYS": {
+    "kcat": 1451.5185,
+    "source": "experimental"
+  },
+  "GLUTRR": {
+    "kcat": 199.912,
+    "source": "experimental"
+  },
+  "GLYOD": {
+    "kcat": 29.495425,
+    "source": "experimental"
+  },
+  "GRTT_num1": {
+    "kcat": 7.893761928571428,
+    "source": "experimental"
+  },
+  "GTHOr": {
+    "kcat": 233.7,
+    "source": "experimental"
+  },
+  "GTHRDHpp": {
+    "kcat": 116.68910714285713,
+    "source": "experimental"
+  },
+  "GTPCI": {
+    "kcat": 7.210372500000001,
+    "source": "experimental"
+  },
+  "GTPDPDP_num1": {
+    "kcat": 3.89325,
+    "source": "experimental"
+  },
+  "GTPDPK": {
+    "kcat": 15.121666666666664,
+    "source": "experimental"
+  },
+  "HMBS": {
+    "kcat": 0.25,
+    "source": "experimental"
+  },
+  "HPPK2": {
+    "kcat": 499.585,
+    "source": "experimental"
+  },
+  "ICHORS": {
+    "kcat": 10.242083333333332,
+    "source": "experimental"
+  },
+  "IPDDI": {
+    "kcat": 2151.6445714285715,
+    "source": "experimental"
+  },
+  "IPDPS": {
+    "kcat": 2.64,
+    "source": "experimental"
+  },
+  "LIPOCT": {
+    "kcat": 0.2,
+    "source": "experimental"
+  },
+  "MECDPS": {
+    "kcat": 2.333333333333333,
+    "source": "experimental"
+  },
+  "MEPCT": {
+    "kcat": 97.56153846153845,
+    "source": "experimental"
+  },
+  "MOHMT": {
+    "kcat": 0.7809999999999999,
+    "source": "experimental"
+  },
+  "NADDP_num1": {
+    "kcat": 109.25463121428572,
+    "source": "experimental"
+  },
+  "NADK": {
+    "kcat": 7.912307692307693,
+    "source": "experimental"
+  },
+  "NADS1": {
+    "kcat": 0.31666666666666665,
+    "source": "experimental"
+  },
+  "NNAM": {
+    "kcat": 15.64092857142857,
+    "source": "experimental"
+  },
+  "NNDMBRT": {
+    "kcat": 37.924,
+    "source": "experimental"
+  },
+  "NNDPR": {
+    "kcat": 400.852,
+    "source": "experimental"
+  },
+  "NPHS": {
+    "kcat": 0.1363125,
+    "source": "experimental"
+  },
+  "OHPBAT": {
+    "kcat": 1.07125,
+    "source": "experimental"
+  },
+  "PANTS_num1": {
+    "kcat": 2.2272222222222218,
+    "source": "experimental"
+  },
+  "PMPK": {
+    "kcat": 0.07556666666666667,
+    "source": "experimental"
+  },
+  "PNTK": {
+    "kcat": 0.3881818181818182,
+    "source": "experimental"
+  },
+  "PPBNGS": {
+    "kcat": 254.4625,
+    "source": "experimental"
+  },
+  "PPCDC": {
+    "kcat": 1.86666665,
+    "source": "experimental"
+  },
+  "PPGPPDP": {
+    "kcat": 15.121666666666664,
+    "source": "experimental"
+  },
+  "PPNCL2": {
+    "kcat": 1.81833333,
+    "source": "experimental"
+  },
+  "PPPGO": {
+    "kcat": 1.44043108303,
+    "source": "experimental"
+  },
+  "PPPGO3": {
+    "kcat": 1.44043108303,
+    "source": "experimental"
+  },
+  "PTPATi": {
+    "kcat": 10.478768555555558,
+    "source": "experimental"
+  },
+  "PY5PSH": {
+    "kcat": 0.016436000000000003,
+    "source": "experimental"
+  },
+  "PYDAMK": {
+    "kcat": 0.8423076923076923,
+    "source": "experimental"
+  },
+  "PYDXK": {
+    "kcat": 0.8423076923076923,
+    "source": "experimental"
+  },
+  "PYDXNK": {
+    "kcat": 0.8423076923076923,
+    "source": "experimental"
+  },
+  "RBFSa": {
+    "kcat": 0.04652222222222222,
+    "source": "experimental"
+  },
+  "RBFSb": {
+    "kcat": 0.5868883333333333,
+    "source": "experimental"
+  },
+  "SUCBZL": {
+    "kcat": 59.09333333333333,
+    "source": "experimental"
+  },
+  "TDPDSH": {
+    "kcat": 123.199,
+    "source": "experimental"
+  },
+  "TMPK": {
+    "kcat": 0.063,
+    "source": "experimental"
+  },
+  "TMPPP_num1": {
+    "kcat": 999.0,
+    "source": "experimental"
+  },
+  "UDCPDPS": {
+    "kcat": 1.8239523957142856,
+    "source": "experimental"
+  },
+  "UPP3MT_num1": {
+    "kcat": 38.0,
+    "source": "experimental"
+  },
+  "UPP3S": {
+    "kcat": 286.086,
+    "source": "experimental"
+  },
+  "UPPDC1": {
+    "kcat": 333.147,
+    "source": "experimental"
+  },
+  "RBFK": {
+    "kcat": 2.005416666666666,
+    "source": "experimental"
+  },
+  "AMPTASECG_num1": {
+    "kcat": 239.12731707317073,
+    "source": "experimental"
+  },
+  "BPNT": {
+    "kcat": 10.263636363636364,
+    "source": "experimental"
+  },
+  "CYSS": {
+    "kcat": 238.0,
+    "source": "experimental"
+  },
+  "MCPST_num1": {
+    "kcat": 478.54681818181814,
+    "source": "experimental"
+  },
+  "PAPSR": {
+    "kcat": 0.6108888888888889,
+    "source": "experimental"
+  },
+  "PAPSR2": {
+    "kcat": 0.6108888888888889,
+    "source": "experimental"
+  },
+  "SADT2": {
+    "kcat": 19.038583333333328,
+    "source": "experimental"
+  },
+  "SERAT": {
+    "kcat": 1026.58444,
+    "source": "experimental"
+  },
+  "SULRi": {
+    "kcat": 33949.0,
+    "source": "experimental"
+  },
+  "5FTHFC": {
+    "kcat": 74.12166664285714,
+    "source": "experimental"
+  },
+  "MTHFC": {
+    "kcat": 2231.975,
+    "source": "experimental"
+  },
+  "MTHFD": {
+    "kcat": 94.9512,
+    "source": "experimental"
+  },
+  "MTHFR2": {
+    "kcat": 103.74561421052631,
+    "source": "experimental"
+  },
+  "TMDS2": {
+    "kcat": 0.42123998,
+    "source": "experimental"
+  },
+  "GLNS_num1": {
+    "kcat": 127.194,
+    "source": "experimental"
+  },
+  "GLUDy": {
+    "kcat": 1353.1333333333334,
+    "source": "experimental"
+  },
+  "GLUN": {
+    "kcat": 434.370722225,
+    "source": "experimental"
+  },
+  "GLUSy": {
+    "kcat": 23.6,
+    "source": "experimental"
+  },
+  "APH140": {
+    "kcat": 870.6944445305555,
+    "source": "experimental"
+  },
+  "DASYN120": {
+    "kcat": 5.8066666666666675,
+    "source": "experimental"
+  },
+  "DASYN140": {
+    "kcat": 5.8066666666666675,
+    "source": "experimental"
+  },
+  "DASYN141": {
+    "kcat": 5.8066666666666675,
+    "source": "experimental"
+  },
+  "DASYN160": {
+    "kcat": 5.8066666666666675,
+    "source": "experimental"
+  },
+  "DASYN161": {
+    "kcat": 5.8066666666666675,
+    "source": "experimental"
+  },
+  "DASYN180": {
+    "kcat": 5.8066666666666675,
+    "source": "experimental"
+  },
+  "DASYN181": {
+    "kcat": 5.8066666666666675,
+    "source": "experimental"
+  },
+  "G3PAT120_num1": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT140_num1": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT141_num1": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT160_num1": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT161_num1": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT180_num1": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT181_num1": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "GPDDA2": {
+    "kcat": 2.0446,
+    "source": "experimental"
+  },
+  "GPDDA3": {
+    "kcat": 2.0446,
+    "source": "experimental"
+  },
+  "GPDDA4": {
+    "kcat": 2.0446,
+    "source": "experimental"
+  },
+  "GPDDA5": {
+    "kcat": 2.0446,
+    "source": "experimental"
+  },
+  "LPLIPAL1A180pp_num1": {
+    "kcat": 1034.85,
+    "source": "experimental"
+  },
+  "GHMT2r": {
+    "kcat": 34.82536217391304,
+    "source": "experimental"
+  },
+  "GLYCK2": {
+    "kcat": 275.0,
+    "source": "experimental"
+  },
+  "PGCD": {
+    "kcat": 274.0,
+    "source": "experimental"
+  },
+  "PSERT": {
+    "kcat": 1.07125,
+    "source": "experimental"
+  },
+  "PSP_L": {
+    "kcat": 166.807695,
+    "source": "experimental"
+  },
+  "SARCOX": {
+    "kcat": 20.029,
+    "source": "experimental"
+  },
+  "SERD_L": {
+    "kcat": 317.218,
+    "source": "experimental"
+  },
+  "ENO": {
+    "kcat": 66.2408972972973,
+    "source": "experimental"
+  },
+  "FBA": {
+    "kcat": 7.543924240909091,
+    "source": "experimental"
+  },
+  "FBP": {
+    "kcat": 3.2,
+    "source": "experimental"
+  },
+  "GAPD_num1": {
+    "kcat": 6.45,
+    "source": "experimental"
+  },
+  "GLBRAN2": {
+    "kcat": 500.075,
+    "source": "experimental"
+  },
+  "GLCP_num1": {
+    "kcat": 88.9607090909091,
+    "source": "experimental"
+  },
+  "GLCP2_num1": {
+    "kcat": 88.9607090909091,
+    "source": "experimental"
+  },
+  "GLCS1": {
+    "kcat": 303.75,
+    "source": "experimental"
+  },
+  "GLGC": {
+    "kcat": 104.63045454545454,
+    "source": "experimental"
+  },
+  "HEX1": {
+    "kcat": 129.54047571428572,
+    "source": "experimental"
+  },
+  "PDH": {
+    "kcat": 55.6371111111111,
+    "source": "experimental"
+  },
+  "PFK": {
+    "kcat": 84.62,
+    "source": "experimental"
+  },
+  "PGI": {
+    "kcat": 1473.8477300000002,
+    "source": "experimental"
+  },
+  "PGK": {
+    "kcat": 647.8,
+    "source": "experimental"
+  },
+  "PGM_num1": {
+    "kcat": 148.6390909090909,
+    "source": "experimental"
+  },
+  "PPS": {
+    "kcat": 429.1593125,
+    "source": "experimental"
+  },
+  "PYK_num1": {
+    "kcat": 2540.0,
+    "source": "experimental"
+  },
+  "TPI": {
+    "kcat": 11085.090909090908,
+    "source": "experimental"
+  },
+  "GLYCK": {
+    "kcat": 275.0,
+    "source": "experimental"
+  },
+  "ATPPRT": {
+    "kcat": 1.91,
+    "source": "experimental"
+  },
+  "HISTD": {
+    "kcat": 5.091545454545455,
+    "source": "experimental"
+  },
+  "HISTP": {
+    "kcat": 0.5265,
+    "source": "experimental"
+  },
+  "HSTPT_num1": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "IGPDH": {
+    "kcat": 1000.0,
+    "source": "experimental"
+  },
+  "PRAMPC": {
+    "kcat": 4.2175,
+    "source": "experimental"
+  },
+  "PRMICI": {
+    "kcat": 7.91625,
+    "source": "experimental"
+  },
+  "PRPPS": {
+    "kcat": 38.394,
+    "source": "experimental"
+  },
+  "CYANSTpp_num1": {
+    "kcat": 139.41538715384615,
+    "source": "experimental"
+  },
+  "FEROpp": {
+    "kcat": 4.70149996,
+    "source": "experimental"
+  },
+  "PPTHpp": {
+    "kcat": 1193.8635483870967,
+    "source": "experimental"
+  },
+  "SFRD": {
+    "kcat": 30.49533333333333,
+    "source": "experimental"
+  },
+  "MI1PS": {
+    "kcat": 2.0381400000000003,
+    "source": "experimental"
+  },
+  "MI2DH_num1": {
+    "kcat": 58.0,
+    "source": "experimental"
+  },
+  "UAGAAT_num1": {
+    "kcat": 9.166666666666666,
+    "source": "experimental"
+  },
+  "ACACT1r": {
+    "kcat": 250225.12,
+    "source": "experimental"
+  },
+  "ACCOAC_num1": {
+    "kcat": 11.613,
+    "source": "experimental"
+  },
+  "ACOATA_num1": {
+    "kcat": 17.168145925555557,
+    "source": "experimental"
+  },
+  "KAS14_num1": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "KAS15_num1": {
+    "kcat": 10.381983333333334,
+    "source": "experimental"
+  },
+  "MCOATA_num1": {
+    "kcat": 92.33634818181818,
+    "source": "experimental"
+  },
+  "AHCYSNS": {
+    "kcat": 2.1106876923076925,
+    "source": "experimental"
+  },
+  "CYSTL": {
+    "kcat": 4207.556,
+    "source": "experimental"
+  },
+  "HSST_num1": {
+    "kcat": 0.8935,
+    "source": "experimental"
+  },
+  "METAT": {
+    "kcat": 0.976349785,
+    "source": "experimental"
+  },
+  "METS": {
+    "kcat": 170.34306666666666,
+    "source": "experimental"
+  },
+  "SHSL1_num1": {
+    "kcat": 63.39652380952381,
+    "source": "experimental"
+  },
+  "GLYOX": {
+    "kcat": 454.7897614285714,
+    "source": "experimental"
+  },
+  "LGTHL": {
+    "kcat": 144.98947368421054,
+    "source": "experimental"
+  },
+  "MDDCP3pp": {
+    "kcat": 39.0661794871795,
+    "source": "experimental"
+  },
+  "MDDCP4pp": {
+    "kcat": 39.0661794871795,
+    "source": "experimental"
+  },
+  "MDDCP5pp": {
+    "kcat": 39.0661794871795,
+    "source": "experimental"
+  },
+  "ADK1": {
+    "kcat": 32.576099995999996,
+    "source": "experimental"
+  },
+  "ADK2": {
+    "kcat": 32.576099995999996,
+    "source": "experimental"
+  },
+  "ADNCYC": {
+    "kcat": 389.699278126875,
+    "source": "experimental"
+  },
+  "ADPRDP": {
+    "kcat": 16.53705882352941,
+    "source": "experimental"
+  },
+  "ADPT": {
+    "kcat": 6.095363636363636,
+    "source": "experimental"
+  },
+  "AMPN": {
+    "kcat": 41.333333333333336,
+    "source": "experimental"
+  },
+  "CYTK1": {
+    "kcat": 91.23111111111109,
+    "source": "experimental"
+  },
+  "CYTK2": {
+    "kcat": 91.23111111111109,
+    "source": "experimental"
+  },
+  "DCTPD_num1": {
+    "kcat": 257.71,
+    "source": "experimental"
+  },
+  "DGK1": {
+    "kcat": 287.37857142857143,
+    "source": "experimental"
+  },
+  "DTMPK": {
+    "kcat": 2.9716764705882355,
+    "source": "experimental"
+  },
+  "DUTPDP": {
+    "kcat": 16.87076923076923,
+    "source": "experimental"
+  },
+  "GK1": {
+    "kcat": 287.37857142857143,
+    "source": "experimental"
+  },
+  "GSNHYDRO_num1": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "GUAPRT": {
+    "kcat": 4.297686666666666,
+    "source": "experimental"
+  },
+  "HXPRT_num1": {
+    "kcat": 4.297686666666666,
+    "source": "experimental"
+  },
+  "INSH": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "NDPK1": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK2": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK3": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK4": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK5": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK6": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK7": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK8": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NNATr": {
+    "kcat": 14.133333333333333,
+    "source": "experimental"
+  },
+  "NTD1": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD10": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD11": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD12": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD2": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD3": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD4": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD5": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD6": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD7": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD8": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTD9": {
+    "kcat": 82.55666666666667,
+    "source": "experimental"
+  },
+  "NTPTP1": {
+    "kcat": 4000.0,
+    "source": "experimental"
+  },
+  "NTPTP2": {
+    "kcat": 4000.0,
+    "source": "experimental"
+  },
+  "RNDR1": {
+    "kcat": 2.831166666666667,
+    "source": "experimental"
+  },
+  "RNDR2": {
+    "kcat": 2.831166666666667,
+    "source": "experimental"
+  },
+  "RNDR3": {
+    "kcat": 2.831166666666667,
+    "source": "experimental"
+  },
+  "RNDR4": {
+    "kcat": 2.831166666666667,
+    "source": "experimental"
+  },
+  "TMDS": {
+    "kcat": 4.90649271875,
+    "source": "experimental"
+  },
+  "UMPK": {
+    "kcat": 147.5,
+    "source": "experimental"
+  },
+  "UPPRT_num1": {
+    "kcat": 2.1397,
+    "source": "experimental"
+  },
+  "URIDK2r": {
+    "kcat": 2.9716764705882355,
+    "source": "experimental"
+  },
+  "XTSNH_num1": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "ATPS4rpp": {
+    "kcat": 107.38777777777777,
+    "source": "experimental"
+  },
+  "CAT": {
+    "kcat": 157615.0,
+    "source": "experimental"
+  },
+  "CYTBD2pp": {
+    "kcat": 34.209275043478264,
+    "source": "experimental"
+  },
+  "CYTBDpp": {
+    "kcat": 34.209275043478264,
+    "source": "experimental"
+  },
+  "CYTBO3_4pp": {
+    "kcat": 34.209275043478264,
+    "source": "experimental"
+  },
+  "G3PD5": {
+    "kcat": 33.3,
+    "source": "experimental"
+  },
+  "LDH_D2": {
+    "kcat": 250.39548142857143,
+    "source": "experimental"
+  },
+  "NADH10": {
+    "kcat": 13.935905714285711,
+    "source": "experimental"
+  },
+  "NADH16pp": {
+    "kcat": 186.91903703703704,
+    "source": "experimental"
+  },
+  "NADH17pp": {
+    "kcat": 186.91903703703704,
+    "source": "experimental"
+  },
+  "NADH18pp": {
+    "kcat": 186.91903703703704,
+    "source": "experimental"
+  },
+  "NADH5": {
+    "kcat": 186.91903703703704,
+    "source": "experimental"
+  },
+  "NADPHQR2_num1": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR3_num1": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR4_num1": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "SPODM": {
+    "kcat": 50519.8,
+    "source": "experimental"
+  },
+  "TRDR": {
+    "kcat": 14.073054999999998,
+    "source": "experimental"
+  },
+  "L_LACD2": {
+    "kcat": 137.01683783783784,
+    "source": "experimental"
+  },
+  "L_LACD3": {
+    "kcat": 137.01683783783784,
+    "source": "experimental"
+  },
+  "G6PDH2r": {
+    "kcat": 1256.9841285714285,
+    "source": "experimental"
+  },
+  "GND": {
+    "kcat": 25.767857142857146,
+    "source": "experimental"
+  },
+  "PGL": {
+    "kcat": 14.3,
+    "source": "experimental"
+  },
+  "RPE": {
+    "kcat": 1332.4597777777776,
+    "source": "experimental"
+  },
+  "RPI": {
+    "kcat": 2429.302,
+    "source": "experimental"
+  },
+  "TALA": {
+    "kcat": 154.62857142857143,
+    "source": "experimental"
+  },
+  "TKT1": {
+    "kcat": 64521.70588235294,
+    "source": "experimental"
+  },
+  "TKT2": {
+    "kcat": 154.62857142857143,
+    "source": "experimental"
+  },
+  "ADSL1r": {
+    "kcat": 123.31,
+    "source": "experimental"
+  },
+  "ADSL2r": {
+    "kcat": 123.31,
+    "source": "experimental"
+  },
+  "ADSS": {
+    "kcat": 84.1855,
+    "source": "experimental"
+  },
+  "AICART": {
+    "kcat": 5.363333333333333,
+    "source": "experimental"
+  },
+  "AIRC2": {
+    "kcat": 12.6186,
+    "source": "experimental"
+  },
+  "AIRC3": {
+    "kcat": 14.725,
+    "source": "experimental"
+  },
+  "ASPCT": {
+    "kcat": 97.48194416666666,
+    "source": "experimental"
+  },
+  "CTPS2": {
+    "kcat": 3.4370333333333334,
+    "source": "experimental"
+  },
+  "DHORD2": {
+    "kcat": 151.8909090909091,
+    "source": "experimental"
+  },
+  "DHORTS": {
+    "kcat": 64.35333333333334,
+    "source": "experimental"
+  },
+  "GARFT": {
+    "kcat": 6.3756,
+    "source": "experimental"
+  },
+  "GMPS2": {
+    "kcat": 88.30191666666668,
+    "source": "experimental"
+  },
+  "IMPD_num1": {
+    "kcat": 7.649166666666668,
+    "source": "experimental"
+  },
+  "OMPDC": {
+    "kcat": 120.18148148148147,
+    "source": "experimental"
+  },
+  "ORPT": {
+    "kcat": 262.62268,
+    "source": "experimental"
+  },
+  "PRAGSr": {
+    "kcat": 203.34,
+    "source": "experimental"
+  },
+  "PRFGS": {
+    "kcat": 499.525,
+    "source": "experimental"
+  },
+  "ACALD": {
+    "kcat": 8.8213,
+    "source": "experimental"
+  },
+  "ACKr": {
+    "kcat": 494.3846153846154,
+    "source": "experimental"
+  },
+  "ALCD2x_num1": {
+    "kcat": 292.8888888888889,
+    "source": "experimental"
+  },
+  "LDH_D": {
+    "kcat": 1220.20846,
+    "source": "experimental"
+  },
+  "PTAr": {
+    "kcat": 366.3721052631579,
+    "source": "experimental"
+  },
+  "LDH": {
+    "kcat": 302.5948965517242,
+    "source": "experimental"
+  },
+  "ASAD": {
+    "kcat": 171.09833333333333,
+    "source": "experimental"
+  },
+  "ASPK": {
+    "kcat": 19.021941176470584,
+    "source": "experimental"
+  },
+  "DAPDC_num1": {
+    "kcat": 18.235,
+    "source": "experimental"
+  },
+  "DAPDH": {
+    "kcat": 19275.717142857142,
+    "source": "experimental"
+  },
+  "DAPE": {
+    "kcat": 71.69108333333334,
+    "source": "experimental"
+  },
+  "DHDPS": {
+    "kcat": 213.0,
+    "source": "experimental"
+  },
+  "HSDy": {
+    "kcat": 32.798559999999995,
+    "source": "experimental"
+  },
+  "HSK": {
+    "kcat": 11.78181818181818,
+    "source": "experimental"
+  },
+  "SDPDS": {
+    "kcat": 175.03814666666668,
+    "source": "experimental"
+  },
+  "SDPTA": {
+    "kcat": 24.0,
+    "source": "experimental"
+  },
+  "THRS": {
+    "kcat": 274.2119310886667,
+    "source": "experimental"
+  },
+  "ACMANAptspp_num1": {
+    "kcat": 33.427110037999995,
+    "source": "experimental"
+  },
+  "ACMUMptspp_num1": {
+    "kcat": 33.427110037999995,
+    "source": "experimental"
+  },
+  "FMETTRS_num1": {
+    "kcat": 12.649192307692307,
+    "source": "experimental"
+  },
+  "GLNTRS": {
+    "kcat": 101.5622667,
+    "source": "experimental"
+  },
+  "GLUTRS_num1": {
+    "kcat": 1.2668428571428572,
+    "source": "experimental"
+  },
+  "ILETRS_num1": {
+    "kcat": 17.51276111111111,
+    "source": "experimental"
+  },
+  "LEUTRS_num1": {
+    "kcat": 9.063725185185186,
+    "source": "experimental"
+  },
+  "METTRS_num1": {
+    "kcat": 6.1874761904761915,
+    "source": "experimental"
+  },
+  "PHETRS": {
+    "kcat": 20.840466666666668,
+    "source": "experimental"
+  },
+  "PROTRS_num1": {
+    "kcat": 17.925,
+    "source": "experimental"
+  },
+  "SERTRS_num1": {
+    "kcat": 1.803436206896552,
+    "source": "experimental"
+  },
+  "SERTRS2": {
+    "kcat": 1.803436206896552,
+    "source": "experimental"
+  },
+  "THRTRS_num1": {
+    "kcat": 30.483157894736838,
+    "source": "experimental"
+  },
+  "TRPTRS": {
+    "kcat": 4.671538461538462,
+    "source": "experimental"
+  },
+  "TYRTRS": {
+    "kcat": 5.905,
+    "source": "experimental"
+  },
+  "VALTRS_num1": {
+    "kcat": 3.4234,
+    "source": "experimental"
+  },
+  "ANPRT": {
+    "kcat": 1.1696190476190476,
+    "source": "experimental"
+  },
+  "ANS": {
+    "kcat": 9.03523529411765,
+    "source": "experimental"
+  },
+  "CHORM": {
+    "kcat": 1.05,
+    "source": "experimental"
+  },
+  "CHORS": {
+    "kcat": 0.43915,
+    "source": "experimental"
+  },
+  "DDPA": {
+    "kcat": 0.6887,
+    "source": "experimental"
+  },
+  "DHQS": {
+    "kcat": 1568.34375,
+    "source": "experimental"
+  },
+  "DHQTi": {
+    "kcat": 52.26,
+    "source": "experimental"
+  },
+  "IGPS": {
+    "kcat": 4.483666666666667,
+    "source": "experimental"
+  },
+  "PHETA1_num1": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "PPND": {
+    "kcat": 39.025999999999996,
+    "source": "experimental"
+  },
+  "PPNDH": {
+    "kcat": 0.002,
+    "source": "experimental"
+  },
+  "PRAIi": {
+    "kcat": 4.483666666666667,
+    "source": "experimental"
+  },
+  "PSCVT": {
+    "kcat": 5.67,
+    "source": "experimental"
+  },
+  "SHK3Dr_num1": {
+    "kcat": 121.6825,
+    "source": "experimental"
+  },
+  "SHKK": {
+    "kcat": 42.48888888888889,
+    "source": "experimental"
+  },
+  "TRPS1": {
+    "kcat": 20.55881363636364,
+    "source": "experimental"
+  },
+  "TRPS2": {
+    "kcat": 20.55881363636364,
+    "source": "experimental"
+  },
+  "TRPS3": {
+    "kcat": 20.55881363636364,
+    "source": "experimental"
+  },
+  "TYRTA_num1": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "INPSHE": {
+    "kcat": 4.483666666666667,
+    "source": "experimental"
+  },
+  "ACHBS": {
+    "kcat": 64.40225,
+    "source": "experimental"
+  },
+  "ACLS": {
+    "kcat": 64.40225,
+    "source": "experimental"
+  },
+  "DHAD1": {
+    "kcat": 14.895461538461538,
+    "source": "experimental"
+  },
+  "DHAD2": {
+    "kcat": 14.895461538461538,
+    "source": "experimental"
+  },
+  "ILETA": {
+    "kcat": 18.805,
+    "source": "experimental"
+  },
+  "IPMD": {
+    "kcat": 48.38842105263158,
+    "source": "experimental"
+  },
+  "IPPMIa": {
+    "kcat": 3.2,
+    "source": "experimental"
+  },
+  "IPPMIb": {
+    "kcat": 3.2,
+    "source": "experimental"
+  },
+  "IPPS": {
+    "kcat": 2.5849117647058817,
+    "source": "experimental"
+  },
+  "KARA1": {
+    "kcat": 2.097142857142857,
+    "source": "experimental"
+  },
+  "KARA2": {
+    "kcat": 2.097142857142857,
+    "source": "experimental"
+  },
+  "THRD_L_num1": {
+    "kcat": 190.85,
+    "source": "experimental"
+  },
+  "VALTA": {
+    "kcat": 18.805,
+    "source": "experimental"
+  },
+  "LEUTAi": {
+    "kcat": 18.805,
+    "source": "experimental"
+  },
+  "ALAR_reverse": {
+    "kcat": 275.128125,
+    "source": "experimental"
+  },
+  "ALATA_L_reverse": {
+    "kcat": 52.82854166666666,
+    "source": "experimental"
+  },
+  "ASPTA_reverse": {
+    "kcat": 161.435,
+    "source": "experimental"
+  },
+  "2METS_reverse": {
+    "kcat": 18.301538461538463,
+    "source": "experimental"
+  },
+  "ALCD19_reverse_num1": {
+    "kcat": 292.8888888888889,
+    "source": "experimental"
+  },
+  "ARAI_reverse_num1": {
+    "kcat": 111.08642857142857,
+    "source": "experimental"
+  },
+  "GUI1_reverse": {
+    "kcat": 67.86666666666666,
+    "source": "experimental"
+  },
+  "HCO3E_reverse": {
+    "kcat": 2907913.6363636362,
+    "source": "experimental"
+  },
+  "MALGT_reverse": {
+    "kcat": 105.02,
+    "source": "experimental"
+  },
+  "MAN1PG_reverse": {
+    "kcat": 104.49166666666667,
+    "source": "experimental"
+  },
+  "MAN6PI_reverse": {
+    "kcat": 22925.153333333332,
+    "source": "experimental"
+  },
+  "MCITL2_reverse_num1": {
+    "kcat": 63.21666666666667,
+    "source": "experimental"
+  },
+  "MM_COA_ADD5_reverse": {
+    "kcat": 3.84,
+    "source": "experimental"
+  },
+  "PGMT_reverse": {
+    "kcat": 142.13625,
+    "source": "experimental"
+  },
+  "PMANM_reverse_num1": {
+    "kcat": 24.803846153846155,
+    "source": "experimental"
+  },
+  "UDPG4E_reverse": {
+    "kcat": 4496.622911923077,
+    "source": "experimental"
+  },
+  "XYLI1_reverse": {
+    "kcat": 4.944916666666667,
+    "source": "experimental"
+  },
+  "ACOTA_reverse": {
+    "kcat": 1.185,
+    "source": "experimental"
+  },
+  "ARGSL_reverse": {
+    "kcat": 401.496,
+    "source": "experimental"
+  },
+  "OCBT_reverse": {
+    "kcat": 1190.9444444444443,
+    "source": "experimental"
+  },
+  "3OAR100_reverse": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR120_reverse": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR140_reverse": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR160_reverse": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR180_reverse": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR40_reverse": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR60_reverse": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "3OAR80_reverse": {
+    "kcat": 117.26209523809523,
+    "source": "experimental"
+  },
+  "ALAALAr_reverse": {
+    "kcat": 1.5493431307692307,
+    "source": "experimental"
+  },
+  "GLUR_reverse": {
+    "kcat": 3855.6993939393933,
+    "source": "experimental"
+  },
+  "PGAMT_reverse": {
+    "kcat": 1.5664,
+    "source": "experimental"
+  },
+  "G1PTT_reverse": {
+    "kcat": 6.081253846153847,
+    "source": "experimental"
+  },
+  "GALUi_reverse_num1": {
+    "kcat": 104.56153846153845,
+    "source": "experimental"
+  },
+  "PAPPT3_reverse": {
+    "kcat": 204.05200000000002,
+    "source": "experimental"
+  },
+  "ACONTa_reverse": {
+    "kcat": 202.78,
+    "source": "experimental"
+  },
+  "ACONTb_reverse": {
+    "kcat": 202.78,
+    "source": "experimental"
+  },
+  "FUM_reverse": {
+    "kcat": 374.33333333333326,
+    "source": "experimental"
+  },
+  "MDH_reverse": {
+    "kcat": 327.54545454545456,
+    "source": "experimental"
+  },
+  "PYRC_reverse": {
+    "kcat": 5.78695,
+    "source": "experimental"
+  },
+  "AMAOTr_reverse": {
+    "kcat": 58.97429411588235,
+    "source": "experimental"
+  },
+  "DHFR_reverse": {
+    "kcat": 55.85,
+    "source": "experimental"
+  },
+  "G1SAT_reverse": {
+    "kcat": 0.51,
+    "source": "experimental"
+  },
+  "GTHOr_reverse": {
+    "kcat": 233.7,
+    "source": "experimental"
+  },
+  "ICHORS_reverse": {
+    "kcat": 10.242083333333332,
+    "source": "experimental"
+  },
+  "IPDDI_reverse": {
+    "kcat": 2151.6445714285715,
+    "source": "experimental"
+  },
+  "OHPBAT_reverse": {
+    "kcat": 1.07125,
+    "source": "experimental"
+  },
+  "PY5PSH_reverse": {
+    "kcat": 0.016436000000000003,
+    "source": "experimental"
+  },
+  "RBFK_reverse": {
+    "kcat": 2.005416666666666,
+    "source": "experimental"
+  },
+  "SERAT_reverse": {
+    "kcat": 1026.58444,
+    "source": "experimental"
+  },
+  "MTHFC_reverse": {
+    "kcat": 2231.975,
+    "source": "experimental"
+  },
+  "MTHFD_reverse": {
+    "kcat": 94.9512,
+    "source": "experimental"
+  },
+  "GHMT2r_reverse": {
+    "kcat": 34.82536217391304,
+    "source": "experimental"
+  },
+  "ENO_reverse": {
+    "kcat": 66.2408972972973,
+    "source": "experimental"
+  },
+  "FBA_reverse": {
+    "kcat": 7.543924240909091,
+    "source": "experimental"
+  },
+  "GAPD_reverse_num1": {
+    "kcat": 6.45,
+    "source": "experimental"
+  },
+  "PGI_reverse": {
+    "kcat": 1473.8477300000002,
+    "source": "experimental"
+  },
+  "PGK_reverse": {
+    "kcat": 647.8,
+    "source": "experimental"
+  },
+  "PGM_reverse_num1": {
+    "kcat": 148.6390909090909,
+    "source": "experimental"
+  },
+  "TPI_reverse": {
+    "kcat": 11085.090909090908,
+    "source": "experimental"
+  },
+  "PRMICI_reverse": {
+    "kcat": 7.91625,
+    "source": "experimental"
+  },
+  "PRPPS_reverse": {
+    "kcat": 38.394,
+    "source": "experimental"
+  },
+  "MI2DH_reverse_num1": {
+    "kcat": 58.0,
+    "source": "experimental"
+  },
+  "UAGAAT_reverse_num1": {
+    "kcat": 9.166666666666666,
+    "source": "experimental"
+  },
+  "ACACT1r_reverse": {
+    "kcat": 250225.12,
+    "source": "experimental"
+  },
+  "ACOATA_reverse_num1": {
+    "kcat": 17.168145925555557,
+    "source": "experimental"
+  },
+  "MCOATA_reverse_num1": {
+    "kcat": 92.33634818181818,
+    "source": "experimental"
+  },
+  "ADK1_reverse": {
+    "kcat": 32.576099995999996,
+    "source": "experimental"
+  },
+  "ADK2_reverse": {
+    "kcat": 32.576099995999996,
+    "source": "experimental"
+  },
+  "CYTK1_reverse": {
+    "kcat": 91.23111111111109,
+    "source": "experimental"
+  },
+  "CYTK2_reverse": {
+    "kcat": 91.23111111111109,
+    "source": "experimental"
+  },
+  "DGK1_reverse": {
+    "kcat": 287.37857142857143,
+    "source": "experimental"
+  },
+  "DTMPK_reverse": {
+    "kcat": 2.9716764705882355,
+    "source": "experimental"
+  },
+  "GK1_reverse": {
+    "kcat": 287.37857142857143,
+    "source": "experimental"
+  },
+  "NDPK1_reverse": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK2_reverse": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK3_reverse": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK4_reverse": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK5_reverse": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK6_reverse": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK7_reverse": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NDPK8_reverse": {
+    "kcat": 194.85327777777775,
+    "source": "experimental"
+  },
+  "NNATr_reverse": {
+    "kcat": 14.133333333333333,
+    "source": "experimental"
+  },
+  "UMPK_reverse": {
+    "kcat": 147.5,
+    "source": "experimental"
+  },
+  "URIDK2r_reverse": {
+    "kcat": 2.9716764705882355,
+    "source": "experimental"
+  },
+  "ATPS4rpp_reverse": {
+    "kcat": 107.38777777777777,
+    "source": "experimental"
+  },
+  "G6PDH2r_reverse": {
+    "kcat": 1256.9841285714285,
+    "source": "experimental"
+  },
+  "RPE_reverse": {
+    "kcat": 1332.4597777777776,
+    "source": "experimental"
+  },
+  "RPI_reverse": {
+    "kcat": 2429.302,
+    "source": "experimental"
+  },
+  "TALA_reverse": {
+    "kcat": 154.62857142857143,
+    "source": "experimental"
+  },
+  "TKT1_reverse": {
+    "kcat": 64521.70588235294,
+    "source": "experimental"
+  },
+  "TKT2_reverse": {
+    "kcat": 154.62857142857143,
+    "source": "experimental"
+  },
+  "ADSL1r_reverse": {
+    "kcat": 123.31,
+    "source": "experimental"
+  },
+  "ADSL2r_reverse": {
+    "kcat": 123.31,
+    "source": "experimental"
+  },
+  "AICART_reverse": {
+    "kcat": 5.363333333333333,
+    "source": "experimental"
+  },
+  "AIRC3_reverse": {
+    "kcat": 14.725,
+    "source": "experimental"
+  },
+  "DHORTS_reverse": {
+    "kcat": 64.35333333333334,
+    "source": "experimental"
+  },
+  "GARFT_reverse": {
+    "kcat": 6.3756,
+    "source": "experimental"
+  },
+  "ORPT_reverse": {
+    "kcat": 262.62268,
+    "source": "experimental"
+  },
+  "PRAGSr_reverse": {
+    "kcat": 203.34,
+    "source": "experimental"
+  },
+  "ACALD_reverse": {
+    "kcat": 8.8213,
+    "source": "experimental"
+  },
+  "ACKr_reverse": {
+    "kcat": 494.3846153846154,
+    "source": "experimental"
+  },
+  "ALCD2x_reverse_num1": {
+    "kcat": 292.8888888888889,
+    "source": "experimental"
+  },
+  "LDH_D_reverse": {
+    "kcat": 1220.20846,
+    "source": "experimental"
+  },
+  "PTAr_reverse": {
+    "kcat": 366.3721052631579,
+    "source": "experimental"
+  },
+  "ASAD_reverse": {
+    "kcat": 171.09833333333333,
+    "source": "experimental"
+  },
+  "ASPK_reverse": {
+    "kcat": 19.021941176470584,
+    "source": "experimental"
+  },
+  "DAPE_reverse": {
+    "kcat": 71.69108333333334,
+    "source": "experimental"
+  },
+  "HSDy_reverse": {
+    "kcat": 32.798559999999995,
+    "source": "experimental"
+  },
+  "SDPTA_reverse": {
+    "kcat": 24.0,
+    "source": "experimental"
+  },
+  "PHETA1_reverse_num1": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "PSCVT_reverse": {
+    "kcat": 5.67,
+    "source": "experimental"
+  },
+  "SHK3Dr_reverse_num1": {
+    "kcat": 121.6825,
+    "source": "experimental"
+  },
+  "TYRTA_reverse_num1": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "ILETA_reverse": {
+    "kcat": 18.805,
+    "source": "experimental"
+  },
+  "IPPMIa_reverse": {
+    "kcat": 3.2,
+    "source": "experimental"
+  },
+  "IPPMIb_reverse": {
+    "kcat": 3.2,
+    "source": "experimental"
+  },
+  "KARA1_reverse": {
+    "kcat": 2.097142857142857,
+    "source": "experimental"
+  },
+  "KARA2_reverse": {
+    "kcat": 2.097142857142857,
+    "source": "experimental"
+  },
+  "LEUTAi_reverse": {
+    "kcat": 18.805,
+    "source": "experimental"
+  },
+  "ADNUC_num2": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "ADNUC_num3": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "ALCD19_num3": {
+    "kcat": 292.8888888888889,
+    "source": "experimental"
+  },
+  "ARAI_num2": {
+    "kcat": 111.08642857142857,
+    "source": "experimental"
+  },
+  "FFSD_num2": {
+    "kcat": 322071.52695652173,
+    "source": "experimental"
+  },
+  "GNK_num2": {
+    "kcat": 9.4,
+    "source": "experimental"
+  },
+  "MCITL2_num2": {
+    "kcat": 63.21666666666667,
+    "source": "experimental"
+  },
+  "MSDH_num2": {
+    "kcat": 1.8809090909090909,
+    "source": "experimental"
+  },
+  "PGLYCP_num2": {
+    "kcat": 22.739444444444448,
+    "source": "experimental"
+  },
+  "PMANM_num2": {
+    "kcat": 24.803846153846155,
+    "source": "experimental"
+  },
+  "RBK_num2": {
+    "kcat": 16.708571428571428,
+    "source": "experimental"
+  },
+  "UDPGPpp_num2": {
+    "kcat": 349.05,
+    "source": "experimental"
+  },
+  "ME1_num2": {
+    "kcat": 90.28821428571429,
+    "source": "experimental"
+  },
+  "AMPTASEPG_num2": {
+    "kcat": 239.12731707317073,
+    "source": "experimental"
+  },
+  "SPMDAT2_num2": {
+    "kcat": 1.9095,
+    "source": "experimental"
+  },
+  "SPMDAT2_num3": {
+    "kcat": 1.9095,
+    "source": "experimental"
+  },
+  "SPMDAT2_num4": {
+    "kcat": 1.9095,
+    "source": "experimental"
+  },
+  "SPMDAT2_num6": {
+    "kcat": 1.9095,
+    "source": "experimental"
+  },
+  "SSALy_num2": {
+    "kcat": 4.7780000000000005,
+    "source": "experimental"
+  },
+  "SSALy_num3": {
+    "kcat": 4.7780000000000005,
+    "source": "experimental"
+  },
+  "3OAS100_num2": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS100_num3": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS120_num2": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS120_num3": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS140_num2": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS140_num3": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS60_num2": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "3OAS60_num3": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "AACPS8_num2": {
+    "kcat": 0.016,
+    "source": "experimental"
+  },
+  "AACPS8_num3": {
+    "kcat": 0.016,
+    "source": "experimental"
+  },
+  "AACPS9_num2": {
+    "kcat": 0.016,
+    "source": "experimental"
+  },
+  "AACPS9_num3": {
+    "kcat": 0.016,
+    "source": "experimental"
+  },
+  "FA100ACPHi_num2": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA120ACPHi_num2": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA140ACPHi_num2": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA141ACPHi_num2": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA160ACPHi_num2": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA161ACPHi_num2": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "FA80ACPHi_num2": {
+    "kcat": 3.2827931034482765,
+    "source": "experimental"
+  },
+  "MI1PP_num2": {
+    "kcat": 108.48764705882351,
+    "source": "experimental"
+  },
+  "TDPGDH_num2": {
+    "kcat": 79.22800000000002,
+    "source": "experimental"
+  },
+  "TDPGDH_num3": {
+    "kcat": 79.22800000000002,
+    "source": "experimental"
+  },
+  "UAGCVT_num2": {
+    "kcat": 0.5996874999999999,
+    "source": "experimental"
+  },
+  "UAMDH_num2": {
+    "kcat": 30.20769230769231,
+    "source": "experimental"
+  },
+  "UDPGD_num2": {
+    "kcat": 8.88748,
+    "source": "experimental"
+  },
+  "GALUi_num2": {
+    "kcat": 104.56153846153845,
+    "source": "experimental"
+  },
+  "CS_num2": {
+    "kcat": 103.70476667142857,
+    "source": "experimental"
+  },
+  "ACPS1_num2": {
+    "kcat": 0.3851849019607843,
+    "source": "experimental"
+  },
+  "ACPS1_num3": {
+    "kcat": 0.3851849019607843,
+    "source": "experimental"
+  },
+  "DHPPDA2_num2": {
+    "kcat": 6.1666669999999995,
+    "source": "experimental"
+  },
+  "DHPS2_num2": {
+    "kcat": 77.02221538461538,
+    "source": "experimental"
+  },
+  "DMATT_num2": {
+    "kcat": 0.675,
+    "source": "experimental"
+  },
+  "GRTT_num2": {
+    "kcat": 7.893761928571428,
+    "source": "experimental"
+  },
+  "GTPDPDP_num2": {
+    "kcat": 3.89325,
+    "source": "experimental"
+  },
+  "NADDP_num2": {
+    "kcat": 109.25463121428572,
+    "source": "experimental"
+  },
+  "PANTS_num2": {
+    "kcat": 2.2272222222222218,
+    "source": "experimental"
+  },
+  "TMPPP_num2": {
+    "kcat": 999.0,
+    "source": "experimental"
+  },
+  "TMPPP_num3": {
+    "kcat": 999.0,
+    "source": "experimental"
+  },
+  "UPP3MT_num2": {
+    "kcat": 38.0,
+    "source": "experimental"
+  },
+  "AMPTASECG_num2": {
+    "kcat": 239.12731707317073,
+    "source": "experimental"
+  },
+  "MCPST_num2": {
+    "kcat": 478.54681818181814,
+    "source": "experimental"
+  },
+  "MCPST_num3": {
+    "kcat": 478.54681818181814,
+    "source": "experimental"
+  },
+  "GLNS_num2": {
+    "kcat": 127.194,
+    "source": "experimental"
+  },
+  "G3PAT120_num2": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT120_num4": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT120_num5": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT140_num2": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT140_num4": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT140_num5": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT141_num2": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT141_num4": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT141_num5": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT160_num2": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT160_num4": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT160_num5": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT161_num2": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT161_num4": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT161_num5": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT180_num2": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT180_num4": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT180_num5": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT181_num2": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT181_num4": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "G3PAT181_num5": {
+    "kcat": 0.029744999999999997,
+    "source": "experimental"
+  },
+  "LPLIPAL1A180pp_num2": {
+    "kcat": 1034.85,
+    "source": "experimental"
+  },
+  "GAPD_num2": {
+    "kcat": 6.45,
+    "source": "experimental"
+  },
+  "GLCP_num2": {
+    "kcat": 88.9607090909091,
+    "source": "experimental"
+  },
+  "GLCP2_num2": {
+    "kcat": 88.9607090909091,
+    "source": "experimental"
+  },
+  "PGM_num2": {
+    "kcat": 148.6390909090909,
+    "source": "experimental"
+  },
+  "PGM_num3": {
+    "kcat": 148.6390909090909,
+    "source": "experimental"
+  },
+  "PGM_num5": {
+    "kcat": 148.6390909090909,
+    "source": "experimental"
+  },
+  "PYK_num2": {
+    "kcat": 2540.0,
+    "source": "experimental"
+  },
+  "HSTPT_num2": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "CYANSTpp_num2": {
+    "kcat": 139.41538715384615,
+    "source": "experimental"
+  },
+  "CYANSTpp_num3": {
+    "kcat": 139.41538715384615,
+    "source": "experimental"
+  },
+  "CYANSTpp_num4": {
+    "kcat": 139.41538715384615,
+    "source": "experimental"
+  },
+  "CYANSTpp_num5": {
+    "kcat": 139.41538715384615,
+    "source": "experimental"
+  },
+  "MI2DH_num2": {
+    "kcat": 58.0,
+    "source": "experimental"
+  },
+  "MI2DH_num3": {
+    "kcat": 58.0,
+    "source": "experimental"
+  },
+  "MI2DH_num4": {
+    "kcat": 58.0,
+    "source": "experimental"
+  },
+  "UAGAAT_num2": {
+    "kcat": 9.166666666666666,
+    "source": "experimental"
+  },
+  "UAGAAT_num4": {
+    "kcat": 9.166666666666666,
+    "source": "experimental"
+  },
+  "UAGAAT_num5": {
+    "kcat": 9.166666666666666,
+    "source": "experimental"
+  },
+  "ACCOAC_num2": {
+    "kcat": 11.613,
+    "source": "experimental"
+  },
+  "ACOATA_num2": {
+    "kcat": 17.168145925555557,
+    "source": "experimental"
+  },
+  "ACOATA_num4": {
+    "kcat": 17.168145925555557,
+    "source": "experimental"
+  },
+  "ACOATA_num5": {
+    "kcat": 17.168145925555557,
+    "source": "experimental"
+  },
+  "KAS14_num2": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "KAS14_num3": {
+    "kcat": 0.17085714285714285,
+    "source": "experimental"
+  },
+  "KAS15_num2": {
+    "kcat": 10.381983333333334,
+    "source": "experimental"
+  },
+  "KAS15_num3": {
+    "kcat": 10.381983333333334,
+    "source": "experimental"
+  },
+  "MCOATA_num2": {
+    "kcat": 92.33634818181818,
+    "source": "experimental"
+  },
+  "MCOATA_num4": {
+    "kcat": 92.33634818181818,
+    "source": "experimental"
+  },
+  "MCOATA_num5": {
+    "kcat": 92.33634818181818,
+    "source": "experimental"
+  },
+  "HSST_num2": {
+    "kcat": 0.8935,
+    "source": "experimental"
+  },
+  "SHSL1_num2": {
+    "kcat": 63.39652380952381,
+    "source": "experimental"
+  },
+  "DCTPD_num2": {
+    "kcat": 257.71,
+    "source": "experimental"
+  },
+  "GSNHYDRO_num2": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "HXPRT_num2": {
+    "kcat": 4.297686666666666,
+    "source": "experimental"
+  },
+  "UPPRT_num2": {
+    "kcat": 2.1397,
+    "source": "experimental"
+  },
+  "XTSNH_num2": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "XTSNH_num3": {
+    "kcat": 14.496153846153849,
+    "source": "experimental"
+  },
+  "NADPHQR2_num2": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR2_num3": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR2_num4": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR3_num2": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR3_num3": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR3_num4": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR4_num2": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR4_num3": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "NADPHQR4_num4": {
+    "kcat": 803.4542173913043,
+    "source": "experimental"
+  },
+  "IMPD_num2": {
+    "kcat": 7.649166666666668,
+    "source": "experimental"
+  },
+  "IMPD_num3": {
+    "kcat": 7.649166666666668,
+    "source": "experimental"
+  },
+  "ALCD2x_num2": {
+    "kcat": 292.8888888888889,
+    "source": "experimental"
+  },
+  "DAPDC_num2": {
+    "kcat": 18.235,
+    "source": "experimental"
+  },
+  "ACMANAptspp_num2": {
+    "kcat": 33.427110037999995,
+    "source": "experimental"
+  },
+  "ACMUMptspp_num2": {
+    "kcat": 33.427110037999995,
+    "source": "experimental"
+  },
+  "FMETTRS_num2": {
+    "kcat": 12.649192307692307,
+    "source": "experimental"
+  },
+  "PHETA1_num2": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "SHK3Dr_num2": {
+    "kcat": 121.6825,
+    "source": "experimental"
+  },
+  "TYRTA_num2": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "THRD_L_num2": {
+    "kcat": 190.85,
+    "source": "experimental"
+  },
+  "ALCD19_reverse_num3": {
+    "kcat": 292.8888888888889,
+    "source": "experimental"
+  },
+  "ARAI_reverse_num2": {
+    "kcat": 111.08642857142857,
+    "source": "experimental"
+  },
+  "MCITL2_reverse_num2": {
+    "kcat": 63.21666666666667,
+    "source": "experimental"
+  },
+  "PMANM_reverse_num2": {
+    "kcat": 24.803846153846155,
+    "source": "experimental"
+  },
+  "GALUi_reverse_num2": {
+    "kcat": 104.56153846153845,
+    "source": "experimental"
+  },
+  "GAPD_reverse_num2": {
+    "kcat": 6.45,
+    "source": "experimental"
+  },
+  "PGM_reverse_num2": {
+    "kcat": 148.6390909090909,
+    "source": "experimental"
+  },
+  "PGM_reverse_num3": {
+    "kcat": 148.6390909090909,
+    "source": "experimental"
+  },
+  "PGM_reverse_num5": {
+    "kcat": 148.6390909090909,
+    "source": "experimental"
+  },
+  "MI2DH_reverse_num2": {
+    "kcat": 58.0,
+    "source": "experimental"
+  },
+  "MI2DH_reverse_num3": {
+    "kcat": 58.0,
+    "source": "experimental"
+  },
+  "MI2DH_reverse_num4": {
+    "kcat": 58.0,
+    "source": "experimental"
+  },
+  "UAGAAT_reverse_num2": {
+    "kcat": 9.166666666666666,
+    "source": "experimental"
+  },
+  "UAGAAT_reverse_num4": {
+    "kcat": 9.166666666666666,
+    "source": "experimental"
+  },
+  "UAGAAT_reverse_num5": {
+    "kcat": 9.166666666666666,
+    "source": "experimental"
+  },
+  "ACOATA_reverse_num2": {
+    "kcat": 17.168145925555557,
+    "source": "experimental"
+  },
+  "ACOATA_reverse_num4": {
+    "kcat": 17.168145925555557,
+    "source": "experimental"
+  },
+  "ACOATA_reverse_num5": {
+    "kcat": 17.168145925555557,
+    "source": "experimental"
+  },
+  "MCOATA_reverse_num2": {
+    "kcat": 92.33634818181818,
+    "source": "experimental"
+  },
+  "MCOATA_reverse_num4": {
+    "kcat": 92.33634818181818,
+    "source": "experimental"
+  },
+  "MCOATA_reverse_num5": {
+    "kcat": 92.33634818181818,
+    "source": "experimental"
+  },
+  "ALCD2x_reverse_num2": {
+    "kcat": 292.8888888888889,
+    "source": "experimental"
+  },
+  "PHETA1_reverse_num2": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "SHK3Dr_reverse_num2": {
+    "kcat": 121.6825,
+    "source": "experimental"
+  },
+  "TYRTA_reverse_num2": {
+    "kcat": 2.85,
+    "source": "experimental"
+  },
+  "ASNS2": {
+    "kcat": 81.5031574762819,
+    "source": "dlkcat_prediction"
+  },
+  "VPAMT": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "ACHMSC": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "AMANAPEr": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "APG": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "BETALDHx": {
+    "kcat": 6.645796903848211,
+    "source": "dlkcat_prediction"
+  },
+  "BETALDHy": {
+    "kcat": 6.645796903848211,
+    "source": "dlkcat_prediction"
+  },
+  "CBMKr": {
+    "kcat": 23.22331476679237,
+    "source": "dlkcat_prediction"
+  },
+  "DHACOAH": {
+    "kcat": 17.1879971641325,
+    "source": "dlkcat_prediction"
+  },
+  "DHAPT": {
+    "kcat": 35.48007747554599,
+    "source": "dlkcat_prediction"
+  },
+  "DHPTDNRN": {
+    "kcat": 25.829377262600197,
+    "source": "dlkcat_prediction"
+  },
+  "FRUK": {
+    "kcat": 288.5651828425467,
+    "source": "dlkcat_prediction"
+  },
+  "G3PD2": {
+    "kcat": 157.71983672403087,
+    "source": "dlkcat_prediction"
+  },
+  "G3PT": {
+    "kcat": 14.613271673018719,
+    "source": "dlkcat_prediction"
+  },
+  "GLCATr": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "GLYCDx": {
+    "kcat": 50.87739985509625,
+    "source": "dlkcat_prediction"
+  },
+  "HEX7": {
+    "kcat": 288.5651828425467,
+    "source": "dlkcat_prediction"
+  },
+  "HPYRI_num1": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "HSST_2": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "MALTATr": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "PPASUCC": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "SUCptsp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "TRE6p": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "UACGAMPpp": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "UDPARA": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "UDPGALPpp": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "UGLCURPpp": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "MCITD_num1": {
+    "kcat": 141.85215135282385,
+    "source": "dlkcat_prediction"
+  },
+  "HDPA1": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "HDPA2": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "AGPR": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "CSND": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "G5SADs": {
+    "kcat": 242.56786794884596,
+    "source": "dlkcat_prediction"
+  },
+  "G5SD": {
+    "kcat": 10.821706385280942,
+    "source": "dlkcat_prediction"
+  },
+  "GLU5K": {
+    "kcat": 158.33979519105588,
+    "source": "dlkcat_prediction"
+  },
+  "GLUNATF": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "ORNC": {
+    "kcat": 141.85215135282385,
+    "source": "dlkcat_prediction"
+  },
+  "ARGSS": {
+    "kcat": 81.5031574762819,
+    "source": "dlkcat_prediction"
+  },
+  "CG_biomass_cgl_ATCC13032": {
+    "kcat": 0.7764045015342257,
+    "source": "dlkcat_prediction"
+  },
+  "BAMPN": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "BIOTIN_t": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "BTNAMP": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "3HAD40": {
+    "kcat": 9.280531818181798,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS121_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS141_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS160_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS161_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS180_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS181_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS80_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS1_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS2_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS3_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS4_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS5_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS6_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS7_num1": {
+    "kcat": 0.15519097614813895,
+    "source": "dlkcat_prediction"
+  },
+  "CDPDAG": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "CLPN": {
+    "kcat": 242.56786794884596,
+    "source": "dlkcat_prediction"
+  },
+  "PIM": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "PIT": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "T2DECAI": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "CITL": {
+    "kcat": 141.85215135282385,
+    "source": "dlkcat_prediction"
+  },
+  "FRD2": {
+    "kcat": 181.75310003158674,
+    "source": "dlkcat_prediction"
+  },
+  "FRD3": {
+    "kcat": 181.75310003158674,
+    "source": "dlkcat_prediction"
+  },
+  "MDH2": {
+    "kcat": 94.74271601141697,
+    "source": "dlkcat_prediction"
+  },
+  "MDH3": {
+    "kcat": 94.74271601141697,
+    "source": "dlkcat_prediction"
+  },
+  "2MAHMP": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "ADCL": {
+    "kcat": 14.579376542573073,
+    "source": "dlkcat_prediction"
+  },
+  "ADOCBLS": {
+    "kcat": 94.45793556227012,
+    "source": "dlkcat_prediction"
+  },
+  "AMMQLT8": {
+    "kcat": 5.313801108535862,
+    "source": "dlkcat_prediction"
+  },
+  "ASPO5": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "BMOCOS_num1": {
+    "kcat": 89.36557682857364,
+    "source": "dlkcat_prediction"
+  },
+  "BWCOS_num1": {
+    "kcat": 89.36557682857364,
+    "source": "dlkcat_prediction"
+  },
+  "CDPMEK": {
+    "kcat": 288.5651828425467,
+    "source": "dlkcat_prediction"
+  },
+  "CPMPS_num1": {
+    "kcat": 0.6863359532744661,
+    "source": "dlkcat_prediction"
+  },
+  "CPPPGO": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "DB4PS": {
+    "kcat": 14.579376542573073,
+    "source": "dlkcat_prediction"
+  },
+  "DHFS": {
+    "kcat": 81.5031574762819,
+    "source": "dlkcat_prediction"
+  },
+  "DHNCOAS": {
+    "kcat": 0.6863359532744661,
+    "source": "dlkcat_prediction"
+  },
+  "DHNCOAT": {
+    "kcat": 74.83845672874413,
+    "source": "dlkcat_prediction"
+  },
+  "DHPTPE": {
+    "kcat": 10.981865006209746,
+    "source": "dlkcat_prediction"
+  },
+  "GDPDPK": {
+    "kcat": 7.313044937946806,
+    "source": "dlkcat_prediction"
+  },
+  "HETZK": {
+    "kcat": 288.5651828425467,
+    "source": "dlkcat_prediction"
+  },
+  "LIPAMPL": {
+    "kcat": 193.9357688386866,
+    "source": "dlkcat_prediction"
+  },
+  "LIPATPT": {
+    "kcat": 15.097932185113754,
+    "source": "dlkcat_prediction"
+  },
+  "LIPOS": {
+    "kcat": 58.55306717838932,
+    "source": "dlkcat_prediction"
+  },
+  "MECDPDH2": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "MOCOS_num1": {
+    "kcat": 688.8721012002742,
+    "source": "dlkcat_prediction"
+  },
+  "MPTAT": {
+    "kcat": 3.8917793528149462,
+    "source": "dlkcat_prediction"
+  },
+  "MPTS": {
+    "kcat": 0.23058237215066246,
+    "source": "dlkcat_prediction"
+  },
+  "MPTSS": {
+    "kcat": 1.1357614985710935,
+    "source": "dlkcat_prediction"
+  },
+  "MSDHD_num1": {
+    "kcat": 10.821706385280942,
+    "source": "dlkcat_prediction"
+  },
+  "NADPPPS_num1": {
+    "kcat": 157.26207391782492,
+    "source": "dlkcat_prediction"
+  },
+  "OCTDPS": {
+    "kcat": 13.117414442841133,
+    "source": "dlkcat_prediction"
+  },
+  "OCTNLL": {
+    "kcat": 186.05135571961372,
+    "source": "dlkcat_prediction"
+  },
+  "OMBZLM": {
+    "kcat": 13.7124535544237,
+    "source": "dlkcat_prediction"
+  },
+  "QULNS": {
+    "kcat": 10.481586922195644,
+    "source": "dlkcat_prediction"
+  },
+  "RZ5PP": {
+    "kcat": 20.51782084825788,
+    "source": "dlkcat_prediction"
+  },
+  "SEPHCHCS": {
+    "kcat": 28.71913086994573,
+    "source": "dlkcat_prediction"
+  },
+  "TRATF_num1": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "TYRL": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "WCOS_num1": {
+    "kcat": 688.8721012002742,
+    "source": "dlkcat_prediction"
+  },
+  "NAMNPP": {
+    "kcat": 13.726163681883651,
+    "source": "dlkcat_prediction"
+  },
+  "ADSK": {
+    "kcat": 288.5651828425467,
+    "source": "dlkcat_prediction"
+  },
+  "EX_26dap__M_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_3amp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_3cmp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_3gmp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_3ump_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_4abut_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ac_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_acald_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_acgam_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_acgam1p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_acmana_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_acser_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ade_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_adn_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_akg_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ala_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_alaala_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ala_B_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ala__D_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_amp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_arg_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_asn_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_asp_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ca2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cgly_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cit_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cmp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_co2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cobalt2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cu_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cu2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cyan_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cys_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cytd_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dad_2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_damp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dcmp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dcyt_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dgmp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dgsn_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dha_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dimp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_din_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dms_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dmso_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dtmp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_dump_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_duri_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_etha_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_etoh_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_f6p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_fe2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_fe3_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_for_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_fru_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_fruur_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_fum_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_g1p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_g3pe_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_g3pg_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_g3pi_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_g3ps_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_g6p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gal1p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gam_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gam6p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glc_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glcn_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glcur_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glcur1p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gln_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glu_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gly_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glyald_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glyc_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glyc_R_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glyc3p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gmp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gsn_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gthrd_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_gua_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_h_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_h2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_h2o_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_h2s_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_his_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_hom__L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_hxan_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ile_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_imp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_indole_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_inost_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ins_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_k_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_lac_D_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_lac_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_leu_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_lys_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_mal__L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_malt_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_man_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_man6p_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_met_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_mg2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_mn2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_mnl_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_n2o_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_na1_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_nac_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_nh4_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ni2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_nmn_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_no_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_no2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_no3_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_o2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_o2s_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_orn_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_orot_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_phe_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_pheme_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_pi_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_pnto__R_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ppa_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ppt_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_pro_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_progly_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_pydx_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_pyr_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_rib__D_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_sbt__D_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ser_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_skm_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_so3_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_so4_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_succ_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_sucr_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_tcynt_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_thr_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_thymd_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_tma_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_tmao_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_tre_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_trp_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_tsul_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_tyr_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_uacgam_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_udpg_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_udpgal_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_udpglcur_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ump_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ura_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_urea_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_uri_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_val_L_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_xan_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_xmp_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_xtsn_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_xyl__D_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_zn2_e": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ACBCP": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "BTNC": {
+    "kcat": 13.726163681883651,
+    "source": "dlkcat_prediction"
+  },
+  "FOMETRi": {
+    "kcat": 11.569840397639496,
+    "source": "dlkcat_prediction"
+  },
+  "FTHFD": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "GLYCL": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "GLUDC": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "ACPPAT120": {
+    "kcat": 15.084558628277698,
+    "source": "dlkcat_prediction"
+  },
+  "ACPPAT140": {
+    "kcat": 15.084558628277698,
+    "source": "dlkcat_prediction"
+  },
+  "ACPPAT141": {
+    "kcat": 15.084558628277698,
+    "source": "dlkcat_prediction"
+  },
+  "ACPPAT160": {
+    "kcat": 15.084558628277698,
+    "source": "dlkcat_prediction"
+  },
+  "ACPPAT161": {
+    "kcat": 15.084558628277698,
+    "source": "dlkcat_prediction"
+  },
+  "ACPPAT180": {
+    "kcat": 15.084558628277698,
+    "source": "dlkcat_prediction"
+  },
+  "ACPPAT181": {
+    "kcat": 15.084558628277698,
+    "source": "dlkcat_prediction"
+  },
+  "AGPAT120": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "AGPAT140": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "AGPAT141": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "AGPAT160": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "AGPAT161": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "AGPAT180": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "AGPAT181": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "PGSA120": {
+    "kcat": 11.137745604269416,
+    "source": "dlkcat_prediction"
+  },
+  "PGSA140": {
+    "kcat": 11.137745604269416,
+    "source": "dlkcat_prediction"
+  },
+  "PGSA141": {
+    "kcat": 11.137745604269416,
+    "source": "dlkcat_prediction"
+  },
+  "PGSA160": {
+    "kcat": 11.137745604269416,
+    "source": "dlkcat_prediction"
+  },
+  "PGSA161": {
+    "kcat": 11.137745604269416,
+    "source": "dlkcat_prediction"
+  },
+  "PGSA180": {
+    "kcat": 11.137745604269416,
+    "source": "dlkcat_prediction"
+  },
+  "PGSA181": {
+    "kcat": 11.137745604269416,
+    "source": "dlkcat_prediction"
+  },
+  "IG3PS": {
+    "kcat": 42.9069574053887,
+    "source": "dlkcat_prediction"
+  },
+  "PRATPP": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "CA2t3pp": {
+    "kcat": 8.324638009370236,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num1": {
+    "kcat": 3792.3676119235547,
+    "source": "dlkcat_prediction"
+  },
+  "COBALT2abcpp": {
+    "kcat": 333.87348892462717,
+    "source": "dlkcat_prediction"
+  },
+  "COBALT2tpp": {
+    "kcat": 18.117874998867897,
+    "source": "dlkcat_prediction"
+  },
+  "FDMO": {
+    "kcat": 16.77792728495086,
+    "source": "dlkcat_prediction"
+  },
+  "FE3abcpp_num1": {
+    "kcat": 18.49868851218597,
+    "source": "dlkcat_prediction"
+  },
+  "Kabcpp_num1": {
+    "kcat": 70.36442143950221,
+    "source": "dlkcat_prediction"
+  },
+  "Kt2pp": {
+    "kcat": 5.7625681330029135,
+    "source": "dlkcat_prediction"
+  },
+  "Kt3pp": {
+    "kcat": 5.7625681330029135,
+    "source": "dlkcat_prediction"
+  },
+  "MG2t3_2pp_num1": {
+    "kcat": 5.1094948307336825,
+    "source": "dlkcat_prediction"
+  },
+  "MG2uabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "MN2tpp": {
+    "kcat": 18.117874998867897,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num1": {
+    "kcat": 3792.3676119235547,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num1": {
+    "kcat": 3792.3676119235547,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3pp": {
+    "kcat": 2.157621194239738,
+    "source": "dlkcat_prediction"
+  },
+  "NH4tpp_num1": {
+    "kcat": 416.9086894975527,
+    "source": "dlkcat_prediction"
+  },
+  "NI2tpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "NI2uabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "NO2t2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "NO3t7pp": {
+    "kcat": 3.856552117234982,
+    "source": "dlkcat_prediction"
+  },
+  "O2tpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "PIt2rpp": {
+    "kcat": 1.4834453178532563,
+    "source": "dlkcat_prediction"
+  },
+  "PIuabcpp": {
+    "kcat": 10.431120827042339,
+    "source": "dlkcat_prediction"
+  },
+  "SO3TRDRD": {
+    "kcat": 36.640916635315946,
+    "source": "dlkcat_prediction"
+  },
+  "SULabcpp": {
+    "kcat": 61.74316669618434,
+    "source": "dlkcat_prediction"
+  },
+  "ZN2abcpp_num1": {
+    "kcat": 12.932050474206696,
+    "source": "dlkcat_prediction"
+  },
+  "ZN2t3pp": {
+    "kcat": 1.9977327567160408,
+    "source": "dlkcat_prediction"
+  },
+  "ZN2tpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ZNabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "CD2tpp": {
+    "kcat": 18.117874998867897,
+    "source": "dlkcat_prediction"
+  },
+  "CU2tpp": {
+    "kcat": 19.103899026897658,
+    "source": "dlkcat_prediction"
+  },
+  "FE2tpp_num1": {
+    "kcat": 18.117874998867897,
+    "source": "dlkcat_prediction"
+  },
+  "D52DGK": {
+    "kcat": 158.33979519105588,
+    "source": "dlkcat_prediction"
+  },
+  "D5GIS": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "MI2DHT": {
+    "kcat": 141.85215135282385,
+    "source": "dlkcat_prediction"
+  },
+  "THCDH": {
+    "kcat": 91.68445457981593,
+    "source": "dlkcat_prediction"
+  },
+  "U23GAAT_num1": {
+    "kcat": 5.313801108535862,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD1f": {
+    "kcat": 29.523018162143526,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD2f": {
+    "kcat": 29.523018162143526,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD3f": {
+    "kcat": 29.523018162143526,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD4f": {
+    "kcat": 29.523018162143526,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD5f": {
+    "kcat": 29.523018162143526,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD6f": {
+    "kcat": 29.523018162143526,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD7f": {
+    "kcat": 29.523018162143526,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD8f": {
+    "kcat": 29.523018162143526,
+    "source": "dlkcat_prediction"
+  },
+  "MACPD": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "TDCM_FREE": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "TMCM_FREE": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "ACHACB": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "METSOXR1_num1": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "MCTP1App": {
+    "kcat": 255.33004885928298,
+    "source": "dlkcat_prediction"
+  },
+  "MCTP1Bpp": {
+    "kcat": 255.33004885928298,
+    "source": "dlkcat_prediction"
+  },
+  "MCTP2App": {
+    "kcat": 255.33004885928298,
+    "source": "dlkcat_prediction"
+  },
+  "MPTG_num1": {
+    "kcat": 109.77974503318111,
+    "source": "dlkcat_prediction"
+  },
+  "MPTG2_num1": {
+    "kcat": 109.14706057142847,
+    "source": "dlkcat_prediction"
+  },
+  "AGM4PApp": {
+    "kcat": 200.01906339862512,
+    "source": "dlkcat_prediction"
+  },
+  "NHFRBO_num1": {
+    "kcat": 32.40239062010421,
+    "source": "dlkcat_prediction"
+  },
+  "NO3R1bpp": {
+    "kcat": 168.6409605455607,
+    "source": "dlkcat_prediction"
+  },
+  "NO3R2bpp": {
+    "kcat": 168.6409605455607,
+    "source": "dlkcat_prediction"
+  },
+  "NTRIR3pp": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "NTRIR4pp": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "3NTD2pp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "3NTD4pp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "3NTD7pp": {
+    "kcat": 82.55666666666725,
+    "source": "dlkcat_prediction"
+  },
+  "3NTD9pp": {
+    "kcat": 82.55666666666725,
+    "source": "dlkcat_prediction"
+  },
+  "ADK3": {
+    "kcat": 340.99410271769074,
+    "source": "dlkcat_prediction"
+  },
+  "ADK4": {
+    "kcat": 340.99410271769074,
+    "source": "dlkcat_prediction"
+  },
+  "ADNK1": {
+    "kcat": 1.5004027226171637,
+    "source": "dlkcat_prediction"
+  },
+  "AP5AH": {
+    "kcat": 3.273524075452862,
+    "source": "dlkcat_prediction"
+  },
+  "ATPHs": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "CYTDK2": {
+    "kcat": 288.5651828425467,
+    "source": "dlkcat_prediction"
+  },
+  "DURIK1": {
+    "kcat": 288.5651828425467,
+    "source": "dlkcat_prediction"
+  },
+  "GP4GH": {
+    "kcat": 8.685169022854543,
+    "source": "dlkcat_prediction"
+  },
+  "GSNK": {
+    "kcat": 288.5651828425467,
+    "source": "dlkcat_prediction"
+  },
+  "GTPHs": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP1": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP10": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP11": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP3": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP4": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP5": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP9": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "RNDR1b": {
+    "kcat": 44.3934150594607,
+    "source": "dlkcat_prediction"
+  },
+  "RNDR2b": {
+    "kcat": 44.3934150594607,
+    "source": "dlkcat_prediction"
+  },
+  "RNDR3b": {
+    "kcat": 44.3934150594607,
+    "source": "dlkcat_prediction"
+  },
+  "RNDR4b": {
+    "kcat": 44.3934150594607,
+    "source": "dlkcat_prediction"
+  },
+  "RNTR2c": {
+    "kcat": 323.4196258100817,
+    "source": "dlkcat_prediction"
+  },
+  "RNTR3c": {
+    "kcat": 323.4196258100817,
+    "source": "dlkcat_prediction"
+  },
+  "RNTR4c": {
+    "kcat": 323.4196258100817,
+    "source": "dlkcat_prediction"
+  },
+  "NTP1": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTP10": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTP11": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTP12": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTP3": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTP5": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP2": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP6": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP7": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "NTPP8": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "CRNCAL2": {
+    "kcat": 85.14029712440995,
+    "source": "dlkcat_prediction"
+  },
+  "CRNDCAL2": {
+    "kcat": 85.14029712440995,
+    "source": "dlkcat_prediction"
+  },
+  "CTBTCAL2": {
+    "kcat": 85.14029712440995,
+    "source": "dlkcat_prediction"
+  },
+  "DMSOR1pp": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "DMSOR2pp": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "FDH4pp_num1": {
+    "kcat": 10.821706385280942,
+    "source": "dlkcat_prediction"
+  },
+  "FDH5pp_num1": {
+    "kcat": 10.821706385280942,
+    "source": "dlkcat_prediction"
+  },
+  "G3PD6": {
+    "kcat": 94.74271601141697,
+    "source": "dlkcat_prediction"
+  },
+  "G3PD7": {
+    "kcat": 94.74271601141697,
+    "source": "dlkcat_prediction"
+  },
+  "HYD1pp": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "HYD2pp": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "HYD3pp": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "NADH9": {
+    "kcat": 56.68723484484744,
+    "source": "dlkcat_prediction"
+  },
+  "NO3R1pp": {
+    "kcat": 22.61172604977875,
+    "source": "dlkcat_prediction"
+  },
+  "NO3R2pp": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "NTRIR2x": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "POX": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "PPKr": {
+    "kcat": 158.33979519105588,
+    "source": "dlkcat_prediction"
+  },
+  "SUCDi": {
+    "kcat": 94.74271601141697,
+    "source": "dlkcat_prediction"
+  },
+  "TMAOR1pp": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "TMAOR2pp": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "DHORD5": {
+    "kcat": 70.64085132704662,
+    "source": "dlkcat_prediction"
+  },
+  "GART": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "GLUPRT": {
+    "kcat": 1.9760905428411606,
+    "source": "dlkcat_prediction"
+  },
+  "IMPC": {
+    "kcat": 91.68445457981593,
+    "source": "dlkcat_prediction"
+  },
+  "PRAIS": {
+    "kcat": 43.424315127976584,
+    "source": "dlkcat_prediction"
+  },
+  "PRASCSi": {
+    "kcat": 81.5031574762819,
+    "source": "dlkcat_prediction"
+  },
+  "FHL": {
+    "kcat": 476.0789429282205,
+    "source": "dlkcat_prediction"
+  },
+  "OAADC": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "DHDPRy": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "THDPS_num1": {
+    "kcat": 37.88723902687108,
+    "source": "dlkcat_prediction"
+  },
+  "26DAHtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "3AMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "3CMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "3GMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "3UMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ABUTt2pp": {
+    "kcat": 14.918971930708306,
+    "source": "dlkcat_prediction"
+  },
+  "ABUTtex": {
+    "kcat": 48.86748996495535,
+    "source": "dlkcat_prediction"
+  },
+  "ACALDtpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ACGAM1Ptex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ACGAptspp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "ACGAtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ACMANAtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ACSERtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ACt2rpp": {
+    "kcat": 15.677344382305677,
+    "source": "dlkcat_prediction"
+  },
+  "ADEt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "ADNt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "AKGt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "ALAabcpp": {
+    "kcat": 36.14708596729823,
+    "source": "dlkcat_prediction"
+  },
+  "ALAALAabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "ALAALAtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ALAtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "AMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ARBabcpp": {
+    "kcat": 21.714165220540643,
+    "source": "dlkcat_prediction"
+  },
+  "ARBt3ipp": {
+    "kcat": 0.7993066980314891,
+    "source": "dlkcat_prediction"
+  },
+  "ARBTptspp": {
+    "kcat": 7.769257583397985,
+    "source": "dlkcat_prediction"
+  },
+  "ARGabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "ARGORNt7pp": {
+    "kcat": 124.12489037205833,
+    "source": "dlkcat_prediction"
+  },
+  "ARGt3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "ASCBptspp": {
+    "kcat": 7.769257583397985,
+    "source": "dlkcat_prediction"
+  },
+  "ASNabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "ASNt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "ASPabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "ASPt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "ASPt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "BALAt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "BALAtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "BCCPE": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "CGLYabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "CGLYtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "CHTBSptspp": {
+    "kcat": 27.253591137397343,
+    "source": "dlkcat_prediction"
+  },
+  "CITt3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "CITt7pp": {
+    "kcat": 0.3061033622306993,
+    "source": "dlkcat_prediction"
+  },
+  "CITtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "CLt3_2pp": {
+    "kcat": 562.3956526682866,
+    "source": "dlkcat_prediction"
+  },
+  "CRNabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "CRNDabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "CRNDt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "CRNt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "CRNt8pp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "CTBTabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "CTBTt2rpp": {
+    "kcat": 42.366078919326625,
+    "source": "dlkcat_prediction"
+  },
+  "CUt3": {
+    "kcat": 13.000497440057346,
+    "source": "dlkcat_prediction"
+  },
+  "CUtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "CYANtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "CYSabc2pp": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "CYSabcpp": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "CYStpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "CYTDt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "CYTDt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "DADNtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DALAt2pp": {
+    "kcat": 4.397668879767481,
+    "source": "dlkcat_prediction"
+  },
+  "DALAtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DAMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DAPabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "DCMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DCYTtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DGMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DGSNtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DHAtpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DIMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DINStex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "D_LACt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "DMSOtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DMStex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DSERt2pp": {
+    "kcat": 4.397668879767481,
+    "source": "dlkcat_prediction"
+  },
+  "DTMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DUMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "DURIt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "DURItex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ETHAtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ETOHtrpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_biomass": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_BIOTIN": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cl": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "F6Pt6_2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "F6Ptex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "FE3DHBZStonex": {
+    "kcat": 27.253591137397343,
+    "source": "dlkcat_prediction"
+  },
+  "FE3tex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "FRUpts2pp": {
+    "kcat": 27.253591137397343,
+    "source": "dlkcat_prediction"
+  },
+  "FRUtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "FRUURt2rpp": {
+    "kcat": 2.358143641818211,
+    "source": "dlkcat_prediction"
+  },
+  "FUMt2_2pp": {
+    "kcat": 2.358143641818211,
+    "source": "dlkcat_prediction"
+  },
+  "FUMt2_3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "FUMtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "G1Ptex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "G3PCabcpp": {
+    "kcat": 7.514120453620191,
+    "source": "dlkcat_prediction"
+  },
+  "G3PEabcpp": {
+    "kcat": 7.514120453620191,
+    "source": "dlkcat_prediction"
+  },
+  "G3PEtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "G3PGabcpp": {
+    "kcat": 7.514120453620191,
+    "source": "dlkcat_prediction"
+  },
+  "G3PGtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "G3PIabcpp": {
+    "kcat": 7.514120453620191,
+    "source": "dlkcat_prediction"
+  },
+  "G3PItex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "G3PSabcpp": {
+    "kcat": 7.514120453620191,
+    "source": "dlkcat_prediction"
+  },
+  "G3PStex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "G6Pt6_2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "G6Ptex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GAL1Ptex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GALTptspp": {
+    "kcat": 27.253591137397343,
+    "source": "dlkcat_prediction"
+  },
+  "GAM6Pt6_2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "GAMAN6Ptex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GAMptspp": {
+    "kcat": 27.253591137397343,
+    "source": "dlkcat_prediction"
+  },
+  "GAMtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GLCabcpp": {
+    "kcat": 18.030871227864974,
+    "source": "dlkcat_prediction"
+  },
+  "GLCNt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "GLCptspp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "GLCUR1Ptex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GLCURt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "GLNabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "GLNt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "GLUabcpp": {
+    "kcat": 19.89796987436801,
+    "source": "dlkcat_prediction"
+  },
+  "GLUt4pp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "GLUtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GLYALDtpp": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GLYBabcpp_num1": {
+    "kcat": 3.4518362169054226,
+    "source": "dlkcat_prediction"
+  },
+  "GLYC2Pabcpp": {
+    "kcat": 7.514120453620191,
+    "source": "dlkcat_prediction"
+  },
+  "GLYC3Pabcpp": {
+    "kcat": 7.514120453620191,
+    "source": "dlkcat_prediction"
+  },
+  "GLYC3Pt6pp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "GLYC3Ptex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GLYCAt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "GLYCtpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GLYtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GMPtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GSNt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "GSNtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GTHRDabc2pp": {
+    "kcat": 13.622336339453533,
+    "source": "dlkcat_prediction"
+  },
+  "GTHRDabcpp": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "GTHRDtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "GUAt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "GUAtpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "H2Otpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "H2St1pp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "H2Stex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "H2tpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "HISabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "HISt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "HOMt2pp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "HOMtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "HYXNtpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ILEt2rpp": {
+    "kcat": 1.731813401902091,
+    "source": "dlkcat_prediction"
+  },
+  "INDOLEt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "INDOLEt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "INSt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "INSt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "LEUt2rpp_num1": {
+    "kcat": 1.9977327567160408,
+    "source": "dlkcat_prediction"
+  },
+  "L_LACt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "LYSabcpp": {
+    "kcat": 25.020206122080932,
+    "source": "dlkcat_prediction"
+  },
+  "LYSt2pp": {
+    "kcat": 11.422069211356096,
+    "source": "dlkcat_prediction"
+  },
+  "LYSt3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "MALt3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "MALTabcpp": {
+    "kcat": 20.65926865653573,
+    "source": "dlkcat_prediction"
+  },
+  "MALTptspp": {
+    "kcat": 27.253591137397343,
+    "source": "dlkcat_prediction"
+  },
+  "MAN6Pt6_2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "MANptspp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "METabcpp": {
+    "kcat": 18.49868851218597,
+    "source": "dlkcat_prediction"
+  },
+  "METt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "MNLptspp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "MNt2pp": {
+    "kcat": 172.323033637912,
+    "source": "dlkcat_prediction"
+  },
+  "NACtpp": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "NAtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "NMNt7pp": {
+    "kcat": 6.524503463611033,
+    "source": "dlkcat_prediction"
+  },
+  "NO3tex": {
+    "kcat": 271.37851741805275,
+    "source": "dlkcat_prediction"
+  },
+  "NOtex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "O2Stex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ORNabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "OROTt2_2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "PA120abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PA140abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PA141abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PA160abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PA161abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PA180abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PA181abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PGP120abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PGP140abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PGP141abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PGP160abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PGP161abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PGP180abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PGP181abcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PHEMEabcpp_num1": {
+    "kcat": 13.089185158896408,
+    "source": "dlkcat_prediction"
+  },
+  "PHEMEtiex": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "PHEt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "PNTOt4pp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "PROabcpp": {
+    "kcat": 22.506062911239564,
+    "source": "dlkcat_prediction"
+  },
+  "PROGLYabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "PROt3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "PROt4pp": {
+    "kcat": 23.84673884359413,
+    "source": "dlkcat_prediction"
+  },
+  "PSERtex_num1": {
+    "kcat": 415.65111444462894,
+    "source": "dlkcat_prediction"
+  },
+  "PTRCORNt7pp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "PTRCt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "PYDXtpp": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "PYRt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "RIBabcpp": {
+    "kcat": 20.65926865653573,
+    "source": "dlkcat_prediction"
+  },
+  "SBTptspp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "SERabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "SERt3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "SKMt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "SPMDabcpp": {
+    "kcat": 8.29642659030387,
+    "source": "dlkcat_prediction"
+  },
+  "SPMDt3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "SUCCt2_2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "SUCCt2_3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "SUCCt3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "SUCptspp": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "THMabcpp": {
+    "kcat": 18.49868851218597,
+    "source": "dlkcat_prediction"
+  },
+  "THMDt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "THMDt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "THRabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "THRt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "TREabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "TREptsp_num1": {
+    "kcat": 193.45175251743768,
+    "source": "dlkcat_prediction"
+  },
+  "TREptspp_num1": {
+    "kcat": 27.253591137397343,
+    "source": "dlkcat_prediction"
+  },
+  "TRPabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "TRPt2rpp": {
+    "kcat": 3.813170202656022,
+    "source": "dlkcat_prediction"
+  },
+  "TYRt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "URAt2pp_num1": {
+    "kcat": 0.4181754389580448,
+    "source": "dlkcat_prediction"
+  },
+  "URAt2rpp_num1": {
+    "kcat": 0.4181754389580448,
+    "source": "dlkcat_prediction"
+  },
+  "UREAtpp": {
+    "kcat": 6.9552467884933895,
+    "source": "dlkcat_prediction"
+  },
+  "URIt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "URIt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "VALt2rpp": {
+    "kcat": 1.731813401902091,
+    "source": "dlkcat_prediction"
+  },
+  "XANt2pp_num1": {
+    "kcat": 0.4181754389580448,
+    "source": "dlkcat_prediction"
+  },
+  "XANtpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "XTSNt2rpp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "XYLUt2pp": {
+    "kcat": 0.4392994470729704,
+    "source": "dlkcat_prediction"
+  },
+  "CO2tpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "FORt2pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "Biotinabcpp": {
+    "kcat": 41.27220043006556,
+    "source": "dlkcat_prediction"
+  },
+  "Biotint3pp": {
+    "kcat": 0.4154530542954388,
+    "source": "dlkcat_prediction"
+  },
+  "Biotintpp": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ALATRS_num1": {
+    "kcat": 4.388419981854674,
+    "source": "dlkcat_prediction"
+  },
+  "ARGTRS_num1": {
+    "kcat": 3.605488047440014,
+    "source": "dlkcat_prediction"
+  },
+  "ASNTRS_num1": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ASPTRS": {
+    "kcat": 28.771408362265234,
+    "source": "dlkcat_prediction"
+  },
+  "CYSTRS_num1": {
+    "kcat": 2.857478827364572,
+    "source": "dlkcat_prediction"
+  },
+  "GLYTRS_num1": {
+    "kcat": 8.382818122225979,
+    "source": "dlkcat_prediction"
+  },
+  "HISTRS": {
+    "kcat": 10.47760951883823,
+    "source": "dlkcat_prediction"
+  },
+  "LYSTRS_num1": {
+    "kcat": 27.72864112836509,
+    "source": "dlkcat_prediction"
+  },
+  "TYRRRpp": {
+    "kcat": 13.757864650761523,
+    "source": "dlkcat_prediction"
+  },
+  "AGPSC": {
+    "kcat": 170.9389211909823,
+    "source": "dlkcat_prediction"
+  },
+  "ARATH": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "ATPM": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "DNA": {
+    "kcat": 0.7764045015342257,
+    "source": "dlkcat_prediction"
+  },
+  "FREENTCO": {
+    "kcat": 170.9389211909823,
+    "source": "dlkcat_prediction"
+  },
+  "IONS": {
+    "kcat": 112.09573539098116,
+    "source": "dlkcat_prediction"
+  },
+  "MYCOLI": {
+    "kcat": 85.6069953618952,
+    "source": "dlkcat_prediction"
+  },
+  "PA": {
+    "kcat": 170.9389211909823,
+    "source": "dlkcat_prediction"
+  },
+  "PEPTH": {
+    "kcat": 0.7764045015342257,
+    "source": "dlkcat_prediction"
+  },
+  "PPTHTH": {
+    "kcat": 112.09573539098116,
+    "source": "dlkcat_prediction"
+  },
+  "RNA": {
+    "kcat": 13.726163681883651,
+    "source": "dlkcat_prediction"
+  },
+  "PROTEIN": {
+    "kcat": 0.7764045015342257,
+    "source": "dlkcat_prediction"
+  },
+  "SOL_POOL": {
+    "kcat": 112.09573539098116,
+    "source": "dlkcat_prediction"
+  },
+  "OMCDC": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "ACHMSC_reverse": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "AMANAPEr_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "APG_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "CBMKr_reverse": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "DHACOAH_reverse": {
+    "kcat": 22.94573565470496,
+    "source": "dlkcat_prediction"
+  },
+  "G3PD2_reverse": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "GLCATr_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "HPYRI_reverse_num1": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "MALTATr_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "MCITD_reverse_num1": {
+    "kcat": 91.68445457981593,
+    "source": "dlkcat_prediction"
+  },
+  "AGPR_reverse": {
+    "kcat": 35.6198345174045,
+    "source": "dlkcat_prediction"
+  },
+  "GLUNATF_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "BAMPN_reverse": {
+    "kcat": 169.2337496620628,
+    "source": "dlkcat_prediction"
+  },
+  "CDPDAG_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "T2DECAI_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DHPTPE_reverse": {
+    "kcat": 10.981865006209746,
+    "source": "dlkcat_prediction"
+  },
+  "TRATF_reverse_num1": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "NAMNPP_reverse": {
+    "kcat": 13.726163681883651,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ca2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_co2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cobalt2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cu2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_glc_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_h2o_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_k_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_mg2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_mn2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_na1_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_nh4_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_ni2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_o2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_pi_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_so4_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_zn2_e_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "ACBCP_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num1": {
+    "kcat": 3792.3676119235547,
+    "source": "dlkcat_prediction"
+  },
+  "MG2t3_2pp_reverse_num1": {
+    "kcat": 35.696813523144115,
+    "source": "dlkcat_prediction"
+  },
+  "NH4tpp_reverse_num1": {
+    "kcat": 13.246608421237099,
+    "source": "dlkcat_prediction"
+  },
+  "NO2t2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "O2tpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "PIt2rpp_reverse": {
+    "kcat": 20.210888974913548,
+    "source": "dlkcat_prediction"
+  },
+  "D5GIS_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "MI2DHT_reverse": {
+    "kcat": 91.68445457981593,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD1f_reverse": {
+    "kcat": 8.389673834304322,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD2f_reverse": {
+    "kcat": 8.389673834304322,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD3f_reverse": {
+    "kcat": 8.389673834304322,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD4f_reverse": {
+    "kcat": 8.389673834304322,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD5f_reverse": {
+    "kcat": 8.389673834304322,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD6f_reverse": {
+    "kcat": 8.389673834304322,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD7f_reverse": {
+    "kcat": 8.389673834304322,
+    "source": "dlkcat_prediction"
+  },
+  "ACOAD8f_reverse": {
+    "kcat": 8.389673834304322,
+    "source": "dlkcat_prediction"
+  },
+  "TDCM_FREE_reverse": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "ADK3_reverse": {
+    "kcat": 328.2204672157908,
+    "source": "dlkcat_prediction"
+  },
+  "ADK4_reverse": {
+    "kcat": 328.2204672157908,
+    "source": "dlkcat_prediction"
+  },
+  "PPKr_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "IMPC_reverse": {
+    "kcat": 141.85215135282385,
+    "source": "dlkcat_prediction"
+  },
+  "26DAHtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "3AMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "3CMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "3GMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "3UMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ABUTtex_reverse": {
+    "kcat": 2735.8657744217185,
+    "source": "dlkcat_prediction"
+  },
+  "ACALDtpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ACGAM1Ptex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ACGAtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ACMANAtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ACSERtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ACt2rpp_reverse": {
+    "kcat": 1256.5958182734394,
+    "source": "dlkcat_prediction"
+  },
+  "ADEt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "ADNt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "AKGt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "ALAALAtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ALAtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "AMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ARGORNt7pp_reverse": {
+    "kcat": 124.12489037205833,
+    "source": "dlkcat_prediction"
+  },
+  "ASNt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "BALAtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "BCCPE_reverse": {
+    "kcat": 31.334717096266548,
+    "source": "dlkcat_prediction"
+  },
+  "CGLYtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "CITtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "CRNDt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "CRNt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "CTBTt2rpp_reverse": {
+    "kcat": 3669.216845797396,
+    "source": "dlkcat_prediction"
+  },
+  "CUtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "CYANtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "CYTDt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "DADNtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DALAtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DAMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DCMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DCYTtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DGMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DGSNtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DHAtpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DIMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DINStex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "D_LACt2pp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "DMSOtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DMStex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DTMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DUMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "DURItex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ETHAtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ETOHtrpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "EX_BIOTIN_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "EX_cl_reverse": {
+    "kcat": 170.21711349208144,
+    "source": "dlkcat_prediction"
+  },
+  "F6Ptex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "FE3tex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "FRUtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "FRUURt2rpp_reverse": {
+    "kcat": 25.63126065297226,
+    "source": "dlkcat_prediction"
+  },
+  "FUMtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "G1Ptex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "G3PEtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "G3PGtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "G3PItex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "G3PStex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "G6Ptex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GAL1Ptex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GAMAN6Ptex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GAMtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GLCNt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "GLCUR1Ptex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GLCURt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "GLNt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "GLUtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GLYALDtpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GLYC3Ptex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GLYCAt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "GLYCtpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GLYtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GMPtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GSNtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GTHRDtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "GUAtpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "H2Otpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "H2Stex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "H2tpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "HISt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "HOMtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "HYXNtpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "ILEt2rpp_reverse": {
+    "kcat": 29.947848005521955,
+    "source": "dlkcat_prediction"
+  },
+  "INDOLEt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "INSt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "LEUt2rpp_reverse_num1": {
+    "kcat": 23.229090813622534,
+    "source": "dlkcat_prediction"
+  },
+  "L_LACt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "LYSt2pp_reverse": {
+    "kcat": 124.12489037205833,
+    "source": "dlkcat_prediction"
+  },
+  "METt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "NAtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "NO3tex_reverse": {
+    "kcat": 28.398745943647388,
+    "source": "dlkcat_prediction"
+  },
+  "NOtex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "O2Stex_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "PHEt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "PSERtex_reverse_num1": {
+    "kcat": 70.39213957571253,
+    "source": "dlkcat_prediction"
+  },
+  "PTRCORNt7pp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "PYRt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "THMDt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "TRPt2rpp_reverse": {
+    "kcat": 200.96914918160655,
+    "source": "dlkcat_prediction"
+  },
+  "TYRt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "URAt2rpp_reverse_num1": {
+    "kcat": 214.88988934182387,
+    "source": "dlkcat_prediction"
+  },
+  "UREAtpp_reverse": {
+    "kcat": 204.3560902424151,
+    "source": "dlkcat_prediction"
+  },
+  "URIt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "VALt2rpp_reverse": {
+    "kcat": 29.947848005521955,
+    "source": "dlkcat_prediction"
+  },
+  "XANtpp_reverse": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "XTSNt2rpp_reverse": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "ALCD19_num2": {
+    "kcat": 56.68723484484744,
+    "source": "dlkcat_prediction"
+  },
+  "HPYRI_num2": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "MCITD_num2": {
+    "kcat": 141.85215135282385,
+    "source": "dlkcat_prediction"
+  },
+  "MCITD_num3": {
+    "kcat": 141.85215135282385,
+    "source": "dlkcat_prediction"
+  },
+  "SPMDAT2_num5": {
+    "kcat": 5.313801108535862,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS121_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS121_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS141_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS141_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS160_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS160_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS161_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS161_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS180_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS180_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS181_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS181_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS80_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "3OAS80_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS1_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS1_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS2_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS2_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS3_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS3_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS4_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS4_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS5_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS5_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS6_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS6_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS7_num2": {
+    "kcat": 0.14149778798152535,
+    "source": "dlkcat_prediction"
+  },
+  "AACPS7_num3": {
+    "kcat": 0.1696738115681674,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL100t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL120t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL140t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL141t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL160t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL161t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL180t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL181t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL60t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "FACOAL80t2pp_num2": {
+    "kcat": 32.280860909602744,
+    "source": "dlkcat_prediction"
+  },
+  "BMOCOS_num2": {
+    "kcat": 57.01205955810072,
+    "source": "dlkcat_prediction"
+  },
+  "BMOCOS_num3": {
+    "kcat": 52.47651767418012,
+    "source": "dlkcat_prediction"
+  },
+  "BWCOS_num2": {
+    "kcat": 57.01205955810072,
+    "source": "dlkcat_prediction"
+  },
+  "BWCOS_num3": {
+    "kcat": 52.47651767418012,
+    "source": "dlkcat_prediction"
+  },
+  "CPMPS_num2": {
+    "kcat": 0.6863359532744661,
+    "source": "dlkcat_prediction"
+  },
+  "MOCOS_num2": {
+    "kcat": 226.61871702091108,
+    "source": "dlkcat_prediction"
+  },
+  "MOCOS_num3": {
+    "kcat": 368.97244591449623,
+    "source": "dlkcat_prediction"
+  },
+  "MSDHD_num2": {
+    "kcat": 10.821706385280942,
+    "source": "dlkcat_prediction"
+  },
+  "NADPPPS_num2": {
+    "kcat": 147.1141153225429,
+    "source": "dlkcat_prediction"
+  },
+  "NADPPPS_num3": {
+    "kcat": 39.35643763443571,
+    "source": "dlkcat_prediction"
+  },
+  "TRATF_num2": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "WCOS_num2": {
+    "kcat": 226.61871702091108,
+    "source": "dlkcat_prediction"
+  },
+  "WCOS_num3": {
+    "kcat": 368.97244591449623,
+    "source": "dlkcat_prediction"
+  },
+  "G3PAT120_num3": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "G3PAT140_num3": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "G3PAT141_num3": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "G3PAT160_num3": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "G3PAT161_num3": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "G3PAT180_num3": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "G3PAT181_num3": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "PGM_num4": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num2": {
+    "kcat": 193.45175251743768,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num3": {
+    "kcat": 180.754144876038,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num4": {
+    "kcat": 60.24112475805173,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num5": {
+    "kcat": 32.745468435075814,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num6": {
+    "kcat": 14.764228860367027,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num7": {
+    "kcat": 23.427699296464798,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num8": {
+    "kcat": 28.11186386964481,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_num9": {
+    "kcat": 32.066738811643155,
+    "source": "dlkcat_prediction"
+  },
+  "FE3abcpp_num2": {
+    "kcat": 17.695649244748115,
+    "source": "dlkcat_prediction"
+  },
+  "Kabcpp_num2": {
+    "kcat": 214.13666015997933,
+    "source": "dlkcat_prediction"
+  },
+  "Kabcpp_num3": {
+    "kcat": 13.093468986580286,
+    "source": "dlkcat_prediction"
+  },
+  "Kabcpp_num4": {
+    "kcat": 26.075936752284253,
+    "source": "dlkcat_prediction"
+  },
+  "Kabcpp_num5": {
+    "kcat": 126.70118744715931,
+    "source": "dlkcat_prediction"
+  },
+  "MG2t3_2pp_num2": {
+    "kcat": 4.361751567719648,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num2": {
+    "kcat": 193.45175251743768,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num3": {
+    "kcat": 180.754144876038,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num4": {
+    "kcat": 60.24112475805173,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num5": {
+    "kcat": 32.745468435075814,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num6": {
+    "kcat": 14.764228860367027,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num7": {
+    "kcat": 23.427699296464798,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num8": {
+    "kcat": 28.11186386964481,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_1p5pp_num9": {
+    "kcat": 32.066738811643155,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num2": {
+    "kcat": 193.45175251743768,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num3": {
+    "kcat": 180.754144876038,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num4": {
+    "kcat": 60.24112475805173,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num5": {
+    "kcat": 32.745468435075814,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num6": {
+    "kcat": 14.764228860367027,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num7": {
+    "kcat": 23.427699296464798,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num8": {
+    "kcat": 28.11186386964481,
+    "source": "dlkcat_prediction"
+  },
+  "NAt3_2pp_num9": {
+    "kcat": 32.066738811643155,
+    "source": "dlkcat_prediction"
+  },
+  "NH4tpp_num2": {
+    "kcat": 4.072894859140965,
+    "source": "dlkcat_prediction"
+  },
+  "ZN2abcpp_num2": {
+    "kcat": 27.804557620008072,
+    "source": "dlkcat_prediction"
+  },
+  "FE2tpp_num2": {
+    "kcat": 35.48227962822792,
+    "source": "dlkcat_prediction"
+  },
+  "U23GAAT_num2": {
+    "kcat": 5.313801108535862,
+    "source": "dlkcat_prediction"
+  },
+  "U23GAAT_num3": {
+    "kcat": 5.313801108535862,
+    "source": "dlkcat_prediction"
+  },
+  "U23GAAT_num4": {
+    "kcat": 5.313801108535862,
+    "source": "dlkcat_prediction"
+  },
+  "U23GAAT_num5": {
+    "kcat": 5.313801108535862,
+    "source": "dlkcat_prediction"
+  },
+  "UAGAAT_num3": {
+    "kcat": 0.2253864784098078,
+    "source": "dlkcat_prediction"
+  },
+  "ACOATA_num3": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "MCOATA_num3": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "METSOXR1_num2": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "MPTG_num2": {
+    "kcat": 87.63416716561008,
+    "source": "dlkcat_prediction"
+  },
+  "MPTG_num3": {
+    "kcat": 32.47533927375248,
+    "source": "dlkcat_prediction"
+  },
+  "MPTG_num4": {
+    "kcat": 22.22329059915949,
+    "source": "dlkcat_prediction"
+  },
+  "MPTG2_num2": {
+    "kcat": 82.6525601709785,
+    "source": "dlkcat_prediction"
+  },
+  "MPTG2_num3": {
+    "kcat": 32.129974716771855,
+    "source": "dlkcat_prediction"
+  },
+  "MPTG2_num4": {
+    "kcat": 21.129992247516963,
+    "source": "dlkcat_prediction"
+  },
+  "NHFRBO_num2": {
+    "kcat": 4.671870864970975,
+    "source": "dlkcat_prediction"
+  },
+  "FDH4pp_num2": {
+    "kcat": 10.821706385280942,
+    "source": "dlkcat_prediction"
+  },
+  "FDH5pp_num2": {
+    "kcat": 10.821706385280942,
+    "source": "dlkcat_prediction"
+  },
+  "THDPS_num2": {
+    "kcat": 71.12389789046496,
+    "source": "dlkcat_prediction"
+  },
+  "GLYBabcpp_num2": {
+    "kcat": 25.661757490323396,
+    "source": "dlkcat_prediction"
+  },
+  "LEUt2rpp_num2": {
+    "kcat": 31.43825591206984,
+    "source": "dlkcat_prediction"
+  },
+  "LEUt2rpp_num3": {
+    "kcat": 1.731813401902091,
+    "source": "dlkcat_prediction"
+  },
+  "PA120abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PA140abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PA141abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PA160abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PA161abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PA180abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PA181abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PGP120abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PGP140abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PGP141abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PGP160abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PGP161abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PGP180abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PGP181abcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PHEMEabcpp_num2": {
+    "kcat": 14.353471649591327,
+    "source": "dlkcat_prediction"
+  },
+  "PSERtex_num2": {
+    "kcat": 314.0824313561598,
+    "source": "dlkcat_prediction"
+  },
+  "PSERtex_num3": {
+    "kcat": 673.2094226439243,
+    "source": "dlkcat_prediction"
+  },
+  "PSERtex_num4": {
+    "kcat": 57.00199965289981,
+    "source": "dlkcat_prediction"
+  },
+  "TREptsp_num2": {
+    "kcat": 379.60494708138265,
+    "source": "dlkcat_prediction"
+  },
+  "TREptsp_num3": {
+    "kcat": 13.756617173486893,
+    "source": "dlkcat_prediction"
+  },
+  "TREptspp_num2": {
+    "kcat": 4.552733143200741,
+    "source": "dlkcat_prediction"
+  },
+  "TREptspp_num3": {
+    "kcat": 4.753931760028663,
+    "source": "dlkcat_prediction"
+  },
+  "URAt2pp_num2": {
+    "kcat": 4.993197847007137,
+    "source": "dlkcat_prediction"
+  },
+  "URAt2rpp_num2": {
+    "kcat": 4.993197847007137,
+    "source": "dlkcat_prediction"
+  },
+  "XANt2pp_num2": {
+    "kcat": 4.993197847007137,
+    "source": "dlkcat_prediction"
+  },
+  "ALATRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ALATRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ALATRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ARGTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ARGTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ARGTRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ARGTRS_num5": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ASNTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "CYSTRS_num2": {
+    "kcat": 0.6649902555227266,
+    "source": "dlkcat_prediction"
+  },
+  "GLUTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "GLUTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "GLUTRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "GLYTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "GLYTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "GLYTRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "GLYTRS_num5": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ILETRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "LEUTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "LEUTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "LEUTRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "LEUTRS_num5": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "LEUTRS_num6": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "LYSTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "LYSTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "METTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "METTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "METTRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "PROTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "PROTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "SERTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "SERTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "SERTRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "THRTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "THRTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "THRTRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "VALTRS_num2": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "VALTRS_num3": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "VALTRS_num4": {
+    "kcat": 3.6424274056275383,
+    "source": "dlkcat_prediction"
+  },
+  "ALCD19_reverse_num2": {
+    "kcat": 268.5700286653822,
+    "source": "dlkcat_prediction"
+  },
+  "HPYRI_reverse_num2": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "MCITD_reverse_num2": {
+    "kcat": 91.68445457981593,
+    "source": "dlkcat_prediction"
+  },
+  "MCITD_reverse_num3": {
+    "kcat": 91.68445457981593,
+    "source": "dlkcat_prediction"
+  },
+  "TRATF_reverse_num2": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "PGM_reverse_num4": {
+    "kcat": 32.95583466066703,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num2": {
+    "kcat": 193.45175251743768,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num3": {
+    "kcat": 180.754144876038,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num4": {
+    "kcat": 60.24112475805173,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num5": {
+    "kcat": 32.745468435075814,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num6": {
+    "kcat": 14.764228860367027,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num7": {
+    "kcat": 23.427699296464798,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num8": {
+    "kcat": 28.11186386964481,
+    "source": "dlkcat_prediction"
+  },
+  "CAt6pp_reverse_num9": {
+    "kcat": 32.066738811643155,
+    "source": "dlkcat_prediction"
+  },
+  "MG2t3_2pp_reverse_num2": {
+    "kcat": 170.82789775378328,
+    "source": "dlkcat_prediction"
+  },
+  "NH4tpp_reverse_num2": {
+    "kcat": 112.97982021185119,
+    "source": "dlkcat_prediction"
+  },
+  "UAGAAT_reverse_num3": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "ACOATA_reverse_num3": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "MCOATA_reverse_num3": {
+    "kcat": 245.137145581167,
+    "source": "dlkcat_prediction"
+  },
+  "LEUt2rpp_reverse_num2": {
+    "kcat": 25.46515836597018,
+    "source": "dlkcat_prediction"
+  },
+  "LEUt2rpp_reverse_num3": {
+    "kcat": 29.947848005521955,
+    "source": "dlkcat_prediction"
+  },
+  "PSERtex_reverse_num2": {
+    "kcat": 33.35522818255649,
+    "source": "dlkcat_prediction"
+  },
+  "PSERtex_reverse_num3": {
+    "kcat": 231.2420392187051,
+    "source": "dlkcat_prediction"
+  },
+  "PSERtex_reverse_num4": {
+    "kcat": 207.68043914126622,
+    "source": "dlkcat_prediction"
+  },
+  "URAt2rpp_reverse_num2": {
+    "kcat": 117.10767653299432,
+    "source": "dlkcat_prediction"
+  }
+}

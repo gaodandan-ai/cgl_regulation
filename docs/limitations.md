@@ -4,19 +4,19 @@ This document details the functional boundaries of **Cgl Regulation Explorer (v0
 
 ---
 
-## 1. No Active Flux Simulations (FBA / FVA)
+## 1. Local-Only Active Flux Simulations (FBA / FVA)
 
-Cgl Regulation Explorer is a network-based integration and prioritization tool, not a numerical constraint solver.
-* **No Flux Balance Analysis (FBA)**: The platform maps target genes to model reactions, subsystems, and stoichiometric formulas from *iCW773*. However, it does not calculate steady-state metabolic flux distributions, growth rates, or chemical yields.
-* **No Flux Variability Analysis (FVA)**: The platform does not calculate the range of possible flux values for individual reactions.
-* **No Gene Knockout Simulations**: Setting perturbation sliders (e.g. simulating TF knockdowns or overexpressions) updates downstream network expression topology and highlights affected pathways. It **does not** run constraint-based knockouts or recalculate mutant biomass flux rates.
+By default, the web interface of Cgl Regulation Explorer runs in a static mode utilizing structural network mapping. However, the platform includes a local FastAPI backend to support active numerical simulations:
+* **Flux Balance Analysis (FBA)**: When running the local backend (port 8001), the platform computes steady-state metabolic flux distributions and growth rates using the *iCW773* model.
+* **Flux Variability Analysis (FVA)**: Users can calculate the minimum and maximum feasible flux ranges under baseline and mutant states.
+* **Perturbation and Knockout Simulations**: The backend runs constraint-based knockouts (FBA or MOMA) for single/multiple genes or TF targets, calculating perturbed growth rates and tracking reaction fluxes.
 
 ---
 
 ## 2. No Enzyme-Constrained Flux Simulations
 
-* **ecCGL1 Parameters as Annotations**: The platform integrates kcat, molecular weight (MW), EC numbers, and parent reaction equations from the *ecCGL1* model. These values are displayed inside the details panels to assist in human evaluation of potential bottleneck reactions.
-* **No Flux Boundaries Scaling**: The platform **does not** construct enzyme-constrained flux equations or simulate protein-pool flux boundaries inside the browser.
+* **ecCGL1 Parameters as Annotations**: The platform integrates $k_{\mathrm{cat}}$, molecular weight (MW), EC numbers, and parent reaction equations from the *ecCGL1* model. These values are displayed inside the details panels to assist in human evaluation of potential bottleneck reactions.
+* **No Flux Boundaries Scaling**: Even with the local backend running, the platform **does not** construct enzyme-constrained flux equations or simulate protein-pool flux boundaries (ec-FBA). The *ecCGL1* model parameters are utilized solely as static annotations.
 
 ---
 

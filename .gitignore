@@ -24,9 +24,18 @@ env/
 Thumbs.db
 desktop.ini
 
-# Local generated output visualization files
-*_network.png
-*_network_interactive.html
+# Local generated output visualization directory
+outputs/
 
 # Large downloaded model directories
 data/model/ecCGL1-main/
+
+# ── Unpublished heat stress experimental data ──────────────────────────────────
+# These files exist locally and are used by the .bat launcher.
+# They are excluded from GitHub pending publication.
+# Remove these entries after the paper is published.
+data/raw/rna_seq/
+data/raw/Metabolome/
+data/raw/protemic/
+data/reference/rna_seq_analysis_results.json
+# ──────────────────────────────────────────────────────────────────────────────

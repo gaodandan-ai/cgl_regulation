@@ -28,6 +28,9 @@ let cglToCg = {};
 
 let cgToCgl = {};
 
+let dlkcatPredictions = {};
+window.dlkcatPredictions = dlkcatPredictions;
+
 let nameToCg = {};
 
 let cgToProduct = {};
@@ -150,6 +153,25 @@ let MAPPING_URL = 'data/gene_mapping.csv';
 let OPERONS_URL = 'data/operons.csv';
 
 let EDGE_CONFIDENCE_SCORES_URL = 'data/edge_confidence/tf_gene_edge_scores.csv';
+let IMODULON_WEIGHTS_URL = 'data/imodulon/imodulon_gene_weights.json';
+let IMODULON_BY_GENE_URL = 'data/imodulon/imodulon_by_gene.json';
+let IMODULON_METADATA_URL = 'data/imodulon/imodulon_metadata.json';
+let TCS_SYSTEMS_URL = 'data/tcs_systems.json';
+let SIGMA_ANNOTATIONS_URL = 'data/sigma_factor_annotations.json';
+
+// iModulon global state
+let iModulonWeights = {};       // iModulon_id -> { name, genes: {locus: weight}, ... }
+let iModulonByGene = {};        // locus -> [iModulon_ids]
+let iModulonMetadata = [];      // sorted array of metadata objects
+
+// TCS global state
+let tcsSystemsData = [];        // array of TCS system objects
+let tcsByHK = {};               // hk_locus -> TCS object
+let tcsByRR = {};               // rr_locus -> TCS object
+
+// Sigma factor global state
+let sigmaAnnotations = {};      // gene_name (lowercase) -> annotation object
+let sigmaByLocus = {};          // locus -> annotation object
 
 
 
@@ -245,6 +267,17 @@ function updateStatus(message, type = 'loading') {
 async function loadNetworkData() {
 
     try {
+        updateStatus('Loading DLKcat enzyme predictions...', 'loading');
+        try {
+            const dlkcatResponse = await fetch('data/dlkcat_predicted_kcat.json');
+            if (dlkcatResponse.ok) {
+                dlkcatPredictions = await dlkcatResponse.json();
+                window.dlkcatPredictions = dlkcatPredictions;
+                console.log(`Loaded ${Object.keys(dlkcatPredictions).length} DLKcat predicted enzyme parameters.`);
+            }
+        } catch (e) {
+            console.warn('Failed to load DLKcat predictions database:', e);
+        }
 
         updateStatus('Loading gene name mapping data...', 'loading');
 
@@ -330,7 +363,15 @@ async function loadNetworkData() {
 
         await loadEdgeConfidenceScores();
 
+        // Load iModulon, TCS, and sigma factor data
+        updateStatus('Loading iModulon transcriptional modules...', 'loading');
+        await loadIModulonData();
 
+        updateStatus('Loading TCS signal systems...', 'loading');
+        await loadTcsData();
+
+        updateStatus('Loading sigma factor annotations...', 'loading');
+        await loadSigmaAnnotations();
 
         buildGeneIndex();
         normalizeNetworkData();
@@ -466,6 +507,92 @@ function getRfConfidencePrediction(source, target) {
     return null;
 }
 
+// ============================================================
+// iModulon / TCS / Sigma factor loaders
+// ============================================================
+
+async function loadIModulonData() {
+    iModulonWeights = {};
+    iModulonByGene = {};
+    iModulonMetadata = [];
+    try {
+        const [wResp, bResp, mResp] = await Promise.all([
+            fetch(IMODULON_WEIGHTS_URL),
+            fetch(IMODULON_BY_GENE_URL),
+            fetch(IMODULON_METADATA_URL),
+        ]);
+        if (wResp.ok) iModulonWeights = await wResp.json();
+        if (bResp.ok) iModulonByGene = await bResp.json();
+        if (mResp.ok) iModulonMetadata = await mResp.json();
+        const cnt = Object.keys(iModulonWeights).length;
+        const geneCnt = Object.keys(iModulonByGene).length;
+        console.log(`Loaded ${cnt} iModulons covering ${geneCnt} unique genes.`);
+    } catch (err) {
+        console.warn('iModulon data unavailable:', err.message);
+    }
+}
+
+async function loadTcsData() {
+    tcsSystemsData = [];
+    tcsByHK = {};
+    tcsByRR = {};
+    try {
+        const resp = await fetch(TCS_SYSTEMS_URL);
+        if (resp.ok) {
+            tcsSystemsData = await resp.json();
+            tcsSystemsData.forEach(tcs => {
+                if (tcs.hk_locus) tcsByHK[tcs.hk_locus.toLowerCase()] = tcs;
+                if (tcs.rr_locus) tcsByRR[tcs.rr_locus.toLowerCase()] = tcs;
+            });
+            console.log(`Loaded ${tcsSystemsData.length} TCS systems.`);
+        }
+    } catch (err) {
+        console.warn('TCS data unavailable:', err.message);
+    }
+}
+
+async function loadSigmaAnnotations() {
+    sigmaAnnotations = {};
+    sigmaByLocus = {};
+    try {
+        const resp = await fetch(SIGMA_ANNOTATIONS_URL);
+        if (resp.ok) {
+            const data = await resp.json();
+            Object.entries(data).forEach(([key, ann]) => {
+                sigmaAnnotations[key.toLowerCase()] = ann;
+                if (ann.locus) sigmaByLocus[ann.locus.toLowerCase()] = ann;
+                if (ann.gene_name) sigmaAnnotations[ann.gene_name.toLowerCase()] = ann;
+            });
+            console.log(`Loaded ${Object.keys(data).length} sigma factor annotations.`);
+        }
+    } catch (err) {
+        console.warn('Sigma annotations unavailable:', err.message);
+    }
+}
+
+// Helper: get iModulon memberships for a gene locus (array of iModulon IDs)
+function getIModulonsForGene(locus) {
+    if (!locus) return [];
+    const lower = locus.toLowerCase();
+    return iModulonByGene[lower] || iModulonByGene[cgToCgl[lower]?.toLowerCase()] || [];
+}
+
+// Helper: get sigma annotation for a gene (by locus or name)
+function getSigmaAnnotation(locusOrName) {
+    if (!locusOrName) return null;
+    const lower = locusOrName.toLowerCase();
+    return sigmaByLocus[lower] || sigmaAnnotations[lower] || null;
+}
+
+// Helper: get TCS role for a locus (returns {role:'HK'|'RR', tcs} or null)
+function getTcsRole(locus) {
+    if (!locus) return null;
+    const lower = locus.toLowerCase();
+    if (tcsByHK[lower]) return { role: 'HK', tcs: tcsByHK[lower] };
+    if (tcsByRR[lower]) return { role: 'RR', tcs: tcsByRR[lower] };
+    return null;
+}
+
 function normalizeRegulationType(role, sourceType = 'TF-TG') {
     const cleanRole = cleanStr(role).toUpperCase();
     if (sourceType === 'sRNA-mRNA') return 'post_transcriptional_repression';
@@ -475,6 +602,7 @@ function normalizeRegulationType(role, sourceType = 'TF-TG') {
     if (cleanRole === 'SIGMA') return 'sigma';
     return 'unknown';
 }
+
 
 function confidenceFromEvidence(evidence) {
     const text = cleanStr(evidence).toLowerCase();
@@ -1245,6 +1373,38 @@ function setActiveWorkflowEntry(workflow) {
         }
     }
 
+    // Toggle high-temp RNA-seq network container
+    const rnaSeqDashboard = document.getElementById('rna-seq-overlay');
+    if (rnaSeqDashboard) {
+        if (workflow === 'rna-seq') {
+            rnaSeqDashboard.classList.remove('hidden');
+            if (window.heatStressGrn) {
+                window.heatStressGrn.activate();
+            }
+        } else {
+            rnaSeqDashboard.classList.add('hidden');
+        }
+    }
+
+    // Toggle welcome overlay visibility based on fullscreen views
+    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq'];
+    const isFullscreen = fullscreenWorkflows.includes(workflow);
+    
+    if (canvasOverlay) {
+        if (isFullscreen) {
+            canvasOverlay.classList.add('hidden');
+            canvasOverlay.style.display = 'none';
+        } else {
+            if (workflow === 'gene' && !currentQueryGene) {
+                canvasOverlay.classList.remove('hidden');
+                canvasOverlay.style.display = 'flex';
+            } else {
+                canvasOverlay.classList.add('hidden');
+                canvasOverlay.style.display = 'none';
+            }
+        }
+    }
+
     // Collapse right sidebar for fullscreen overlay dashboards
     if (workflow !== 'gene' && workflow !== 'pathway') {
         toggleRightSidebar(false);
@@ -1253,8 +1413,6 @@ function setActiveWorkflowEntry(workflow) {
     // Update left sidebar sections visibility & collapse status
     const leftSidebar = document.getElementById('left-sidebar');
     if (leftSidebar) {
-        const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate'];
-        const isFullscreen = fullscreenWorkflows.includes(workflow);
         
         if (isFullscreen) {
             leftSidebar.classList.add('collapsed');
@@ -1374,6 +1532,14 @@ function initWorkflowEntrypoints() {
         glutamateEntry.dataset.bound = '1';
         glutamateEntry.addEventListener('click', () => {
             setActiveWorkflowEntry('glutamate');
+        });
+    }
+
+    const rnaSeqEntry = document.getElementById('workflow-entry-rna-seq');
+    if (rnaSeqEntry && !rnaSeqEntry.dataset.bound) {
+        rnaSeqEntry.dataset.bound = '1';
+        rnaSeqEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('rna-seq');
         });
     }
 }
@@ -3028,7 +3194,14 @@ function showNodeDetails(locusTag) {
 
     fetchMetabolicImpact(meta.locusTag, meta.type);
 
+    // ── iModulon module badges ──────────────────────────────────────────────
+    renderIModulonBadges(meta.locusTag);
 
+    // ── TCS signal chain card ──────────────────────────────────────────────
+    renderTcsCard(meta.locusTag);
+
+    // ── Sigma factor annotation card ───────────────────────────────────────
+    renderSigmaCard(meta.locusTag, meta.name);
 
     // Operon Row Rendering
 
@@ -3918,6 +4091,195 @@ async function initFbaSimulation(locusTag, nodeType) {
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// iModulon Badge Rendering
+// ──────────────────────────────────────────────────────────────────────────────
+
+function renderIModulonBadges(locusTag) {
+    const container = document.getElementById('info-imodulon-row');
+    const badgeWrap = document.getElementById('info-imodulon-badges');
+    if (!container || !badgeWrap) return;
+
+    const memberships = getIModulonsForGene(locusTag);
+    if (!memberships || memberships.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = '';
+    badgeWrap.innerHTML = '';
+
+    memberships.forEach(imId => {
+        const im = iModulonWeights[imId];
+        if (!im) return;
+
+        const weight = im.genes ? (im.genes[locusTag.toLowerCase()] || im.genes[cgToCgl[locusTag.toLowerCase()]?.toLowerCase()] || 0) : 0;
+        const weightStr = weight ? weight.toFixed(2) : '';
+        const catColor = {
+            'Stress_response': '#ef4444',
+            'Carbon_metabolism': '#f97316',
+            'Amino_acid_biosynthesis': '#22c55e',
+            'Nitrogen_metabolism': '#3b82f6',
+            'Translation': '#8b5cf6',
+            'Metal_homeostasis': '#78716c',
+            'Osmoregulation': '#06b6d4',
+            'Phosphate_homeostasis': '#ec4899',
+            'Cell_cycle': '#f59e0b',
+            'Lipid_metabolism': '#84cc16',
+        }[im.category] || '#6b7280';
+
+        const badge = document.createElement('span');
+        badge.className = 'pathway-badge';
+        badge.style.cssText = `background:${catColor}18;border:1px solid ${catColor}55;color:${catColor};
+            cursor:pointer;font-size:11px;padding:2px 7px;border-radius:12px;
+            display:inline-flex;align-items:center;gap:4px;margin:2px;transition:all 0.2s;`;
+        badge.title = `iModulon: ${im.name}\nCategory: ${im.category}\nStimulus: ${im.stimulus || 'unknown'}\nVariance explained: ${(im.variance_explained * 100).toFixed(1)}%\n${im.description || ''}`;
+        badge.innerHTML = `<i class="fa-solid fa-circle-nodes" style="font-size:9px"></i>${im.name.replace(/_/g,' ')}${weightStr ? ` <b>(w=${weightStr})</b>` : ''}`;
+
+        badge.addEventListener('mouseenter', () => { badge.style.transform = 'translateY(-1px)'; badge.style.boxShadow = `0 2px 8px ${catColor}44`; });
+        badge.addEventListener('mouseleave', () => { badge.style.transform = ''; badge.style.boxShadow = ''; });
+
+        badgeWrap.appendChild(badge);
+    });
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// TCS Signal Chain Card Rendering
+// ──────────────────────────────────────────────────────────────────────────────
+
+function renderTcsCard(locusTag) {
+    const container = document.getElementById('info-tcs-row');
+    const content = document.getElementById('info-tcs-content');
+    if (!container || !content) return;
+
+    const role = getTcsRole(locusTag);
+    if (!role) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = '';
+    const tcs = role.tcs;
+    const isHK = role.role === 'HK';
+    const roleLabel = isHK ? 'Histidine Kinase (sensor)' : 'Response Regulator (effector)';
+    const roleIcon = isHK ? 'fa-satellite-dish' : 'fa-pen-to-square';
+    const heatBadge = tcs.heat_stress_relevant === 'yes'
+        ? `<span style="background:#ef444420;color:#ef4444;border:1px solid #ef444455;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:6px"><i class="fa-solid fa-temperature-high"></i> Heat-relevant</span>`
+        : '';
+    const evidenceColor = { experimental: '#22c55e', inferred_homology: '#f97316', predicted: '#6b7280' }[tcs.evidence] || '#6b7280';
+
+    const targets = (tcs.target_genes || '').split(';').filter(Boolean);
+    const targetLinks = targets.slice(0, 5).map(t => {
+        const tLower = t.trim().toLowerCase();
+        const name = geneIndex[tLower]?.name || tLower;
+        return `<a href="#" class="gene-link" data-locus="${t.trim()}" style="color:var(--primary);text-decoration:none;font-size:11px">${name}</a>`;
+    }).join(', ');
+
+    content.innerHTML = `
+        <div style="background:var(--surface-2,#f8fafc);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:6px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+                <span style="font-weight:600;font-size:13px"><i class="fa-solid ${roleIcon}" style="color:#3b82f6;margin-right:4px"></i>${tcs.system_name}</span>
+                <span style="font-size:11px;background:#3b82f620;color:#3b82f6;border:1px solid #3b82f655;border-radius:10px;padding:1px 7px">${roleLabel}</span>
+                ${heatBadge}
+                <span style="font-size:11px;background:${evidenceColor}20;color:${evidenceColor};border:1px solid ${evidenceColor}55;border-radius:10px;padding:1px 7px">${tcs.evidence}</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:5px">
+                <i class="fa-solid fa-bolt" style="color:#f59e0b;margin-right:4px"></i><b>Stimulus:</b> ${tcs.stimulus || '—'}
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:5px">
+                <i class="fa-solid fa-arrow-right-arrow-left" style="color:#3b82f6;margin-right:4px"></i>
+                <b>Signal chain:</b> ${tcs.hk_name} (${tcs.hk_locus}) → phosphorylation → ${tcs.rr_name} (${tcs.rr_locus})
+            </div>
+            ${targets.length ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:2px">
+                <i class="fa-solid fa-dna" style="color:#22c55e;margin-right:4px"></i><b>Target genes:</b> ${targetLinks}${targets.length > 5 ? ` <em>+${targets.length-5} more</em>` : ''}
+            </div>` : ''}
+            ${tcs.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:5px;font-style:italic;border-top:1px solid var(--border);padding-top:5px">${tcs.notes}</div>` : ''}
+        </div>`;
+
+    content.querySelectorAll('.gene-link').forEach(a => {
+        a.addEventListener('click', e => { e.preventDefault(); showNodeDetails(a.dataset.locus); });
+    });
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Sigma Factor Annotation Card Rendering
+// ──────────────────────────────────────────────────────────────────────────────
+
+function renderSigmaCard(locusTag, geneName) {
+    const container = document.getElementById('info-sigma-row');
+    const content = document.getElementById('info-sigma-content');
+    if (!container || !content) return;
+
+    const ann = getSigmaAnnotation(locusTag) || getSigmaAnnotation(geneName);
+    if (!ann) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = '';
+
+    const consensusHtml = ann.ecf_consensus
+        ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:5px">
+            <i class="fa-solid fa-dna" style="color:#8b5cf6;margin-right:4px"></i>
+            <b>ECF promoter consensus:</b>
+            <code style="background:var(--surface-2);padding:1px 6px;border-radius:4px;font-size:12px;letter-spacing:1px">${ann.ecf_consensus}</code>
+           </div>`
+        : (ann.consensus_minus35 ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:5px">
+            <i class="fa-solid fa-dna" style="color:#8b5cf6;margin-right:4px"></i>
+            <b>−35:</b> <code style="background:var(--surface-2);padding:1px 6px;border-radius:4px">${ann.consensus_minus35 || '—'}</code>
+            &nbsp;<b>−10:</b> <code style="background:var(--surface-2);padding:1px 6px;border-radius:4px">${ann.consensus_minus10 || '—'}</code>
+            &nbsp;<b>Spacer:</b> ${ann.spacer_bp || '?'} bp
+           </div>` : '');
+
+    const antiSigmaHtml = ann.anti_sigma
+        ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:5px">
+            <i class="fa-solid fa-shield-halved" style="color:#f97316;margin-right:4px"></i>
+            <b>Anti-sigma:</b> <a href="#" class="gene-link" data-locus="${ann.anti_sigma_locus || ''}" style="color:var(--primary);text-decoration:none">${ann.anti_sigma} (${ann.anti_sigma_locus || ''})</a>
+            ${ann.anti_sigma_mechanism ? `<br><span style="font-size:11px;font-style:italic;margin-left:18px">${ann.anti_sigma_mechanism}</span>` : ''}
+           </div>`
+        : '';
+
+    const stimuliList = Array.isArray(ann.stimulus) ? ann.stimulus.join(', ') : (ann.stimulus || '—');
+    const heatBadge = ann.heat_stress_activation
+        ? `<span style="background:#ef444420;color:#ef4444;border:1px solid #ef444455;border-radius:10px;padding:1px 7px;font-size:10px"><i class="fa-solid fa-temperature-high"></i> ${ann.tm_activation_degC ? `Activates ≥${ann.tm_activation_degC}°C` : 'Heat-active'}</span>`
+        : '';
+
+    const timelineHtml = ann.heat_stress_timeline
+        ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
+            ${Object.entries(ann.heat_stress_timeline).map(([tp, lvl]) =>
+                `<span style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:2px 8px">
+                    <b>${tp}:</b> ${lvl.replace(/_/g,' ')}
+                </span>`).join('')}
+           </div>`
+        : '';
+
+    const overlapHtml = ann.overlap_with && ann.overlap_with.length
+        ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+            <i class="fa-solid fa-link-slash" style="margin-right:4px"></i>Overlapping regulon with: ${ann.overlap_with.join(', ')}
+           </div>`
+        : '';
+
+    content.innerHTML = `
+        <div style="background:var(--surface-2,#f8fafc);border:1px solid var(--border);border-left:3px solid #8b5cf6;border-radius:8px;padding:10px 12px;margin-top:6px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+                <span style="font-weight:600;font-size:13px"><i class="fa-solid fa-sigma" style="color:#8b5cf6;margin-right:4px"></i>${ann.gene_name || ann.sigma_group || 'Sigma Factor'}</span>
+                <span style="font-size:11px;background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf655;border-radius:10px;padding:1px 7px">${ann.sigma_class?.replace(/_/g,' ') || ''}</span>
+                ${heatBadge}
+                <span style="font-size:11px;color:var(--text-muted)">${ann.targets_count || 0} regulatory targets</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:5px">
+                <i class="fa-solid fa-bolt" style="color:#f59e0b;margin-right:4px"></i><b>Activating stimuli:</b> ${stimuliList}
+            </div>
+            ${consensusHtml}
+            ${antiSigmaHtml}
+            ${timelineHtml}
+            ${overlapHtml}
+        </div>`;
+
+    content.querySelectorAll('.gene-link').forEach(a => {
+        if (a.dataset.locus) a.addEventListener('click', e => { e.preventDefault(); showNodeDetails(a.dataset.locus); });
+    });
+}
 
 
 function showOperonDetails(operonMeta, initialMode = null) {
@@ -4518,16 +4880,40 @@ function initEventListeners() {
 
 
     // Close suggestions list on click outside
-
     document.addEventListener('click', (e) => {
-
         if (!e.target.classList.contains('gene-input') && e.target !== suggestionsBox && !suggestionsBox.contains(e.target)) {
-
             suggestionsBox.classList.add('hidden');
-
         }
-
+        // Also close export menu if clicking outside
+        const exportWrapper = document.getElementById('export-dropdown-wrapper');
+        const exportMenu = document.getElementById('export-menu');
+        if (exportMenu && exportWrapper && !exportWrapper.contains(e.target)) {
+            exportMenu.style.display = 'none';
+        }
     });
+
+    // Export dropdown toggle
+    const btnExportNetwork = document.getElementById('btn-export-network');
+    const exportMenu = document.getElementById('export-menu');
+    if (btnExportNetwork && exportMenu) {
+        btnExportNetwork.addEventListener('click', (e) => {
+            e.stopPropagation();
+            exportMenu.style.display = exportMenu.style.display === 'none' ? 'flex' : 'none';
+        });
+
+        document.getElementById('btn-export-json')?.addEventListener('click', () => {
+            exportMenu.style.display = 'none';
+            exportNetworkJSON();
+        });
+        document.getElementById('btn-export-csv')?.addEventListener('click', () => {
+            exportMenu.style.display = 'none';
+            exportNetworkCSV();
+        });
+        document.getElementById('btn-export-png')?.addEventListener('click', () => {
+            exportMenu.style.display = 'none';
+            exportNetworkPNG();
+        });
+    }
 
 
 
@@ -6255,26 +6641,63 @@ function renderEnzymeConstraintBadges(reaction) {
     const enzyme = reaction.enzyme_constraint || {};
     const badges = [];
     const ecNumber = reaction.ec_number || enzyme.ec_number;
-    const kcat = reaction.kcat ?? enzyme.kcat;
+    
+    let kcat = reaction.kcat ?? enzyme.kcat;
     const molecularWeight = reaction.molecular_weight ?? enzyme.molecular_weight;
-    const kcatMw = reaction.kcat_MW ?? enzyme.kcat_MW;
+    let kcatMw = reaction.kcat_MW ?? enzyme.kcat_MW;
     const uniprotIds = reaction.uniprot_ids || enzyme.uniprot_ids || [];
     const variant = reaction.reaction_variant || enzyme.model_variant;
     const variantOf = reaction.variant_of || enzyme.variant_of;
     const sourceCount = reaction.kcat_source_count ?? enzyme.kcat_source_count;
 
-    if (ecNumber) badges.push('EC ' + escapeHtml(ecNumber));
-    if (kcat !== undefined && kcat !== null) badges.push('kcat ' + escapeHtml(formatMetabolicNumber(kcat, 3)));
-    if (molecularWeight !== undefined && molecularWeight !== null) badges.push('MW ' + escapeHtml(formatMetabolicNumber(molecularWeight, 1)) + ' Da');
-    if (kcatMw !== undefined && kcatMw !== null) badges.push('kcat/MW ' + escapeHtml(formatMetabolicNumber(kcatMw, 3)));
-    if (Array.isArray(uniprotIds) && uniprotIds.length > 0) badges.push('UniProt ' + escapeHtml(uniprotIds.slice(0, 3).join(', ')));
-    if (variant) badges.push('variant ' + escapeHtml(variant));
-    if (variantOf) badges.push('paired ' + escapeHtml(variantOf));
-    if (sourceCount) badges.push('kcat sources ' + escapeHtml(sourceCount));
+    let isPredicted = false;
+    const DEFAULT_VAL = 7398.8133918117555;
+    
+    const rxnId = reaction.id;
+    if (rxnId && window.dlkcatPredictions && window.dlkcatPredictions[rxnId]) {
+        const predInfo = window.dlkcatPredictions[rxnId];
+        if (predInfo.source === 'dlkcat_prediction') {
+            if (kcat === undefined || kcat === null || Number.isNaN(kcat) || Math.abs(Number(kcat) - DEFAULT_VAL) < 1e-3) {
+                kcat = predInfo.kcat;
+                isPredicted = true;
+                if (molecularWeight !== undefined && molecularWeight !== null && molecularWeight > 0) {
+                    kcatMw = (kcat * 3600 * 1000) / molecularWeight;
+                } else {
+                    kcatMw = null;
+                }
+            }
+        }
+    }
+
+    if (ecNumber) badges.push({ text: 'EC ' + escapeHtml(ecNumber) });
+    if (kcat !== undefined && kcat !== null && !Number.isNaN(kcat)) {
+        if (isPredicted) {
+            badges.push({ text: 'kcat ' + escapeHtml(formatMetabolicNumber(kcat, 3)) + ' (DLKcat predicted)', predicted: true });
+        } else {
+            badges.push({ text: 'kcat ' + escapeHtml(formatMetabolicNumber(kcat, 3)) });
+        }
+    }
+    if (molecularWeight !== undefined && molecularWeight !== null && !Number.isNaN(molecularWeight)) {
+        badges.push({ text: 'MW ' + escapeHtml(formatMetabolicNumber(molecularWeight, 1)) + ' Da' });
+    }
+    if (kcatMw !== undefined && kcatMw !== null && !Number.isNaN(kcatMw)) {
+        if (isPredicted) {
+            badges.push({ text: 'kcat/MW ' + escapeHtml(formatMetabolicNumber(kcatMw, 3)) + ' (DLKcat)', predicted: true });
+        } else {
+            badges.push({ text: 'kcat/MW ' + escapeHtml(formatMetabolicNumber(kcatMw, 3)) });
+        }
+    }
+    if (Array.isArray(uniprotIds) && uniprotIds.length > 0) badges.push({ text: 'UniProt ' + escapeHtml(uniprotIds.slice(0, 3).join(', ')) });
+    if (variant) badges.push({ text: 'variant ' + escapeHtml(variant) });
+    if (variantOf) badges.push({ text: 'paired ' + escapeHtml(variantOf) });
+    if (sourceCount) badges.push({ text: 'kcat sources ' + escapeHtml(sourceCount) });
 
     if (badges.length === 0) return '';
     return '<div class="metabolic-enzyme-badges">'
-        + badges.map(text => '<span class="metabolic-enzyme-badge">' + text + '</span>').join('')
+        + badges.map(b => {
+            const cls = 'metabolic-enzyme-badge' + (b.predicted ? ' predicted' : '');
+            return '<span class="' + cls + '">' + b.text + '</span>';
+        }).join('')
         + '</div>';
 }
 
@@ -11008,30 +11431,98 @@ function selectGlutamateCandidate(candidate) {
     window.glutamateScenario.glutamateState.selectedGlutamateReactionId = candidate.reactionId;
     window.glutamateScenario.glutamateState.selectedGlutamateReactionClass = candidate.classification;
     window.glutamateScenario.glutamateState.userVerified = false;
-    
+
     const chkVerified = document.getElementById('chk-glutamate-verified');
     if (chkVerified) {
         chkVerified.checked = false;
         chkVerified.disabled = false;
     }
-    
+
     const runBtn = document.getElementById('btn-run-glutamate-scenario');
-    if (runBtn) {
-        runBtn.disabled = true;
-    }
-    
+    if (runBtn) { runBtn.disabled = true; }
+
     const infoArea = document.getElementById('selected-glutamate-info');
     if (infoArea) {
         infoArea.innerHTML = `
             <strong>Selected:</strong> ${escapeHtml(candidate.reactionId)} (${escapeHtml(candidate.name || 'Unnamed')})<br>
             <strong>Equation:</strong> <code style="font-family: monospace;">${escapeHtml(candidate.equation)}</code><br>
-            <strong>Classification:</strong> <span class="badge-role ${escapeHtml(candidate.classification)}" style="font-size: 10px;">${escapeHtml(candidate.classification)}</span> 
+            <strong>Classification:</strong> <span class="badge-role ${escapeHtml(candidate.classification)}" style="font-size: 10px;">${escapeHtml(candidate.classification)}</span>
             (Confidence: <strong>${escapeHtml(candidate.confidence)}</strong>)
         `;
     }
-    
+
     const warningBox = document.getElementById('glutamate-verification-warning');
     if (warningBox) warningBox.classList.remove('hidden');
+}
+
+// ==========================================================================
+// Network Export Utilities (Module D)
+// ==========================================================================
+
+function _downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+
+function exportNetworkJSON() {
+    if (!cy) { showToast('Export', 'No network loaded.', 'error', 3000); return; }
+    const data = {
+        metadata: {
+            query: currentQueryGene || 'unknown',
+            exported_at: new Date().toISOString(),
+            node_count: cy.nodes().length,
+            edge_count: cy.edges().length
+        },
+        nodes: cy.nodes().map(n => ({ id: n.id(), ...n.data() })),
+        edges: cy.edges().map(e => ({
+            source: e.source().id(),
+            target: e.target().id(),
+            ...e.data()
+        }))
+    };
+    const gene = (currentQueryGene || 'network').replace(/[^a-z0-9_-]/gi, '_');
+    _downloadBlob(JSON.stringify(data, null, 2), `cgl_network_${gene}.json`, 'application/json');
+    showToast('Export', `Network exported as JSON (${data.nodes.length} nodes, ${data.edges.length} edges)`, 'success', 3000);
+}
+
+function exportNetworkCSV() {
+    if (!cy) { showToast('Export', 'No network loaded.', 'error', 3000); return; }
+    const edges = cy.edges();
+    if (edges.length === 0) { showToast('Export', 'No edges to export.', 'error', 3000); return; }
+    // Collect all unique attribute keys
+    const keys = new Set(['source', 'target']);
+    edges.forEach(e => Object.keys(e.data()).forEach(k => keys.add(k)));
+    const headers = [...keys];
+    const rows = [headers.join(',')];
+    edges.forEach(e => {
+        const d = { source: e.source().id(), target: e.target().id(), ...e.data() };
+        rows.push(headers.map(h => {
+            const v = d[h] ?? '';
+            const s = String(v);
+            return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+        }).join(','));
+    });
+    const gene = (currentQueryGene || 'network').replace(/[^a-z0-9_-]/gi, '_');
+    _downloadBlob(rows.join('\n'), `cgl_edges_${gene}.csv`, 'text/csv');
+    showToast('Export', `Edge list exported as CSV (${edges.length} edges)`, 'success', 3000);
+}
+
+function exportNetworkPNG() {
+    if (!cy) { showToast('Export', 'No network loaded.', 'error', 3000); return; }
+    const pngData = cy.png({ scale: 3, bg: '#ffffff', full: true });
+    const gene = (currentQueryGene || 'network').replace(/[^a-z0-9_-]/gi, '_');
+    _downloadBlob(
+        Uint8Array.from(atob(pngData.split(',')[1]), c => c.charCodeAt(0)),
+        `cgl_network_${gene}.png`,
+        'image/png'
+    );
+    showToast('Export', 'Network exported as high-res PNG (3×)', 'success', 3000);
 }
 
 function runGlutamateScenarioFromEngineering(tfId) {

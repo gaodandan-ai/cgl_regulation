@@ -67,9 +67,9 @@ GENE_PATHWAYS_CACHE = {}      # (cg_locus, cgl_locus) -> parsed dict
 PATHWAY_REGULATION_CACHE = {}
 KEGG_CACHE_LOADED = False
 KEGG_CACHE_HIT = False
-KEGG_CACHE_DIR = os.path.join("data", "kegg_cache")
+KEGG_CACHE_DIR = os.path.join("data", "reference", "kegg_cache")
 KEGG_CACHE_FILE = os.path.join(KEGG_CACHE_DIR, "kegg_cgl_cgb.json")
-METABOLIC_MODEL_DIR = os.path.join("data", "metabolic_models")
+METABOLIC_MODEL_DIR = os.path.join("data", "reference", "metabolic_models")
 METABOLIC_MODEL_CACHE = None
 
 def load_kegg_cache():
@@ -158,9 +158,9 @@ def load_gene_mappings():
     global CG_TO_CGL, CGL_TO_CG, GENE_NAMES, NAME_TO_CG
     if CG_TO_CGL:
         return
-    if os.path.exists('data/gene_mapping.csv'):
+    if os.path.exists('data/reference/gene_mapping.csv'):
         try:
-            with open('data/gene_mapping.csv', 'r', encoding='utf-8') as f:
+            with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     cg = row.get('cg_locus', '').strip()
@@ -290,9 +290,9 @@ def handle_regulon_enrichment(tf):
         resolved_cg = CGL_TO_CG[tf_lower]
         
     targets = []
-    if os.path.exists('data/regulations.csv'):
+    if os.path.exists('data/reference/regulations.csv'):
         try:
-            with open('data/regulations.csv', 'r', encoding='utf-8') as f:
+            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     tf_row = row.get('TF_locusTag', '').strip().lower()
@@ -484,9 +484,9 @@ def reaction_equation_from_metabolites(metabolites):
 
 def find_ecgl1_root():
     candidates = [
-        os.path.join("data", "model", "ecCGL1-main", "ecCGL1-main"),
-        os.path.join("data", "model", "ecCGL1-main"),
-        os.path.join("data", "model", "ecCGL1"),
+        os.path.join("data", "reference", "model", "ecCGL1-main", "ecCGL1-main"),
+        os.path.join("data", "reference", "model", "ecCGL1-main"),
+        os.path.join("data", "reference", "model", "ecCGL1"),
     ]
     for candidate in candidates:
         if os.path.isdir(candidate):
@@ -859,7 +859,7 @@ def load_metabolic_model_mappings():
         except Exception as e:
             warnings.append(f"{os.path.basename(path)}: {e}")
 
-    model_dirs = [METABOLIC_MODEL_DIR, os.path.join("data", "model")]
+    model_dirs = [METABOLIC_MODEL_DIR, os.path.join("data", "reference", "model")]
     model_files = []
     for model_dir in model_dirs:
         if not os.path.isdir(model_dir):
@@ -930,10 +930,10 @@ def get_regulatory_targets_for_tf(query):
     resolved = normalize_gene_locus(q)
     targets = {}
     is_tf = False
-    if not os.path.exists("data/regulations.csv"):
+    if not os.path.exists("data/reference/regulations.csv"):
         return is_tf, []
     try:
-        with open("data/regulations.csv", "r", encoding="utf-8") as f:
+        with open("data/reference/regulations.csv", "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 tf_locus = (row.get("TF_locusTag") or "").strip()
@@ -1307,9 +1307,9 @@ def handle_pathway_regulation(query):
     tf_stats = {}
     regulated_pathway_genes = set()
     edge_examples = []
-    if os.path.exists('data/regulations.csv') and canonical_pathway_genes:
+    if os.path.exists('data/reference/regulations.csv') and canonical_pathway_genes:
         try:
-            with open('data/regulations.csv', 'r', encoding='utf-8') as f:
+            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     target = normalize_gene_locus(row.get('TG_locusTag'))
@@ -1908,7 +1908,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             
             try:
                 organisms = []
-                folder = os.path.join(os.getcwd(), 'data', 'AllOrganismsFiles')
+                folder = os.path.join(os.getcwd(), 'data', 'reference', 'AllOrganismsFiles')
                 if os.path.exists(folder):
                     for filename in os.listdir(folder):
                         if filename.endswith('_regulations.csv'):
@@ -1949,6 +1949,28 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(organisms).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        elif urllib.parse.urlparse(self.path).path in ['/api/analysis/rna-seq', '/api/analysis/dynamic-grn', '/api/analysis/causal-grn', '/api/analysis/metabolic-coupling', '/api/analysis/tf-motif-enrichment']:
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            try:
+                with open('data/reference/rna_seq_analysis_results.json', 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                path_name = urllib.parse.urlparse(self.path).path
+                if path_name == '/api/analysis/rna-seq':
+                    self.wfile.write(json.dumps(data).encode('utf-8'))
+                elif path_name == '/api/analysis/dynamic-grn':
+                    self.wfile.write(json.dumps(data.get("dynamic_grn", {})).encode('utf-8'))
+                elif path_name == '/api/analysis/causal-grn':
+                    self.wfile.write(json.dumps(data.get("causal_grn", [])).encode('utf-8'))
+                elif path_name == '/api/analysis/metabolic-coupling':
+                    self.wfile.write(json.dumps(data.get("metabolic_coupling", {})).encode('utf-8'))
+                elif path_name == '/api/analysis/tf-motif-enrichment':
+                    self.wfile.write(json.dumps(data.get("motif_enrichment", {})).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
         else:
             super().do_GET()
 
@@ -1963,10 +1985,15 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(path)
         path_str = parsed.path
         
-        # Route requests starting with /data/ to local data/ folder
+        # Route requests starting with /data/ to local data/reference/ folder
         if path_str.startswith('/data/'):
             relative_path = path_str[6:] # strip '/data/'
-            return os.path.join(os.getcwd(), 'data', relative_path)
+            return os.path.join(os.getcwd(), 'data', 'reference', relative_path)
+            
+        # Route requests starting with /outputs/ to local analysis/outputs/ folder
+        if path_str.startswith('/outputs/'):
+            relative_path = path_str[9:] # strip '/outputs/'
+            return os.path.join(os.getcwd(), 'analysis', 'outputs', relative_path)
             
         # Route other requests to local web/ folder
         relative_path = path_str.lstrip('/')
@@ -2782,24 +2809,17 @@ def open_browser():
     webbrowser.open(url)
 
 if __name__ == "__main__":
-    server_address = ("", PORT)
+    import uvicorn
     
-    # Configure server to allow port re-use (avoid "address already in use" errors)
-    socketserver.TCPServer.allow_reuse_address = True
-    
+    # Start browser in a background thread if not in headless mode
+    if os.environ.get("HEADLESS", "false").lower() != "true":
+        browser_thread = threading.Thread(target=open_browser)
+        browser_thread.daemon = True
+        browser_thread.start()
+        
+    print(f"Local Server successfully starting on port {PORT} using FastAPI & Uvicorn...")
     try:
-        server = ThreadingHTTPServer(server_address, CustomHTTPRequestHandler)
-        print(f"Local Server successfully started on port {PORT}")
-        print("Press Ctrl+C to stop the server.")
-        
-        # Start browser in a background thread if not in headless mode
-        if os.environ.get("HEADLESS", "false").lower() != "true":
-            browser_thread = threading.Thread(target=open_browser)
-            browser_thread.daemon = True
-            browser_thread.start()
-        
-        # Serve requests
-        server.serve_forever()
+        uvicorn.run("backend.app:app", host="0.0.0.0", port=PORT, reload=False)
     except KeyboardInterrupt:
         print("\nStopping local server. Goodbye!")
         sys.exit(0)

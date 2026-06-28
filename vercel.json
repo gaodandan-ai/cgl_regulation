@@ -10,7 +10,7 @@
       "use": "@vercel/static"
     },
     {
-      "src": "data/**",
+      "src": "data/reference/**",
       "use": "@vercel/static"
     }
   ],
@@ -21,7 +21,7 @@
     },
     {
       "src": "/data/(.*)",
-      "dest": "data/$1"
+      "dest": "data/reference/$1"
     },
     {
       "src": "/(.*)",

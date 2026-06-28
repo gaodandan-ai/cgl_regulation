@@ -1,0 +1,534 @@
+{
+  "cg0876": [
+    "iM_SigH"
+  ],
+  "cg2892": [
+    "iM_SigH"
+  ],
+  "cg2889": [
+    "iM_SigH",
+    "iM_GlxR_carbon",
+    "iM_RamA_glycolysis",
+    "iM_GluABCD_glutamate"
+  ],
+  "cg1206": [
+    "iM_SigH",
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg3219": [
+    "iM_SigH"
+  ],
+  "cg2987": [
+    "iM_SigH",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0497": [
+    "iM_SigH",
+    "iM_DtxR_iron"
+  ],
+  "cg1364": [
+    "iM_SigH",
+    "iM_RpsA_ribosome"
+  ],
+  "cg0745": [
+    "iM_SigH",
+    "iM_SigE"
+  ],
+  "cg1516": [
+    "iM_SigH"
+  ],
+  "cg2988": [
+    "iM_SigH",
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg2577": [
+    "iM_SigH"
+  ],
+  "cg0371": [
+    "iM_SigH"
+  ],
+  "cg1474": [
+    "iM_SigH"
+  ],
+  "cg1475": [
+    "iM_SigH"
+  ],
+  "cg2962": [
+    "iM_SigH"
+  ],
+  "cg0797": [
+    "iM_SigH"
+  ],
+  "cg2320": [
+    "iM_SigH"
+  ],
+  "cg2102": [
+    "iM_SigB"
+  ],
+  "cg1226": [
+    "iM_SigB",
+    "iM_OsR_osmotic"
+  ],
+  "cg2985": [
+    "iM_SigB"
+  ],
+  "cg1103": [
+    "iM_SigB"
+  ],
+  "cg1225": [
+    "iM_SigB"
+  ],
+  "cg0949": [
+    "iM_SigB"
+  ],
+  "cg1224": [
+    "iM_SigB"
+  ],
+  "cg3327": [
+    "iM_SigB"
+  ],
+  "cg2800": [
+    "iM_SigB"
+  ],
+  "cg0447": [
+    "iM_SigB"
+  ],
+  "cg1468": [
+    "iM_SigB"
+  ],
+  "cg1469": [
+    "iM_SigB"
+  ],
+  "cg2712": [
+    "iM_SigB"
+  ],
+  "cg2713": [
+    "iM_SigB"
+  ],
+  "cg2714": [
+    "iM_SigB"
+  ],
+  "cg1271": [
+    "iM_SigE"
+  ],
+  "cg1272": [
+    "iM_SigE"
+  ],
+  "cg1273": [
+    "iM_SigE"
+  ],
+  "cg0955": [
+    "iM_SigE"
+  ],
+  "cg0956": [
+    "iM_SigE"
+  ],
+  "cg1289": [
+    "iM_SigE",
+    "iM_PhoSR_phosphate"
+  ],
+  "cg1290": [
+    "iM_SigE",
+    "iM_PhoSR_phosphate"
+  ],
+  "cg1704": [
+    "iM_SigE"
+  ],
+  "cg1705": [
+    "iM_SigE"
+  ],
+  "cg2070": [
+    "iM_SigE",
+    "iM_PhoSR_phosphate"
+  ],
+  "cg2071": [
+    "iM_SigE",
+    "iM_PhoSR_phosphate"
+  ],
+  "cg3420": [
+    "iM_SigM"
+  ],
+  "cg3421": [
+    "iM_SigM"
+  ],
+  "cg2885": [
+    "iM_SigM"
+  ],
+  "cg2886": [
+    "iM_SigM"
+  ],
+  "cg1228": [
+    "iM_SigM"
+  ],
+  "cg1229": [
+    "iM_SigM"
+  ],
+  "cg3309": [
+    "iM_SigM"
+  ],
+  "cg3310": [
+    "iM_SigM"
+  ],
+  "cg0491": [
+    "iM_SigM"
+  ],
+  "cg2181": [
+    "iM_GlxR_carbon"
+  ],
+  "cg0089": [
+    "iM_GlxR_carbon",
+    "iM_RamA_glycolysis"
+  ],
+  "cg2887": [
+    "iM_GlxR_carbon",
+    "iM_RamA_glycolysis"
+  ],
+  "cg1638": [
+    "iM_GlxR_carbon",
+    "iM_RamA_glycolysis"
+  ],
+  "cg0088": [
+    "iM_GlxR_carbon",
+    "iM_RamA_glycolysis"
+  ],
+  "cg2960": [
+    "iM_GlxR_carbon"
+  ],
+  "cg2961": [
+    "iM_GlxR_carbon"
+  ],
+  "cg0350": [
+    "iM_GlxR_carbon"
+  ],
+  "cg2091": [
+    "iM_GlxR_carbon"
+  ],
+  "cg2411": [
+    "iM_GlxR_carbon",
+    "iM_RamA_glycolysis"
+  ],
+  "cg1818": [
+    "iM_GlxR_carbon"
+  ],
+  "cg0147": [
+    "iM_GlxR_carbon",
+    "iM_OsR_osmotic"
+  ],
+  "cg0148": [
+    "iM_GlxR_carbon",
+    "iM_OsR_osmotic"
+  ],
+  "cg2810": [
+    "iM_GlxR_carbon"
+  ],
+  "cg2277": [
+    "iM_GlxR_carbon"
+  ],
+  "cg2278": [
+    "iM_GlxR_carbon"
+  ],
+  "cg1819": [
+    "iM_GlxR_carbon"
+  ],
+  "cg2831": [
+    "iM_RamA_glycolysis"
+  ],
+  "cg0799": [
+    "iM_RamA_glycolysis"
+  ],
+  "cg0800": [
+    "iM_RamA_glycolysis"
+  ],
+  "cg1409": [
+    "iM_RamA_glycolysis"
+  ],
+  "cg1410": [
+    "iM_RamA_glycolysis"
+  ],
+  "cg0944": [
+    "iM_RamA_glycolysis"
+  ],
+  "cg1458": [
+    "iM_LysR_lysine"
+  ],
+  "cg1459": [
+    "iM_LysR_lysine"
+  ],
+  "cg1147": [
+    "iM_LysR_lysine"
+  ],
+  "cg0300": [
+    "iM_LysR_lysine"
+  ],
+  "cg0301": [
+    "iM_LysR_lysine"
+  ],
+  "cg0655": [
+    "iM_LysR_lysine"
+  ],
+  "cg1133": [
+    "iM_LysR_lysine"
+  ],
+  "cg1134": [
+    "iM_LysR_lysine"
+  ],
+  "cg2502": [
+    "iM_LysR_lysine"
+  ],
+  "cg2384": [
+    "iM_GluABCD_glutamate",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg1613": [
+    "iM_GluABCD_glutamate",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0575": [
+    "iM_GluABCD_glutamate",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0576": [
+    "iM_GluABCD_glutamate"
+  ],
+  "cg1464": [
+    "iM_GluABCD_glutamate",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg1465": [
+    "iM_GluABCD_glutamate",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0465": [
+    "iM_GluABCD_glutamate",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg1326": [
+    "iM_GluABCD_glutamate"
+  ],
+  "cg2402": [
+    "iM_GluABCD_glutamate",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg2403": [
+    "iM_GluABCD_glutamate",
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0828": [
+    "iM_GluABCD_glutamate"
+  ],
+  "cg2986": [
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0115": [
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0116": [
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0117": [
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0118": [
+    "iM_AmtR_nitrogen"
+  ],
+  "cg0112": [
+    "iM_AmtR_nitrogen"
+  ],
+  "cg2194": [
+    "iM_DtxR_iron"
+  ],
+  "cg2465": [
+    "iM_DtxR_iron"
+  ],
+  "cg2466": [
+    "iM_DtxR_iron"
+  ],
+  "cg2469": [
+    "iM_DtxR_iron"
+  ],
+  "cg2470": [
+    "iM_DtxR_iron",
+    "iM_FasR_fatty_acids"
+  ],
+  "cg2471": [
+    "iM_DtxR_iron"
+  ],
+  "cg0980": [
+    "iM_DtxR_iron",
+    "iM_PhoSR_phosphate"
+  ],
+  "cg0981": [
+    "iM_DtxR_iron"
+  ],
+  "cg2388": [
+    "iM_DtxR_iron"
+  ],
+  "cg2389": [
+    "iM_DtxR_iron"
+  ],
+  "cg2390": [
+    "iM_DtxR_iron"
+  ],
+  "cg0146": [
+    "iM_OsR_osmotic"
+  ],
+  "cg3269": [
+    "iM_OsR_osmotic"
+  ],
+  "cg3270": [
+    "iM_OsR_osmotic"
+  ],
+  "cg3271": [
+    "iM_OsR_osmotic"
+  ],
+  "cg1227": [
+    "iM_OsR_osmotic"
+  ],
+  "cg0438": [
+    "iM_OsR_osmotic"
+  ],
+  "cg0439": [
+    "iM_OsR_osmotic"
+  ],
+  "cg0440": [
+    "iM_OsR_osmotic"
+  ],
+  "cg2893": [
+    "iM_OsR_osmotic"
+  ],
+  "cg1674": [
+    "iM_PhoSR_phosphate"
+  ],
+  "cg1675": [
+    "iM_PhoSR_phosphate"
+  ],
+  "cg1676": [
+    "iM_PhoSR_phosphate"
+  ],
+  "cg1677": [
+    "iM_PhoSR_phosphate"
+  ],
+  "cg1678": [
+    "iM_PhoSR_phosphate"
+  ],
+  "cg3191": [
+    "iM_PhoSR_phosphate"
+  ],
+  "cg3192": [
+    "iM_PhoSR_phosphate"
+  ],
+  "cg1890": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg1891": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg1892": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg2312": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg2313": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg2314": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg0741": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg0742": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg2989": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg1207": [
+    "iM_WhiB_cell_cycle"
+  ],
+  "cg1348": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1349": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1350": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1351": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1352": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1353": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1354": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1355": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1356": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1357": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1358": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1359": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1360": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1361": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1362": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1363": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg1365": [
+    "iM_RpsA_ribosome"
+  ],
+  "cg2737": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg2738": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg2739": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg2396": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg2397": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg2398": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg1631": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg1632": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg1633": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg0959": [
+    "iM_FasR_fatty_acids"
+  ],
+  "cg0960": [
+    "iM_FasR_fatty_acids"
+  ]
+}

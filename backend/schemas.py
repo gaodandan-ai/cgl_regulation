@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 class ModelStatusResponse(BaseModel):
     loaded: bool
@@ -133,4 +133,52 @@ class FVAResponse(BaseModel):
     fvaRanges: List[FVARangeSchema]
     warnings: List[str] = []
 
+class RFBARequest(BaseModel):
+    tfPerturbations: Dict[str, str]  # e.g., {"sigH": "knockout"}
+    initialGlucose: float = 100.0
+    initialBiomass: float = 0.1
+    timeSteps: int = 24
 
+class RFBAResponse(BaseModel):
+    status: str
+    time: List[float]
+    growth_rate: List[float]
+    glutamate_export: List[float]
+    glucose_uptake: List[float]
+    glucose_concentration: List[float]
+    biomass_concentration: List[float]
+    warnings: List[str] = []
+
+class ECFBARequest(BaseModel):
+    proteinPoolLimit: float = 0.129
+    enzymePerturbations: Dict[str, float]  # e.g., {"gdh": 1.0, "lysC": 1.0}
+    targetProduct: str = "growth"  # "growth", "glutamate", "lysine"
+    temperature: float = 30.0
+    calibrateTimepoint: Optional[str] = None
+
+class ECFBAResponse(BaseModel):
+    status: str
+    flux: float
+    poolLimit: float
+    poolUsage: float
+    warnings: List[str] = []
+    calibratedPerturbations: Optional[Dict[str, float]] = None
+
+class MFAComparisonItem(BaseModel):
+    reaction_id: str
+    reaction_name: str
+    pathway: str
+    mfa_flux: float
+    mfa_std: float
+    sim_flux: float
+    deviation_pct: float
+    matched_model_id: Optional[str] = None
+    reference: str
+
+class MFAComparisonResponse(BaseModel):
+    status: str
+    items: List[MFAComparisonItem] = []
+    pearson_r: float = 0.0
+    rmse: float = 0.0
+    mean_deviation_pct: float = 0.0
+    warnings: List[str] = []

@@ -41,9 +41,9 @@ The platform processes data across 7 distinct analytical phases:
 ## 4. Current Limitations
 
 > [!WARNING]
-> - **Hypothesis Generation**: The prioritizing scores and impact metrics represent potential metabolic impact rather than experimentally validated rates or yields.
-> - **No Flux Simulations**: The platform maps structural pathway networks but does not run Flux Balance Analysis (FBA) or kinetic flux simulations.
-> - **ecCGL1 Use**: Enzyme parameters are annotated for pathway context; no active enzyme-constrained simulations are run in v0.1.0.
+> - **Hypothesis Generation**: Prioritization scores and network impact metrics serve as computational screenings for high-impact hubs, rather than predicting exact in vivo rates or yields.
+> - **Optional Local Simulations**: Standard Flux Balance Analysis (FBA), MOMA, and Flux Variability Analysis (FVA) can be run locally using the *iCW773* model by starting the optional FastAPI simulation backend (port 8001). Static web deployments do not run dynamic flux calculations.
+> - **ecCGL1 Parameter Integration**: Enzyme kinetic parameters ($k_{\mathrm{cat}}$, molecular weight, EC numbers, and UniProt IDs) are integrated as static pathway-context annotations to aid bottleneck analysis. The platform does not run active enzyme-constrained simulations (ec-FBA) in v0.1.0.
 > - **Validation Requirement**: Wet-lab validation is required before drawing biological engineering conclusions.
 
 ---
@@ -90,3 +90,34 @@ Then open your browser and navigate to:
 
 ### AI Summary Features (Optional)
 To activate literature and functional AI-generated summary panels, configure your API keys (Gemini, OpenAI, DeepSeek, etc.) in the left sidebar configuration panel. Key parameters are stored locally in browser `localStorage`.
+
+---
+
+## 7. Project Directory Structure
+
+```text
+cgl_regulation/
+├── api/                  # Vercel Serverless function entrypoints
+│   └── index.py
+├── backend/              # FastAPI FBA simulation backend (port 8001)
+│   ├── app.py
+│   ├── simulation.py
+│   ├── model_loader.py
+│   └── schemas.py
+├── data/                 # Regulators, expressions, and metabolic datasets
+│   ├── gene_mapping.csv
+│   ├── regulations.csv
+│   ├── rna_seq/
+│   └── rna_seq_analysis_results.json
+├── docs/                 # Platform documentation
+├── outputs/              # Generated network visualization figures & HTMLs
+├── scratch/              # Temporary and testing scripts
+├── scripts/              # Data processing and network visualization scripts
+│   ├── visualize_network.py
+│   └── rna_seq_network_analysis.py
+└── web/                  # Frontend static site files (port 8000)
+    ├── app.js
+    ├── index.html
+    ├── src/              # Frontend TypeScript source code
+    └── lib/              # Compiled JavaScript libraries & static assets
+```

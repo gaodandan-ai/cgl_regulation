@@ -1,0 +1,313 @@
+{
+  "sigH": {
+    "locus": "cg0876",
+    "alt_locus": "Cgl0797",
+    "gene_name": "sigH",
+    "sigma_class": "ECF_sigma",
+    "sigma_group": "σ^H (ECF Group 8)",
+    "stimulus": [
+      "heat_stress (≥37°C)",
+      "oxidative_stress (H₂O₂, diamide, menadione)",
+      "disulfide_stress",
+      "thiol_depletion"
+    ],
+    "anti_sigma": "rshA",
+    "anti_sigma_locus": "cg0877",
+    "anti_sigma_mechanism": "Disulfide bond formation between RshA Cys residues releases SigH under oxidative stress",
+    "consensus_minus35": null,
+    "consensus_minus10": "TGAC-N4-GTCAA",
+    "ecf_consensus": "TGAACC-N17-GCTTGA",
+    "ecf_minus35_half": "TGAACC",
+    "ecf_minus10_half": "GCTTGA",
+    "spacer_bp": 17,
+    "extended_minus10": null,
+    "heat_stress_activation": true,
+    "tm_activation_degC": 37.0,
+    "targets_count": 142,
+    "key_targets": [
+      {
+        "locus": "cg2892",
+        "name": "trxB1",
+        "function": "thioredoxin reductase 1"
+      },
+      {
+        "locus": "cg2889",
+        "name": "trxC",
+        "function": "thioredoxin"
+      },
+      {
+        "locus": "cg3219",
+        "name": "groEL1",
+        "function": "chaperonin GroEL"
+      },
+      {
+        "locus": "cg1206",
+        "name": "groEL2",
+        "function": "chaperonin GroEL2"
+      },
+      {
+        "locus": "cg2987",
+        "name": "groES",
+        "function": "co-chaperonin GroES"
+      },
+      {
+        "locus": "cg0497",
+        "name": "hemA",
+        "function": "glutamyl-tRNA reductase"
+      },
+      {
+        "locus": "cg1364",
+        "name": "atpF",
+        "function": "ATP synthase subunit b"
+      },
+      {
+        "locus": "cg2577",
+        "name": "dnaK",
+        "function": "Hsp70 chaperone DnaK"
+      },
+      {
+        "locus": "cg2985",
+        "name": "dnaJ",
+        "function": "Hsp40 co-chaperone DnaJ"
+      },
+      {
+        "locus": "cg1516",
+        "name": "clpB",
+        "function": "disaggregase ClpB"
+      },
+      {
+        "locus": "cg0371",
+        "name": "cspA2",
+        "function": "cold shock protein / RNA chaperone"
+      },
+      {
+        "locus": "cg2962",
+        "name": "msrA",
+        "function": "methionine sulphoxide reductase"
+      }
+    ],
+    "regulon_description": "SigH is the primary heat shock and oxidative stress sigma factor in C. glutamicum. It controls the largest stress regulon (~142 targets), including thioredoxin systems, chaperones (GroEL/ES, DnaK/J, ClpB), and detoxification enzymes. SigH is sequestered by the anti-sigma RshA under reducing conditions; oxidative stress forms an RshA disulfide bond releasing active SigH. At 40°C, SigH-dependent transcription peaks within 1 hour of heat shift, then partially adapts by 4h and 24h as the proteome is remodelled.",
+    "overlap_with": [
+      "sigE"
+    ],
+    "promoter_example": {
+      "gene": "trxB1 (cg2892)",
+      "sequence": "...TGAACC-N17-GCTTGA...",
+      "distance_to_tss": -35
+    },
+    "heat_stress_timeline": {
+      "1h": "peak_activation",
+      "4h": "partial_adaptation",
+      "24h": "baseline_reset_partial"
+    },
+    "pmid": [
+      "19270092",
+      "25404703",
+      "16385111",
+      "23298179",
+      "12791148",
+      "17449638"
+    ]
+  },
+  "sigB": {
+    "locus": "cg2102",
+    "alt_locus": "Cgl1926",
+    "gene_name": "sigB",
+    "sigma_class": "Group_2_sigma",
+    "sigma_group": "σ^B (non-essential Group 2)",
+    "stimulus": [
+      "osmotic_upshift (NaCl, sucrose)",
+      "heat_stress (mild, ≥37°C)",
+      "stationary_phase_entry",
+      "carbon_starvation",
+      "ethanol_stress"
+    ],
+    "anti_sigma": "rsbW",
+    "anti_sigma_locus": "cg2101",
+    "anti_sigma_mechanism": "RsbW kinase phosphorylates anti-anti-sigma RsbV, sequestering SigB under non-stress conditions",
+    "consensus_minus35": "TTGACA",
+    "consensus_minus10": "TATAAT",
+    "ecf_consensus": null,
+    "spacer_bp": 17,
+    "extended_minus10": "TGN",
+    "heat_stress_activation": true,
+    "tm_activation_degC": 38.0,
+    "targets_count": 19,
+    "key_targets": [
+      {
+        "locus": "cg1226",
+        "name": "cg1226",
+        "function": "general stress protein"
+      },
+      {
+        "locus": "cg1103",
+        "name": "cg1103",
+        "function": "stress-responsive protein"
+      },
+      {
+        "locus": "cg0949",
+        "name": "cg0949",
+        "function": "osmoprotectant-related"
+      },
+      {
+        "locus": "cg3327",
+        "name": "cg3327",
+        "function": "betaine biosynthesis"
+      },
+      {
+        "locus": "cg2800",
+        "name": "cg2800",
+        "function": "compatible solute transport"
+      }
+    ],
+    "regulon_description": "SigB controls the general stress response and osmotic adaptation in C. glutamicum. It regulates a smaller regulon (~19 targets in CoryneRegNet) than SigH, but contributes broadly to tolerance of multiple stress conditions. SigB activity increases in stationary phase and under osmotic upshift, complementing SigH-mediated specific heat shock response.",
+    "overlap_with": [
+      "sigH"
+    ],
+    "heat_stress_timeline": {
+      "1h": "moderate_activation",
+      "4h": "sustained",
+      "24h": "sustained_stationary"
+    },
+    "pmid": [
+      "15516578",
+      "19376865",
+      "16385111"
+    ]
+  },
+  "sigE": {
+    "locus": "cg1271",
+    "alt_locus": "Cgl1168",
+    "gene_name": "sigE",
+    "sigma_class": "ECF_sigma",
+    "sigma_group": "σ^E (ECF Group 10, envelope stress)",
+    "stimulus": [
+      "cell_envelope_stress",
+      "SDS",
+      "triton_X-100 (detergents)",
+      "vancomycin",
+      "penicillin (beta-lactams)",
+      "EDTA (chelation disrupting outer layer)"
+    ],
+    "anti_sigma": "rseA",
+    "anti_sigma_locus": "cg1272",
+    "anti_sigma_mechanism": "RseA (anti-sigma) tethers SigE at the membrane; membrane stress triggers RseA proteolysis releasing SigE",
+    "consensus_minus35": null,
+    "consensus_minus10": "TGAC-N4-GTCAA",
+    "ecf_consensus": "GAACTT-N14-16-GTCAA",
+    "ecf_minus35_half": "GAACTT",
+    "ecf_minus10_half": "GTCAA",
+    "spacer_bp": 15,
+    "extended_minus10": null,
+    "heat_stress_activation": true,
+    "tm_activation_degC": 40.0,
+    "targets_count": 1,
+    "key_targets": [
+      {
+        "locus": "cg1271",
+        "name": "sigE",
+        "function": "autoregulation"
+      },
+      {
+        "locus": "cg1272",
+        "name": "rseA",
+        "function": "anti-sigma factor"
+      },
+      {
+        "locus": "cg0955",
+        "name": "cg0955",
+        "function": "mycolyltransferase-related"
+      },
+      {
+        "locus": "cg0956",
+        "name": "cg0956",
+        "function": "cell wall remodelling"
+      },
+      {
+        "locus": "cg1289",
+        "name": "murI",
+        "function": "glutamate racemase (PG biosynthesis)"
+      }
+    ],
+    "regulon_description": "SigE controls cell envelope stress response in C. glutamicum. Although only 1 target appears in CoryneRegNet (due to limited experimental data), transcriptomic studies reveal ~30+ SigE-controlled genes including mycolyltransferases, cell wall biosynthesis enzymes, and the anti-sigma rseA itself (autoregulatory loop). SigE and SigH share overlapping target promoters, with SigE showing preference for membrane-related genes. Heat stress at 40°C activates SigE through membrane perturbation.",
+    "overlap_with": [
+      "sigH"
+    ],
+    "heat_stress_timeline": {
+      "1h": "moderate_activation",
+      "4h": "peak_membrane_stress",
+      "24h": "adaptation"
+    },
+    "pmid": [
+      "23298179",
+      "16385111",
+      "12791148"
+    ]
+  },
+  "sigM": {
+    "locus": "cg3420",
+    "alt_locus": "Cgl3198",
+    "gene_name": "sigM",
+    "sigma_class": "ECF_sigma",
+    "sigma_group": "σ^M (ECF, superoxide/oxidative stress)",
+    "stimulus": [
+      "superoxide_stress (methyl viologen, paraquat)",
+      "menadione",
+      "diamide",
+      "oxidative_burst"
+    ],
+    "anti_sigma": "rsmA",
+    "anti_sigma_locus": "cg3421",
+    "anti_sigma_mechanism": "RsmA anti-sigma; mechanism analogous to SigH/RshA redox switch",
+    "consensus_minus35": null,
+    "ecf_consensus": "CGAAAC-N16-18-CTGTCA",
+    "ecf_minus35_half": "CGAAAC",
+    "ecf_minus10_half": "CTGTCA",
+    "consensus_minus10": null,
+    "spacer_bp": 17,
+    "extended_minus10": null,
+    "heat_stress_activation": false,
+    "tm_activation_degC": null,
+    "targets_count": 17,
+    "key_targets": [
+      {
+        "locus": "cg3420",
+        "name": "sigM",
+        "function": "autoregulation"
+      },
+      {
+        "locus": "cg3421",
+        "name": "rsmA",
+        "function": "anti-sigma"
+      },
+      {
+        "locus": "cg2885",
+        "name": "cg2885",
+        "function": "thioredoxin-related"
+      },
+      {
+        "locus": "cg2886",
+        "name": "cg2886",
+        "function": "oxidoreductase"
+      },
+      {
+        "locus": "cg1228",
+        "name": "cg1228",
+        "function": "superoxide dismutase-related"
+      }
+    ],
+    "regulon_description": "SigM is the third ECF sigma factor in C. glutamicum, specialised for superoxide and severe oxidative stress response. Its regulon (~17 targets) partially overlaps with SigH, but SigM is the primary responder to superoxide-generating agents like methyl viologen. Not strongly heat-activated, but contributes to oxidative defence during prolonged heat stress when ROS generation increases.",
+    "overlap_with": [
+      "sigH"
+    ],
+    "heat_stress_timeline": {
+      "1h": "low",
+      "4h": "low",
+      "24h": "low_to_moderate"
+    },
+    "pmid": [
+      "21075931",
+      "16385111"
+    ]
+  }
+}
