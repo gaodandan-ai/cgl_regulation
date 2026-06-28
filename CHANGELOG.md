@@ -4,6 +4,17 @@ All notable changes to the Cgl Regulation Explorer project will be documented in
 
 ---
 
+## [v0.1.1] - 2026-06-29
+### Added
+- **iModulon UI Panel**: Integrated iModulon transcriptional module badges to display gene memberships dynamically.
+- **TCS Signal Chain Panel**: Integrated Two-Component System context displaying signal flows, stimuli, and targeted pathways.
+- **Sigma Factor Context Panel**: Integrated ECF consensus promoter details and standard binding region mappings.
+
+### Fixed
+- **Motif Prediction File Paths**: Corrected local filesystem references in `run_server.py` to target relocated data files under `data/reference/`.
+- **Fetch Request Safety**: Added `.then(res => { if (!res.ok) throw ... })` checks in frontend API wrappers to cleanly handle non-JSON responses and prevent JSON decoding failures.
+- **Error Format Compatibility**: Adapted parser to recognize both FastAPI HTTP detail fields and default server error responses.
+
 ## [v0.1.0] - 2026-06-27
 ### Added
 - **Workflow-based Navigation**: Compact horizontal pill-shaped tab system (Gene/TF Explorer, Pathway View, Engineering Targets, Data & Model Quality, Examples, Release Notes, References).
