@@ -9369,7 +9369,7 @@ function fetchReal3DStructure(tfLocus) {
             if (!data.results || data.results.length === 0) {
                 // Try a broader search for cleanLocus alone
                 const broadUrl = `https://rest.uniprot.org/uniprotkb/search?query=${encodeURIComponent(cleanLocus)}&format=json&size=1`;
-                return fetch(broadUrl).then(res => res.json());
+                return fetch(broadUrl).then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); });
             }
             return data;
         })
@@ -9557,15 +9557,19 @@ function loadMotifAndBindingSites(tfLocus) {
     }
 
     fetch(`/api/predict_motif?tf=${encodeURIComponent(tfLocus)}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error(`Server error ${res.status}`);
+            return res.json();
+        })
         .then(data => {
             const detailLocusTag = document.getElementById('detail-locus-tag');
             if (!detailLocusTag || detailLocusTag.textContent !== tfLocus) return;
 
-            if (data.error) {
+            const errMsg = data.error || data.detail;
+            if (errMsg) {
                 currentTfPwm = null;
                 if (proteinDomainResult) {
-                    proteinDomainResult.innerHTML = `<span style="color: var(--color-repression);">${data.error}</span>`;
+                    proteinDomainResult.innerHTML = `<span style="color: var(--text-secondary); font-size:11px;"><i class="fa-solid fa-circle-info"></i> ${errMsg}</span>`;
                 }
                 return;
             }
@@ -9601,7 +9605,7 @@ function loadMotifAndBindingSites(tfLocus) {
                     'X-AI-Base-URL': baseUrl
                 }
             })
-                .then(res => res.json())
+                .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
                 .then(domainData => {
                     if (detailLocusTag.textContent !== tfLocus) return;
                     if (proteinDomainResult) {
@@ -9660,7 +9664,7 @@ function loadMotifAndBindingSites(tfLocus) {
             'X-AI-Base-URL': baseUrl
         }
     })
-        .then(res => res.json())
+        .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
         .then(data => {
             const detailLocusTag = document.getElementById('detail-locus-tag');
             if (!detailLocusTag || detailLocusTag.textContent !== tfLocus) return;
@@ -10520,7 +10524,7 @@ function initAdvancedFeatures() {
     if (orgSelect) {
         // Fetch organisms
         fetch('/api/list_organisms')
-            .then(res => res.json())
+            .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
             .then(data => {
                 if (data.error) {
                     console.error("Error loading organisms:", data.error);

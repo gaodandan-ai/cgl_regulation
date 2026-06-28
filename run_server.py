@@ -2200,8 +2200,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         try:
             gene_lower = gene.lower()
             import csv
-            if os.path.exists('data/gene_mapping.csv'):
-                with open('data/gene_mapping.csv', 'r', encoding='utf-8') as f:
+            if os.path.exists('data/reference/gene_mapping.csv'):
+                with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
                         if row['cg_locus'].lower() == gene_lower or row['cgl_locus'].lower() == gene_lower or row['gene_name'].lower() == gene_lower:
@@ -2209,8 +2209,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                             product = row['product']
                             break
             
-            if os.path.exists('data/regulations.csv'):
-                with open('data/regulations.csv', 'r', encoding='utf-8') as f:
+            if os.path.exists('data/reference/regulations.csv'):
+                with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
                         if row['TF_locusTag'].lower() == resolved_cg.lower():
@@ -2248,8 +2248,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         try:
             import csv
             tf_lower = tf_query.lower()
-            if os.path.exists('data/gene_mapping.csv'):
-                with open('data/gene_mapping.csv', 'r', encoding='utf-8') as f:
+            if os.path.exists('data/reference/gene_mapping.csv'):
+                with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
                         if row['cg_locus'].lower() == tf_lower or row['cgl_locus'].lower() == tf_lower or row['gene_name'].lower() == tf_lower:
@@ -2257,8 +2257,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                             tf_name = row['gene_name'] or row['cg_locus']
                             break
                             
-            if os.path.exists('data/regulations.csv'):
-                with open('data/regulations.csv', 'r', encoding='utf-8') as f:
+            if os.path.exists('data/reference/regulations.csv'):
+                with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
                         if row['TF_locusTag'].lower() == resolved_cg.lower() or row['TF_name'].lower() == tf_lower:
@@ -2323,8 +2323,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         tf_name = tf
         
         # 1. Resolve TF names/locus tags
-        if os.path.exists('data/gene_mapping.csv'):
-            with open('data/gene_mapping.csv', 'r', encoding='utf-8') as f:
+        if os.path.exists('data/reference/gene_mapping.csv'):
+            with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if row['cg_locus'].lower() == tf_lower or row['cgl_locus'].lower() == tf_lower or row['gene_name'].lower() == tf_lower:
@@ -2334,8 +2334,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                         
         # 2. Find target genes from regulations.csv
         target_loci = []
-        if os.path.exists('data/regulations.csv'):
-            with open('data/regulations.csv', 'r', encoding='utf-8') as f:
+        if os.path.exists('data/reference/regulations.csv'):
+            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if row['TF_locusTag'].lower() == resolved_cg.lower() or (row['TF_name'] and row['TF_name'].lower() == tf_lower):
@@ -2363,8 +2363,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             
             # Find any known binding sites in regulations.csv to plant
             known_sites = []
-            if os.path.exists('data/regulations.csv'):
-                with open('data/regulations.csv', 'r', encoding='utf-8') as f:
+            if os.path.exists('data/reference/regulations.csv'):
+                with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
                         row_tf = (row.get('TF_locusTag') or '').strip()
