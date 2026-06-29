@@ -22,6 +22,15 @@ from rag_service import RAGService
 import math
 
 PORT = int(os.environ.get("PORT", 8000))
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def get_absolute_path(relative_path):
+    if not relative_path:
+        return relative_path
+    if os.path.isabs(relative_path):
+        return relative_path
+    return os.path.normpath(os.path.join(ROOT_DIR, relative_path))
+
 rag_service = RAGService()
 
 # Species abbreviations map from CoryneRegNet7 prefixes to user-friendly names
@@ -67,9 +76,9 @@ GENE_PATHWAYS_CACHE = {}      # (cg_locus, cgl_locus) -> parsed dict
 PATHWAY_REGULATION_CACHE = {}
 KEGG_CACHE_LOADED = False
 KEGG_CACHE_HIT = False
-KEGG_CACHE_DIR = os.path.join("data", "reference", "kegg_cache")
-KEGG_CACHE_FILE = os.path.join(KEGG_CACHE_DIR, "kegg_cgl_cgb.json")
-METABOLIC_MODEL_DIR = os.path.join("data", "reference", "metabolic_models")
+KEGG_CACHE_DIR = get_absolute_path(os.path.join("data", "reference", "kegg_cache"))
+KEGG_CACHE_FILE = get_absolute_path(os.path.join("data", "reference", "kegg_cache", "kegg_cgl_cgb.json"))
+METABOLIC_MODEL_DIR = get_absolute_path(os.path.join("data", "reference", "metabolic_models"))
 METABOLIC_MODEL_CACHE = None
 
 def load_kegg_cache():
@@ -158,9 +167,10 @@ def load_gene_mappings():
     global CG_TO_CGL, CGL_TO_CG, GENE_NAMES, NAME_TO_CG
     if CG_TO_CGL:
         return
-    if os.path.exists('data/reference/gene_mapping.csv'):
+    path = get_absolute_path('data/reference/gene_mapping.csv')
+    if os.path.exists(path):
         try:
-            with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     cg = row.get('cg_locus', '').strip()
@@ -289,10 +299,10 @@ def handle_regulon_enrichment(tf):
     if tf_lower in CGL_TO_CG:
         resolved_cg = CGL_TO_CG[tf_lower]
         
-    targets = []
-    if os.path.exists('data/reference/regulations.csv'):
+    path = get_absolute_path('data/reference/regulations.csv')
+    if os.path.exists(path):
         try:
-            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     tf_row = row.get('TF_locusTag', '').strip().lower()
@@ -484,9 +494,9 @@ def reaction_equation_from_metabolites(metabolites):
 
 def find_ecgl1_root():
     candidates = [
-        os.path.join("data", "reference", "model", "ecCGL1-main", "ecCGL1-main"),
-        os.path.join("data", "reference", "model", "ecCGL1-main"),
-        os.path.join("data", "reference", "model", "ecCGL1"),
+        get_absolute_path(os.path.join("data", "reference", "model", "ecCGL1-main", "ecCGL1-main")),
+        get_absolute_path(os.path.join("data", "reference", "model", "ecCGL1-main")),
+        get_absolute_path(os.path.join("data", "reference", "model", "ecCGL1")),
     ]
     for candidate in candidates:
         if os.path.isdir(candidate):
@@ -859,7 +869,7 @@ def load_metabolic_model_mappings():
         except Exception as e:
             warnings.append(f"{os.path.basename(path)}: {e}")
 
-    model_dirs = [METABOLIC_MODEL_DIR, os.path.join("data", "reference", "model")]
+    model_dirs = [METABOLIC_MODEL_DIR, get_absolute_path(os.path.join("data", "reference", "model"))]
     model_files = []
     for model_dir in model_dirs:
         if not os.path.isdir(model_dir):
@@ -930,10 +940,11 @@ def get_regulatory_targets_for_tf(query):
     resolved = normalize_gene_locus(q)
     targets = {}
     is_tf = False
-    if not os.path.exists("data/reference/regulations.csv"):
+    path = get_absolute_path("data/reference/regulations.csv")
+    if not os.path.exists(path):
         return is_tf, []
     try:
-        with open("data/reference/regulations.csv", "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 tf_locus = (row.get("TF_locusTag") or "").strip()
@@ -1307,9 +1318,10 @@ def handle_pathway_regulation(query):
     tf_stats = {}
     regulated_pathway_genes = set()
     edge_examples = []
-    if os.path.exists('data/reference/regulations.csv') and canonical_pathway_genes:
+    path = get_absolute_path('data/reference/regulations.csv')
+    if os.path.exists(path) and canonical_pathway_genes:
         try:
-            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     target = normalize_gene_locus(row.get('TG_locusTag'))
@@ -1908,7 +1920,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             
             try:
                 organisms = []
-                folder = os.path.join(os.getcwd(), 'data', 'reference', 'AllOrganismsFiles')
+                folder = get_absolute_path(os.path.join('data', 'reference', 'AllOrganismsFiles'))
                 if os.path.exists(folder):
                     for filename in os.listdir(folder):
                         if filename.endswith('_regulations.csv'):
@@ -1955,7 +1967,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             try:
-                with open('data/reference/rna_seq_analysis_results.json', 'r', encoding='utf-8') as f:
+                path = get_absolute_path('data/reference/rna_seq_analysis_results.json')
+                with open(path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 
                 path_name = urllib.parse.urlparse(self.path).path
@@ -1988,18 +2001,18 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # Route requests starting with /data/ to local data/reference/ folder
         if path_str.startswith('/data/'):
             relative_path = path_str[6:] # strip '/data/'
-            return os.path.join(os.getcwd(), 'data', 'reference', relative_path)
+            return get_absolute_path(os.path.join('data', 'reference', relative_path))
             
         # Route requests starting with /outputs/ to local analysis/outputs/ folder
         if path_str.startswith('/outputs/'):
             relative_path = path_str[9:] # strip '/outputs/'
-            return os.path.join(os.getcwd(), 'analysis', 'outputs', relative_path)
+            return get_absolute_path(os.path.join('analysis', 'outputs', relative_path))
             
         # Route other requests to local web/ folder
         relative_path = path_str.lstrip('/')
         if not relative_path:
             relative_path = 'index.html'
-        return os.path.join(os.getcwd(), 'web', relative_path)
+        return get_absolute_path(os.path.join('web', relative_path))
 
     def call_llm_api(self, prompt, provider, api_key, model_name, base_url, is_json=False):
         if not api_key and provider != 'ollama':
