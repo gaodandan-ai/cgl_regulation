@@ -326,7 +326,7 @@
         state.activeSubtab = tabName;
         
         // Toggle tab active class
-        const subtabBtns = ['grn', 'dynamic', 'causal', 'enrich', 'time', 'rewire', 'metab', 'ecfba', 'figures'];
+        const subtabBtns = ['grn', 'dynamic', 'causal', 'enrich', 'time', 'rewire', 'metab', 'ecfba', 'mfa', 'figures'];
         subtabBtns.forEach(t => {
             const btn = document.getElementById(`btn-subtab-${t}`);
             const content = document.getElementById(`subtab-content-${t}`);

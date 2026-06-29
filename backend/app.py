@@ -300,6 +300,11 @@ def ecfba_simulation(req: ECFBARequest):
             req.temperature,
             req.calibrateTimepoint
         )
+        if isinstance(result, dict):
+            if "pool_limit" in result and "poolLimit" not in result:
+                result["poolLimit"] = result["pool_limit"]
+            if "pool_usage" in result and "poolUsage" not in result:
+                result["poolUsage"] = result["pool_usage"]
         return result
     except Exception as e:
         logger.error(f"ec-FBA simulation failed: {str(e)}")
@@ -439,6 +444,37 @@ def predict_motif(tf: str = ""):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/predict_binding_affinity")
+def predict_binding_affinity(tf: str = "", sequence: str = "", temperature: float = 30.0):
+    if not tf or not sequence:
+        raise HTTPException(status_code=400, detail="Missing tf or sequence parameter")
+    try:
+        handler_instance = run_server.CustomHTTPRequestHandler.__new__(run_server.CustomHTTPRequestHandler)
+        motif_res = handler_instance.perform_motif_prediction(tf)
+        if "error" in motif_res:
+            raise HTTPException(status_code=400, detail=motif_res["error"])
+        
+        pwm = motif_res.get("pwm")
+        if not pwm:
+            raise HTTPException(status_code=400, detail="Could not resolve PWM motif matrix for the TF")
+            
+        from backend.thermodynamics import scan_sequence_for_affinity
+        affinity_res = scan_sequence_for_affinity(pwm, sequence, temperature)
+        if "error" in affinity_res:
+            raise HTTPException(status_code=400, detail=affinity_res["error"])
+            
+        return {
+            "tf": tf,
+            "tf_name": motif_res.get("tf_name", tf),
+            "consensus": motif_res.get("consensus", ""),
+            "targets_count": motif_res.get("targets_count", 0),
+            **affinity_res
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/kegg_pathways")
 def kegg_pathways(cg: str = "", cgl: str = ""):
     try:
@@ -555,9 +591,21 @@ async def mfa_comparison_endpoint():
     """
     try:
         import run_server
-        model_path = run_server.get_model_json_path()
+        model_path = None
+        try:
+            model_path = run_server.get_model_json_path()
+        except AttributeError:
+            pass
+            
         if not model_path:
-            raise HTTPException(status_code=503, detail="No model loaded.")
+            root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            model_path = os.path.join(root_dir, "data", "reference", "model", "ecCGL1-main", "ecCGL1-main", "model", "iCW773_irr_enz_constraint.json")
+            if not os.path.exists(model_path):
+                model_path = os.path.join(root_dir, "data", "reference", "model", "ecCGL1", "model", "iCW773_irr_enz_constraint.json")
+
+        if not model_path or not os.path.exists(model_path):
+            raise HTTPException(status_code=503, detail=f"No model found at path: {model_path}")
+            
         result = run_mfa_comparison(model_path)
         return result
     except HTTPException:

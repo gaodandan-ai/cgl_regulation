@@ -134,6 +134,10 @@
                 <i class="fa-solid fa-flask"></i>
                 <span>Glutamate Scenario</span>
             </button>
+            <button class="workflow-entry" id="workflow-entry-rna-seq" data-workflow="rna-seq">
+                <i class="fa-solid fa-temperature-high"></i>
+                <span>High-temp GRN &amp; ecFBA</span>
+            </button>
             <!-- doc separator -->
             <div class="nav-doc-separator" aria-hidden="true"></div>
             <button class="workflow-entry workflow-entry-doc" id="workflow-entry-examples" data-workflow="examples">
@@ -683,12 +687,12 @@
                                 </ul>
                             </div>
                             <div class="about-card limitations-card">
-                                <h4><i class="fa-solid fa-circle-exclamation"></i> Current Limitations</h4>
+                                <h4><i class="fa-solid fa-circle-exclamation"></i> Current Limitations & Capabilities</h4>
                                 <ul>
-                                    <li><strong>ML Scores:</strong> Edge confidence metrics are prioritization markers, not biophysical probabilities.</li>
-                                    <li><strong>Mapping-only:</strong> Metabolic impact analysis is based on static structural mapping, not dynamic Flux Balance Analysis (FBA) calculations.</li>
-                                    <li><strong>Enzyme annotations:</strong> ecCGL1 parameters are annotated for pathway context; no active enzyme-constrained simulations are run in v0.1.</li>
-                                    <li><strong>Validation:</strong> All engineering prioritizations are hypothesis-generating; experimental wet-lab validation is required before drawing biological conclusions.</li>
+                                    <li><strong>Biophysical Affinity:</strong> Support thermodynamic binding constants (binding free energy ΔG and dissociation constant Kd) in motif scan.</li>
+                                    <li><strong>Active Simulations:</strong> Full support for Flux Balance Analysis (FBA), Flux Variability Analysis (FVA), and dynamic rFBA.</li>
+                                    <li><strong>ecFBA Simulations:</strong> Supports active enzyme-constrained simulations with temperature scaling of kcat and macromolecular pool limit constraints.</li>
+                                    <li><strong>Validation:</strong> All prioritizations are hypothesis-generating; experimental wet-lab validation is required before drawing biological conclusions.</li>
                                 </ul>
                             </div>
                         </div>
@@ -1052,11 +1056,11 @@
                                     <p class="citation-muted">Zenodo DOI: <code style="font-family: monospace; font-size: 11px; background: rgba(99, 102, 241, 0.08); padding: 2px 6px; border-radius: 4px; color: var(--color-primary-accent);">10.5281/zenodo.placeholder</code></p>
                                 </div>
                                 <div class="release-column">
-                                    <h4><i class="fa-solid fa-circle-exclamation"></i> Current Limitations</h4>
+                                    <h4><i class="fa-solid fa-circle-exclamation"></i> Current Limitations & Capabilities</h4>
                                     <ul class="release-limitations-list">
-                                        <li><strong>ML Scores:</strong> Edge confidence metrics are prioritization markers, not biophysical probabilities.</li>
-                                        <li><strong>Mapping-only:</strong> Metabolic impact analysis is based on static structural mapping, not dynamic Flux Balance Analysis (FBA) calculations.</li>
-                                        <li><strong>Enzyme annotations:</strong> ecCGL1 parameters are annotated for pathway context; no active enzyme-constrained simulations are run in v0.1.1.</li>
+                                        <li><strong>Biophysical Affinity:</strong> Support thermodynamic binding constants (binding free energy ΔG and dissociation constant Kd) in motif scan.</li>
+                                        <li><strong>Active Simulations:</strong> Full support for Flux Balance Analysis (FBA), Flux Variability Analysis (FVA), and dynamic rFBA.</li>
+                                        <li><strong>ecFBA Simulations:</strong> Supports active enzyme-constrained simulations with temperature scaling of kcat and macromolecular pool limit constraints.</li>
                                         <li><strong>Validation:</strong> All engineering prioritizations are hypothesis-generating; experimental wet-lab validation is required before drawing biological conclusions.</li>
                                     </ul>
                                 </div>
@@ -1270,6 +1274,425 @@
                             </div>
                             
                             <div id="glutamate-scenario-error-box" class="hidden" style="font-size: 11px; color: #d32f2f; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px; padding: 10px; margin-top: 12px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- High-temp RNA-seq & GRN Analysis Overlay -->
+                <div id="rna-seq-overlay" class="release-notes-container hidden" style="display: flex; flex-direction: column; gap: 16px; overflow: hidden; padding: 20px;">
+                    <!-- Dashboard Header -->
+                    <div class="dashboard-header" style="flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 0;">
+                        <div class="dashboard-title-area">
+                            <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-temperature-high" style="color: #7c3aed;"></i> High-temp RNA-seq &amp; GRN Analysis
+                            </h2>
+                            <p class="dashboard-subtitle" style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-muted);">
+                                Dynamic simulation, causal regulatory mapping, and active enzyme-constrained FBA (ecFBA) under heat stress.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Split Layout Main Container -->
+                    <div style="display: flex; gap: 16px; flex: 1; min-height: 0; overflow: hidden;">
+                        <!-- Left Panel: Controls -->
+                        <div style="flex: 0 0 300px; display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto;">
+                            <!-- Subtab Navigation Menu -->
+                            <div class="release-card" style="padding: 8px; margin: 0; border-radius: 8px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); padding: 4px 8px; letter-spacing: 0.5px;">Workflows / Analysis</span>
+                                <button class="workflow-entry active" id="btn-subtab-grn" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-network-wired" style="color: #7c3aed; width: 14px;"></i> Inferred GRN Topology
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-dynamic" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-chart-line" style="color: #3b82f6; width: 14px;"></i> Dynamic rFBA Simulation
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-ecfba" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-flask" style="color: #10b981; width: 14px;"></i> Enzyme-Constrained FBA
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-mfa" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-chart-area" style="color: #fca5a5; width: 14px;"></i> 13C MFA Comparison
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-causal" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-arrow-right-arrow-left" style="color: #f59e0b; width: 14px;"></i> Causal Regulatory Inference
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-enrich" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-fingerprint" style="color: #ec4899; width: 14px;"></i> Motif Enrichment Analysis
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-time" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-timeline" style="color: #6366f1; width: 14px;"></i> Transcriptional Kinetics
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-rewire" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-code-fork" style="color: #8b5cf6; width: 14px;"></i> Regulatory Rewiring
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-metab" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-diagram-project" style="color: #06b6d4; width: 14px;"></i> Metabolic Target Mapping
+                                </button>
+                                <button class="workflow-entry" id="btn-subtab-figures" style="height: 28px; padding: 0 10px; font-size: 11px; justify-content: flex-start; text-align: left; border: none; background: none; display: flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; color: var(--text-secondary); width: 100%;">
+                                    <i class="fa-solid fa-download" style="color: #64748b; width: 14px;"></i> Figures &amp; Downloads
+                                </button>
+                            </div>
+
+                            <!-- Contextual Controls Card (changes based on active tab) -->
+                            <div class="release-card" style="padding: 16px; margin: 0; border-radius: 8px; flex: 1 1 auto; display: flex; flex-direction: column; gap: 12px; font-size: 11px;">
+                                <h4 style="margin: 0; font-size: 12px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 6px; font-weight: 600;">Control Panel</h4>
+                                
+                                <!-- 1. GRN Subtab Controls -->
+                                <div id="ctrl-subtab-grn" class="subtab-ctrls" style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 4px;">Timepoint:</label>
+                                        <select id="rnaseq-time-select" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; background: #fff; cursor: pointer; font-size: 10.5px;">
+                                            <option value="1h">1h (Peak Activation)</option>
+                                            <option value="4h">4h (Partial Adaptation)</option>
+                                            <option value="24h">24h (Baseline Reset)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px;">
+                                            <span>Correlation Threshold:</span>
+                                            <span id="rnaseq-corr-val" style="color: #7c3aed;">0.60</span>
+                                        </div>
+                                        <input type="range" id="rnaseq-corr-threshold" min="0.40" max="0.95" value="0.60" step="0.05" style="width: 100%;">
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 4px;">
+                                            <span>Random Forest Imp:</span>
+                                            <span id="rnaseq-rf-val" style="color: #7c3aed;">0.020</span>
+                                        </div>
+                                        <input type="range" id="rnaseq-rf-threshold" min="0.005" max="0.100" value="0.020" step="0.005" style="width: 100%;">
+                                    </div>
+                                    <div style="border-top: 1px dashed var(--border-color); padding-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
+                                        <button id="btn-rnaseq-fit-float" class="secondary-btn" style="flex: 1; height: 24px; padding: 0; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Fit layout"><i class="fa-solid fa-expand"></i> Fit</button>
+                                        <button id="btn-rnaseq-layout-float" class="secondary-btn" style="flex: 1; height: 24px; padding: 0; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Re-run Layout"><i class="fa-solid fa-rotate"></i> Re-layout</button>
+                                        <button id="btn-rnaseq-zoom-in" class="secondary-btn" style="width: 24px; height: 24px; padding: 0; font-size: 10px;"><i class="fa-solid fa-plus"></i></button>
+                                        <button id="btn-rnaseq-zoom-out" class="secondary-btn" style="width: 24px; height: 24px; padding: 0; font-size: 10px;"><i class="fa-solid fa-minus"></i></button>
+                                        <button id="btn-rnaseq-export" class="secondary-btn" style="width: 24px; height: 24px; padding: 0; font-size: 10px;" title="Export PNG"><i class="fa-solid fa-download"></i></button>
+                                    </div>
+                                </div>
+
+                                <!-- 2. Dynamic rFBA Subtab Controls -->
+                                <div id="ctrl-subtab-dynamic" class="subtab-ctrls" style="display: none; flex-direction: column; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 4px;">Target Gene to Track:</label>
+                                        <select id="rnaseq-dynamic-gene-select" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; background: #fff; cursor: pointer; font-size: 10.5px;"></select>
+                                    </div>
+                                    <div style="border-top: 1px dashed var(--border-color); padding-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                                        <span style="font-weight: 600; text-transform: uppercase; font-size: 9px; color: var(--text-muted);">TF Perturbation</span>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 3px;">TF Regulator:</label>
+                                            <select id="rfba-tf-select" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; background: #fff; font-size: 10.5px;">
+                                                <option value="sigH">sigH (Alternative Sigma Factor)</option>
+                                                <option value="sigB">sigB (Stress Response)</option>
+                                                <option value="glxR">glxR (Global Regulator)</option>
+                                                <option value="sugR">sugR (Carbon Regulator)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 3px;">Action:</label>
+                                            <select id="rfba-mode-select" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; background: #fff; font-size: 10.5px;">
+                                                <option value="knockout">Knockout (TF KO)</option>
+                                                <option value="overexpress">Overexpress (2.5x)</option>
+                                                <option value="normal">Wild-type (Control)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 3px;">Glucose (mM):</label>
+                                            <input type="number" id="rfba-glucose-input" value="100.0" step="10" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px; box-sizing: border-box; font-size: 10.5px;">
+                                        </div>
+                                        <div>
+                                            <label style="display: block; margin-bottom: 3px;">Biomass (gDW/L):</label>
+                                            <input type="number" id="rfba-biomass-input" value="0.1" step="0.05" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px; box-sizing: border-box; font-size: 10.5px;">
+                                        </div>
+                                        <button id="rfba-run-btn" class="secondary-btn" style="width: 100%; height: 28px; background: var(--color-primary-accent); color: white; border: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 4px; cursor: pointer; margin-top: 4px;">
+                                            <i class="fa-solid fa-play"></i> Run Dynamic rFBA
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 3. ecFBA Subtab Controls -->
+                                <div id="ctrl-subtab-ecfba" class="subtab-ctrls" style="display: none; flex-direction: column; gap: 10px;">
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 3px;">
+                                            <span>Protein Pool Limit:</span>
+                                            <span id="ecfba-pool-val" style="color: #10b981; font-family: monospace;">0.129 g/g</span>
+                                        </div>
+                                        <input type="range" id="ecfba-pool-slider" min="0.05" max="0.30" value="0.129" step="0.005" style="width: 100%;">
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 3px;">
+                                            <span>GDH Expression:</span>
+                                            <span id="ecfba-gdh-val" style="color: #10b981; font-family: monospace;">1.00x</span>
+                                        </div>
+                                        <input type="range" id="ecfba-gdh-slider" min="0.0" max="10.0" value="1.0" step="0.5" style="width: 100%;">
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 3px;">
+                                            <span>LysC Expression:</span>
+                                            <span id="ecfba-lysc-val" style="color: #10b981; font-family: monospace;">1.00x</span>
+                                        </div>
+                                        <input type="range" id="ecfba-lysc-slider" min="0.0" max="10.0" value="1.0" step="0.5" style="width: 100%;">
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 3px;">
+                                            <span>Temperature:</span>
+                                            <span id="ecfba-temp-val" style="color: #10b981; font-family: monospace;">30.0 °C</span>
+                                        </div>
+                                        <input type="range" id="ecfba-temp-slider" min="30.0" max="45.0" value="30.0" step="1.0" style="width: 100%;">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 3px;">Expression Calibration:</label>
+                                        <select id="ecfba-calibration-select" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; background: #fff; font-size: 10.5px;">
+                                            <option value="none">None (Manual Sliders)</option>
+                                            <option value="1h">1h Heat Shock Calibration</option>
+                                            <option value="4h">4h Heat Shock Calibration</option>
+                                            <option value="24h">24h Heat Shock Calibration</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 3px;">Target Objective / Product:</label>
+                                        <select id="ecfba-product-select" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; background: #fff; font-size: 10.5px;">
+                                            <option value="growth">Growth (Biomass Yield)</option>
+                                            <option value="glutamate">Glutamate Secretion</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- 4. MFA Subtab Controls -->
+                                <div id="ctrl-subtab-mfa" class="subtab-ctrls" style="display: none; flex-direction: column; gap: 10px;">
+                                    <p style="color: var(--text-secondary); margin: 0; line-height: 1.4;">
+                                        Compare steady-state simulated FBA fluxes against experimental $^{13}\text{C}$ Metabolic Flux Analysis (MFA) values.
+                                    </p>
+                                    <button id="btn-run-mfa-comparison" class="secondary-btn" style="width: 100%; height: 28px; background: var(--color-primary-accent); color: white; border: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 4px; cursor: pointer; margin-top: 4px;">
+                                        <i class="fa-solid fa-rotate-right"></i> Run MFA Comparison
+                                    </button>
+                                </div>
+
+                                <!-- 5. Motif Enrichment Controls -->
+                                <div id="ctrl-subtab-enrich" class="subtab-ctrls" style="display: none; flex-direction: column; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 4px;">Stress Timepoint:</label>
+                                        <select id="rnaseq-enrich-time-select" style="width: 100%; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; background: #fff; font-size: 10.5px;">
+                                            <option value="1h">1h (Peak Shock)</option>
+                                            <option value="4h">4h (Mid Shock)</option>
+                                            <option value="24h">24h (Late Shock)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Vis & Tables -->
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; overflow: hidden; position: relative;">
+                            
+                            <!-- Visual Workspace: Cytoscape network div or Canvas/Charts -->
+                            <div style="flex: 1.2; display: flex; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; min-height: 250px; overflow: hidden; position: relative;">
+                                <!-- Cytoscape Container (visible for network tabs) -->
+                                <div id="rna-seq-cy" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 1;"></div>
+                                
+                                <!-- Floating Tooltip inside Cy Container -->
+                                <div id="rnaseq-canvas-tooltip" class="rnaseq-canvas-tooltip hidden" style="position: absolute; z-index: 5; pointer-events: none;"></div>
+
+                                <!-- Node inspection side panel overlay inside canvas -->
+                                <div id="rnaseq-inspection-panel" class="hidden" style="position: absolute; top: 10px; right: 10px; width: 180px; max-height: 90%; z-index: 10; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 8px; font-size: 10px; overflow-y: auto;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">
+                                        <span id="rnaseq-inspect-title" style="font-weight:700; color:var(--text-primary);">Node Details</span>
+                                        <button id="btn-rnaseq-inspect-close" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                    <div id="rnaseq-inspect-content" style="color:var(--text-secondary); line-height:1.45; display:flex; flex-direction:column; gap:6px;"></div>
+                                </div>
+
+                                <!-- ecFBA Simulation Output View -->
+                                <div id="view-ecfba-dashboard" class="hidden" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2; background:#f8fafc; padding:20px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:20px;">
+                                    <div style="text-align:center;">
+                                        <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Simulated Target Yield / Rate</span>
+                                        <div id="ecfba-flux-display" style="font-size:32px; font-weight:800; color:var(--color-primary-accent); font-family:var(--font-mono); margin-top:4px;">0.0000 h-1</div>
+                                    </div>
+                                    <div style="width:100%; max-width:400px; background:#ffffff; border:1px solid var(--border-color); border-radius:10px; padding:16px; box-shadow:0 4px 10px rgba(0,0,0,0.02); box-sizing:border-box;">
+                                        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">
+                                            <span>Enzyme Pool Utilization:</span>
+                                            <span id="ecfba-usage-percent" style="color:var(--color-primary-accent);">0%</span>
+                                        </div>
+                                        <div style="width:100%; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-bottom:10px;">
+                                            <div id="ecfba-usage-progress" style="width:0%; height:100%; background:var(--color-primary-accent); transition: width 0.3s ease;"></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted);">
+                                            <span>Pool usage: <strong id="ecfba-usage-abs" style="font-family:monospace; color:var(--text-secondary);">0.0000</strong> g/g</span>
+                                            <span>Limit: <strong id="ecfba-limit-abs" style="font-family:monospace; color:var(--text-secondary);">0.129</strong> g/g</span>
+                                        </div>
+                                    </div>
+                                    <div id="ecfba-warning-box" class="alert-box warning-alert" style="display:none; max-width:400px; font-size:10px; padding:8px 12px; border-radius:6px; background:#fffbeb; border:1px solid #fef3c7; color:#b45309; line-height:1.4;"></div>
+                                </div>
+
+                                <!-- MFA Comparison Output View -->
+                                <div id="view-mfa-dashboard" class="hidden" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2; background:#ffffff; padding:15px; box-sizing:border-box; display:flex; gap:15px; overflow:hidden;">
+                                    <div style="flex: 1.2; position: relative;">
+                                        <canvas id="mfa-scatter-canvas" style="width:100%; height:100%;"></canvas>
+                                    </div>
+                                    <div style="flex: 0.8; display:flex; flex-direction:column; gap:12px; background:#f8fafc; border-radius:8px; padding:15px; border:1px solid var(--border-color); overflow-y:auto; box-sizing:border-box;">
+                                        <h4 style="margin:0; font-size:12px; font-weight:700; border-bottom:1px solid var(--border-color); padding-bottom:6px;">Validation Statistics</h4>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                                            <div style="background:#ffffff; border:1px solid var(--border-color); padding:8px; border-radius:6px; text-align:center;">
+                                                <span style="font-size:9px; color:var(--text-muted); display:block;">Pearson R</span>
+                                                <strong id="mfa-pearson-val" style="font-size:16px; font-family:monospace; color:var(--color-primary-accent);">0.00</strong>
+                                            </div>
+                                            <div style="background:#ffffff; border:1px solid var(--border-color); padding:8px; border-radius:6px; text-align:center;">
+                                                <span style="font-size:9px; color:var(--text-muted); display:block;">RMSE</span>
+                                                <strong id="mfa-rmse-val" style="font-size:16px; font-family:monospace; color:var(--text-secondary);">0.00</strong>
+                                            </div>
+                                        </div>
+                                        <div style="background:#ffffff; border:1px solid var(--border-color); padding:8px; border-radius:6px; text-align:center;">
+                                            <span style="font-size:9px; color:var(--text-muted); display:block;">Mean Deviation</span>
+                                            <strong id="mfa-meandev-val" style="font-size:16px; font-family:monospace; color:var(--text-secondary);">0.0%</strong>
+                                        </div>
+                                        <div id="mfa-warning-box" style="display:none; font-size:9px; color:#b45309; background:#fffbeb; padding:6px; border-radius:4px; border:1px solid #fef3c7;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detail Data Tables / Dynamic Charts (visible for corresponding subtabs) -->
+                            <div style="flex: 0.8; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 120px;">
+                                <div style="flex: 0 0 auto; background: #f8fafc; border-bottom: 1px solid var(--border-color); padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary);">Detail Log &amp; Tables</span>
+                                    <div id="rnaseq-findings-text" style="font-size: 9.5px; color: var(--text-muted); font-weight: 500;">Please click a tab to load data...</div>
+                                </div>
+                                <div style="flex: 1; overflow-y: auto; padding: 8px; box-sizing: border-box;">
+                                    
+                                    <!-- Dynamic rFBA Chart Panel -->
+                                    <div id="subtab-content-dynamic" class="hidden" style="width: 100%; height: 100%; display: flex; gap:12px;">
+                                        <div style="flex: 1.5; position: relative; height: 100%;">
+                                            <canvas id="rnaseq-dynamic-chart" style="width: 100%; height: 100%;"></canvas>
+                                        </div>
+                                        <div style="flex: 0.8; font-size: 10px; line-height: 1.4; color: var(--text-secondary); background: #f8fafc; padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; overflow-y:auto; border:1px solid var(--border-color); box-sizing:border-box;">
+                                            <strong>rFBA Simulation Metrics:</strong>
+                                            <div>Dynamic DEGs: <span id="rnaseq-dynamic-deg" style="font-weight: 600; color:var(--color-primary-accent); font-family:monospace;">0</span></div>
+                                            <div style="font-weight: 600; margin-top:4px;">Upstream Regulators:</div>
+                                            <div id="rnaseq-dynamic-reg-list" style="display:flex; flex-direction:column; gap:2px;"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Inferred GRN Table Panel -->
+                                    <div id="subtab-content-grn" style="width: 100%;">
+                                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: left;">
+                                            <thead style="background: #f8fafc; position: sticky; top:0; z-index: 1;">
+                                                <tr style="border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-secondary);">
+                                                    <th style="padding: 4px 6px;">Regulator (TF)</th>
+                                                    <th style="padding: 4px 6px;">Target Gene (TG)</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">Pearson Corr</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">RF Importance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rnaseq-grn-table-body"></tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Causal Inference Table Panel -->
+                                    <div id="subtab-content-causal" class="hidden" style="width: 100%;">
+                                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: left;">
+                                            <thead style="background: #f8fafc; position: sticky; top:0; z-index: 1;">
+                                                <tr style="border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-secondary);">
+                                                    <th style="padding: 4px 6px;">Source (TF)</th>
+                                                    <th style="padding: 4px 6px;">Target (TG)</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">Causal Score</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">Lag (h)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rnaseq-causal-table-body"></tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Motif Enrichment Table Panel -->
+                                    <div id="subtab-content-enrich" class="hidden" style="display: flex; gap:12px; height:100%; width: 100%;">
+                                        <div style="flex: 1.2; overflow-y: auto;">
+                                            <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: left;">
+                                                <thead style="background: #f8fafc; position: sticky; top:0;">
+                                                    <tr style="border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-secondary);">
+                                                        <th style="padding: 4px 6px;">Enriched TF</th>
+                                                        <th style="padding: 4px 6px; text-align: right;">p-value</th>
+                                                        <th style="padding: 4px 6px; text-align: right;">Targets Count</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="rnaseq-enrich-table-body"></tbody>
+                                            </table>
+                                        </div>
+                                        <div id="rnaseq-enrich-logo-box" class="hidden" style="flex: 0.8; display:flex; flex-direction:column; gap:4px; align-items:center; background:#f8fafc; border:1px solid var(--border-color); border-radius:6px; padding:6px; box-sizing:border-box;">
+                                            <span style="font-size: 9px; font-weight:600; color:var(--text-secondary); text-transform:uppercase;" id="rnaseq-enrich-logo-tf">Motif Logo</span>
+                                            <canvas id="rnaseq-enrich-logo-canvas" width="160" height="50" style="display:block; width:100%; height:45px; background:white; border:1px solid var(--border-color); border-radius:4px;"></canvas>
+                                        </div>
+                                    </div>
+
+                                    <!-- Transcriptional Kinetics Table Panel -->
+                                    <div id="subtab-content-time" class="hidden" style="width: 100%;">
+                                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: left;">
+                                            <thead style="background: #f8fafc; position: sticky; top:0; z-index: 1;">
+                                                <tr style="border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-secondary);">
+                                                    <th style="padding: 4px 6px;">Gene Locus</th>
+                                                    <th style="padding: 4px 6px;">Kinetics Pattern</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rnaseq-time-table-body"></tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Regulatory Rewiring Table Panel -->
+                                    <div id="subtab-content-rewire" class="hidden" style="width: 100%;">
+                                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: left;">
+                                            <thead style="background: #f8fafc; position: sticky; top:0; z-index: 1;">
+                                                <tr style="border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-secondary);">
+                                                    <th style="padding: 4px 6px;">Regulator</th>
+                                                    <th style="padding: 4px 6px; target">Target</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">Rewiring Type</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">Score Diff</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rnaseq-rewire-table-body"></tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Metabolic Target Mapping Panel -->
+                                    <div id="subtab-content-metab" class="hidden" style="display: flex; gap:12px; height:100%; width: 100%;">
+                                        <div style="flex: 1.2; overflow-y: auto;">
+                                            <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: left;">
+                                                <thead style="background: #f8fafc; position: sticky; top:0;">
+                                                    <tr style="border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-secondary);">
+                                                        <th style="padding: 4px 6px;">Pathway / System</th>
+                                                        <th style="padding: 4px 6px; text-align: right;">Target Genes</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="rnaseq-metab-table-body"></tbody>
+                                            </table>
+                                        </div>
+                                        <div style="flex: 0.8; position: relative; height: 100%;">
+                                            <canvas id="rnaseq-metab-chart" style="width: 100%; height: 100%;"></canvas>
+                                        </div>
+                                    </div>
+
+                                    <!-- MFA Comparison Details Table Panel -->
+                                    <div id="subtab-content-mfa" class="hidden" style="width: 100%;">
+                                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: left;">
+                                            <thead style="background: #f8fafc; position: sticky; top:0; z-index: 1;">
+                                                <tr style="border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-secondary);">
+                                                    <th style="padding: 4px 6px;">Reaction ID</th>
+                                                    <th style="padding: 4px 6px;">Pathway</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">13C MFA Flux</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">Simulated Flux</th>
+                                                    <th style="padding: 4px 6px; text-align: right;">Deviation</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="mfa-comparison-tbody"></tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Figures & Downloads Panel -->
+                                    <div id="subtab-content-figures" class="hidden" style="font-size:11px; display:flex; flex-direction:column; gap:10px;">
+                                        <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
+                                            <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;"><i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> Heat Shock Adaptation Figures</div>
+                                            <p style="margin:0 0 8px 0; color:var(--text-secondary); line-height:1.4;">Download static pre-rendered PDF figures illustrating regulatory rewiring and time-series clustering at 40°C heat shock.</p>
+                                            <div style="display:flex; gap:8px;">
+                                                <a href="/data/reference/figures/Fig3_Dynamic_Rewiring.pdf" target="_blank" class="secondary-btn" style="text-decoration:none; padding:4px 10px; display:inline-flex; align-items:center; gap:4px; font-weight:600;"><i class="fa-solid fa-download"></i> Fig 3: Dynamic Rewiring</a>
+                                                <a href="/data/reference/figures/Fig5_ecFBA_Validation.pdf" target="_blank" class="secondary-btn" style="text-decoration:none; padding:4px 10px; display:inline-flex; align-items:center; gap:4px; font-weight:600;"><i class="fa-solid fa-download"></i> Fig 5: ecFBA Validation</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1641,6 +2064,20 @@
                             </table>
                         </div>
 
+                        <!-- Thermodynamic binding affinity summary -->
+                        <div id="scan-thermo-box" class="hidden" style="padding: 8px 10px; border: 1px dashed rgba(124, 58, 237, 0.3); border-radius: 6px; background: rgba(124, 58, 237, 0.02); font-size: 10px; line-height: 1.4; color: var(--text-secondary); margin-bottom: 12px;">
+                            <div style="font-weight: 700; color: #7c3aed; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                                <i class="fa-solid fa-fire-flame-curved"></i> Thermodynamic Binding Affinity
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                                <div>Best Binding ΔG: <strong id="thermo-dg-val" style="color: var(--text-primary); font-family: monospace;">-10.0 kcal/mol</strong></div>
+                                <div>Dissociation Const (K_d): <strong id="thermo-kd-val" style="color: var(--text-primary); font-family: monospace;">12.5 nM</strong></div>
+                            </div>
+                            <div style="margin-top: 4px; font-size: 9.5px; color: var(--text-muted);">
+                                Calculated via Shea-Ackers biophysical partition function on the promoter sequence.
+                            </div>
+                        </div>
+
                         <!-- Regulon enrichment -->
                         <div style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 14px; margin-bottom: 4px; display:flex; align-items:center; gap:5px;">
                             <i class="fa-solid fa-diagram-project" style="color: #7c3aed; font-size: 10px;"></i> Regulon Pathway Enrichment
@@ -1958,6 +2395,7 @@
     <script src="lib/modelObjectives.js?v=1.0"></script>
     <script src="lib/objectiveInterpretation.js?v=1.0"></script>
     <script src="lib/simulationClient.js?v=1.0"></script>
+    <script src="lib/heatStressGrn.js?v=1.0"></script>
 <script src="app.js?v=2.9"></script>
 </body>
 </html>

@@ -9281,6 +9281,7 @@ function customizeProteinStructureViewer(tfLocus) {
 
 let activeViewer = null;
 let currentTfPwm = null;
+let currentTfLocus = null;
 
 function renderReal3DStructure(pdbData) {
     const container = document.getElementById('protein-3d-viewer');
@@ -9588,6 +9589,7 @@ function initBindingSiteFeature() {
 }
 
 function loadMotifAndBindingSites(tfLocus) {
+    currentTfLocus = tfLocus;
     const logoCanvas = document.getElementById('right-motif-logo-canvas');
     const heatmapCanvas = document.getElementById('right-motif-heatmap-canvas');
     const proteinDomainResult = document.getElementById('right-protein-domain-result');
@@ -10336,6 +10338,46 @@ function scanSequenceForMotif(seq, pwm, threshold) {
     });
 
     box.classList.remove('hidden');
+
+    // 5. Fetch thermodynamic binding affinity from backend
+    const thermoBox = document.getElementById('scan-thermo-box');
+    const dgVal = document.getElementById('thermo-dg-val');
+    const kdVal = document.getElementById('thermo-kd-val');
+    
+    if (thermoBox && dgVal && kdVal) {
+        if (currentTfLocus) {
+            fetch(`/api/predict_binding_affinity?tf=${encodeURIComponent(currentTfLocus)}&sequence=${encodeURIComponent(cleanSeq)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Thermodynamics endpoint error");
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.delta_G !== undefined && data.Kd !== undefined) {
+                        dgVal.textContent = `${data.delta_G.toFixed(2)} kcal/mol`;
+                        let kdText = "";
+                        if (data.Kd < 1) {
+                            kdText = `${(data.Kd * 1000).toFixed(2)} pM`;
+                        } else if (data.Kd >= 1000000) {
+                            kdText = `${(data.Kd / 1000000).toFixed(2)} mM`;
+                        } else if (data.Kd >= 1000) {
+                            kdText = `${(data.Kd / 1000).toFixed(2)} μM`;
+                        } else {
+                            kdText = `${data.Kd.toFixed(2)} nM`;
+                        }
+                        kdVal.textContent = kdText;
+                        thermoBox.classList.remove('hidden');
+                    } else {
+                        thermoBox.classList.add('hidden');
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to fetch binding thermodynamics:", err);
+                    thermoBox.classList.add('hidden');
+                });
+        } else {
+            thermoBox.classList.add('hidden');
+        }
+    }
 }
 
 // C. Genomic Locus Map SVG Visualizer
