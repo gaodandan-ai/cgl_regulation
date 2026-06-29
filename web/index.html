@@ -699,6 +699,98 @@
                     </div>
                 </div>
 
+                <!-- KEGG-style Pathway Map Dashboard Overlay -->
+                <div id="pathway-kegg-overlay" class="quality-dashboard-container hidden" style="display: flex; flex-direction: column; gap: 16px; overflow: hidden; padding: 20px;">
+                    <style>
+                        #pathway-kegg-overlay {
+                            background: radial-gradient(circle at 50% 10%, #0b1329 0%, #030712 100%) !important;
+                            color: #f8fafc !important;
+                            border-left: 1px solid rgba(99, 102, 241, 0.15) !important;
+                        }
+                        #pathway-kegg-cy {
+                            width: 100%;
+                            height: 100%;
+                            background: #030712;
+                            border-radius: 8px;
+                            border: 1px solid rgba(255, 255, 255, 0.05);
+                        }
+                        #pathway-kegg-overlay .legend-bar {
+                            display: flex;
+                            gap: 16px;
+                            font-size: 10px;
+                            padding: 8px 12px;
+                            background: rgba(30, 41, 59, 0.4);
+                            border-radius: 6px;
+                            border: 1px solid rgba(255, 255, 255, 0.05);
+                            margin-top: 6px;
+                        }
+                        #pathway-kegg-overlay .legend-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                        }
+                        #pathway-kegg-overlay .legend-color {
+                            width: 12px;
+                            height: 12px;
+                            border-radius: 3px;
+                        }
+                        #pathway-kegg-detail-panel {
+                            width: 260px;
+                            background: rgba(30, 41, 59, 0.6) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                            border-radius: 8px;
+                            padding: 12px;
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+                            color: #f1f5f9;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 8px;
+                            font-size: 10.5px;
+                            overflow-y: auto;
+                        }
+                    </style>
+                    <div class="dashboard-header" style="flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; margin-bottom: 0;">
+                        <div class="dashboard-title-area">
+                            <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-diagram-project" style="color: #10b981;"></i> KEGG-style Metabolic Pathway Map
+                            </h2>
+                            <p class="dashboard-subtitle" id="pathway-kegg-subtitle" style="margin: 4px 0 0 0; font-size: 11px; color: #94a3b8;">
+                                Select a metabolic pathway in the left panel to display its metabolic reaction-compounds flow diagram.
+                            </p>
+                        </div>
+                        <div class="legend-bar" style="display: flex;">
+                            <div class="legend-item" style="margin-right: 12px;">
+                                <div class="legend-color" style="background: #34d399; border: 1px solid #059669;"></div>
+                                <span>Reaction / Enzyme (KEGG Green Box)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #38bdf8; border-radius: 50%; border: 1px solid #0284c7;"></div>
+                                <span>Metabolite / Compound (KEGG Circle)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Main splitscreen display -->
+                    <div style="display: flex; gap: 16px; flex: 1; min-height: 0; overflow: hidden; width: 100%;">
+                        <div style="flex: 1; height: 100%; position: relative; min-width: 0;">
+                            <div id="pathway-kegg-cy"></div>
+                            <!-- Loading indicator -->
+                            <div id="pathway-kegg-loading" class="hidden" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(3,7,18,0.7); display:flex; justify-content:center; align-items:center; z-index:10; border-radius:8px;">
+                                <div style="text-align:center; color:#ffffff;">
+                                    <i class="fa-solid fa-spinner fa-spin" style="font-size:24px; color:#10b981; margin-bottom:10px;"></i>
+                                    <div style="font-size:12px; font-weight:600;">Generating KEGG Metabolic Flow...</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="pathway-kegg-detail-panel" style="flex: 0 0 260px;">
+                            <h4 style="margin:0; font-size:12px; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px; color:#f1f5f9;">Selected Node Details</h4>
+                            <div id="pathway-kegg-detail-content" style="color:#cbd5e1; line-height:1.4; margin-top: 8px;">
+                                Click on any metabolite circle or reaction box in the diagram to inspect its metabolic equations or chemical identity.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Data & Model Quality Dashboard Overlay -->
                 <div id="quality-dashboard-overlay" class="quality-dashboard-container hidden">
                     <div class="dashboard-header">
@@ -1280,6 +1372,112 @@
 
                 <!-- High-temp RNA-seq & GRN Analysis Overlay -->
                 <div id="rna-seq-overlay" class="release-notes-container hidden" style="display: flex; flex-direction: column; gap: 16px; overflow: hidden; padding: 20px;">
+                    <style>
+                        #rna-seq-overlay {
+                            background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, #0f172a 100%) !important;
+                            color: #f8fafc !important;
+                            border-left: 1px solid rgba(99, 102, 241, 0.15) !important;
+                        }
+                        #rna-seq-overlay .dashboard-header {
+                            border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+                        }
+                        #rna-seq-overlay .dashboard-title-area h2 {
+                            background: linear-gradient(135deg, #c084fc, #6366f1) !important;
+                            -webkit-background-clip: text !important;
+                            -webkit-text-fill-color: transparent !important;
+                        }
+                        #rna-seq-overlay .dashboard-subtitle {
+                            color: #94a3b8 !important;
+                        }
+                        #rna-seq-overlay .release-card {
+                            background: rgba(30, 41, 59, 0.4) !important;
+                            backdrop-filter: blur(16px) !important;
+                            -webkit-backdrop-filter: blur(16px) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+                            color: #f1f5f9 !important;
+                        }
+                        #rna-seq-overlay .release-card h4 {
+                            color: #e2e8f0 !important;
+                            border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+                        }
+                        #rna-seq-overlay label, #rna-seq-overlay span {
+                            color: #cbd5e1 !important;
+                        }
+                        #rna-seq-overlay select, #rna-seq-overlay input[type="number"] {
+                            background: rgba(15, 23, 42, 0.7) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                            color: #f8fafc !important;
+                            border-radius: 4px;
+                        }
+                        #rna-seq-overlay select:focus, #rna-seq-overlay input[type="number"]:focus {
+                            border-color: #818cf8 !important;
+                            outline: none;
+                            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+                        }
+                        #rna-seq-overlay .workflow-entry {
+                            background: transparent !important;
+                            border: none !important;
+                            color: #94a3b8 !important;
+                            transition: all 0.2s ease !important;
+                        }
+                        #rna-seq-overlay .workflow-entry:hover {
+                            background: rgba(255, 255, 255, 0.05) !important;
+                            color: #f1f5f9 !important;
+                            transform: translateX(3px);
+                        }
+                        #rna-seq-overlay .workflow-entry.active {
+                            background: rgba(99, 102, 241, 0.2) !important;
+                            border-left: 3px solid #818cf8 !important;
+                            color: #ffffff !important;
+                            font-weight: 600;
+                        }
+                        #rna-seq-overlay .secondary-btn {
+                            background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+                            color: white !important;
+                            border: none !important;
+                            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3) !important;
+                            transition: all 0.25s ease !important;
+                        }
+                        #rna-seq-overlay .secondary-btn:hover {
+                            transform: translateY(-1px);
+                            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
+                            filter: brightness(1.1);
+                        }
+                        #rna-seq-overlay .secondary-btn:active {
+                            transform: translateY(1px);
+                        }
+                        #rna-seq-overlay table {
+                            color: #e2e8f0 !important;
+                        }
+                        #rna-seq-overlay thead tr {
+                            background: rgba(15, 23, 42, 0.4) !important;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+                        }
+                        #rna-seq-overlay th {
+                            color: #94a3b8 !important;
+                            font-weight: 600;
+                        }
+                        #rna-seq-overlay tbody tr {
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+                            transition: background 0.15s ease;
+                        }
+                        #rna-seq-overlay tbody tr:hover {
+                            background: rgba(255, 255, 255, 0.02) !important;
+                        }
+                        #view-ecfba-dashboard, #view-mfa-dashboard {
+                            background: rgba(15, 23, 42, 0.35) !important;
+                            backdrop-filter: blur(10px) !important;
+                        }
+                        #rna-seq-overlay input[type="range"] {
+                            accent-color: #818cf8 !important;
+                        }
+                        #ecfba-bottlenecks-box {
+                            background: rgba(30, 41, 59, 0.5) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                            color: #f1f5f9 !important;
+                        }
+                    </style>
                     <!-- Dashboard Header -->
                     <div class="dashboard-header" style="flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 0;">
                         <div class="dashboard-title-area">
@@ -1500,26 +1698,46 @@
                                 </div>
 
                                 <!-- ecFBA Simulation Output View -->
-                                <div id="view-ecfba-dashboard" class="hidden" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2; background:#f8fafc; padding:20px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:20px;">
-                                    <div style="text-align:center;">
-                                        <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Simulated Target Yield / Rate</span>
-                                        <div id="ecfba-flux-display" style="font-size:32px; font-weight:800; color:var(--color-primary-accent); font-family:var(--font-mono); margin-top:4px;">0.0000 h-1</div>
-                                    </div>
-                                    <div style="width:100%; max-width:400px; background:#ffffff; border:1px solid var(--border-color); border-radius:10px; padding:16px; box-shadow:0 4px 10px rgba(0,0,0,0.02); box-sizing:border-box;">
-                                        <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">
-                                            <span>Enzyme Pool Utilization:</span>
-                                            <span id="ecfba-usage-percent" style="color:var(--color-primary-accent);">0%</span>
-                                        </div>
-                                        <div style="width:100%; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-bottom:10px;">
-                                            <div id="ecfba-usage-progress" style="width:0%; height:100%; background:var(--color-primary-accent); transition: width 0.3s ease;"></div>
-                                        </div>
-                                        <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted);">
-                                            <span>Pool usage: <strong id="ecfba-usage-abs" style="font-family:monospace; color:var(--text-secondary);">0.0000</strong> g/g</span>
-                                            <span>Limit: <strong id="ecfba-limit-abs" style="font-family:monospace; color:var(--text-secondary);">0.129</strong> g/g</span>
-                                        </div>
-                                    </div>
-                                    <div id="ecfba-warning-box" class="alert-box warning-alert" style="display:none; max-width:400px; font-size:10px; padding:8px 12px; border-radius:6px; background:#fffbeb; border:1px solid #fef3c7; color:#b45309; line-height:1.4;"></div>
-                                </div>
+                                 <div id="view-ecfba-dashboard" class="hidden" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2; background:#f8fafc; padding:15px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:flex-start; align-items:center; gap:12px; overflow-y:auto;">
+                                     <div style="text-align:center; margin-top:5px;">
+                                         <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Simulated Target Yield / Rate</span>
+                                         <div id="ecfba-flux-display" style="font-size:30px; font-weight:800; color:var(--color-primary-accent); font-family:var(--font-mono); margin-top:2px;">0.0000 h-1</div>
+                                     </div>
+                                     <div style="width:100%; max-width:480px; background:#ffffff; border:1px solid var(--border-color); border-radius:10px; padding:12px; box-shadow:0 4px 10px rgba(0,0,0,0.02); box-sizing:border-box;">
+                                         <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:5px;">
+                                             <span>Enzyme Pool Utilization:</span>
+                                             <span id="ecfba-usage-percent" style="color:var(--color-primary-accent);">0%</span>
+                                         </div>
+                                         <div style="width:100%; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-bottom:8px;">
+                                             <div id="ecfba-usage-progress" style="width:0%; height:100%; background:var(--color-primary-accent); transition: width 0.3s ease;"></div>
+                                         </div>
+                                         <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted);">
+                                             <span>Pool usage: <strong id="ecfba-usage-abs" style="font-family:monospace; color:var(--text-secondary);">0.0000</strong> g/g</span>
+                                             <span>Limit: <strong id="ecfba-limit-abs" style="font-family:monospace; color:var(--text-secondary);">0.129</strong> g/g</span>
+                                         </div>
+                                     </div>
+                                     <div id="ecfba-warning-box" class="alert-box warning-alert" style="display:none; max-width:480px; font-size:10px; padding:8px 12px; border-radius:6px; background:#fffbeb; border:1px solid #fef3c7; color:#b45309; line-height:1.4;"></div>
+
+                                     <!-- ECFBA Bottlenecks Table -->
+                                     <div id="ecfba-bottlenecks-box" class="hidden" style="width:100%; max-width:480px; background:#ffffff; border:1px solid var(--border-color); border-radius:8px; padding:12px; box-shadow:0 4px 10px rgba(0,0,0,0.02); box-sizing:border-box; display:flex; flex-direction:column; gap:6px;">
+                                         <div style="font-weight:700; font-size:10.5px; color:var(--text-secondary); border-bottom:1px solid var(--border-color); padding-bottom:4px; display:flex; align-items:center; gap:4px;">
+                                             <i class="fa-solid fa-circle-exclamation" style="color:var(--color-repression);"></i> Target Metabolic Bottlenecks (Top Sinks)
+                                         </div>
+                                         <div style="max-height: 120px; overflow-y:auto; width: 100%;">
+                                             <table style="width:100%; font-size:9px; border-collapse: collapse; text-align:left;">
+                                                 <thead>
+                                                     <tr style="background:#f8fafc; border-bottom:1px solid var(--border-color); font-weight:600; color:var(--text-secondary);">
+                                                         <th style="padding:4px 6px;">Enzymatic reaction</th>
+                                                         <th style="padding:4px 6px;">Genes</th>
+                                                         <th style="padding:4px 6px; text-align:right;">Usage Cost</th>
+                                                         <th style="padding:4px 6px; text-align:right;">Shadow Price</th>
+                                                     </tr>
+                                                 </thead>
+                                                 <tbody id="ecfba-bottlenecks-tbody"></tbody>
+                                             </table>
+                                         </div>
+                                     </div>
+                                 </div>
 
                                 <!-- MFA Comparison Output View -->
                                 <div id="view-mfa-dashboard" class="hidden" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 2; background:#ffffff; padding:15px; box-sizing:border-box; display:flex; gap:15px; overflow:hidden;">
@@ -2076,6 +2294,11 @@
                             <div style="margin-top: 4px; font-size: 9.5px; color: var(--text-muted);">
                                 Calculated via Shea-Ackers biophysical partition function on the promoter sequence.
                             </div>
+                        </div>
+
+                        <!-- Thermodynamic Profile Chart -->
+                        <div id="scan-chart-box" class="hidden" style="margin-top: 10px; margin-bottom: 12px; height: 95px; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; padding: 6px; position: relative;">
+                            <canvas id="scan-profile-canvas" style="width: 100%; height: 100%;"></canvas>
                         </div>
 
                         <!-- Regulon enrichment -->

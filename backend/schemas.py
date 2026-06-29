@@ -156,6 +156,14 @@ class ECFBARequest(BaseModel):
     temperature: float = 30.0
     calibrateTimepoint: Optional[str] = None
 
+class ECFBABottleneckSchema(BaseModel):
+    reaction_id: str
+    reaction_name: str
+    genes: str
+    flux: float
+    usage: float
+    shadow_price: float
+
 class ECFBAResponse(BaseModel):
     status: str
     flux: float
@@ -163,6 +171,7 @@ class ECFBAResponse(BaseModel):
     poolUsage: float
     warnings: List[str] = []
     calibratedPerturbations: Optional[Dict[str, float]] = None
+    bottlenecks: List[ECFBABottleneckSchema] = []
 
 class MFAComparisonItem(BaseModel):
     reaction_id: str
@@ -182,3 +191,6 @@ class MFAComparisonResponse(BaseModel):
     rmse: float = 0.0
     mean_deviation_pct: float = 0.0
     warnings: List[str] = []
+
+class PathwayReactionsRequest(BaseModel):
+    reactionIds: List[str]

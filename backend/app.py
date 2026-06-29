@@ -36,7 +36,8 @@ from schemas import (
     RFBAResponse,
     ECFBARequest,
     ECFBAResponse,
-    MFAComparisonResponse
+    MFAComparisonResponse,
+    PathwayReactionsRequest
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -196,6 +197,28 @@ def search_reactions(q: str = ""):
                 break
                 
     return {"query": q, "matches": matches}
+
+@app.post("/api/model/pathway/reactions")
+def get_pathway_reactions(req: PathwayReactionsRequest):
+    try:
+        model = load_model_if_needed()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    results = []
+    for rxn_id in req.reactionIds:
+        if rxn_id in model.reactions:
+            rxn = model.reactions.get_by_id(rxn_id)
+            reactants = [m.id for m in rxn.reactants]
+            products = [m.id for m in rxn.products]
+            results.append({
+                "reactionId": rxn.id,
+                "name": rxn.name,
+                "equation": rxn.reaction,
+                "reactants": reactants,
+                "products": products
+            })
+    return results
 
 @app.post("/api/simulation/baseline", response_model=BaselineSimulationResponse)
 def baseline_simulation():

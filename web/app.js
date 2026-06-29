@@ -1062,6 +1062,216 @@ async function populatePathwayViewOptions() {
     }
 }
 
+let pathwayKeggCy = null;
+
+async function renderKeggPathwayMap(summary) {
+    const subtitle = document.getElementById('pathway-kegg-subtitle');
+    const loading = document.getElementById('pathway-kegg-loading');
+    const detailContent = document.getElementById('pathway-kegg-detail-content');
+    
+    if (subtitle) {
+        subtitle.innerHTML = `Metabolic flow diagram for <strong>${escapeHtml(summary.pathwayName || summary.pathwayId)}</strong> (${summary.totalGenes} genes, ${summary.totalReactions} reactions)`;
+    }
+    
+    if (loading) loading.classList.remove('hidden');
+    if (detailContent) {
+        detailContent.innerHTML = `Click on any metabolite circle or reaction box in the diagram to inspect its metabolic equations or chemical identity.`;
+    }
+    
+    if (pathwayKeggCy) {
+        pathwayKeggCy.destroy();
+        pathwayKeggCy = null;
+    }
+    
+    const rxnIds = [];
+    (summary.genes || []).forEach(gene => {
+        (gene.reactions || []).forEach(r => {
+            const rid = r.reactionId || r.id;
+            if (rid && !rxnIds.includes(rid)) {
+                rxnIds.push(rid);
+            }
+        });
+    });
+    
+    if (rxnIds.length === 0) {
+        if (loading) loading.classList.add('hidden');
+        const container = document.getElementById('pathway-kegg-cy');
+        if (container) {
+            container.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#94a3b8; font-size:11px;">No reactions found in metabolic model for this pathway.</div>';
+        }
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/model/pathway/reactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reactionIds: rxnIds })
+        });
+        if (!response.ok) throw new Error("Failed to fetch pathway reactions details");
+        const rxnDetails = await response.json();
+        
+        const elements = [];
+        const seenMetabolites = new Set();
+        
+        rxnDetails.forEach(rxn => {
+            elements.push({
+                data: {
+                    id: rxn.reactionId,
+                    label: rxn.reactionId,
+                    name: rxn.name,
+                    equation: rxn.equation,
+                    type: 'reaction'
+                }
+            });
+            
+            (rxn.reactants || []).forEach(metId => {
+                if (!seenMetabolites.has(metId)) {
+                    seenMetabolites.add(metId);
+                    elements.push({
+                        data: {
+                            id: metId,
+                            label: metId.replace(/_[c|e]$/, ''),
+                            fullName: metId,
+                            type: 'metabolite'
+                        }
+                    });
+                }
+                elements.push({
+                    data: {
+                        id: `${metId}->${rxn.reactionId}`,
+                        source: metId,
+                        target: rxn.reactionId,
+                        type: 'reactant-edge'
+                    }
+                });
+            });
+            
+            (rxn.products || []).forEach(metId => {
+                if (!seenMetabolites.has(metId)) {
+                    seenMetabolites.add(metId);
+                    elements.push({
+                        data: {
+                            id: metId,
+                            label: metId.replace(/_[c|e]$/, ''),
+                            fullName: metId,
+                            type: 'metabolite'
+                        }
+                    });
+                }
+                elements.push({
+                    data: {
+                        id: `${rxn.reactionId}->${metId}`,
+                        source: rxn.reactionId,
+                        target: metId,
+                        type: 'product-edge'
+                    }
+                });
+            });
+        });
+        
+        if (loading) loading.classList.add('hidden');
+        
+        pathwayKeggCy = cytoscape({
+            container: document.getElementById('pathway-kegg-cy'),
+            elements: elements,
+            style: [
+                {
+                    selector: 'node[type="reaction"]',
+                    style: {
+                        'shape': 'round-rectangle',
+                        'background-color': '#10b981',
+                        'border-width': 1.5,
+                        'border-color': '#059669',
+                        'label': 'data(label)',
+                        'width': 65,
+                        'height': 24,
+                        'color': '#ffffff',
+                        'font-size': '8.5px',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'font-weight': 'bold',
+                        'text-wrap': 'wrap'
+                    }
+                },
+                {
+                    selector: 'node[type="metabolite"]',
+                    style: {
+                        'shape': 'ellipse',
+                        'background-color': '#38bdf8',
+                        'border-width': 1.5,
+                        'border-color': '#0284c7',
+                        'label': 'data(label)',
+                        'width': 35,
+                        'height': 35,
+                        'color': '#cbd5e1',
+                        'font-size': '8.5px',
+                        'text-valign': 'bottom',
+                        'text-margin-y': 4,
+                        'text-halign': 'center'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 1.5,
+                        'line-color': '#475569',
+                        'target-arrow-color': '#475569',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'arrow-scale': 0.8
+                    }
+                }
+            ],
+            layout: {
+                name: 'cose',
+                animate: false,
+                nodeOverlap: 20,
+                nestingFactor: 1.2,
+                gravity: 80,
+                numIter: 1000,
+                initialTemp: 200
+            }
+        });
+        
+        pathwayKeggCy.on('tap', 'node', function(evt) {
+            const node = evt.target;
+            const data = node.data();
+            
+            if (detailContent) {
+                if (data.type === 'reaction') {
+                    detailContent.innerHTML = `
+                        <div style="font-weight: 700; color: #10b981; margin-bottom: 6px; font-size: 11.5px;">REACTION DETAILED INFO</div>
+                        <div style="margin-bottom: 4px;"><strong>ID:</strong> <span style="font-family: monospace; color:#ffffff;">${escapeHtml(data.id)}</span></div>
+                        <div style="margin-bottom: 4px;"><strong>Name:</strong> ${escapeHtml(data.name || 'N/A')}</div>
+                        <div style="margin-top: 8px; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-weight: 600; color: #cbd5e1; margin-bottom: 4px;">Metabolic Equation:</div>
+                            <div style="font-family: monospace; font-size: 10px; color: #34d399; word-break: break-all; line-height:1.3;">${escapeHtml(data.equation)}</div>
+                        </div>
+                    `;
+                } else if (data.type === 'metabolite') {
+                    detailContent.innerHTML = `
+                        <div style="font-weight: 700; color: #38bdf8; margin-bottom: 6px; font-size: 11.5px;">METABOLITE INFO</div>
+                        <div style="margin-bottom: 4px;"><strong>Metabolite ID:</strong> <span style="font-family: monospace; color:#ffffff;">${escapeHtml(data.fullName)}</span></div>
+                        <div style="margin-bottom: 4px;"><strong>KEGG Name:</strong> ${escapeHtml(data.label)}</div>
+                        <div style="margin-top: 4px; color: #94a3b8; font-size: 9.5px;">
+                            This node represents a chemical compound participating in the pathway. Compartment is indicated by the ID suffix (_c: cytosol, _e: extracellular).
+                        </div>
+                    `;
+                }
+            }
+        });
+        
+    } catch (err) {
+        console.error("Failed to build KEGG pathway map:", err);
+        if (loading) loading.classList.add('hidden');
+        const container = document.getElementById('pathway-kegg-cy');
+        if (container) {
+            container.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#ef4444; font-size:11px;">Failed to generate KEGG pathway diagram: ${escapeHtml(err.message)}</div>`;
+        }
+    }
+}
+
 function renderPathwayRegulatorySummary(summary) {
     const result = document.getElementById('pathway-view-result');
     const status = document.getElementById('pathway-view-status');
@@ -1072,6 +1282,9 @@ function renderPathwayRegulatorySummary(summary) {
         if (status) status.textContent = 'No pathway mapping found.';
         return;
     }
+
+    // Trigger KEGG pathway map rendering
+    renderKeggPathwayMap(summary);
 
     if (status) status.textContent = `${summary.totalRegulators} upstream TFs found.`;
     const regulatorsHtml = summary.regulators.length > 0
@@ -1126,6 +1339,8 @@ async function runPathwayRegulatoryView() {
 
     if (status) status.textContent = 'Analyzing pathway regulators...';
     if (result) result.innerHTML = '<div class="metabolic-empty">Analyzing pathway regulators...</div>';
+
+    setActiveWorkflowEntry('pathway');
 
     try {
         const graph = buildGlobalRegulatoryGraphForRanking();
@@ -1396,8 +1611,18 @@ function setActiveWorkflowEntry(workflow) {
         }
     }
 
+    // Toggle pathway KEGG overlay container
+    const pathwayKeggDashboard = document.getElementById('pathway-kegg-overlay');
+    if (pathwayKeggDashboard) {
+        if (workflow === 'pathway') {
+            pathwayKeggDashboard.classList.remove('hidden');
+        } else {
+            pathwayKeggDashboard.classList.add('hidden');
+        }
+    }
+
     // Toggle welcome overlay visibility based on fullscreen views
-    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq'];
+    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway'];
     const isFullscreen = fullscreenWorkflows.includes(workflow);
     
     if (canvasOverlay) {
@@ -9282,6 +9507,7 @@ function customizeProteinStructureViewer(tfLocus) {
 let activeViewer = null;
 let currentTfPwm = null;
 let currentTfLocus = null;
+let scanProfileChart = null;
 
 function renderReal3DStructure(pdbData) {
     const container = document.getElementById('protein-3d-viewer');
@@ -10343,6 +10569,8 @@ function scanSequenceForMotif(seq, pwm, threshold) {
     const thermoBox = document.getElementById('scan-thermo-box');
     const dgVal = document.getElementById('thermo-dg-val');
     const kdVal = document.getElementById('thermo-kd-val');
+    const chartBox = document.getElementById('scan-chart-box');
+    const canvas = document.getElementById('scan-profile-canvas');
     
     if (thermoBox && dgVal && kdVal) {
         if (currentTfLocus) {
@@ -10366,16 +10594,76 @@ function scanSequenceForMotif(seq, pwm, threshold) {
                         }
                         kdVal.textContent = kdText;
                         thermoBox.classList.remove('hidden');
+
+                        // Render chart profile
+                        if (data.profile && data.profile.length > 0 && chartBox && canvas) {
+                            chartBox.classList.remove('hidden');
+                            if (scanProfileChart) {
+                                scanProfileChart.destroy();
+                            }
+                            const labels = data.profile.map(p => p.position);
+                            const dG_values = data.profile.map(p => p.delta_G);
+                            const ctx = canvas.getContext('2d');
+                            scanProfileChart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        label: 'ΔG (kcal/mol)',
+                                        data: dG_values,
+                                        borderColor: '#7c3aed',
+                                        backgroundColor: 'rgba(124, 58, 237, 0.05)',
+                                        borderWidth: 1.5,
+                                        pointRadius: labels.length > 60 ? 0 : 2,
+                                        pointHoverRadius: 4,
+                                        fill: true,
+                                        tension: 0.15
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: {
+                                            mode: 'index',
+                                            intersect: false,
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const point = data.profile[context.dataIndex];
+                                                    return `Pos: ${point.position} | ΔG: ${point.delta_G.toFixed(2)} | Strand: ${point.strand}`;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            grid: { display: false },
+                                            ticks: { font: { size: 7.5 } }
+                                        },
+                                        y: {
+                                            grid: { color: '#f1f5f9' },
+                                            ticks: { font: { size: 7.5 } }
+                                        }
+                                    }
+                                }
+                            });
+                        } else if (chartBox) {
+                            chartBox.classList.add('hidden');
+                        }
                     } else {
                         thermoBox.classList.add('hidden');
+                        if (chartBox) chartBox.classList.add('hidden');
                     }
                 })
                 .catch(err => {
                     console.error("Failed to fetch binding thermodynamics:", err);
                     thermoBox.classList.add('hidden');
+                    if (chartBox) chartBox.classList.add('hidden');
                 });
         } else {
             thermoBox.classList.add('hidden');
+            if (chartBox) chartBox.classList.add('hidden');
         }
     }
 }

@@ -1071,13 +1071,51 @@ def run_ecfba_simulation(
             if biomass_flux == 0.0 and not (sol_status == "optimal" and hasattr(sol, 'fluxes')):
                 biomass_flux = float(sol.objective_value)
 
+            # Extract top bottlenecks
+            bottlenecks = []
+            try:
+                pool_dual = 0.0
+                if hasattr(model, 'constraints') and "enzyme_pool_limit" in model.constraints:
+                    pool_dual = float(model.constraints["enzyme_pool_limit"].dual)
+            except Exception:
+                pool_dual = 0.0
+
+            for rxn_id, kcatmw in rxn_to_kcatmw.items():
+                if rxn_id in sol.fluxes:
+                    flux = sol.fluxes[rxn_id]
+                    if abs(flux) > 1e-5:
+                        usage = abs(flux) / kcatmw
+                        try:
+                            rxn_obj = model.reactions.get_by_id(rxn_id)
+                            rxn_name = rxn_obj.name
+                            genes = [g.id.replace("g_", "") for g in rxn_obj.genes]
+                            gene_names_str = ", ".join(genes)
+                        except Exception:
+                            rxn_name = "Unknown reaction"
+                            gene_names_str = ""
+                        
+                        shadow_price = pool_dual / kcatmw if kcatmw > 0 else 0.0
+                        bottlenecks.append({
+                            "reaction_id": rxn_id,
+                            "reaction_name": rxn_name,
+                            "genes": gene_names_str,
+                            "flux": float(flux),
+                            "usage": float(usage),
+                            "shadow_price": float(shadow_price)
+                        })
+            
+            # Sort bottlenecks by usage descending
+            bottlenecks.sort(key=lambda x: x["usage"], reverse=True)
+            top_bottlenecks = bottlenecks[:8]
+
             return {
                 "status": "success",
                 "flux": biomass_flux,
                 "pool_limit": adjusted_pool_limit,
                 "pool_usage": float(pool_usage),
                 "warnings": warnings,
-                "calibratedPerturbations": calibrated_perturbations
+                "calibratedPerturbations": calibrated_perturbations,
+                "bottlenecks": top_bottlenecks
             }
         else:
             return {
@@ -1086,7 +1124,8 @@ def run_ecfba_simulation(
                 "pool_limit": adjusted_pool_limit,
                 "pool_usage": 0.0,
                 "warnings": warnings + ["Model is infeasible under current constraints."],
-                "calibratedPerturbations": calibrated_perturbations
+                "calibratedPerturbations": calibrated_perturbations,
+                "bottlenecks": []
             }
             
     except Exception as e:

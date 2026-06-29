@@ -1244,6 +1244,32 @@
                 if (progressBar) {
                     progressBar.style.width = usagePercent + '%';
                 }
+
+                // Render bottlenecks
+                const bBox = document.getElementById('ecfba-bottlenecks-box');
+                const bBody = document.getElementById('ecfba-bottlenecks-tbody');
+                if (bBox && bBody) {
+                    bBody.innerHTML = '';
+                    if (res.bottlenecks && res.bottlenecks.length > 0) {
+                        bBox.classList.remove('hidden');
+                        res.bottlenecks.forEach(b => {
+                            const tr = document.createElement('tr');
+                            tr.style.borderBottom = '1px solid var(--border-color)';
+                            
+                            const pct = ((b.usage / res.poolLimit) * 100).toFixed(1) + '%';
+                            
+                            tr.innerHTML = `
+                                <td style="padding:4px 6px; font-weight:500; color:var(--text-primary); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${b.reaction_name}">${b.reaction_id} (${b.reaction_name})</td>
+                                <td style="padding:4px 6px; color:var(--text-secondary); font-family:monospace;">${b.genes}</td>
+                                <td style="padding:4px 6px; text-align:right; font-weight:600; color:#ef4444;">${pct}</td>
+                                <td style="padding:4px 6px; text-align:right; font-family:monospace; color:var(--text-muted);">${b.shadow_price ? b.shadow_price.toFixed(4) : '0.0000'}</td>
+                            `;
+                            bBody.appendChild(tr);
+                        });
+                    } else {
+                        bBox.classList.add('hidden');
+                    }
+                }
             } else {
                 if (fluxDisplay) {
                     fluxDisplay.style.color = '#ef4444';
@@ -1255,6 +1281,9 @@
                 
                 const progressBar = document.getElementById('ecfba-usage-progress');
                 if (progressBar) progressBar.style.width = '0%';
+
+                const bBox = document.getElementById('ecfba-bottlenecks-box');
+                if (bBox) bBox.classList.add('hidden');
             }
             
             const warnBox = document.getElementById('ecfba-warning-box');

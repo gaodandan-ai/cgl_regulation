@@ -51,27 +51,39 @@ def scan_sequence_for_affinity(pwm: list, sequence: str, temp_celsius: float = 3
     best_seq = ""
     
     sequence_upper = sequence.upper()
+    profile = []
     
-    # Scan forward strand
     for i in range(N - L + 1):
-        window = sequence_upper[i : i + L]
-        dG = calculate_window_affinity(pwm, window, temp_celsius)
-        if dG < best_delta_G:
-            best_delta_G = dG
-            best_pos = i + 1
-            best_strand = "+"
-            best_seq = window
+        window_fwd = sequence_upper[i : i + L]
+        dG_fwd = calculate_window_affinity(pwm, window_fwd, temp_celsius)
+        
+        window_rev = get_reverse_complement(window_fwd)
+        dG_rev = calculate_window_affinity(pwm, window_rev, temp_celsius)
+        
+        if dG_fwd <= dG_rev:
+            pos_dG = dG_fwd
+            pos_strand = "+"
+            pos_seq = window_fwd
+        else:
+            pos_dG = dG_rev
+            pos_strand = "-"
+            pos_seq = window_rev
             
-    # Scan reverse strand
-    for i in range(N - L + 1):
-        window = sequence_upper[i : i + L]
-        window_rev = get_reverse_complement(window)
-        dG = calculate_window_affinity(pwm, window_rev, temp_celsius)
-        if dG < best_delta_G:
-            best_delta_G = dG
+        pos_kd = 1e9 * math.exp(pos_dG / RT) if pos_dG / RT < 50 else 1e9
+        
+        profile.append({
+            "position": i + 1,
+            "strand": pos_strand,
+            "matched_sequence": pos_seq,
+            "delta_G": pos_dG,
+            "Kd": pos_kd
+        })
+        
+        if pos_dG < best_delta_G:
+            best_delta_G = pos_dG
             best_pos = i + 1
-            best_strand = "-"
-            best_seq = window_rev
+            best_strand = pos_strand
+            best_seq = pos_seq
             
     # Compute Kd in nM
     exponent = best_delta_G / RT
@@ -87,5 +99,6 @@ def scan_sequence_for_affinity(pwm: list, sequence: str, temp_celsius: float = 3
         "strand": best_strand,
         "matched_sequence": best_seq,
         "delta_G": best_delta_G,
-        "Kd": kd_nm
+        "Kd": kd_nm,
+        "profile": profile
     }
