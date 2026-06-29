@@ -100,7 +100,7 @@
         <header id="app-header">
             <div class="logo">
                 <i class="fa-solid fa-network-wired"></i>
-                <h1>Cgl Regulation Explorer <span class="badge-v">v0.1.1</span></h1>
+                <h1>Cgl Regulation Explorer <span class="badge-v">v0.3.0</span></h1>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
                 <a href="mailto:gdandan756@gmail.com" class="header-contact-link" style="font-size: 12.5px; color: var(--text-secondary); text-decoration: none; display: flex; align-items: center; gap: 5px; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15); padding: 5px 12px; border-radius: 20px; font-weight: 500; transition: var(--transition-smooth);">
@@ -1109,7 +1109,50 @@
                         </div>
                     </div>
 
-                    <!-- Release Card v0.1.1 (Latest) -->
+                    <!-- Release Card v0.3.0 (Latest) -->
+                    <div class="release-card" style="margin-bottom: 24px;">
+                        <div class="release-card-header" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);">
+                            <span class="version-badge-lg" style="background: #10b981;">v0.3.0</span>
+                            <h3>Version v0.3.0 - Active Simulation & Biophysical Affinities</h3>
+                            <span class="release-date">June 2026</span>
+                        </div>
+                        <div class="release-card-body">
+                            <p class="release-intro">
+                                Version v0.3.0 comprehensively upgrades the simulator, adding sliding-window thermodynamic promoter energy scan charts, active ecFBA capacity bottleneck shadow price diagnosis, and interactive KEGG-style metabolic flow networks.
+                            </p>
+
+                            <div class="release-section">
+                                <h4>New Physical & Simulation Workflows</h4>
+                                <div class="features-checklist-grid">
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Sliding-Window DNA-Binding energy profile scanner visualized via interactive Chart.js line charts.</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Active ecFBA capacity constraints and Arrhenius-based kcat temperature scaling.</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Enzyme bottlenecks analyzer pinpointing metabolic sinks and shadow prices.</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>KEGG-style compound-reaction metabolic network visualizer using Cytoscape.js.</span></div>
+                                </div>
+                            </div>
+
+                            <hr class="card-divider">
+
+                            <div class="release-grid-columns">
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-quote-left"></i> How to Cite</h4>
+                                    <p>If you use Cgl Regulation Explorer in your research, please cite:</p>
+                                    <pre class="release-citation">Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum. Version 0.3.0. Available at: https://cgl-regulation.vercel.app/</pre>
+                                    <p class="citation-muted">Zenodo DOI: <code style="font-family: monospace; font-size: 11px; background: rgba(99, 102, 241, 0.08); padding: 2px 6px; border-radius: 4px; color: var(--color-primary-accent);">10.5281/zenodo.placeholder</code></p>
+                                </div>
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-circle-exclamation"></i> Analytical Boundaries</h4>
+                                    <ul class="release-limitations-list">
+                                        <li><strong>Biophysical Affinity:</strong> Estimated thermodynamic dissociation constants (Kd) represent Shea-Ackers biophysical predictions, not experimental determinations.</li>
+                                        <li><strong>Active Simulations:</strong> Full numerical simulations (FBA, FVA, rFBA, ecFBA) require a running local FastAPI backend.</li>
+                                        <li><strong>Validation:</strong> All priorities and targets generated are predictive screening candidates; experimental validation is required.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Release Card v0.1.1 -->
                     <div class="release-card" style="margin-bottom: 24px;">
                         <div class="release-card-header" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);">
                             <span class="version-badge-lg">v0.1.1</span>

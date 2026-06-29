@@ -43,7 +43,7 @@ from schemas import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("app")
 
-app = FastAPI(title="Cgl Regulation FBA Simulator API", version="0.1.0")
+app = FastAPI(title="Cgl Regulation FBA Simulator API", version="0.3.0")
 
 # Enable CORS for frontend integration across ports
 app.add_middleware(
