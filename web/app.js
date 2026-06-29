@@ -9380,6 +9380,19 @@ function fetchReal3DStructure(tfLocus) {
             const accession = data.results[0].primaryAccession;
             console.log(`Resolved UniProt Accession ${accession} for ${cleanLocus}`);
             
+            // Try to extract gene name from UniProt result
+            let geneName = cleanLocus;
+            try {
+                if (data.results[0].genes && data.results[0].genes[0] && data.results[0].genes[0].geneName) {
+                    geneName = data.results[0].genes[0].geneName.value;
+                }
+            } catch (e) {
+                console.warn("Failed to parse gene name from UniProt data:", e);
+            }
+            
+            // Trigger homology alignment calculation!
+            fetchHomologAlignment(geneName, accession);
+            
             // Query AlphaFold DB prediction API to get the correct pdbUrl dynamically
             const alphaFoldApiUrl = `https://alphafold.ebi.ac.uk/api/prediction/${accession}`;
             return fetch(alphaFoldApiUrl)
@@ -9406,7 +9419,7 @@ function fetchReal3DStructure(tfLocus) {
                     // Update HUD labels to show real details
                     if (hudText) {
                         hudText.innerHTML = `
-                            <i class="fa-solid fa-expand fa-xs" style="color:#7c3aed;"></i> VIEW: 3D_ROTATE<br>
+                            <i class="fa-expand fa-solid fa-xs" style="color:#7c3aed;"></i> VIEW: 3D_ROTATE<br>
                             <span style="color:#10b981;">● ALPHAFOLD_DB</span><br>
                             <span style="color:var(--text-muted); font-size:8px;">ACC: ${accession}</span>
                         `;
@@ -9428,12 +9441,57 @@ function fetchReal3DStructure(tfLocus) {
 function showFallbackMockImage(tfLocus) {
     const container = document.getElementById('protein-3d-viewer');
     const img = document.getElementById('protein-3d-img');
+    const alignmentBox = document.getElementById('homolog-alignment-box');
     
     if (container) container.style.display = 'none';
     if (img) {
         img.style.display = 'block';
         customizeProteinStructureViewer(tfLocus);
     }
+    if (alignmentBox) {
+        alignmentBox.innerHTML = `<span style="color:var(--text-muted);">Homolog alignment unavailable (locus tag search failed)</span>`;
+    }
+}
+
+function fetchHomologAlignment(geneName, accession) {
+    const alignmentBox = document.getElementById('homolog-alignment-box');
+    if (!alignmentBox) return;
+
+    alignmentBox.innerHTML = `<span style="color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading homolog alignment data...</span>`;
+
+    fetch(`/api/homolog_alignment?gene_name=${encodeURIComponent(geneName)}&accession=${encodeURIComponent(accession)}`)
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            if (data.error) {
+                alignmentBox.innerHTML = `<span style="color:var(--color-repression);">${escapeHtml(data.error)}</span>`;
+                return;
+            }
+
+            if (!data.alignment_formatted) {
+                alignmentBox.innerHTML = `<span style="color:var(--text-muted);">No alignment data available.</span>`;
+                return;
+            }
+
+            const cleanAcc = escapeHtml(data.homolog_accession || '');
+            const cleanGene = escapeHtml(data.homolog_gene || '');
+            const cleanOrg = escapeHtml(data.homolog_organism || '');
+            const sim = data.similarity_percent !== undefined ? `${data.similarity_percent.toFixed(1)}%` : 'N/A';
+            const identity = data.identity_percent !== undefined ? `${data.identity_percent.toFixed(1)}%` : 'N/A';
+            
+            let html = `<div style="margin-bottom:6px; border-bottom:1px solid var(--border-color); padding-bottom:4px; font-family:var(--font-sans); font-size:9.5px; color:var(--text-secondary);">`;
+            html += `<span style="font-weight:600; color:var(--color-primary-accent);"><i class="fa-solid fa-code-compare"></i> Target:</span> M. tuberculosis <strong>${cleanGene}</strong> (${cleanAcc}) | `;
+            html += `<strong>Identity:</strong> ${identity} | <strong>Similarity:</strong> ${sim}`;
+            html += `</div>`;
+            html += `<div style="font-family:var(--font-mono); font-size:8.5px; line-height:1.4; color:var(--text-primary); overflow-x:auto;">${escapeHtml(data.alignment_formatted)}</div>`;
+            alignmentBox.innerHTML = html;
+        })
+        .catch(err => {
+            console.error("Failed to load homolog alignment:", err);
+            alignmentBox.innerHTML = `<span style="color:var(--color-repression);">Failed to load homolog alignment data</span>`;
+        });
 }
 
 function initProteinDomainFeature() {
