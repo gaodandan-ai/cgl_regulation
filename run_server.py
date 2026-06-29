@@ -2323,25 +2323,31 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         tf_name = tf
         
         # 1. Resolve TF names/locus tags
-        if os.path.exists('data/reference/gene_mapping.csv'):
-            with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if row['cg_locus'].lower() == tf_lower or row['cgl_locus'].lower() == tf_lower or row['gene_name'].lower() == tf_lower:
-                        resolved_cg = row['cg_locus']
-                        tf_name = row['gene_name'] or row['cg_locus']
-                        break
+        try:
+            if os.path.exists('data/reference/gene_mapping.csv'):
+                with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        if row['cg_locus'].lower() == tf_lower or row['cgl_locus'].lower() == tf_lower or row['gene_name'].lower() == tf_lower:
+                            resolved_cg = row['cg_locus']
+                            tf_name = row['gene_name'] or row['cg_locus']
+                            break
+        except Exception as e:
+            print(f"[MOTIF] Error reading gene_mapping.csv: {e}")
                         
         # 2. Find target genes from regulations.csv
         target_loci = []
-        if os.path.exists('data/reference/regulations.csv'):
-            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if row['TF_locusTag'].lower() == resolved_cg.lower() or (row['TF_name'] and row['TF_name'].lower() == tf_lower):
-                        tg = row.get('TG_locusTag')
-                        if tg and tg not in target_loci:
-                            target_loci.append(tg)
+        try:
+            if os.path.exists('data/reference/regulations.csv'):
+                with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        if row['TF_locusTag'].lower() == resolved_cg.lower() or (row['TF_name'] and row['TF_name'].lower() == tf_lower):
+                            tg = row.get('TG_locusTag')
+                            if tg and tg not in target_loci:
+                                target_loci.append(tg)
+        except Exception as e:
+            print(f"[MOTIF] Error reading regulations.csv: {e}")
                             
         if not target_loci:
             # Fallback if no targets are registered
@@ -2363,16 +2369,19 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             
             # Find any known binding sites in regulations.csv to plant
             known_sites = []
-            if os.path.exists('data/reference/regulations.csv'):
-                with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        row_tf = (row.get('TF_locusTag') or '').strip()
-                        row_tf_name = (row.get('TF_name') or '').strip()
-                        if row_tf.lower() == resolved_cg.lower() or (row_tf_name and row_tf_name.lower() == tf_lower):
-                            site = row.get('Binding_site')
-                            if site and site.strip() and site.strip() != 'nan':
-                                known_sites.append(site.strip())
+            try:
+                if os.path.exists('data/reference/regulations.csv'):
+                    with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
+                        reader = csv.DictReader(f)
+                        for row in reader:
+                            row_tf = (row.get('TF_locusTag') or '').strip()
+                            row_tf_name = (row.get('TF_name') or '').strip()
+                            if row_tf.lower() == resolved_cg.lower() or (row_tf_name and row_tf_name.lower() == tf_lower):
+                                site = row.get('Binding_site')
+                                if site and site.strip() and site.strip() != 'nan':
+                                    known_sites.append(site.strip())
+            except Exception as e:
+                print(f"[MOTIF] Error reading regulations.csv for known sites: {e}")
             
             planted_motif = "TGTGACGTGTCT"
             if known_sites:
@@ -2402,50 +2411,54 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         nsites = 0
         source = ""
         
-        with tempfile.TemporaryDirectory() as tmpdir:
-            input_fasta = os.path.join(tmpdir, "input.fasta")
-            with open(input_fasta, "w", encoding="utf-8") as f:
-                for g, seq in promoters.items():
-                    f.write(f">{g}\n{seq}\n")
-                    
-            out_dir = os.path.join(tmpdir, "meme_out")
-            
-            try:
-                # Run local MEME CLI
-                subprocess.run(
-                    ["meme", input_fasta, "-dna", "-oc", out_dir, "-mod", "zoops", "-nmotifs", "1", "-minw", "8", "-maxw", "14"],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                meme_success = True
-            except Exception as e:
-                print(f"[MOTIF] Local MEME execution failed (or not installed): {e}")
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                input_fasta = os.path.join(tmpdir, "input.fasta")
+                with open(input_fasta, "w", encoding="utf-8") as f:
+                    for g, seq in promoters.items():
+                        f.write(f">{g}\n{seq}\n")
+                        
+                out_dir = os.path.join(tmpdir, "meme_out")
                 
-            if meme_success:
-                xml_path = os.path.join(out_dir, "meme.xml")
-                if os.path.exists(xml_path):
-                    try:
-                        tree = ET.parse(xml_path)
-                        root = tree.getroot()
-                        motif_elem = root.find(".//motif")
-                        if motif_elem is not None:
-                            consensus = motif_elem.get("consensus", "")
-                            matrix_elem = motif_elem.find(".//alphabet_matrix")
-                            if matrix_elem is not None:
-                                for array_elem in matrix_elem.findall(".//alphabet_array"):
-                                    probs = {"A": 0.0, "C": 0.0, "G": 0.0, "T": 0.0}
-                                    for val_elem in array_elem.findall(".//value"):
-                                        let_id = val_elem.get("letter_id")
-                                        val = float(val_elem.text)
-                                        if let_id in probs:
-                                            probs[let_id] = val
-                                    pwm.append(probs)
-                            nsites = int(motif_elem.get("sites", 0))
-                            source = "MEME Suite (CLI)"
-                    except Exception as ex:
-                        print(f"[MOTIF] Error parsing meme.xml: {ex}")
-                        meme_success = False
+                try:
+                    # Run local MEME CLI
+                    subprocess.run(
+                        ["meme", input_fasta, "-dna", "-oc", out_dir, "-mod", "zoops", "-nmotifs", "1", "-minw", "8", "-maxw", "14"],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                    )
+                    meme_success = True
+                except Exception as e:
+                    print(f"[MOTIF] Local MEME execution failed (or not installed): {e}")
+                    
+                if meme_success:
+                    xml_path = os.path.join(out_dir, "meme.xml")
+                    if os.path.exists(xml_path):
+                        try:
+                            tree = ET.parse(xml_path)
+                            root = tree.getroot()
+                            motif_elem = root.find(".//motif")
+                            if motif_elem is not None:
+                                consensus = motif_elem.get("consensus", "")
+                                matrix_elem = motif_elem.find(".//alphabet_matrix")
+                                if matrix_elem is not None:
+                                    for array_elem in matrix_elem.findall(".//alphabet_array"):
+                                        probs = {"A": 0.0, "C": 0.0, "G": 0.0, "T": 0.0}
+                                        for val_elem in array_elem.findall(".//value"):
+                                            let_id = val_elem.get("letter_id")
+                                            val = float(val_elem.text)
+                                            if let_id in probs:
+                                                probs[let_id] = val
+                                        pwm.append(probs)
+                                nsites = int(motif_elem.get("sites", 0))
+                                source = "MEME Suite (CLI)"
+                        except Exception as ex:
+                            print(f"[MOTIF] Error parsing meme.xml: {ex}")
+                            meme_success = False
+        except Exception as tmp_err:
+            print(f"[MOTIF] Temporary directory or file writing failed: {tmp_err}")
+            meme_success = False
                         
         if not meme_success or not pwm:
             # 5. Run Python-based de novo motif finder fallback
@@ -2561,16 +2574,26 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def fetch_promoters_parallel(self, genes):
         results = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            future_to_gene = {executor.submit(self.fetch_promoter_single, g): g for g in genes}
-            for future in concurrent.futures.as_completed(future_to_gene):
-                gene = future_to_gene[future]
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                future_to_gene = {executor.submit(self.fetch_promoter_single, g): g for g in genes}
+                for future in concurrent.futures.as_completed(future_to_gene):
+                    gene = future_to_gene[future]
+                    try:
+                        seq = future.result()
+                        if seq:
+                            results[gene] = seq
+                    except Exception as e:
+                        print(f"[MOTIF] Promoter exception for {gene}: {e}")
+        except Exception as pool_err:
+            print(f"[MOTIF] ThreadPoolExecutor failed: {pool_err}. Falling back to sequential fetch.")
+            for g in genes:
                 try:
-                    seq = future.result()
+                    seq = self.fetch_promoter_single(g)
                     if seq:
-                        results[gene] = seq
-                except Exception as e:
-                    print(f"[MOTIF] Promoter exception for {gene}: {e}")
+                        results[g] = seq
+                except Exception as seq_err:
+                    print(f"[MOTIF] Sequential promoter exception for {g}: {seq_err}")
         return results
 
     def find_motif_fallback(self, sequences, k=10):
