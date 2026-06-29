@@ -373,6 +373,16 @@ async function loadNetworkData() {
         updateStatus('Loading sigma factor annotations...', 'loading');
         await loadSigmaAnnotations();
 
+        updateStatus('Loading metabolic model mappings...', 'loading');
+        if (window.metabolicModelAdapter && typeof window.metabolicModelAdapter.loadMetabolicPathways === 'function') {
+            try {
+                await window.metabolicModelAdapter.loadMetabolicPathways();
+                console.log('Metabolic model pathways loaded successfully.');
+            } catch (e) {
+                console.warn('Failed to load metabolic model pathways:', e);
+            }
+        }
+
         buildGeneIndex();
         normalizeNetworkData();
 

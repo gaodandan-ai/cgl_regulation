@@ -150,7 +150,58 @@
             throw new Error(`Metabolic pathway request failed: ${response.status}`);
         }
         const payload = await response.json();
-        if (!query) pathwayMappingCache = payload;
+        if (!query) {
+            pathwayMappingCache = payload;
+            // Pre-populate impactCache with all gene-reaction mappings from the pathways payload
+            if (payload && Array.isArray(payload.pathways)) {
+                payload.pathways.forEach(pathway => {
+                    if (Array.isArray(pathway.genes)) {
+                        pathway.genes.forEach(g => {
+                            const geneId = normalizeGeneId(g.geneId || g.locus);
+                            if (!geneId) return;
+                            
+                            // Map reactions to standard schema format
+                            const formattedReactions = (g.reactions || []).map(r => ({
+                                id: r.reactionId || r.id,
+                                label: r.reactionName || r.label || r.reactionId || r.id,
+                                model: r.model || pathway.model,
+                                ec_number: r.ecNumber || r.ec_number,
+                                kcat: r.kcat,
+                                molecular_weight: r.molecularWeight || r.molecular_weight,
+                                kcat_MW: r.kcatMW || r.kcat_MW,
+                                uniprot_ids: r.uniprotIds || r.uniprot_ids || [],
+                                reaction_variant: r.reactionVariant || r.reaction_variant,
+                                enzyme_constraint: r.enzymeConstraint || r.enzyme_constraint || {},
+                                pathway_id: pathway.pathwayId,
+                                pathway_name: pathway.pathwayName
+                            }));
+
+                            const existing = impactCache.get(geneId);
+                            if (existing) {
+                                // Merge reactions avoiding duplicates
+                                const mergedRxns = [...(existing.affected_genes[0].reactions || [])];
+                                formattedReactions.forEach(r => {
+                                    if (!mergedRxns.some(er => er.id === r.id && er.model === r.model)) {
+                                        mergedRxns.push(r);
+                                    }
+                                });
+                                existing.affected_genes[0].reactions = mergedRxns;
+                            } else {
+                                impactCache.set(geneId, {
+                                    mode: 'gene',
+                                    query: geneId,
+                                    affected_genes: [{
+                                        locus: geneId,
+                                        name: g.geneLabel || g.name || geneId,
+                                        reactions: formattedReactions
+                                    }]
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        }
         return payload;
     }
 
