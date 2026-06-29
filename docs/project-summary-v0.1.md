@@ -1,4 +1,4 @@
-# Cgl Regulation Explorer v0.1.0 Project Summary
+# Cgl Regulation Explorer v0.1.1 Project Summary
 
 **Cgl Regulation Explorer** is an interactive, reproducible regulatory-metabolic analysis platform tailored for *Corynebacterium glutamicum* DSM 20300 / ATCC 13032. It enables researchers to trace transcription factor (TF) and sRNA regulatory links and project them directly onto metabolic reaction models and pathways.
 
@@ -59,7 +59,7 @@ Original resources remain attributable to their respective authors and providers
 ### Platform Citation
 If you use Cgl Regulation Explorer in your research, please cite:
 ```text
-Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum. Version 0.1.0. Available at: https://cgl-regulation.vercel.app/
+Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum. Version 0.1.1. Available at: https://cgl-regulation.vercel.app/
 ```
 *Note: A future DOI / preprint citation will be updated here once published.*
 

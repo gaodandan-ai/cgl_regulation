@@ -1,4 +1,4 @@
-# Cgl Regulation Explorer (v0.1.0)
+# Cgl Regulation Explorer (v0.1.1)
 
 An interactive, reproducible regulatory-metabolic analysis platform for **Corynebacterium glutamicum** DSM 20300 / ATCC 13032.
 
@@ -43,7 +43,7 @@ The platform processes data across 7 distinct analytical phases:
 > [!WARNING]
 > - **Hypothesis Generation**: Prioritization scores and network impact metrics serve as computational screenings for high-impact hubs, rather than predicting exact in vivo rates or yields.
 > - **Optional Local Simulations**: Standard Flux Balance Analysis (FBA), MOMA, and Flux Variability Analysis (FVA) can be run locally using the *iCW773* model by starting the optional FastAPI simulation backend (port 8001). Static web deployments do not run dynamic flux calculations.
-> - **ecCGL1 Parameter Integration**: Enzyme kinetic parameters ($k_{\mathrm{cat}}$, molecular weight, EC numbers, and UniProt IDs) are integrated as static pathway-context annotations to aid bottleneck analysis. The platform does not run active enzyme-constrained simulations (ec-FBA) in v0.1.0.
+> - **ecCGL1 Parameter Integration**: Enzyme kinetic parameters ($k_{\mathrm{cat}}$, molecular weight, EC numbers, and UniProt IDs) are integrated as static pathway-context annotations to aid bottleneck analysis. The platform does not run active enzyme-constrained simulations (ec-FBA) in v0.1.1.
 > - **Validation Requirement**: Wet-lab validation is required before drawing biological engineering conclusions.
 
 ---

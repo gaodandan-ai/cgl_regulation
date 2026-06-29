@@ -1,6 +1,6 @@
 # Platform Limitations & Analytical Boundaries
 
-This document details the functional boundaries of **Cgl Regulation Explorer (v0.1.0)**. Users should review these limitations before interpreting analysis outputs or drawing biological conclusions.
+This document details the functional boundaries of **Cgl Regulation Explorer (v0.1.1)**. Users should review these limitations before interpreting analysis outputs or drawing biological conclusions.
 
 ---
 
