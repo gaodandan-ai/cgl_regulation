@@ -299,6 +299,7 @@ def handle_regulon_enrichment(tf):
     if tf_lower in CGL_TO_CG:
         resolved_cg = CGL_TO_CG[tf_lower]
         
+    targets = []
     path = get_absolute_path('data/reference/regulations.csv')
     if os.path.exists(path):
         try:
