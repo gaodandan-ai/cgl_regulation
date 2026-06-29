@@ -1204,7 +1204,7 @@ async function renderKeggPathwayMap(summary) {
                         'label': 'data(label)',
                         'width': 35,
                         'height': 35,
-                        'color': '#cbd5e1',
+                        'color': '#334155',
                         'font-size': '8.5px',
                         'text-valign': 'bottom',
                         'text-margin-y': 4,
