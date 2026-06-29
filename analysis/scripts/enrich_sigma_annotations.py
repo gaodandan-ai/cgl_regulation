@@ -113,19 +113,13 @@ SIGMA_ANNOTATIONS: Dict[str, Dict[str, Any]] = {
             "chaperones (GroEL/ES, DnaK/J, ClpB), and detoxification enzymes. "
             "SigH is sequestered by the anti-sigma RshA under reducing conditions; "
             "oxidative stress forms an RshA disulfide bond releasing active SigH. "
-            "At 40°C, SigH-dependent transcription peaks within 1 hour of heat shift, "
-            "then partially adapts by 4h and 24h as the proteome is remodelled."
+            "Under heat shock, SigH-dependent transcription is rapidly activated to induce chaperones and heat tolerance genes as the proteome is remodelled."
         ),
         "overlap_with": ["sigE"],
         "promoter_example": {
             "gene": "trxB1 (cg2892)",
             "sequence": "...TGAACC-N17-GCTTGA...",
             "distance_to_tss": -35,
-        },
-        "heat_stress_timeline": {
-            "1h": "peak_activation",
-            "4h": "partial_adaptation",
-            "24h": "baseline_reset_partial",
         },
         "pmid": ["19270092", "25404703", "16385111", "23298179", "12791148", "17449638"],
     },
@@ -169,11 +163,6 @@ SIGMA_ANNOTATIONS: Dict[str, Dict[str, Any]] = {
             "complementing SigH-mediated specific heat shock response."
         ),
         "overlap_with": ["sigH"],
-        "heat_stress_timeline": {
-            "1h": "moderate_activation",
-            "4h": "sustained",
-            "24h": "sustained_stationary",
-        },
         "pmid": ["15516578", "19376865", "16385111"],
     },
 
@@ -220,11 +209,6 @@ SIGMA_ANNOTATIONS: Dict[str, Dict[str, Any]] = {
             "membrane-related genes. Heat stress at 40°C activates SigE through membrane perturbation."
         ),
         "overlap_with": ["sigH"],
-        "heat_stress_timeline": {
-            "1h": "moderate_activation",
-            "4h": "peak_membrane_stress",
-            "24h": "adaptation",
-        },
         "pmid": ["23298179", "16385111", "12791148"],
     },
 
@@ -268,11 +252,6 @@ SIGMA_ANNOTATIONS: Dict[str, Dict[str, Any]] = {
             "during prolonged heat stress when ROS generation increases."
         ),
         "overlap_with": ["sigH"],
-        "heat_stress_timeline": {
-            "1h": "low",
-            "4h": "low",
-            "24h": "low_to_moderate",
-        },
         "pmid": ["21075931", "16385111"],
     },
 }

@@ -4243,16 +4243,6 @@ function renderSigmaCard(locusTag, geneName) {
     const heatBadge = ann.heat_stress_activation
         ? `<span style="background:#ef444420;color:#ef4444;border:1px solid #ef444455;border-radius:10px;padding:1px 7px;font-size:10px"><i class="fa-solid fa-temperature-high"></i> ${ann.tm_activation_degC ? `Activates ≥${ann.tm_activation_degC}°C` : 'Heat-active'}</span>`
         : '';
-
-    const timelineHtml = ann.heat_stress_timeline
-        ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
-            ${Object.entries(ann.heat_stress_timeline).map(([tp, lvl]) =>
-                `<span style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:2px 8px">
-                    <b>${tp}:</b> ${lvl.replace(/_/g,' ')}
-                </span>`).join('')}
-           </div>`
-        : '';
-
     const overlapHtml = ann.overlap_with && ann.overlap_with.length
         ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px">
             <i class="fa-solid fa-link-slash" style="margin-right:4px"></i>Overlapping regulon with: ${ann.overlap_with.join(', ')}
@@ -4272,7 +4262,6 @@ function renderSigmaCard(locusTag, geneName) {
             </div>
             ${consensusHtml}
             ${antiSigmaHtml}
-            ${timelineHtml}
             ${overlapHtml}
         </div>`;
 
