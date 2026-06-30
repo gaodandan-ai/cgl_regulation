@@ -1063,45 +1063,87 @@ async function populatePathwayViewOptions() {
 }
 
 let pathwayKeggCy = null;
+let pathwayKeggZoomBound = false;
+
+function bindPathwayKeggZoomControls() {
+    if (pathwayKeggZoomBound) return;
+    pathwayKeggZoomBound = true;
+
+    document.getElementById('pk-zoom-in')?.addEventListener('click', () => {
+        if (pathwayKeggCy) pathwayKeggCy.zoom({ level: pathwayKeggCy.zoom() * 1.25, renderedPosition: { x: pathwayKeggCy.width() / 2, y: pathwayKeggCy.height() / 2 } });
+    });
+    document.getElementById('pk-zoom-out')?.addEventListener('click', () => {
+        if (pathwayKeggCy) pathwayKeggCy.zoom({ level: pathwayKeggCy.zoom() * 0.8, renderedPosition: { x: pathwayKeggCy.width() / 2, y: pathwayKeggCy.height() / 2 } });
+    });
+    document.getElementById('pk-zoom-fit')?.addEventListener('click', () => {
+        if (pathwayKeggCy) pathwayKeggCy.fit(undefined, 40);
+    });
+    document.getElementById('pk-zoom-reset')?.addEventListener('click', () => {
+        if (pathwayKeggCy) { pathwayKeggCy.reset(); pathwayKeggCy.fit(undefined, 40); }
+    });
+}
 
 async function renderKeggPathwayMap(summary) {
     const subtitle = document.getElementById('pathway-kegg-subtitle');
     const loading = document.getElementById('pathway-kegg-loading');
     const detailContent = document.getElementById('pathway-kegg-detail-content');
-    
+    const regContent = document.getElementById('pathway-kegg-reg-content');
+    const statsEl = document.getElementById('pathway-kegg-stats');
+    const statNodes = document.getElementById('pk-stat-nodes');
+    const statEdges = document.getElementById('pk-stat-edges');
+
+    bindPathwayKeggZoomControls();
+
     if (subtitle) {
-        subtitle.innerHTML = `Metabolic flow diagram for <strong>${escapeHtml(summary.pathwayName || summary.pathwayId)}</strong> (${summary.totalGenes} genes, ${summary.totalReactions} reactions)`;
+        subtitle.innerHTML = `Metabolic flow for <strong>${escapeHtml(summary.pathwayName || summary.pathwayId)}</strong> &nbsp;·&nbsp; ${summary.totalGenes} genes &nbsp;·&nbsp; ${summary.totalReactions} reactions &nbsp;·&nbsp; ${summary.totalRegulators} upstream TFs`;
     }
-    
+
     if (loading) loading.classList.remove('hidden');
+    if (statsEl) statsEl.classList.add('hidden');
+
+    // Reset detail panel
     if (detailContent) {
-        detailContent.innerHTML = `Click on any metabolite circle or reaction box in the diagram to inspect its metabolic equations or chemical identity.`;
+        detailContent.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:120px;gap:8px;opacity:0.5;">
+            <i class="fa-solid fa-hand-pointer" style="font-size:22px;color:#6366f1;"></i>
+            <div style="text-align:center;font-size:10.5px;color:#64748b;">Click any node in the diagram to inspect its details</div>
+        </div>`;
     }
-    
+
+    // Populate regulators section in right panel
+    if (regContent) {
+        const regs = summary.regulators || [];
+        if (regs.length === 0) {
+            regContent.innerHTML = `<div style="color:#475569;font-size:10.5px;">No upstream TFs found for this pathway.</div>`;
+        } else {
+            regContent.innerHTML = regs.slice(0, 12).map(r => {
+                const type = (r.regulationTypes || ['unknown'])[0] || 'unknown';
+                const cls = type === 'activation' ? 'activation' : type === 'repression' ? 'repression' : 'unknown';
+                const icon = cls === 'activation' ? '▲' : cls === 'repression' ? '▼' : '•';
+                return `<span class="pk-reg-chip ${cls}" title="${escapeHtml(r.explanation||'')} | score: ${r.regulatorScore}">${icon} ${escapeHtml(r.tfLabel || r.tfId)} <span style="opacity:0.65;">${r.regulatedGenes?.length||0}g</span></span>`;
+            }).join('');
+        }
+    }
+
     if (pathwayKeggCy) {
         pathwayKeggCy.destroy();
         pathwayKeggCy = null;
     }
-    
+
     const rxnIds = [];
     (summary.genes || []).forEach(gene => {
         (gene.reactions || []).forEach(r => {
             const rid = r.reactionId || r.id;
-            if (rid && !rxnIds.includes(rid)) {
-                rxnIds.push(rid);
-            }
+            if (rid && !rxnIds.includes(rid)) rxnIds.push(rid);
         });
     });
-    
+
     if (rxnIds.length === 0) {
         if (loading) loading.classList.add('hidden');
         const container = document.getElementById('pathway-kegg-cy');
-        if (container) {
-            container.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#94a3b8; font-size:11px;">No reactions found in metabolic model for this pathway.</div>';
-        }
+        if (container) container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#475569;gap:8px;"><i class="fa-solid fa-circle-exclamation" style="font-size:22px;color:#f59e0b;"></i><div style="font-size:11px;">No reactions found in the metabolic model for this pathway.</div></div>';
         return;
     }
-    
+
     try {
         const response = await fetch('/api/model/pathway/reactions', {
             method: 'POST',
@@ -1110,165 +1152,259 @@ async function renderKeggPathwayMap(summary) {
         });
         if (!response.ok) throw new Error("Failed to fetch pathway reactions details");
         const rxnDetails = await response.json();
-        
+
         const elements = [];
         const seenMetabolites = new Set();
-        
+        // Track shared metabolites (appear in multiple reactions) for highlighting
+        const metCount = {};
+
         rxnDetails.forEach(rxn => {
+            const rxnLabel = rxn.reactionId.replace(/^R_/, '');
             elements.push({
                 data: {
                     id: rxn.reactionId,
-                    label: rxn.reactionId,
+                    label: rxnLabel,
                     name: rxn.name,
                     equation: rxn.equation,
                     type: 'reaction'
                 }
             });
-            
+
             (rxn.reactants || []).forEach(metId => {
+                metCount[metId] = (metCount[metId] || 0) + 1;
                 if (!seenMetabolites.has(metId)) {
                     seenMetabolites.add(metId);
-                    elements.push({
-                        data: {
-                            id: metId,
-                            label: metId.replace(/_[c|e]$/, ''),
-                            fullName: metId,
-                            type: 'metabolite'
-                        }
-                    });
+                    const cleanLabel = metId.replace(/_[ce]$/, '').replace(/__L$/, '').replace(/__D$/, '');
+                    elements.push({ data: { id: metId, label: cleanLabel, fullName: metId, type: 'metabolite' } });
                 }
-                elements.push({
-                    data: {
-                        id: `${metId}->${rxn.reactionId}`,
-                        source: metId,
-                        target: rxn.reactionId,
-                        type: 'reactant-edge'
-                    }
-                });
+                // Avoid duplicate edges with unique key
+                const edgeId = `re_${metId}__${rxn.reactionId}`;
+                if (!elements.some(e => e.data?.id === edgeId)) {
+                    elements.push({ data: { id: edgeId, source: metId, target: rxn.reactionId, type: 'reactant-edge' } });
+                }
             });
-            
+
             (rxn.products || []).forEach(metId => {
+                metCount[metId] = (metCount[metId] || 0) + 1;
                 if (!seenMetabolites.has(metId)) {
                     seenMetabolites.add(metId);
-                    elements.push({
-                        data: {
-                            id: metId,
-                            label: metId.replace(/_[c|e]$/, ''),
-                            fullName: metId,
-                            type: 'metabolite'
-                        }
-                    });
+                    const cleanLabel = metId.replace(/_[ce]$/, '').replace(/__L$/, '').replace(/__D$/, '');
+                    elements.push({ data: { id: metId, label: cleanLabel, fullName: metId, type: 'metabolite' } });
                 }
-                elements.push({
-                    data: {
-                        id: `${rxn.reactionId}->${metId}`,
-                        source: rxn.reactionId,
-                        target: metId,
-                        type: 'product-edge'
-                    }
-                });
+                const edgeId = `pe_${rxn.reactionId}__${metId}`;
+                if (!elements.some(e => e.data?.id === edgeId)) {
+                    elements.push({ data: { id: edgeId, source: rxn.reactionId, target: metId, type: 'product-edge' } });
+                }
             });
         });
-        
-        if (loading) loading.classList.add('hidden');
-        
-        pathwayKeggCy = cytoscape({
-            container: document.getElementById('pathway-kegg-cy'),
-            elements: elements,
-            style: [
-                {
-                    selector: 'node[type="reaction"]',
-                    style: {
-                        'shape': 'round-rectangle',
-                        'background-color': '#10b981',
-                        'border-width': 1.5,
-                        'border-color': '#059669',
-                        'label': 'data(label)',
-                        'width': 65,
-                        'height': 24,
-                        'color': '#ffffff',
-                        'font-size': '8.5px',
-                        'text-valign': 'center',
-                        'text-halign': 'center',
-                        'font-weight': 'bold',
-                        'text-wrap': 'wrap'
-                    }
-                },
-                {
-                    selector: 'node[type="metabolite"]',
-                    style: {
-                        'shape': 'ellipse',
-                        'background-color': '#38bdf8',
-                        'border-width': 1.5,
-                        'border-color': '#0284c7',
-                        'label': 'data(label)',
-                        'width': 35,
-                        'height': 35,
-                        'color': '#334155',
-                        'font-size': '8.5px',
-                        'text-valign': 'bottom',
-                        'text-margin-y': 4,
-                        'text-halign': 'center'
-                    }
-                },
-                {
-                    selector: 'edge',
-                    style: {
-                        'width': 1.5,
-                        'line-color': '#475569',
-                        'target-arrow-color': '#475569',
-                        'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier',
-                        'arrow-scale': 0.8
-                    }
-                }
-            ],
-            layout: {
-                name: 'cose',
-                animate: false,
-                nodeOverlap: 20,
-                nestingFactor: 1.2,
-                gravity: 80,
-                numIter: 1000,
-                initialTemp: 200
+
+        // Mark hub metabolites (appear in >2 reactions)
+        elements.forEach(el => {
+            if (el.data?.type === 'metabolite' && metCount[el.data.id] > 2) {
+                el.data.isHub = true;
             }
         });
-        
-        pathwayKeggCy.on('tap', 'node', function(evt) {
-            const node = evt.target;
-            const data = node.data();
-            
-            if (detailContent) {
-                if (data.type === 'reaction') {
-                    detailContent.innerHTML = `
-                        <div style="font-weight: 700; color: #10b981; margin-bottom: 6px; font-size: 11.5px;">REACTION DETAILED INFO</div>
-                        <div style="margin-bottom: 4px;"><strong>ID:</strong> <span style="font-family: monospace; color:#ffffff;">${escapeHtml(data.id)}</span></div>
-                        <div style="margin-bottom: 4px;"><strong>Name:</strong> ${escapeHtml(data.name || 'N/A')}</div>
-                        <div style="margin-top: 8px; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                            <div style="font-weight: 600; color: #cbd5e1; margin-bottom: 4px;">Metabolic Equation:</div>
-                            <div style="font-family: monospace; font-size: 10px; color: #34d399; word-break: break-all; line-height:1.3;">${escapeHtml(data.equation)}</div>
-                        </div>
-                    `;
-                } else if (data.type === 'metabolite') {
-                    detailContent.innerHTML = `
-                        <div style="font-weight: 700; color: #38bdf8; margin-bottom: 6px; font-size: 11.5px;">METABOLITE INFO</div>
-                        <div style="margin-bottom: 4px;"><strong>Metabolite ID:</strong> <span style="font-family: monospace; color:#ffffff;">${escapeHtml(data.fullName)}</span></div>
-                        <div style="margin-bottom: 4px;"><strong>KEGG Name:</strong> ${escapeHtml(data.label)}</div>
-                        <div style="margin-top: 4px; color: #94a3b8; font-size: 9.5px;">
-                            This node represents a chemical compound participating in the pathway. Compartment is indicated by the ID suffix (_c: cytosol, _e: extracellular).
-                        </div>
-                    `;
+
+        setTimeout(() => {
+            try {
+                const cyContainer = document.getElementById('pathway-kegg-cy');
+                if (cyContainer) {
+                    const h = Math.max(450, window.innerHeight - 160);
+                    cyContainer.style.height = h + 'px';
+                    cyContainer.style.minHeight = h + 'px';
                 }
+
+                pathwayKeggCy = cytoscape({
+                    container: document.getElementById('pathway-kegg-cy'),
+                    elements: elements,
+                    style: [
+                        {
+                            selector: 'node[type="reaction"]',
+                            style: {
+                                'shape': 'round-rectangle',
+                                'background-color': '#d1fae5',
+                                'background-opacity': 1,
+                                'border-width': 1.8,
+                                'border-color': '#10b981',
+                                'label': 'data(label)',
+                                'width': 80,
+                                'height': 28,
+                                'color': '#065f46',
+                                'font-size': '9px',
+                                'text-valign': 'center',
+                                'text-halign': 'center',
+                                'font-weight': '700',
+                                'text-wrap': 'ellipsis',
+                                'text-max-width': '74px',
+                                'font-family': 'ui-monospace, monospace'
+                            }
+                        },
+                        {
+                            selector: 'node[type="reaction"]:selected',
+                            style: {
+                                'border-color': '#059669',
+                                'border-width': 2.5,
+                                'background-color': '#a7f3d0',
+                                'color': '#064e3b'
+                            }
+                        },
+                        {
+                            selector: 'node[type="metabolite"]',
+                            style: {
+                                'shape': 'ellipse',
+                                'background-color': '#e0f2fe',
+                                'border-width': 1.8,
+                                'border-color': '#0284c7',
+                                'label': 'data(label)',
+                                'width': 42,
+                                'height': 42,
+                                'color': '#0f172a',
+                                'font-size': '8.5px',
+                                'text-valign': 'bottom',
+                                'text-margin-y': 5,
+                                'text-halign': 'center',
+                                'font-weight': '600'
+                            }
+                        },
+                        {
+                            selector: 'node[type="metabolite"][?isHub]',
+                            style: {
+                                'background-color': '#bae6fd',
+                                'border-color': '#0284c7',
+                                'width': 48,
+                                'height': 48,
+                                'color': '#0f172a'
+                            }
+                        },
+                        {
+                            selector: 'node[type="metabolite"]:selected',
+                            style: {
+                                'border-color': '#0369a1',
+                                'border-width': 2.5,
+                                'background-color': '#7dd3fc',
+                                'color': '#0f172a'
+                            }
+                        },
+                        {
+                            selector: 'edge[type="reactant-edge"]',
+                            style: {
+                                'width': 1.8,
+                                'line-color': '#6366f1',
+                                'target-arrow-color': '#6366f1',
+                                'target-arrow-shape': 'triangle',
+                                'curve-style': 'bezier',
+                                'arrow-scale': 0.9,
+                                'opacity': 0.8
+                            }
+                        },
+                        {
+                            selector: 'edge[type="product-edge"]',
+                            style: {
+                                'width': 1.8,
+                                'line-color': '#f97316',
+                                'target-arrow-color': '#f97316',
+                                'target-arrow-shape': 'triangle',
+                                'curve-style': 'bezier',
+                                'arrow-scale': 0.9,
+                                'opacity': 0.8
+                            }
+                        },
+                        {
+                            selector: 'node:active',
+                            style: { 'overlay-opacity': 0.1, 'overlay-color': '#000000' }
+                        }
+                    ],
+                    layout: {
+                        name: 'breadthfirst',
+                        animate: true,
+                        animationDuration: 400,
+                        directed: true,
+                        padding: 50,
+                        spacingFactor: 1.75,
+                        avoidOverlap: true,
+                        maximal: false
+                    },
+                    minZoom: 0.3,
+                    maxZoom: 4
+                });
+
+                if (loading) loading.classList.add('hidden');
+
+                // Update stats
+                if (statsEl) {
+                    const nc = pathwayKeggCy.nodes().length;
+                    const ec = pathwayKeggCy.edges().length;
+                    if (statNodes) statNodes.textContent = nc;
+                    if (statEdges) statEdges.textContent = ec;
+                    statsEl.classList.remove('hidden');
+                }
+
+                // Hover effects
+                pathwayKeggCy.on('mouseover', 'node', function(evt) {
+                    evt.target.connectedEdges().style({ 'opacity': 1, 'width': 2.5 });
+                });
+                pathwayKeggCy.on('mouseout', 'node', function(evt) {
+                    evt.target.connectedEdges().style({ 'opacity': 0.75, 'width': 1.8 });
+                });
+
+                // Node click → detail panel
+                pathwayKeggCy.on('tap', 'node', function(evt) {
+                    const node = evt.target;
+                    const data = node.data();
+
+                    if (detailContent) {
+                        if (data.type === 'reaction') {
+                            // Find connected metabolites
+                            const incoming = node.predecessors('node').map(n => n.data('label')).join(', ') || '—';
+                            const outgoing = node.successors('node').map(n => n.data('label')).join(', ') || '—';
+                            detailContent.innerHTML = `
+                                <div style="margin-bottom:10px;">
+                                    <div style="font-weight:700;color:var(--color-activation);font-size:12px;margin-bottom:4px;">${escapeHtml(data.label)}</div>
+                                    <div style="color:var(--text-secondary);font-size:10px;">${escapeHtml(data.name || 'No name')}</div>
+                                </div>
+                                <div style="background:rgba(46,125,50,0.05);border:1px solid rgba(46,125,50,0.15);border-radius:6px;padding:8px;margin-bottom:8px;">
+                                    <div style="font-size:9px;font-weight:700;color:var(--color-activation);margin-bottom:4px;text-transform:uppercase;">Equation</div>
+                                    <div style="font-family:monospace;font-size:9.5px;color:#1b5e20;word-break:break-all;line-height:1.5;">${escapeHtml(data.equation || '—')}</div>
+                                </div>
+                                <div style="font-size:10px;margin-bottom:4px;"><span style="color:#4f46e5;font-weight:600;">↳ Substrates:</span> <span style="color:#312e81;">${escapeHtml(incoming)}</span></div>
+                                <div style="font-size:10px;"><span style="color:#ea580c;font-weight:600;">↳ Products:</span> <span style="color:#7c2d12;">${escapeHtml(outgoing)}</span></div>`;
+                        } else if (data.type === 'metabolite') {
+                            const suffix = data.fullName.endsWith('_c') ? 'Cytosol' : data.fullName.endsWith('_e') ? 'Extracellular' : 'Unknown';
+                            const connectedRxns = node.neighborhood('node[type="reaction"]').map(n => n.data('label')).join(', ') || '—';
+                            detailContent.innerHTML = `
+                                <div style="margin-bottom:10px;">
+                                    <div style="font-weight:700;color:#0284c7;font-size:12px;margin-bottom:4px;">${escapeHtml(data.label)}</div>
+                                    <div style="font-family:monospace;color:var(--text-secondary);font-size:9.5px;">${escapeHtml(data.fullName)}</div>
+                                </div>
+                                <div style="font-size:10px;margin-bottom:6px;"><span style="color:var(--text-muted);">Compartment:</span> <span style="color:#0369a1;font-weight:600;">${suffix}</span></div>
+                                <div style="font-size:10px;"><span style="color:var(--text-muted);">In reactions:</span> <span style="color:#312e81;font-weight:600;">${escapeHtml(connectedRxns)}</span></div>`;
+                        }
+                    }
+                });
+
+                // Fit with animation
+                function doResize() {
+                    if (pathwayKeggCy) {
+                        pathwayKeggCy.resize();
+                        pathwayKeggCy.fit(undefined, 50);
+                    }
+                }
+                setTimeout(doResize, 250);
+                setTimeout(doResize, 700);
+
+            } catch (err) {
+                console.error("Failed to build KEGG pathway map in timeout:", err);
+                if (loading) loading.classList.add('hidden');
+                const container = document.getElementById('pathway-kegg-cy');
+                if (container) container.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#ef4444;gap:6px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:20px;"></i><div style="font-size:11px;">Failed: ${escapeHtml(err.message)}</div></div>`;
             }
-        });
-        
+        }, 100);
+
     } catch (err) {
         console.error("Failed to build KEGG pathway map:", err);
         if (loading) loading.classList.add('hidden');
         const container = document.getElementById('pathway-kegg-cy');
-        if (container) {
-            container.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#ef4444; font-size:11px;">Failed to generate KEGG pathway diagram: ${escapeHtml(err.message)}</div>`;
-        }
+        if (container) container.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#ef4444;gap:6px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:20px;"></i><div style="font-size:11px;">Failed: ${escapeHtml(err.message)}</div></div>`;
     }
 }
 
@@ -1329,6 +1465,54 @@ function renderPathwayRegulatorySummary(summary) {
     });
 }
 
+async function runPathwayKeggSelect() {
+    const sel = document.getElementById('pathway-kegg-select');
+    const query = sel?.value?.trim();
+    if (!query) return;
+
+    // Also sync left panel input if present
+    const leftInput = document.getElementById('pathway-view-input');
+    if (leftInput) leftInput.value = query;
+
+    const pathwayView = window.pathwayRegulatoryView;
+    if (!pathwayView) return;
+
+    const subtitle = document.getElementById('pathway-kegg-subtitle');
+    if (subtitle) subtitle.textContent = 'Analyzing pathway…';
+
+    try {
+        const graph = buildGlobalRegulatoryGraphForRanking();
+        const summary = await pathwayView.getPathwayRegulatorySummaryAsync(graph, query);
+        renderPathwayRegulatorySummary(summary);
+    } catch (err) {
+        console.error('Failed to run pathway from select:', err);
+    }
+}
+
+async function populatePathwayKeggSelect() {
+    const sel = document.getElementById('pathway-kegg-select');
+    if (!sel || sel.dataset.populated) return;
+    sel.dataset.populated = '1';
+
+    try {
+        const pathwayView = window.pathwayRegulatoryView;
+        if (!pathwayView?.loadPathwayOptions) return;
+        const options = await pathwayView.loadPathwayOptions();
+        if (!options || options.length === 0) return;
+        sel.innerHTML = options.map(p => {
+            const name = p.pathwayName || p.name || p.pathwayId || p.id || '';
+            const val = p.pathwayName || p.name || p.pathwayId || p.id || '';
+            return `<option value="${escapeHtml(val)}">${escapeHtml(name)}</option>`;
+        }).join('');
+        if (!sel.dataset.evBound) {
+            sel.dataset.evBound = '1';
+            sel.addEventListener('change', runPathwayKeggSelect);
+        }
+    } catch (err) {
+        console.warn('Could not load pathway options for select:', err);
+    }
+}
+
 async function runPathwayRegulatoryView() {
     const pathwayView = window.pathwayRegulatoryView;
     const input = document.getElementById('pathway-view-input');
@@ -1341,6 +1525,14 @@ async function runPathwayRegulatoryView() {
     if (result) result.innerHTML = '<div class="metabolic-empty">Analyzing pathway regulators...</div>';
 
     setActiveWorkflowEntry('pathway');
+
+    // Sync select dropdown
+    const sel = document.getElementById('pathway-kegg-select');
+    if (sel && query) {
+        // Try to find matching option
+        const matchingOption = Array.from(sel.options).find(o => o.value.toLowerCase().includes(query.toLowerCase()) || query.toLowerCase().includes(o.value.toLowerCase()));
+        if (matchingOption) sel.value = matchingOption.value;
+    }
 
     try {
         const graph = buildGlobalRegulatoryGraphForRanking();
@@ -1378,6 +1570,8 @@ function initPathwayRegulatoryView() {
         });
     });
     populatePathwayViewOptions();
+    // Also populate the new inline select
+    populatePathwayKeggSelect();
 }
 
 let engineeringTargetCandidates = [];
@@ -1616,13 +1810,36 @@ function setActiveWorkflowEntry(workflow) {
     if (pathwayKeggDashboard) {
         if (workflow === 'pathway') {
             pathwayKeggDashboard.classList.remove('hidden');
+            // Populate inline pathway select when overlay becomes visible
+            setTimeout(() => populatePathwayKeggSelect && populatePathwayKeggSelect(), 100);
         } else {
             pathwayKeggDashboard.classList.add('hidden');
         }
     }
 
+    // Toggle imodulon overlay container
+    const imodulonDashboard = document.getElementById('imodulon-overlay');
+    if (imodulonDashboard) {
+        if (workflow === 'imodulon') {
+            imodulonDashboard.classList.remove('hidden');
+            initIModulonDashboard();
+        } else {
+            imodulonDashboard.classList.add('hidden');
+        }
+    }
+
+    // Toggle topology overlay container
+    const topologyDashboard = document.getElementById('topology-overlay');
+    if (topologyDashboard) {
+        if (workflow === 'topology') {
+            topologyDashboard.classList.remove('hidden');
+        } else {
+            topologyDashboard.classList.add('hidden');
+        }
+    }
+
     // Toggle welcome overlay visibility based on fullscreen views
-    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway'];
+    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway', 'imodulon', 'topology'];
     const isFullscreen = fullscreenWorkflows.includes(workflow);
     
     if (canvasOverlay) {
@@ -1723,7 +1940,10 @@ function initWorkflowEntrypoints() {
             const input = document.getElementById('pathway-view-input');
             if (input) {
                 input.focus();
-                if (!input.value) input.value = 'glutamate metabolism';
+                if (!input.value) {
+                    input.value = 'glutamate metabolism';
+                }
+                runPathwayRegulatoryView();
             }
         });
     }
@@ -1775,6 +1995,23 @@ function initWorkflowEntrypoints() {
         rnaSeqEntry.dataset.bound = '1';
         rnaSeqEntry.addEventListener('click', () => {
             setActiveWorkflowEntry('rna-seq');
+        });
+    }
+
+    const imodulonEntry = document.getElementById('workflow-entry-imodulon');
+    if (imodulonEntry && !imodulonEntry.dataset.bound) {
+        imodulonEntry.dataset.bound = '1';
+        imodulonEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('imodulon');
+        });
+    }
+
+    const topologyEntry = document.getElementById('workflow-entry-topology');
+    if (topologyEntry && !topologyEntry.dataset.bound) {
+        topologyEntry.dataset.bound = '1';
+        topologyEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('topology');
+            initTopologyDashboard();
         });
     }
 }
@@ -3372,21 +3609,35 @@ function showNodeDetails(locusTag) {
                 // 1. Render KEGG Pathways
 
                 pathways.forEach(p => {
-
                     const badge = document.createElement('a');
-
                     badge.className = 'pathway-badge kegg';
+                    badge.href = 'javascript:void(0);';
+                    badge.title = `View in-app KEGG-style metabolic pathway map for ${p.name}`;
+                    badge.innerHTML = `<i class="fa-solid fa-diagram-project"></i> ${p.name}`;
+                    
+                    badge.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const input = document.getElementById('pathway-view-input');
+                        if (input) {
+                            input.value = p.name;
+                            setActiveWorkflowEntry('pathway');
+                            scrollLeftSidebarTo('.pathway-regulatory-view-section');
+                            runPathwayRegulatoryView();
+                        }
+                    });
 
-                    badge.href = p.link;
-
-                    badge.target = '_blank';
-
-                    badge.title = `KEGG pathway: ${p.id} (open map in a new tab and highlight this gene)`;
-
-                    badge.innerHTML = `<i class="fa-solid fa-map"></i> ${p.name} <i class="fa-solid fa-arrow-up-right-from-square"></i>`;
-
+                    const extLink = document.createElement('span');
+                    extLink.style.marginLeft = '6px';
+                    extLink.style.cursor = 'pointer';
+                    extLink.title = `Open official KEGG map for ${p.id} in a new tab`;
+                    extLink.innerHTML = `<i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px; opacity: 0.8;"></i>`;
+                    extLink.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        window.open(p.link, '_blank');
+                    });
+                    badge.appendChild(extLink);
+                    
                     pathwayContainer.appendChild(badge);
-
                 });
 
                 
@@ -11185,22 +11436,39 @@ function updateQualityDashboard() {
     renderGeneTagList('list-enz-unmapped', report.enzymeConstraintCoverage.unmappedEnzymeGenes);
 
     const warningBanner = document.getElementById('quality-warning-banner');
-    const warningText = document.getElementById('quality-warning-text');
-    if (warningBanner && warningText) {
-        const warnings = [];
-        if (metaCoveragePercent < 45) {
-            warnings.push(`Metabolic mapping coverage is low (${metaCoveragePercent.toFixed(1)}%). Some regulatory genes are not captured in the iCW773 model.`);
-        }
-        if (enzCoveragePercent < 25) {
-            warnings.push(`ecCGL1 enzyme constraint coverage is low (${enzCoveragePercent.toFixed(1)}%). Many mapped reactions lack enzyme parameters (kcat, molecular weight).`);
-        }
-        
-        if (warnings.length > 0) {
-            warningText.innerHTML = warnings.join('<br>');
-            warningBanner.classList.remove('hidden');
-        } else {
-            warningBanner.classList.add('hidden');
-        }
+    if (warningBanner) {
+        warningBanner.classList.add('hidden');
+    }
+
+    // --- iCGB21FR coverage card (async fetch) ---
+    const icgbCard = document.getElementById('stat-icgb-coverage');
+    if (icgbCard) {
+        icgbCard.textContent = '…';
+
+        fetch('/api/quality/icgb21fr')
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+                const total = data.regulatory_gene_count || 0;
+                const mapped = data.genes_mapped_to_reactions || 0;
+                const pct = total > 0 ? (mapped / total * 100).toFixed(1) : '0.0';
+
+                document.getElementById('stat-icgb-coverage').textContent = pct + '%';
+                document.getElementById('stat-icgb-progress').style.width = pct + '%';
+                document.getElementById('stat-icgb-total-genes').textContent = total;
+                document.getElementById('stat-icgb-rxn-genes').textContent = mapped;
+                document.getElementById('stat-icgb-path-genes').textContent = data.genes_mapped_to_pathways || 0;
+                document.getElementById('stat-icgb-rxns').textContent = data.unique_mapped_reactions || 0;
+                document.getElementById('stat-icgb-paths').textContent = data.unique_mapped_pathways || 0;
+                document.getElementById('stat-icgb-model-total').textContent = data.model_genes || 0;
+                document.getElementById('stat-icgb-unmapped-count').textContent = data.unmapped_gene_count || 0;
+
+                renderGeneTagList('list-icgb-unmapped', data.unmapped_genes || []);
+            })
+            .catch(err => {
+                document.getElementById('stat-icgb-coverage').textContent = 'Error';
+                console.warn('iCGB21FR quality fetch failed:', err.message);
+            });
     }
 }
 
@@ -11539,7 +11807,7 @@ function initGlutamateScenarioDashboard() {
             searchBtn.disabled = true;
             
             try {
-                const response = await fetch('http://127.0.0.1:8001/api/model/reactions/glutamate-candidates');
+                const response = await fetch('/api/model/reactions/glutamate-candidates');
                 if (!response.ok) {
                     throw new Error(`API error: ${response.statusText}`);
                 }
@@ -11581,7 +11849,7 @@ function initGlutamateScenarioDashboard() {
             } catch (err) {
                 console.error("Failed to fetch glutamate candidates:", err);
                 if (errorBox) {
-                    errorBox.textContent = `Failed to retrieve glutamate candidates from backend: ${err.message}. Please make sure the FBA backend on port 8001 is running.`;
+                    errorBox.textContent = `Failed to retrieve glutamate candidates from backend: ${err.message}. Please make sure the backend server is running.`;
                     errorBox.classList.remove('hidden');
                 }
             } finally {
@@ -11939,4 +12207,740 @@ function runGlutamateScenarioFromEngineering(tfId) {
         const runBtn = document.getElementById('btn-run-glutamate-scenario');
         if (runBtn) runBtn.click();
     }
+}
+
+// ==========================================
+// iModulon Explorer Dashboard Orchestrator
+// ==========================================
+let imodulonsMetadata = null;
+let imodulonsWeights = null;
+let selectedIModulonId = null;
+let activeIModulonTab = 'overview';
+
+async function initIModulonDashboard() {
+    // 1. Fetch data if not already loaded
+    if (!imodulonsMetadata || !imodulonsWeights) {
+        try {
+            showToast('iModulon Explorer', 'Loading full 87 iModulons dataset...', 'info');
+            const [metaResp, weightsResp] = await Promise.all([
+                fetch('/data/imodulon/imodulon_metadata.json'),
+                fetch('/data/imodulon/imodulon_gene_weights.json')
+            ]);
+            if (!metaResp.ok || !weightsResp.ok) {
+                throw new Error('Failed to fetch iModulon data files');
+            }
+            imodulonsMetadata = await metaResp.json();
+            imodulonsWeights = await weightsResp.json();
+            showToast('iModulon Explorer', 'iModulon dataset loaded successfully!', 'success');
+        } catch (e) {
+            console.error(e);
+            showToast('iModulon Explorer', 'Failed to load iModulon data: ' + e.message, 'error');
+            return;
+        }
+    }
+
+    // 2. Render sidebar list
+    renderIModulonList(imodulonsMetadata);
+
+    // 3. Setup event listeners
+    const searchInput = document.getElementById('imodulon-search');
+    if (searchInput) {
+        searchInput.oninput = (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = imodulonsMetadata.filter(im => 
+                (im.name || '').toLowerCase().includes(query) ||
+                (im.linked_regulator || '').toLowerCase().includes(query) ||
+                (im.category || '').toLowerCase().includes(query) ||
+                (im.description || '').toLowerCase().includes(query)
+            );
+            renderIModulonList(filtered);
+        };
+    }
+
+    // Setup tab buttons
+    document.querySelectorAll('#imodulon-overlay .imodulon-tab-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            document.querySelectorAll('#imodulon-overlay .imodulon-tab-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            activeIModulonTab = e.target.getAttribute('data-tab');
+            updateIModulonTabContent();
+        };
+    });
+
+    // Setup simulation run button
+    const runSimBtn = document.getElementById('btn-run-imodulon-sim');
+    if (runSimBtn) {
+        runSimBtn.onclick = runIModulonSimulation;
+    }
+}
+
+function renderIModulonList(items) {
+    const container = document.getElementById('imodulon-list-container');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (items.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding:20px; font-style:italic;">No iModulons found</div>';
+        return;
+    }
+
+    items.forEach(im => {
+        const div = document.createElement('div');
+        div.className = 'imodulon-item' + (selectedIModulonId === im.id ? ' active' : '');
+        div.setAttribute('data-id', im.id);
+        
+        const regText = im.linked_regulator ? ` | Reg: ${im.linked_regulator}` : '';
+        
+        div.innerHTML = `
+            <div style="font-weight:700; font-size:11.5px; display:flex; justify-content:space-between; align-items:center;">
+                <span>${im.name}</span>
+                <span style="font-size:9px; opacity:0.8;">${im.variance_explained.toFixed(2)}% var</span>
+            </div>
+            <div style="font-size:9.5px; margin-top:2px; opacity:0.8; display:flex; justify-content:space-between;">
+                <span>${im.category}</span>
+                <span>Genes: ${im.gene_count}${regText}</span>
+            </div>
+        `;
+        
+        div.onclick = () => {
+            selectedIModulonId = im.id;
+            document.querySelectorAll('#imodulon-overlay .imodulon-item').forEach(el => el.classList.remove('active'));
+            div.classList.add('active');
+            showIModulonDetails();
+        };
+        
+        container.appendChild(div);
+    });
+}
+
+function showIModulonDetails() {
+    const detailContainer = document.getElementById('imodulon-detail-container');
+    const emptyContainer = document.getElementById('imodulon-empty-container');
+    if (!detailContainer || !emptyContainer) return;
+
+    detailContainer.style.display = 'flex';
+    emptyContainer.style.display = 'none';
+
+    const im = imodulonsMetadata.find(i => i.id === selectedIModulonId);
+    const weights = imodulonsWeights[selectedIModulonId];
+    if (!im || !weights) return;
+
+    const simResults = document.getElementById('imodulon-sim-results');
+    if (simResults) simResults.classList.add('hidden');
+
+    document.getElementById('imodulon-detail-title').textContent = im.name;
+    const badge = document.getElementById('imodulon-detail-badge');
+    badge.textContent = im.category;
+    badge.style.background = getCategoryColor(im.category);
+    document.getElementById('imodulon-detail-desc').textContent = im.description || 'No functional description provided.';
+
+    document.getElementById('imodulon-stat-variance').textContent = `${im.variance_explained.toFixed(2)}%`;
+    document.getElementById('imodulon-stat-genes').textContent = im.gene_count;
+    document.getElementById('imodulon-stat-threshold').textContent = im.threshold.toFixed(3);
+
+    const overlap = weights.regulon_overlap;
+    if (overlap) {
+        document.getElementById('imodulon-stat-regulator').innerHTML = `<span style="font-weight:700; color:#4f46e5; cursor:pointer;" onclick="searchAndExploreGene('${overlap.regulator}')"><i class="fa-solid fa-square-arrow-up-right"></i> ${overlap.regulator}</span>`;
+        document.getElementById('imodulon-stat-precision').textContent = `${(overlap.precision * 100).toFixed(1)}%`;
+        document.getElementById('imodulon-stat-recall').textContent = `${(overlap.recall * 100).toFixed(1)}%`;
+        document.getElementById('imodulon-stat-f1').textContent = overlap.f1_score.toFixed(3);
+    } else {
+        document.getElementById('imodulon-stat-regulator').textContent = im.linked_regulator || 'None';
+        document.getElementById('imodulon-stat-precision').textContent = '-';
+        document.getElementById('imodulon-stat-recall').textContent = '-';
+        document.getElementById('imodulon-stat-f1').textContent = '-';
+    }
+
+    const engRationale = document.getElementById('imodulon-engineering-rationale');
+    if (engRationale) {
+        if (im.linked_regulator) {
+            const f1 = overlap ? overlap.f1_score : 0.0;
+            const score = f1 * 50 + (im.gene_count / 10);
+            let priority = 'Low';
+            let priorityColor = '#64748b';
+            if (score > 40) { priority = 'High'; priorityColor = '#ef4444'; }
+            else if (score > 15) { priority = 'Medium'; priorityColor = '#f59e0b'; }
+            
+            engRationale.innerHTML = `
+                Regulator <strong>${im.linked_regulator}</strong> regulates ${im.gene_count} genes in this iModulon.<br/>
+                Engineering Priority Score: <strong style="color:${priorityColor}; font-size:12px;">${score.toFixed(1)} (${priority} Priority)</strong><br/>
+                <span style="font-size:10px; color:#4b5563;">Rationale: Overlap with known regulon targets is ${(f1 * 100).toFixed(1)}% (F1: ${f1.toFixed(3)}). Targeted metabolic engineerings of this regulator may perturb downstream fluxes in metabolic pathway: ${im.top_pathways.join(', ') || 'Unassigned'}.</span>
+            `;
+        } else {
+            engRationale.innerHTML = `No linked regulator identified for this iModulon. Direct metabolic engineering of target genes inside the membership list is recommended.`;
+        }
+    }
+
+    updateIModulonTabContent();
+}
+
+function getCategoryColor(cat) {
+    const map = {
+        'Stress Response': '#ef4444',
+        'Carbon Metabolism': '#3b82f6',
+        'Amino Acid Biosynthesis': '#10b981',
+        'Translation': '#f59e0b',
+        'Uncharacterized': '#6b7280',
+        'Sigma Factor': '#8b5cf6',
+        'Metal Homeostasis': '#06b6d4'
+    };
+    return map[cat] || '#6366f1';
+}
+
+function updateIModulonTabContent() {
+    document.querySelectorAll('#imodulon-overlay .imodulon-subtab-panel').forEach(p => p.classList.add('hidden'));
+    
+    const activePanel = document.getElementById(`imodulon-tab-${activeIModulonTab}`);
+    if (activePanel) activePanel.classList.remove('hidden');
+
+    const weights = imodulonsWeights[selectedIModulonId];
+    if (!weights) return;
+
+    if (activeIModulonTab === 'pathway') {
+        const tbody = document.getElementById('imodulon-pathway-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const pathways = weights.enriched_pathways || [];
+        if (pathways.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:10px; color:var(--text-secondary); font-style:italic;">No significantly enriched pathways found</td></tr>';
+            return;
+        }
+        pathways.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid var(--border-color)';
+            tr.innerHTML = `
+                <td style="padding:6px;"><strong style="color:var(--text-primary);">${p.pathway_name}</strong> <span style="font-size:9.5px; color:#64748b;">(${p.pathway_id})</span></td>
+                <td style="padding:6px; text-align:right; font-weight:600;">${p.fold_enrichment.toFixed(2)}x</td>
+                <td style="padding:6px; text-align:right; font-family:monospace;">${p.p_value.toExponential(3)}</td>
+                <td style="padding:6px; text-align:center;">
+                    <button class="secondary-btn" style="padding:2px 8px; font-size:9.5px;" onclick="viewPathwayMap('${p.pathway_id}')"><i class="fa-solid fa-map"></i> View Map</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else if (activeIModulonTab === 'membership') {
+        const tbody = document.getElementById('imodulon-membership-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const genes = weights.genes || {};
+        const sortedGenes = Object.entries(genes).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+        
+        sortedGenes.forEach(([locus, val]) => {
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid var(--border-color)';
+            
+            const geneName = window.GENE_NAMES ? (window.GENE_NAMES[locus] || locus) : locus;
+            
+            tr.innerHTML = `
+                <td style="padding:6px;"><span style="font-weight:700; color:#4f46e5; cursor:pointer;" onclick="searchAndExploreGene('${locus}')"><i class="fa-solid fa-magnifying-glass"></i> ${locus}</span></td>
+                <td style="padding:6px; font-weight:600;">${geneName}</td>
+                <td style="padding:6px; text-align:right; font-family:monospace; color:${val >= 0 ? '#10b981' : '#ef4444'}; font-weight:700;">${val.toFixed(4)}</td>
+                <td style="padding:6px; color:#64748b; font-size:10px;">Catalyzes metabolic functions in Corynebacterium glutamicum.</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else if (activeIModulonTab === 'reactions') {
+        const tbody = document.getElementById('imodulon-reactions-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading reaction mapping...</td></tr>';
+        
+        fetch(`/api/imodulon/reactions?imodulon=${encodeURIComponent(selectedIModulonId)}`)
+            .then(r => r.json())
+            .then(data => {
+                tbody.innerHTML = '';
+                const rxns = data.reactions || [];
+                if (rxns.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:10px; color:var(--text-secondary); font-style:italic;">No associated GEM reactions mapped for this module</td></tr>';
+                    return;
+                }
+                rxns.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid var(--border-color)';
+                    
+                    const kcatVal = r.kcat_MW ? r.kcat_MW.toFixed(2) : '-';
+                    const modelBadgeColor = r.model === 'iCW773' ? '#0f766e' : '#4f46e5';
+                    
+                    tr.innerHTML = `
+                        <td style="padding:6px;"><strong style="font-family:monospace; color:var(--text-primary);">${r.reactionId}</strong></td>
+                        <td style="padding:6px; font-size:10px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
+                        <td style="padding:6px;"><span class="badge" style="background:${modelBadgeColor}; color:white; font-size:9px; padding:2px 6px;">${r.model}</span></td>
+                        <td style="padding:6px; color:#64748b; font-size:10px;">${r.pathway_name || 'Unassigned'}</td>
+                        <td style="padding:6px; text-align:right; font-family:monospace; font-weight:600;">${kcatVal}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:#ef4444;"><i class="fa-solid fa-circle-exclamation"></i> Error loading mappings: ${err.message}</td></tr>`;
+            });
+    }
+}
+
+async function runIModulonSimulation() {
+    const runBtn = document.getElementById('btn-run-imodulon-sim');
+    const resultsPanel = document.getElementById('imodulon-sim-results');
+    if (!runBtn || !resultsPanel) return;
+
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running simulations...';
+    resultsPanel.classList.add('hidden');
+
+    try {
+        const resp = await fetch(`/api/imodulon/simulation?imodulon=${encodeURIComponent(selectedIModulonId)}`);
+        if (!resp.ok) throw new Error('Simulation endpoint returned ' + resp.status);
+        const data = await resp.json();
+
+        const fba = data.fba || {};
+        const renderFluxChange = (val) => {
+            if (val === undefined || isNaN(val)) return '-';
+            const sign = val >= 0 ? '+' : '';
+            const color = val >= 0 ? '#10b981' : '#ef4444';
+            return `<strong style="color:${color};">${sign}${val.toFixed(1)}%</strong>`;
+        };
+
+        const growthPct = fba.objectiveChangePercent;
+        const tracked = fba.trackedFluxes || [];
+        const lysItem = tracked.find(t => t.reactionId === 'EX_lys_L_e') || {};
+        const gluItem = tracked.find(t => t.reactionId === 'EX_glu_L_e') || {};
+
+        document.getElementById('imodulon-sim-fba-growth').innerHTML = renderFluxChange(growthPct);
+        document.getElementById('imodulon-sim-fba-lysine').innerHTML = renderFluxChange(lysItem.fluxChangePercent);
+        document.getElementById('imodulon-sim-fba-glutamate').innerHTML = renderFluxChange(gluItem.fluxChangePercent);
+
+        const ec = data.ecfba || {};
+        const renderEcValue = (val) => {
+            if (val === undefined || isNaN(val)) return '-';
+            const color = val > 1e-4 ? '#10b981' : '#ef4444';
+            return `<strong style="color:${color}; font-family:monospace;">${val.toFixed(4)}</strong>`;
+        };
+
+        document.getElementById('imodulon-sim-ec-growth').innerHTML = renderEcValue(ec.growth);
+        document.getElementById('imodulon-sim-ec-lysine').innerHTML = renderEcValue(ec.lysine);
+        document.getElementById('imodulon-sim-ec-glutamate').innerHTML = renderEcValue(ec.glutamate);
+
+        resultsPanel.classList.remove('hidden');
+        showToast('Knockout Simulation', 'Knockout simulations completed successfully!', 'success');
+    } catch (e) {
+        console.error(e);
+        showToast('Knockout Simulation', 'Simulation failed: ' + e.message, 'error');
+    } finally {
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Knockout Simulation';
+    }
+}
+
+function searchAndExploreGene(geneId) {
+    setActiveWorkflowEntry('gene');
+    const searchInput = document.getElementById('gene-search');
+    if (searchInput) {
+        searchInput.value = geneId;
+        const searchBtn = document.getElementById('btn-search-gene');
+        if (searchBtn) searchBtn.click();
+    }
+}
+
+function viewPathwayMap(pathwayId) {
+    setActiveWorkflowEntry('pathway');
+    const input = document.getElementById('pathway-search-input');
+    if (input) {
+        input.value = pathwayId;
+        const searchBtn = document.getElementById('btn-search-pathways');
+        if (searchBtn) searchBtn.click();
+    }
+}
+
+// ── Network Topology & Motif Analysis Dashboard ───────────────────────────────
+
+let _topoReport = null; // cached result
+
+function initTopologyDashboard() {
+    // Wire compute button
+    const btn = document.getElementById('btn-topology-compute');
+    if (btn && !btn._topoWired) {
+        btn._topoWired = true;
+        btn.addEventListener('click', runTopologyAnalysis);
+    }
+    // Wire tab buttons
+    document.querySelectorAll('[data-topo-tab]').forEach(tabBtn => {
+        if (tabBtn._topoTabWired) return;
+        tabBtn._topoTabWired = true;
+        tabBtn.addEventListener('click', () => {
+            document.querySelectorAll('[data-topo-tab]').forEach(b => b.classList.remove('active'));
+            tabBtn.classList.add('active');
+            const tabId = tabBtn.getAttribute('data-topo-tab');
+            document.querySelectorAll('.topo-tab-content').forEach(t => t.style.display = 'none');
+            const tabEl = document.getElementById(`topo-tab-${tabId}`);
+            if (tabEl) tabEl.style.display = '';
+        });
+    });
+    // Wire FFL filter
+    const fflFilter = document.getElementById('topo-ffl-filter-type');
+    if (fflFilter && !fflFilter._topoWired) {
+        fflFilter._topoWired = true;
+        fflFilter.addEventListener('change', () => { if (_topoReport) renderFFL(_topoReport); });
+    }
+    // Wire multi-input filter
+    const multiFilter = document.getElementById('topo-multi-filter');
+    if (multiFilter && !multiFilter._topoWired) {
+        multiFilter._topoWired = true;
+        multiFilter.addEventListener('change', () => { if (_topoReport) renderMultiInput(_topoReport); });
+    }
+}
+
+function runTopologyAnalysis() {
+    if (!window.networkTopology) {
+        showToast('networkTopology library not loaded', 'error'); return;
+    }
+    // Collect edges from global regulations data
+    const rawEdges = [];
+    if (regulations && Array.isArray(regulations) && regulations.length > 0) {
+        regulations.forEach(r => {
+            rawEdges.push({
+                TF_locusTag: r.TF_locusTag || r.tf_locus || r.source || '',
+                TG_locusTag: r.TG_locusTag || r.tg_locus || r.target || '',
+                TF_name: r.TF_name || r.tf_name || '',
+                TG_name: r.TG_name || r.tg_name || '',
+                Role: r.Role || r.role || '',
+                Evidence: r.Evidence || r.evidence || ''
+            });
+        });
+    }
+    if (rawEdges.length === 0) {
+        showToast('No regulation data loaded yet. Please wait for data to load.', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btn-topology-compute');
+    const statusEl = document.getElementById('topology-compute-status');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Computing…'; }
+    if (statusEl) statusEl.textContent = 'Running topology analysis…';
+
+    // Use setTimeout to allow UI to repaint before heavy computation
+    setTimeout(() => {
+        try {
+            const t0 = Date.now();
+            const report = window.networkTopology.getTopologyReport(rawEdges, {
+                useBetweenness: true,
+                maxCentralitySources: 150
+            });
+            _topoReport = report;
+            const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+
+            renderTopologyReport(report);
+
+            if (statusEl) statusEl.textContent = `Completed in ${elapsed}s`;
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Recompute'; }
+        } catch (err) {
+            console.error('Topology analysis error:', err);
+            showToast('Topology analysis failed: ' + err.message, 'error');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-play"></i> Compute Analysis'; }
+        }
+    }, 50);
+}
+
+function renderTopologyReport(report) {
+    const s = report.summary;
+
+    // Show cards and tabs, hide placeholder
+    const placeholder = document.getElementById('topology-placeholder');
+    const cards = document.getElementById('topology-summary-cards');
+    const tabs = document.getElementById('topology-tabs-area');
+    if (placeholder) placeholder.style.display = 'none';
+    if (cards) cards.style.display = '';
+    if (tabs) tabs.style.display = '';
+
+    // Fill summary stats
+    setText('topo-stat-nodes', s.nodeCount);
+    setText('topo-stat-edges', s.edgeCount);
+    setText('topo-stat-tfs', s.tfCount);
+    setText('topo-stat-avg-out', s.avgOutDegree);
+    setText('topo-stat-exp', s.experimentalEdges);
+    setText('topo-stat-pred', s.predictedEdges);
+    setText('topo-stat-act', s.activationEdges);
+    setText('topo-stat-rep', s.repressionEdges);
+    setText('topo-stat-auto', s.autoRegCount);
+    setText('topo-stat-mutual', s.mutualRegCount);
+    setText('topo-stat-ffl', s.fflCount);
+    setText('topo-stat-cffl', s.coherentFFL);
+    setText('topo-stat-iffl', s.incoherentFFL);
+    setText('topo-stat-multi', s.multiInputCount);
+    setText('topo-stat-bifan', s.biFanCount);
+
+    // Hub TF mini-card (top 5)
+    const miniEl = document.getElementById('topo-hub-mini');
+    if (miniEl && report.hubTFs.length > 0) {
+        const maxOut = report.hubTFs[0].outDegree;
+        miniEl.innerHTML = report.hubTFs.slice(0, 5).map((tf, i) => {
+            const pct = maxOut > 0 ? Math.round(tf.outDegree / maxOut * 100) : 0;
+            const autoTag = tf.isAutoRegulated ? ' 🔁' : '';
+            return `<div style="margin-bottom:6px;">
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;margin-bottom:2px;">
+                    <span><span style="color:var(--text-muted);margin-right:4px;">#${i+1}</span>
+                    <a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}">${escapeHtml(tf.name !== tf.locus ? tf.name : tf.locus)}${autoTag}</a></span>
+                    <span style="color:var(--text-secondary)">${tf.outDegree}</span>
+                </div>
+                <div style="background:#e2e8f0;border-radius:3px;height:4px;overflow:hidden;">
+                    <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:100%;width:${pct}%;"></div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    renderHubTFTable(report);
+    renderFFL(report);
+    renderAutoregulation(report);
+    renderMutualRegulation(report);
+    renderMultiInput(report);
+    renderBiFan(report);
+
+    // Bind gene jump links
+    document.querySelectorAll('.topo-gene-link').forEach(a => {
+        if (a._topoGeneWired) return;
+        a._topoGeneWired = true;
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            const locus = a.getAttribute('data-locus');
+            if (locus) {
+                setActiveWorkflowEntry('gene');
+                setTimeout(() => { queryGene(locus); }, 100);
+            }
+        });
+    });
+}
+
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val != null ? val : '–';
+}
+
+function renderHubTFTable(report) {
+    const tbody = document.getElementById('topo-hub-tbody');
+    if (!tbody) return;
+    const maxOut = report.hubTFs.length > 0 ? report.hubTFs[0].outDegree : 1;
+    const bc = report.betweenness || {};
+    tbody.innerHTML = report.hubTFs.slice(0, 50).map((tf, i) => {
+        const pct = maxOut > 0 ? Math.round(tf.outDegree / maxOut * 100) : 0;
+        const autoCell = tf.isAutoRegulated
+            ? `<span style="color:${tf.autoRole==='A'?'#16a34a':'#dc2626'};font-weight:700;">${tf.autoRole==='A'?'+ Positive':'- Negative'}</span>`
+            : '<span style="color:var(--text-muted);">–</span>';
+        const bcVal = bc[tf.locus] != null ? bc[tf.locus].toFixed(4) : '–';
+        const bar = `<div style="background:#e2e8f0;border-radius:3px;height:6px;width:80px;overflow:hidden;display:inline-block;">
+            <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:100%;width:${pct}%;"></div></div>`;
+        return `<tr style="border-bottom:1px solid var(--border-color);cursor:pointer;" onmouseover="this.style.background='rgba(99,102,241,0.04)'" onmouseout="this.style.background=''">
+            <td style="padding:7px 10px;color:var(--text-muted);">${i+1}</td>
+            <td style="padding:7px 10px;"><a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(tf.name !== tf.locus ? tf.name + ' (' + tf.locus + ')' : tf.locus)}</a></td>
+            <td style="padding:7px 10px;text-align:center;font-weight:700;">${tf.outDegree}</td>
+            <td style="padding:7px 10px;text-align:center;">${tf.inDegree}</td>
+            <td style="padding:7px 10px;text-align:center;color:#16a34a;">${tf.activationCount}</td>
+            <td style="padding:7px 10px;text-align:center;color:#dc2626;">${tf.repressionCount}</td>
+            <td style="padding:7px 10px;text-align:center;">${autoCell}</td>
+            <td style="padding:7px 10px;text-align:center;font-family:monospace;font-size:11px;">${bcVal}</td>
+            <td style="padding:7px 10px;text-align:center;">${bar}</td>
+        </tr>`;
+    }).join('');
+    // Rebind gene links
+    tbody.querySelectorAll('.topo-gene-link').forEach(a => {
+        if (a._topoGeneWired) return;
+        a._topoGeneWired = true;
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            setActiveWorkflowEntry('gene');
+            setTimeout(() => queryGene(a.getAttribute('data-locus')), 100);
+        });
+    });
+}
+
+function renderFFL(report) {
+    const container = document.getElementById('topo-ffl-list');
+    if (!container) return;
+    const filterType = (document.getElementById('topo-ffl-filter-type') || {}).value || 'all';
+
+    container.innerHTML = report.fflsByMasterTF.map(group => {
+        const filtered = filterType === 'all' ? group.ffls
+            : filterType === 'coherent' ? group.ffls.filter(f => f.isCoherent)
+            : group.ffls.filter(f => !f.isCoherent);
+        if (filtered.length === 0) return '';
+
+        const ffls = filtered.slice(0, 30); // cap per group
+        const countBadge = `<span style="background:#6366f115;color:#6366f1;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:700;margin-left:6px;">${group.ffls.length} FFL${group.ffls.length!==1?'s':''}</span>`;
+        const cBadge = group.coherentCount > 0 ? `<span style="background:#dcfce7;color:#16a34a;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:4px;">${group.coherentCount} coherent</span>` : '';
+        const iBadge = group.incoherentCount > 0 ? `<span style="background:#fef3c7;color:#d97706;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:4px;">${group.incoherentCount} incoherent</span>` : '';
+
+        const rows = ffls.map(ffl => {
+            const typeStyle = ffl.isCoherent
+                ? 'background:#dcfce7;color:#16a34a;'
+                : 'background:#fef3c7;color:#d97706;';
+            const roleIcon = r => r === 'A' ? '<span style="color:#16a34a;font-weight:700;">→+</span>'
+                : r === 'R' ? '<span style="color:#dc2626;font-weight:700;">→-</span>'
+                : '<span style="color:var(--text-muted);">→?</span>';
+            return `<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:12px;border-top:1px solid var(--border-color);">
+                <span style="flex:0 0 auto;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;${typeStyle}">${ffl.subtype}</span>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.masterTF)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(ffl.masterTFName !== ffl.masterTF ? ffl.masterTFName : ffl.masterTF)}</a>
+                ${roleIcon(ffl.roleAB)}
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.intermediateTF)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(ffl.intermediateTFName !== ffl.intermediateTF ? ffl.intermediateTFName : ffl.intermediateTF)}</a>
+                ${roleIcon(ffl.roleBC)}
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.target)}" style="color:var(--text-primary);text-decoration:none;">${escapeHtml(ffl.targetName !== ffl.target ? ffl.targetName + ' (' + ffl.target + ')' : ffl.target)}</a>
+                <span style="color:var(--text-muted);font-size:10px;margin-left:auto;">[also ${escapeHtml(ffl.masterTFName!==ffl.masterTF?ffl.masterTFName:ffl.masterTF)} ${roleIcon(ffl.roleAC)} target]</span>
+            </div>`;
+        }).join('');
+        const more = filtered.length > 30 ? `<div style="padding:5px 12px;font-size:11px;color:var(--text-muted);">… and ${filtered.length - 30} more</div>` : '';
+
+        return `<details style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;list-style:none;display:flex;align-items:center;gap:4px;">
+                <i class="fa-solid fa-chevron-right" style="font-size:10px;transition:transform 0.2s;"></i>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(group.locus)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(group.name !== group.locus ? group.name + ' (' + group.locus + ')' : group.locus)}</a>
+                ${countBadge}${cBadge}${iBadge}
+                <span style="margin-left:auto;color:var(--text-secondary);font-size:11px;">out-degree: ${group.outDegree}</span>
+            </summary>
+            ${rows}${more}
+        </details>`;
+    }).join('');
+
+    // Open chevron animation
+    container.querySelectorAll('details').forEach(d => {
+        d.addEventListener('toggle', () => {
+            const chevron = d.querySelector('summary .fa-chevron-right');
+            if (chevron) chevron.style.transform = d.open ? 'rotate(90deg)' : '';
+        });
+    });
+
+    // Gene links
+    container.querySelectorAll('.topo-gene-link').forEach(a => {
+        if (a._topoGeneWired) return;
+        a._topoGeneWired = true;
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            setActiveWorkflowEntry('gene');
+            setTimeout(() => queryGene(a.getAttribute('data-locus')), 100);
+        });
+    });
+}
+
+function renderAutoregulation(report) {
+    const tbody = document.getElementById('topo-auto-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = report.autoRegs.map(ar => {
+        const roleLabel = ar.role === 'A'
+            ? '<span style="background:#dcfce7;color:#16a34a;padding:1px 8px;border-radius:8px;font-size:11px;font-weight:700;">+ Positive</span>'
+            : ar.role === 'R'
+            ? '<span style="background:#fee2e2;color:#dc2626;padding:1px 8px;border-radius:8px;font-size:11px;font-weight:700;">– Negative</span>'
+            : '<span style="color:var(--text-muted);">Unknown</span>';
+        const evBadge = ar.evidence ? `<span style="font-size:10px;color:var(--text-secondary);">${escapeHtml(ar.evidence)}</span>` : '';
+        return `<tr style="border-bottom:1px solid var(--border-color);">
+            <td style="padding:7px 10px;"><a href="#" class="topo-gene-link" data-locus="${escapeHtml(ar.locus)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(ar.name !== ar.locus ? ar.name + ' (' + ar.locus + ')' : ar.locus)}</a></td>
+            <td style="padding:7px 10px;text-align:center;">${roleLabel}</td>
+            <td style="padding:7px 10px;text-align:center;">${evBadge}</td>
+            <td style="padding:7px 10px;text-align:center;">${ar.outDegree}</td>
+            <td style="padding:7px 10px;text-align:center;"><button class="topo-gene-link secondary-btn" data-locus="${escapeHtml(ar.locus)}" style="font-size:11px;padding:2px 10px;cursor:pointer;border:1px solid var(--border-color);border-radius:5px;background:none;">View</button></td>
+        </tr>`;
+    }).join('');
+    tbody.querySelectorAll('.topo-gene-link').forEach(el => {
+        if (el._topoGeneWired) return;
+        el._topoGeneWired = true;
+        el.addEventListener('click', e => {
+            e.preventDefault();
+            setActiveWorkflowEntry('gene');
+            setTimeout(() => queryGene(el.getAttribute('data-locus')), 100);
+        });
+    });
+}
+
+function renderMutualRegulation(report) {
+    const container = document.getElementById('topo-mutual-list');
+    if (!container) return;
+    container.innerHTML = report.mutualRegs.map(mr => {
+        const roleAB = mr.roleAB === 'A' ? '→+' : mr.roleAB === 'R' ? '→−' : '→?';
+        const roleBA = mr.roleBA === 'A' ? '→+' : mr.roleBA === 'R' ? '→−' : '→?';
+        const colorAB = mr.roleAB === 'A' ? '#16a34a' : mr.roleAB === 'R' ? '#dc2626' : '#64748b';
+        const colorBA = mr.roleBA === 'A' ? '#16a34a' : mr.roleBA === 'R' ? '#dc2626' : '#64748b';
+        return `<div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:10px;padding:16px 20px;min-width:260px;max-width:340px;">
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:10px;">
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(mr.nodeA)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:13px;">${escapeHtml(mr.nameA)}</a>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <span style="color:${colorAB};font-weight:700;font-size:12px;">${roleAB}</span>
+                    <span style="color:${colorBA};font-weight:700;font-size:12px;transform:scaleX(-1);display:inline-block;">${roleBA}</span>
+                </div>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(mr.nodeB)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:13px;">${escapeHtml(mr.nameB)}</a>
+            </div>
+            <div style="font-size:10.5px;color:var(--text-secondary);text-align:center;">
+                ${escapeHtml(mr.nodeA)} ${roleAB} ${escapeHtml(mr.nodeB)} &nbsp;|&nbsp; ${escapeHtml(mr.nodeB)} ${roleBA} ${escapeHtml(mr.nodeA)}<br>
+                <span style="color:var(--text-muted);">${escapeHtml(mr.evidenceAB || '')}${mr.evidenceAB && mr.evidenceBA ? ' / ' : ''}${escapeHtml(mr.evidenceBA || '')}</span>
+            </div>
+        </div>`;
+    }).join('');
+    container.querySelectorAll('.topo-gene-link').forEach(a => {
+        if (a._topoGeneWired) return;
+        a._topoGeneWired = true;
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            setActiveWorkflowEntry('gene');
+            setTimeout(() => queryGene(a.getAttribute('data-locus')), 100);
+        });
+    });
+}
+
+function renderMultiInput(report) {
+    const container = document.getElementById('topo-multi-list');
+    if (!container) return;
+    const minTF = parseInt((document.getElementById('topo-multi-filter') || {}).value || '3', 10);
+    const filtered = report.multiInputs.filter(m => m.tfCount >= minTF);
+
+    container.innerHTML = filtered.map(m => {
+        const tfBadges = m.tfs.map(tf => {
+            const roleColor = tf.role === 'A' ? '#16a34a' : tf.role === 'R' ? '#dc2626' : '#64748b';
+            const roleIcon = tf.role === 'A' ? '↑' : tf.role === 'R' ? '↓' : '?';
+            return `<a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}"
+                style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;
+                       background:${roleColor}18;border:1px solid ${roleColor}44;color:${roleColor};text-decoration:none;cursor:pointer;">
+                <span style="font-size:9px;">${roleIcon}</span>${escapeHtml(tf.name !== tf.locus ? tf.name : tf.locus)}
+            </a>`;
+        }).join('');
+        return `<div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:8px;padding:10px 14px;display:flex;align-items:flex-start;gap:12px;">
+            <div style="flex:0 0 160px;">
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(m.gene)}" style="font-weight:700;color:var(--text-primary);text-decoration:none;font-size:13px;">${escapeHtml(m.geneName !== m.gene ? m.geneName : m.gene)}</a>
+                ${m.geneName !== m.gene ? `<div style="font-size:10px;color:var(--text-muted);">${escapeHtml(m.gene)}</div>` : ''}
+                <div style="margin-top:3px;"><span style="background:#6366f115;color:#6366f1;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:700;">${m.tfCount} TF inputs</span></div>
+            </div>
+            <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;">${tfBadges}</div>
+        </div>`;
+    }).join('');
+
+    container.querySelectorAll('.topo-gene-link').forEach(a => {
+        if (a._topoGeneWired) return;
+        a._topoGeneWired = true;
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            setActiveWorkflowEntry('gene');
+            setTimeout(() => queryGene(a.getAttribute('data-locus')), 100);
+        });
+    });
+}
+
+function renderBiFan(report) {
+    const container = document.getElementById('topo-bifan-list');
+    if (!container) return;
+    container.innerHTML = report.biFans.map((bf, i) => {
+        const targetsHtml = bf.sharedTargets.map(t =>
+            `<a href="#" class="topo-gene-link" data-locus="${escapeHtml(t.locus)}"
+             style="padding:1px 8px;background:var(--surface-secondary);border:1px solid var(--border-color);border-radius:6px;font-size:11px;color:var(--text-primary);text-decoration:none;">${escapeHtml(t.name !== t.locus ? t.name : t.locus)}</a>`
+        ).join('');
+        return `<div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px;">
+            <span style="color:var(--text-muted);font-size:11px;flex:0 0 24px;">#${i+1}</span>
+            <a href="#" class="topo-gene-link" data-locus="${escapeHtml(bf.tfA)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:12px;">${escapeHtml(bf.nameA !== bf.tfA ? bf.nameA : bf.tfA)}</a>
+            <span style="color:var(--text-muted);font-size:11px;">&amp;</span>
+            <a href="#" class="topo-gene-link" data-locus="${escapeHtml(bf.tfB)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:12px;">${escapeHtml(bf.nameB !== bf.tfB ? bf.nameB : bf.tfB)}</a>
+            <span style="background:#6366f115;color:#6366f1;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:700;flex:0 0 auto;">${bf.sharedCount} shared targets</span>
+            <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;">${targetsHtml}${bf.sharedCount > 5 ? `<span style="font-size:10px;color:var(--text-muted);padding-top:3px;">+${bf.sharedCount - 5} more</span>` : ''}</div>
+        </div>`;
+    }).join('');
+    container.querySelectorAll('.topo-gene-link').forEach(a => {
+        if (a._topoGeneWired) return;
+        a._topoGeneWired = true;
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            setActiveWorkflowEntry('gene');
+            setTimeout(() => queryGene(a.getAttribute('data-locus')), 100);
+        });
+    });
 }

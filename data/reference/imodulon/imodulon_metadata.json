@@ -1,220 +1,1383 @@
 [
   {
-    "id": "iM_RpsA_ribosome",
-    "name": "Ribosome_translation",
+    "id": "iM_86_Ribosome",
+    "k": 86,
+    "name": "Ribosome",
     "linked_regulator": null,
-    "linked_regulator_locus": null,
     "category": "Translation",
-    "stimulus": "growth_rate",
-    "variance_explained": 0.062,
+    "variance_explained": 0.11942899,
+    "gene_count": 39,
+    "description": "Ribosome structual and translation",
+    "threshold": 0.074919633,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Ribosome",
+      "beta-Alanine metabolism",
+      "Valine, leucine and isoleucine degradation"
+    ]
+  },
+  {
+    "id": "iM_85_uncharacterized_10",
+    "k": 85,
+    "name": "uncharacterized-10",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.062130536,
+    "gene_count": 68,
+    "description": "",
+    "threshold": 0.044001956,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Arabinogalactan biosynthesis - Mycobacterium"
+    ]
+  },
+  {
+    "id": "iM_84_Replication_3",
+    "k": 84,
+    "name": "Replication-3",
+    "linked_regulator": null,
+    "category": "Replication",
+    "variance_explained": 0.053494331,
+    "gene_count": 48,
+    "description": "",
+    "threshold": 0.054342025,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Arabinogalactan biosynthesis - Mycobacterium",
+      "Cysteine and methionine metabolism",
+      "Metabolic pathways"
+    ]
+  },
+  {
+    "id": "iM_83_uncharacterized_15",
+    "k": 83,
+    "name": "uncharacterized-15",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.045167105,
+    "gene_count": 7,
+    "description": "",
+    "threshold": 0.089051013,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Peptidoglycan biosynthesis",
+      "Biosynthesis of nucleotide sugars",
+      "Amino sugar and nucleotide sugar metabolism"
+    ]
+  },
+  {
+    "id": "iM_82_Replication",
+    "k": 82,
+    "name": "Replication",
+    "linked_regulator": null,
+    "category": "Replication",
+    "variance_explained": 0.036323193,
+    "gene_count": 10,
+    "description": "Replication",
+    "threshold": 0.07921044,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Arabinogalactan biosynthesis - Mycobacterium"
+    ]
+  },
+  {
+    "id": "iM_81_uncharacterized_8",
+    "k": 81,
+    "name": "uncharacterized-8",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.034683965,
+    "gene_count": 81,
+    "description": "",
+    "threshold": 0.052534084,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Metabolic pathways",
+      "Biosynthesis of nucleotide sugars",
+      "Amino sugar and nucleotide sugar metabolism"
+    ]
+  },
+  {
+    "id": "iM_80_uncharacterized_17",
+    "k": 80,
+    "name": "uncharacterized-17",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.027179252,
+    "gene_count": 20,
+    "description": "",
+    "threshold": 0.08275882,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Nucleotide metabolism",
+      "Folate transport and metabolism",
+      "One carbon pool by folate"
+    ]
+  },
+  {
+    "id": "iM_79_Intracellular_trafficking",
+    "k": 79,
+    "name": "Intracellular-trafficking",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.022624189,
     "gene_count": 18,
-    "pmid": [],
-    "description": "Growth-rate correlated ribosomal protein module. Activity strongly tracks dilution rate in continuous culture."
+    "description": "",
+    "threshold": 0.093147161,
+    "f1_score": 0.0,
+    "top_pathways": []
   },
   {
-    "id": "iM_GlxR_carbon",
-    "name": "GlxR_cAMP_carbon_catabolite",
-    "linked_regulator": "glxR",
-    "linked_regulator_locus": "cg2181",
-    "category": "Carbon_metabolism",
-    "stimulus": "cAMP_glucose_limitation",
-    "variance_explained": 0.052,
-    "gene_count": 18,
-    "pmid": [
-      "16385111",
-      "22178972"
-    ],
-    "description": "Global carbon catabolite repression by GlxR. Largest single iModulon in C. glutamicum, controlling TCA, glyoxylate shunt, and sugar uptake PTS."
+    "id": "iM_78_acpP_operon",
+    "k": 78,
+    "name": "acpP-operon",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.022359327,
+    "gene_count": 3,
+    "description": "metabolism",
+    "threshold": 0.138826706,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Biosynthesis of various antibiotics",
+      "Nicotinate and nicotinamide metabolism",
+      "Biosynthesis of secondary metabolites"
+    ]
   },
   {
-    "id": "iM_SigH",
-    "name": "SigH_stress_regulon",
-    "linked_regulator": "sigH",
-    "linked_regulator_locus": "cg0876",
-    "category": "Stress_response",
-    "stimulus": "heat_stress, oxidative_stress, diamide",
-    "variance_explained": 0.043,
-    "gene_count": 18,
-    "pmid": [
-      "19270092",
-      "25404703",
-      "16385111"
-    ],
-    "description": "SigH-controlled heat shock and oxidative stress genes. Activates thioredoxin, disulfide reductases, and heat shock proteins."
+    "id": "iM_77_uncharacterized_5",
+    "k": 77,
+    "name": "uncharacterized-5",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.021687873,
+    "gene_count": 44,
+    "description": "",
+    "threshold": 0.074212399,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Metabolic pathways",
+      "Microbial metabolism in diverse environments",
+      "Folate biosynthesis"
+    ]
   },
   {
-    "id": "iM_AmtR_nitrogen",
-    "name": "AmtR_nitrogen_regulon",
-    "linked_regulator": "amtR",
-    "linked_regulator_locus": "cg2384",
-    "category": "Nitrogen_metabolism",
-    "stimulus": "nitrogen_starvation",
-    "variance_explained": 0.041,
-    "gene_count": 15,
-    "pmid": [
-      "15516578",
-      "16385111"
-    ],
-    "description": "Master nitrogen regulator AmtR. Represses ammonium transport (amt), glutamine synthetase, and urea cycle genes under N-replete conditions."
+    "id": "iM_76_Cg0725",
+    "k": 76,
+    "name": "Cg0725",
+    "linked_regulator": "WA5_RS03145",
+    "category": "Misc metabolism",
+    "variance_explained": 0.019914809,
+    "gene_count": 140,
+    "description": "Degradation of aromatic compounds",
+    "threshold": 0.04039925,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Degradation of aromatic compounds",
+      "Fluorobenzoate degradation",
+      "Sulfur cycle"
+    ]
   },
   {
-    "id": "iM_RamA_glycolysis",
-    "name": "RamA_acetate_TCA",
-    "linked_regulator": "ramA",
-    "linked_regulator_locus": "cg2831",
-    "category": "Carbon_metabolism",
-    "stimulus": "acetate, propionate",
-    "variance_explained": 0.038,
-    "gene_count": 12,
-    "pmid": [
-      "17449638"
-    ],
-    "description": "RamA-controlled acetate assimilation and TCA cycle upregulation under acetate carbon source."
+    "id": "iM_75_uncharacterized_12",
+    "k": 75,
+    "name": "uncharacterized-12",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.016711271,
+    "gene_count": 6,
+    "description": "",
+    "threshold": 0.09828642,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Sulfur relay system",
+      "Folate biosynthesis",
+      "Aminoacyl-tRNA biosynthesis"
+    ]
   },
   {
-    "id": "iM_GluABCD_glutamate",
-    "name": "GDH_glutamate_synthesis",
-    "linked_regulator": "amtR",
-    "linked_regulator_locus": "cg2384",
-    "category": "Amino_acid_biosynthesis",
-    "stimulus": "nitrogen_limitation",
-    "variance_explained": 0.033,
-    "gene_count": 12,
-    "pmid": [
-      "16385111",
-      "25404703"
-    ],
-    "description": "AmtR nitrogen regulon controlling glutamate dehydrogenase and nitrogen assimilation pathway."
+    "id": "iM_74_Fructose_utilization",
+    "k": 74,
+    "name": "Fructose-utilization",
+    "linked_regulator": null,
+    "category": "Carbon",
+    "variance_explained": 0.015410197,
+    "gene_count": 4,
+    "description": "growth related",
+    "threshold": 0.109044644,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Nicotinate and nicotinamide metabolism",
+      "Nucleotide metabolism",
+      "Purine metabolism"
+    ]
   },
   {
-    "id": "iM_SigB",
-    "name": "SigB_general_stress",
-    "linked_regulator": "sigB",
-    "linked_regulator_locus": "cg2102",
-    "category": "Stress_response",
-    "stimulus": "osmotic_stress, stationary_phase, heat",
-    "variance_explained": 0.031,
-    "gene_count": 15,
-    "pmid": [
-      "15516578",
-      "19376865"
-    ],
-    "description": "SigB-dependent general stress response. Regulates osmoprotectant biosynthesis and carbon starvation genes."
+    "id": "iM_73_Tyrosine_metabolism",
+    "k": 73,
+    "name": "Tyrosine-metabolism",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.014428867,
+    "gene_count": 6,
+    "description": "Tyrosine metabolism",
+    "threshold": 0.096986569,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Tyrosine metabolism",
+      "Metabolic pathways",
+      "Microbial metabolism in diverse environments"
+    ]
   },
   {
-    "id": "iM_LysR_lysine",
-    "name": "LysR_lysine_regulon",
-    "linked_regulator": "lysG",
-    "linked_regulator_locus": "cg1271",
-    "category": "Amino_acid_biosynthesis",
-    "stimulus": "lysine_accumulation",
-    "variance_explained": 0.028,
+    "id": "iM_72_amino_acid_related",
+    "k": 72,
+    "name": "amino-acid-related",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.013170573,
     "gene_count": 9,
-    "pmid": [
-      "16385111",
-      "21075931"
-    ],
-    "description": "LysG-controlled lysine export and biosynthesis regulation. Central to industrial L-lysine production."
+    "description": "amino acid related",
+    "threshold": 0.072829308,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Sulfur cycle",
+      "Cobalamin transport and metabolism",
+      "Biosynthesis of amino acids"
+    ]
   },
   {
-    "id": "iM_DtxR_iron",
-    "name": "DtxR_iron_regulon",
-    "linked_regulator": "dtxR",
-    "linked_regulator_locus": "cg2194",
-    "category": "Metal_homeostasis",
-    "stimulus": "iron_limitation",
-    "variance_explained": 0.026,
-    "gene_count": 12,
-    "pmid": [
-      "16385111",
-      "19376865"
-    ],
-    "description": "DtxR iron-dependent repressor. Controls siderophore biosynthesis (catecholate), iron uptake, and DtxR autoregulation."
+    "id": "iM_71_Cg0646",
+    "k": 71,
+    "name": "Cg0646",
+    "linked_regulator": "WA5_RS02795",
+    "category": "Carbon",
+    "variance_explained": 0.012829267,
+    "gene_count": 10,
+    "description": "Cg0646",
+    "threshold": 0.107615302,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Microbial metabolism in diverse environments",
+      "Methane metabolism",
+      "Other carbon fixation pathways"
+    ]
   },
   {
-    "id": "iM_SigE",
-    "name": "SigE_envelope_stress",
-    "linked_regulator": "sigE",
-    "linked_regulator_locus": "cg1271",
-    "category": "Stress_response",
-    "stimulus": "cell_envelope_stress, detergents",
-    "variance_explained": 0.024,
-    "gene_count": 12,
-    "pmid": [
-      "23298179",
-      "16385111"
-    ],
-    "description": "SigE regulon controlling cell envelope integrity and mycolate biosynthesis under membrane stress."
-  },
-  {
-    "id": "iM_OsR_osmotic",
-    "name": "OsR_osmotic_compatible_solutes",
-    "linked_regulator": "mtrB",
-    "linked_regulator_locus": "cg0146",
-    "category": "Osmoregulation",
-    "stimulus": "osmotic_upshift_NaCl",
-    "variance_explained": 0.022,
-    "gene_count": 12,
-    "pmid": [
-      "22178972",
-      "21075931"
-    ],
-    "description": "Osmotic stress response controlling betaine/ectoine biosynthesis and compatible solute uptake."
-  },
-  {
-    "id": "iM_FasR_fatty_acids",
-    "name": "FasR_fatty_acid_biosynthesis",
-    "linked_regulator": "fasR",
-    "linked_regulator_locus": "cg2737",
-    "category": "Lipid_metabolism",
-    "stimulus": "fatty_acid_availability",
-    "variance_explained": 0.021,
-    "gene_count": 12,
-    "pmid": [
-      "21075931"
-    ],
-    "description": "FasR regulon controlling fatty acid and mycolic acid biosynthesis."
-  },
-  {
-    "id": "iM_PhoSR_phosphate",
-    "name": "PhoSR_phosphate_starvation",
-    "linked_regulator": "phoR",
-    "linked_regulator_locus": "cg1674",
-    "category": "Phosphate_homeostasis",
-    "stimulus": "phosphate_starvation",
-    "variance_explained": 0.019,
-    "gene_count": 12,
-    "pmid": [
-      "16385111"
-    ],
-    "description": "PhoSR two-component system controlling phosphate uptake and scavenging under phosphate-limiting conditions."
-  },
-  {
-    "id": "iM_SigM",
-    "name": "SigM_oxidative_stress",
-    "linked_regulator": "sigM",
-    "linked_regulator_locus": "cg3420",
-    "category": "Stress_response",
-    "stimulus": "superoxide, methyl_viologen",
-    "variance_explained": 0.018,
+    "id": "iM_70_cell_membrane_1",
+    "k": 70,
+    "name": "cell-membrane-1",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.012373785,
     "gene_count": 9,
-    "pmid": [
-      "21075931"
-    ],
-    "description": "SigM regulon for superoxide and oxidative stress defense."
+    "description": "cell-membrane-1",
+    "threshold": 0.105206248,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "RNA degradation",
+      "Methane metabolism",
+      "Homologous recombination"
+    ]
   },
   {
-    "id": "iM_WhiB_cell_cycle",
-    "name": "WhiB4_redox_cell_division",
-    "linked_regulator": "whiB4",
-    "linked_regulator_locus": "cg1890",
-    "category": "Cell_cycle",
-    "stimulus": "redox_imbalance, ROS",
-    "variance_explained": 0.017,
+    "id": "iM_69_Cg2712",
+    "k": 69,
+    "name": "Cg2712",
+    "linked_regulator": null,
+    "category": "Energy generation",
+    "variance_explained": 0.012256364,
+    "gene_count": 4,
+    "description": "Energy production",
+    "threshold": 0.163974271,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Fatty acid biosynthesis",
+      "Fatty acid metabolism",
+      "Mycolic acid biosynthesis"
+    ]
+  },
+  {
+    "id": "iM_68_histidine_biosynthetic",
+    "k": 68,
+    "name": "histidine-biosynthetic",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.011232943,
+    "gene_count": 14,
+    "description": "histidine biosynthetic",
+    "threshold": 0.103341283,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Fatty acid biosynthesis",
+      "Fatty acid metabolism",
+      "Mycolic acid biosynthesis"
+    ]
+  },
+  {
+    "id": "iM_67_Aromatic_degradation",
+    "k": 67,
+    "name": "Aromatic-degradation",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.01074102,
+    "gene_count": 17,
+    "description": "Aromatic-degradation",
+    "threshold": 0.081004161,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Chlorocyclohexane and chlorobenzene degradation",
+      "Benzoate degradation",
+      "Microbial metabolism in diverse environments"
+    ]
+  },
+  {
+    "id": "iM_66_FruR_NanR",
+    "k": 66,
+    "name": "FruR-NanR",
+    "linked_regulator": "WA5_RS09635/WA5_RS13290",
+    "category": "Carbon",
+    "variance_explained": 0.008432627,
+    "gene_count": 8,
+    "description": "Carbohydrate transport and metabolism",
+    "threshold": 0.138613848,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Phosphotransferase system (PTS)",
+      "Amino sugar and nucleotide sugar metabolism",
+      "Galactose metabolism"
+    ]
+  },
+  {
+    "id": "iM_65_IolR",
+    "k": 65,
+    "name": "IolR",
+    "linked_regulator": "WA5_RS00825",
+    "category": "Carbon",
+    "variance_explained": 0.008273755,
+    "gene_count": 7,
+    "description": "Inositol phosphate metabolism",
+    "threshold": 0.151612398,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Inositol phosphate metabolism",
+      "Microbial metabolism in diverse environments",
+      "Metabolic pathways"
+    ]
+  },
+  {
+    "id": "iM_64_ripA",
+    "k": 64,
+    "name": "ripA",
+    "linked_regulator": "WA5_RS04910",
+    "category": "Metal",
+    "variance_explained": 0.007605521,
+    "gene_count": 7,
+    "description": "RipA",
+    "threshold": 0.140753044,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Butanoate metabolism",
+      "Citrate cycle (TCA cycle)",
+      "Other carbon fixation pathways"
+    ]
+  },
+  {
+    "id": "iM_63_amino_acid_related_3",
+    "k": 63,
+    "name": "amino-acid-related-3",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.006973712,
+    "gene_count": 6,
+    "description": "",
+    "threshold": 0.19144586,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Cobalamin transport and metabolism",
+      "Glycerolipid metabolism",
+      "Porphyrin metabolism"
+    ]
+  },
+  {
+    "id": "iM_62_Cysteine_biosynthesis",
+    "k": 62,
+    "name": "Cysteine-biosynthesis",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.006943228,
+    "gene_count": 8,
+    "description": "Cysteine biosynthesis",
+    "threshold": 0.139800195,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Carbon metabolism",
+      "Sulfur metabolism",
+      "Cysteine and methionine metabolism"
+    ]
+  },
+  {
+    "id": "iM_61_RamA",
+    "k": 61,
+    "name": "RamA",
+    "linked_regulator": null,
+    "category": "Energy generation",
+    "variance_explained": 0.00691002,
+    "gene_count": 10,
+    "description": "Energy generation",
+    "threshold": 0.039275964,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "C5-Branched dibasic acid metabolism",
+      "Microbial metabolism in diverse environments",
+      "Lysine biosynthesis"
+    ]
+  },
+  {
+    "id": "iM_60_AmtR",
+    "k": 60,
+    "name": "AmtR",
+    "linked_regulator": "WA5_RS04335",
+    "category": "Misc metabolism",
+    "variance_explained": 0.006217038,
+    "gene_count": 24,
+    "description": "Nitrogen metabolism",
+    "threshold": 0.085061146,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Nitrogen metabolism",
+      "ABC transporters",
+      "Alanine, aspartate and glutamate metabolism"
+    ]
+  },
+  {
+    "id": "iM_59_DtxR",
+    "k": 59,
+    "name": "DtxR",
+    "linked_regulator": "WA5_RS09565",
+    "category": "Metal",
+    "variance_explained": 0.006006586,
+    "gene_count": 30,
+    "description": "Iron homeostasis",
+    "threshold": 0.097963028,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "ABC transporters",
+      "Ribosome",
+      "RNA degradation"
+    ]
+  },
+  {
+    "id": "iM_58_uncharacterized_11",
+    "k": 58,
+    "name": "uncharacterized-11",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.005897098,
+    "gene_count": 17,
+    "description": "",
+    "threshold": 0.10169907,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Ribosome",
+      "Pentose and glucuronate interconversions",
+      "Glycerolipid metabolism"
+    ]
+  },
+  {
+    "id": "iM_57_uncharacterized_13",
+    "k": 57,
+    "name": "uncharacterized-13",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.005210617,
+    "gene_count": 0,
+    "description": "",
+    "threshold": 0.155070639,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_56_QacR",
+    "k": 56,
+    "name": "QacR",
+    "linked_regulator": "WA5_RS13100",
+    "category": "Stress",
+    "variance_explained": 0.00519084,
     "gene_count": 12,
-    "pmid": [
-      "25876601"
-    ],
-    "description": "WhiB4 iron-sulphur cluster protein controlling cell division and septum formation under oxidative conditions."
+    "description": "Drug resistance",
+    "threshold": 0.116656121,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_55_Thiamine_metabolism",
+    "k": 55,
+    "name": "Thiamine-metabolism",
+    "linked_regulator": "TPP",
+    "category": "Misc metabolism",
+    "variance_explained": 0.005155628,
+    "gene_count": 18,
+    "description": "Thiamine-metabolism",
+    "threshold": 0.095699284,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Thiamine metabolism",
+      "Biosynthesis of cofactors",
+      "Riboflavin metabolism"
+    ]
+  },
+  {
+    "id": "iM_54_uncharacterized_1",
+    "k": 54,
+    "name": "uncharacterized-1",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.004778912,
+    "gene_count": 34,
+    "description": "",
+    "threshold": 0.048778472,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Two-component system",
+      "Sulfur metabolism",
+      "Taurine and hypotaurine metabolism"
+    ]
+  },
+  {
+    "id": "iM_53_SufR",
+    "k": 53,
+    "name": "SufR",
+    "linked_regulator": "WA5_RS07815",
+    "category": "Metal",
+    "variance_explained": 0.004687027,
+    "gene_count": 6,
+    "description": "Fe-S cluster",
+    "threshold": 0.190451315,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Selenocompound metabolism",
+      "Metabolic pathways"
+    ]
+  },
+  {
+    "id": "iM_52_SsuR",
+    "k": 52,
+    "name": "SsuR",
+    "linked_regulator": "WA5_RS00045",
+    "category": "Misc metabolism",
+    "variance_explained": 0.00438068,
+    "gene_count": 7,
+    "description": "Sulfur metabolism",
+    "threshold": 0.197862278,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Sulfur metabolism",
+      "ABC transporters",
+      "Carbon fixation by Calvin cycle"
+    ]
+  },
+  {
+    "id": "iM_51_sulfate_reduction",
+    "k": 51,
+    "name": "sulfate-reduction",
+    "linked_regulator": null,
+    "category": "Redox",
+    "variance_explained": 0.003878719,
+    "gene_count": 12,
+    "description": "Sulfur metabolism",
+    "threshold": 0.123125667,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Sulfur cycle",
+      "Sulfur metabolism",
+      "Folate transport and metabolism"
+    ]
+  },
+  {
+    "id": "iM_50_TRAP_transporter_2",
+    "k": 50,
+    "name": "TRAP-transporter-2",
+    "linked_regulator": null,
+    "category": "Transport",
+    "variance_explained": 0.003875016,
+    "gene_count": 5,
+    "description": "TRAP-transporter-2",
+    "threshold": 0.20392708,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Folate biosynthesis",
+      "Two-component system",
+      "Biosynthesis of cofactors"
+    ]
+  },
+  {
+    "id": "iM_49_RbsR",
+    "k": 49,
+    "name": "RbsR",
+    "linked_regulator": "WA5_RS06225",
+    "category": "Carbon",
+    "variance_explained": 0.003645382,
+    "gene_count": 4,
+    "description": "Ribose utilization",
+    "threshold": 0.158307169,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "ABC transporters"
+    ]
+  },
+  {
+    "id": "iM_48_sigD_operon",
+    "k": 48,
+    "name": "sigD-operon",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.003551138,
+    "gene_count": 4,
+    "description": "SigD operon",
+    "threshold": 0.170608207,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Porphyrin metabolism",
+      "Biosynthesis of cofactors",
+      "Microbial metabolism in diverse environments"
+    ]
+  },
+  {
+    "id": "iM_47_metE_operon",
+    "k": 47,
+    "name": "metE-operon",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.003507265,
+    "gene_count": 4,
+    "description": "unknown",
+    "threshold": 0.121309449,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Selenocompound metabolism",
+      "Methane metabolism",
+      "Cysteine and methionine metabolism"
+    ]
+  },
+  {
+    "id": "iM_46_copper_utilization",
+    "k": 46,
+    "name": "copper-utilization",
+    "linked_regulator": null,
+    "category": "Metal",
+    "variance_explained": 0.003421247,
+    "gene_count": 10,
+    "description": "copper and ion transport",
+    "threshold": 0.124423444,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Streptomycin biosynthesis",
+      "Inositol phosphate metabolism",
+      "Porphyrin metabolism"
+    ]
+  },
+  {
+    "id": "iM_45_Zur",
+    "k": 45,
+    "name": "Zur",
+    "linked_regulator": "WA5_RS11355",
+    "category": "Metal",
+    "variance_explained": 0.003379684,
+    "gene_count": 8,
+    "description": "Zinc ABC transporter",
+    "threshold": 0.214553081,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_44_lipid_metabolism",
+    "k": 44,
+    "name": "lipid-metabolism",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.003349613,
+    "gene_count": 2,
+    "description": "metabolism",
+    "threshold": 0.299538355,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Terpenoid backbone biosynthesis",
+      "Biosynthesis of secondary metabolites",
+      "Metabolic pathways"
+    ]
+  },
+  {
+    "id": "iM_43_proline_transport",
+    "k": 43,
+    "name": "proline-transport",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.003257745,
+    "gene_count": 3,
+    "description": "proline-betaine transporter",
+    "threshold": 0.158470211,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_42_Cobalt_transport",
+    "k": 42,
+    "name": "Cobalt-transport",
+    "linked_regulator": null,
+    "category": "Metal",
+    "variance_explained": 0.003108001,
+    "gene_count": 3,
+    "description": "Cobalt transport",
+    "threshold": 0.251787931,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_41_ArgR",
+    "k": 41,
+    "name": "ArgR",
+    "linked_regulator": "WA5_RS06975",
+    "category": "Amino acid",
+    "variance_explained": 0.003051257,
+    "gene_count": 10,
+    "description": "Arginine biosynthesis",
+    "threshold": 0.147625108,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Arginine biosynthesis",
+      "Biosynthesis of amino acids",
+      "Biosynthesis of secondary metabolites"
+    ]
+  },
+  {
+    "id": "iM_40_uncharacterized_3",
+    "k": 40,
+    "name": "uncharacterized-3",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.002891583,
+    "gene_count": 0,
+    "description": "",
+    "threshold": 0.143640345,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_39_SG_6",
+    "k": 39,
+    "name": "SG_6",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.002886759,
+    "gene_count": 1,
+    "description": "",
+    "threshold": 0.192691272,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_38_WblB",
+    "k": 38,
+    "name": "WblB",
+    "linked_regulator": null,
+    "category": "Energy generation",
+    "variance_explained": 0.002634176,
+    "gene_count": 7,
+    "description": "Energy generation",
+    "threshold": 0.128762049,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Selenocompound metabolism",
+      "Sulfur metabolism",
+      "Cysteine and methionine metabolism"
+    ]
+  },
+  {
+    "id": "iM_37_uncharacterized_2",
+    "k": 37,
+    "name": "uncharacterized-2",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.002615678,
+    "gene_count": 9,
+    "description": "",
+    "threshold": 0.116766207,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_36_GabR",
+    "k": 36,
+    "name": "GabR",
+    "linked_regulator": "WA5_RS02450",
+    "category": "Amino acid",
+    "variance_explained": 0.002531405,
+    "gene_count": 2,
+    "description": "Gamma-aminobutyrate utilization",
+    "threshold": 0.186690374,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Lysine degradation",
+      "Tyrosine metabolism",
+      "Butanoate metabolism"
+    ]
+  },
+  {
+    "id": "iM_35_pyruvate_related",
+    "k": 35,
+    "name": "pyruvate-related",
+    "linked_regulator": null,
+    "category": "Carbon",
+    "variance_explained": 0.002530365,
+    "gene_count": 5,
+    "description": "pyruvate-related",
+    "threshold": 0.183093519,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Glycerophospholipid metabolism",
+      "Pyruvate metabolism",
+      "Metabolic pathways"
+    ]
+  },
+  {
+    "id": "iM_34_uncharacterized_4",
+    "k": 34,
+    "name": "uncharacterized-4",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.002517707,
+    "gene_count": 9,
+    "description": "",
+    "threshold": 0.117673156,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "ABC transporters",
+      "Cobalamin transport and metabolism",
+      "Bacterial secretion system"
+    ]
+  },
+  {
+    "id": "iM_33_Replication_2",
+    "k": 33,
+    "name": "Replication-2",
+    "linked_regulator": null,
+    "category": "Replication",
+    "variance_explained": 0.002366091,
+    "gene_count": 3,
+    "description": "Replication-2",
+    "threshold": 0.161014491,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Oxidative phosphorylation",
+      "Metabolic pathways"
+    ]
+  },
+  {
+    "id": "iM_32_SG_4",
+    "k": 32,
+    "name": "SG_4",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.00228752,
+    "gene_count": 0,
+    "description": "",
+    "threshold": 0.587922213,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_31_NrtR",
+    "k": 31,
+    "name": "NrtR",
+    "linked_regulator": "WA5_RS05330",
+    "category": "Coenzyme",
+    "variance_explained": 0.002259537,
+    "gene_count": 5,
+    "description": "NAD biosynthesis",
+    "threshold": 0.179893425,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Nicotinate and nicotinamide metabolism",
+      "Biosynthesis of cofactors",
+      "Quorum sensing"
+    ]
+  },
+  {
+    "id": "iM_30_SG_3",
+    "k": 30,
+    "name": "SG_3",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.00220036,
+    "gene_count": 0,
+    "description": "",
+    "threshold": 0.676477714,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_29_TcsR",
+    "k": 29,
+    "name": "TcsR",
+    "linked_regulator": null,
+    "category": "Stress",
+    "variance_explained": 0.002108549,
+    "gene_count": 17,
+    "description": "two-component system",
+    "threshold": 0.100879707,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Selenocompound metabolism",
+      "Biosynthesis of amino acids",
+      "Cysteine and methionine metabolism"
+    ]
+  },
+  {
+    "id": "iM_28_KmtR",
+    "k": 28,
+    "name": "KmtR",
+    "linked_regulator": "WA5_RS13915",
+    "category": "Misc metabolism",
+    "variance_explained": 0.002085085,
+    "gene_count": 19,
+    "description": "WA5_RS13915",
+    "threshold": 0.085854102,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "RNA polymerase",
+      "Pantothenate and CoA biosynthesis",
+      "Nucleotide metabolism"
+    ]
+  },
+  {
+    "id": "iM_27_polyketide_synthase",
+    "k": 27,
+    "name": "polyketide-synthase",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.002027568,
+    "gene_count": 12,
+    "description": "ployketide synthase",
+    "threshold": 0.135702784,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Metabolic pathways",
+      "Purine metabolism",
+      "Biotin metabolism"
+    ]
+  },
+  {
+    "id": "iM_26_PdxR",
+    "k": 26,
+    "name": "PdxR",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.001995265,
+    "gene_count": 4,
+    "description": "pyridoxine biosynthesis",
+    "threshold": 0.186495174,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_25_PcaO",
+    "k": 25,
+    "name": "PcaO",
+    "linked_regulator": "WA5_RS11920",
+    "category": "Carbon",
+    "variance_explained": 0.001738221,
+    "gene_count": 9,
+    "description": "redox",
+    "threshold": 0.136194261,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Degradation of aromatic compounds",
+      "Benzoate degradation",
+      "Microbial metabolism in diverse environments"
+    ]
+  },
+  {
+    "id": "iM_24_ArsR",
+    "k": 24,
+    "name": "ArsR",
+    "linked_regulator": null,
+    "category": "Coenzyme",
+    "variance_explained": 0.001613527,
+    "gene_count": 2,
+    "description": "Coenzyme transport and metabolism",
+    "threshold": 0.301902289,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_23_PrpR",
+    "k": 23,
+    "name": "PrpR",
+    "linked_regulator": null,
+    "category": "Carbon",
+    "variance_explained": 0.001605902,
+    "gene_count": 5,
+    "description": "Carbon",
+    "threshold": 0.145604901,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Propanoate metabolism",
+      "Carbon metabolism",
+      "Microbial metabolism in diverse environments"
+    ]
+  },
+  {
+    "id": "iM_22_uncharacterized_14",
+    "k": 22,
+    "name": "uncharacterized-14",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.00160177,
+    "gene_count": 4,
+    "description": "",
+    "threshold": 0.121929522,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Phosphotransferase system (PTS)"
+    ]
+  },
+  {
+    "id": "iM_21_YqjI",
+    "k": 21,
+    "name": "YqjI",
+    "linked_regulator": null,
+    "category": "Translation",
+    "variance_explained": 0.001592514,
+    "gene_count": 3,
+    "description": "DNA replication",
+    "threshold": 0.181338249,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "DNA replication",
+      "Ribosome"
+    ]
+  },
+  {
+    "id": "iM_20_translation_related",
+    "k": 20,
+    "name": "translation-related",
+    "linked_regulator": null,
+    "category": "Translation",
+    "variance_explained": 0.001467662,
+    "gene_count": 24,
+    "description": "translation-related",
+    "threshold": 0.089736418,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Oxidative phosphorylation",
+      "Metabolic pathways",
+      "Selenocompound metabolism"
+    ]
+  },
+  {
+    "id": "iM_19_sigC",
+    "k": 19,
+    "name": "sigC",
+    "linked_regulator": "WA5_RS01340",
+    "category": "Stress",
+    "variance_explained": 0.001425518,
+    "gene_count": 6,
+    "description": "Energy generation",
+    "threshold": 0.130470426,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Oxidative phosphorylation",
+      "Two-component system",
+      "Glyoxylate and dicarboxylate metabolism"
+    ]
+  },
+  {
+    "id": "iM_18_Cg1084",
+    "k": 18,
+    "name": "Cg1084",
+    "linked_regulator": null,
+    "category": "Stress",
+    "variance_explained": 0.0013985,
+    "gene_count": 3,
+    "description": "two-component system",
+    "threshold": 0.325330211,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Two-component system"
+    ]
+  },
+  {
+    "id": "iM_17_uncharacterized_9",
+    "k": 17,
+    "name": "uncharacterized-9",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.001344675,
+    "gene_count": 8,
+    "description": "",
+    "threshold": 0.124691043,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Exopolysaccharide biosynthesis",
+      "Sulfur metabolism",
+      "Cysteine and methionine metabolism"
+    ]
+  },
+  {
+    "id": "iM_16_cadA_operon",
+    "k": 16,
+    "name": "cadA-operon",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.001263847,
+    "gene_count": 6,
+    "description": "unknown",
+    "threshold": 0.168437735,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Nicotinate and nicotinamide metabolism",
+      "Pyruvate metabolism",
+      "Two-component system"
+    ]
+  },
+  {
+    "id": "iM_15_Signal_transduction",
+    "k": 15,
+    "name": "Signal-transduction",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.001246951,
+    "gene_count": 5,
+    "description": "Signal transduction",
+    "threshold": 0.150305413,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Nitrogen metabolism"
+    ]
+  },
+  {
+    "id": "iM_14_SG_8",
+    "k": 14,
+    "name": "SG_8",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.001114939,
+    "gene_count": 1,
+    "description": "",
+    "threshold": 0.495560474,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Nucleotide metabolism",
+      "Purine metabolism",
+      "Metabolic pathways"
+    ]
+  },
+  {
+    "id": "iM_13_HutC",
+    "k": 13,
+    "name": "HutC",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.001025562,
+    "gene_count": 3,
+    "description": "Histidine utilization",
+    "threshold": 0.204558426,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_12_peroxide_stress",
+    "k": 12,
+    "name": "peroxide-stress",
+    "linked_regulator": null,
+    "category": "Redox",
+    "variance_explained": 0.000994245,
+    "gene_count": 3,
+    "description": "peroxide stress",
+    "threshold": 0.262772944,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Porphyrin metabolism",
+      "Biosynthesis of secondary metabolites",
+      "Metabolic pathways"
+    ]
+  },
+  {
+    "id": "iM_11_SG_1",
+    "k": 11,
+    "name": "SG_1",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.000958383,
+    "gene_count": 1,
+    "description": "",
+    "threshold": 0.4285878,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Lysine biosynthesis",
+      "Biosynthesis of amino acids",
+      "Biosynthesis of secondary metabolites"
+    ]
+  },
+  {
+    "id": "iM_10_TRAP_transporter",
+    "k": 10,
+    "name": "TRAP-transporter",
+    "linked_regulator": null,
+    "category": "Transport",
+    "variance_explained": 0.000957204,
+    "gene_count": 2,
+    "description": "TRAP-transporter",
+    "threshold": 0.186394081,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Nucleotide metabolism",
+      "Two-component system",
+      "Purine metabolism"
+    ]
+  },
+  {
+    "id": "iM_9_redox_related",
+    "k": 9,
+    "name": "redox-related",
+    "linked_regulator": null,
+    "category": "Redox",
+    "variance_explained": 0.000917251,
+    "gene_count": 5,
+    "description": "redox-related",
+    "threshold": 0.148725299,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_8_mepA_deletion",
+    "k": 8,
+    "name": "mepA-deletion",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.000771404,
+    "gene_count": 2,
+    "description": "unknown",
+    "threshold": 0.29183144,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_7_SG_7",
+    "k": 7,
+    "name": "SG_7",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.00069478,
+    "gene_count": 1,
+    "description": "",
+    "threshold": 0.633143787,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_6_SG_9",
+    "k": 6,
+    "name": "SG_9",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.000583624,
+    "gene_count": 2,
+    "description": "",
+    "threshold": 0.191705806,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_5_amino_acid_related_2",
+    "k": 5,
+    "name": "amino-acid-related-2",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.000557139,
+    "gene_count": 3,
+    "description": "Amino acid",
+    "threshold": 0.187876972,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "C5-Branched dibasic acid metabolism",
+      "Valine, leucine and isoleucine biosynthesis",
+      "2-Oxocarboxylic acid metabolism"
+    ]
+  },
+  {
+    "id": "iM_4_Cg3249",
+    "k": 4,
+    "name": "Cg3249",
+    "linked_regulator": null,
+    "category": "Redox",
+    "variance_explained": 0.000512987,
+    "gene_count": 3,
+    "description": "redox",
+    "threshold": 0.244698122,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Peroxisome"
+    ]
+  },
+  {
+    "id": "iM_3_SG_5",
+    "k": 3,
+    "name": "SG_5",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.000508624,
+    "gene_count": 0,
+    "description": "",
+    "threshold": 0.639658263,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_2_uncharacterized_16",
+    "k": 2,
+    "name": "uncharacterized-16",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.000503899,
+    "gene_count": 6,
+    "description": "",
+    "threshold": 0.146847085,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Bacterial secretion system",
+      "Protein export"
+    ]
+  },
+  {
+    "id": "iM_1_SG_2",
+    "k": 1,
+    "name": "SG_2",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.000498302,
+    "gene_count": 1,
+    "description": "",
+    "threshold": 0.562279714,
+    "f1_score": 0.0,
+    "top_pathways": []
+  },
+  {
+    "id": "iM_0_uncharacterized_6",
+    "k": 0,
+    "name": "uncharacterized-6",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.000367967,
+    "gene_count": 8,
+    "description": "",
+    "threshold": 0.116787847,
+    "f1_score": 0.0,
+    "top_pathways": [
+      "Exopolysaccharide biosynthesis",
+      "Bacterial secretion system",
+      "Protein export"
+    ]
   }
 ]

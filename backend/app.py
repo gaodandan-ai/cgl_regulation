@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
 import os
+import json
 
 # Add backend directory and parent directory to sys.path
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -207,12 +208,16 @@ def get_pathway_reactions(req: PathwayReactionsRequest):
     
     results = []
     for rxn_id in req.reactionIds:
-        if rxn_id in model.reactions:
-            rxn = model.reactions.get_by_id(rxn_id)
+        # Try original ID first, then strip R_ prefix (pathway data uses R_ but model may not)
+        lookup_id = rxn_id
+        if rxn_id not in model.reactions and rxn_id.startswith("R_"):
+            lookup_id = rxn_id[2:]
+        if lookup_id in model.reactions:
+            rxn = model.reactions.get_by_id(lookup_id)
             reactants = [m.id for m in rxn.reactants]
             products = [m.id for m in rxn.products]
             results.append({
-                "reactionId": rxn.id,
+                "reactionId": rxn_id,  # Return original ID to match frontend expectations
                 "name": rxn.name,
                 "equation": rxn.reaction,
                 "reactants": reactants,
@@ -556,6 +561,104 @@ def regulon_enrichment(tf: str = ""):
         result = run_server.handle_regulon_enrichment(tf)
         return result
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/imodulon/reactions")
+def imodulon_reactions(imodulon: str = ""):
+    try:
+        result = run_server.handle_imodulon_reactions(imodulon)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/imodulon/simulation")
+def imodulon_simulation(imodulon: str = ""):
+    try:
+        result = run_server.handle_imodulon_simulation(imodulon)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/quality/icgb21fr")
+def quality_icgb21fr():
+    """Compute regulatory gene coverage statistics against the iCGB21FR model."""
+    import cobra, csv as csv_mod
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        model_path = os.path.join(root_dir, "data", "reference", "model", "iCGB21FR.xml")
+        if not os.path.exists(model_path):
+            raise HTTPException(status_code=404, detail=f"iCGB21FR.xml not found at {model_path}")
+
+        model = cobra.io.read_sbml_model(model_path)
+
+        # Build gene-to-reactions and gene-to-subsystems maps (with alias expansion)
+        gene_to_rxns: dict = {}
+        gene_to_paths: dict = {}
+        for rxn in model.reactions:
+            subsystem = (rxn.subsystem or "").strip()
+            for gene in rxn.genes:
+                g_id = gene.id.strip().lower()
+                all_ids = run_server.expand_gene_aliases(g_id)
+                all_ids.add(g_id)
+                for aid in all_ids:
+                    gene_to_rxns.setdefault(aid.lower(), set()).add(rxn.id)
+                    if subsystem:
+                        gene_to_paths.setdefault(aid.lower(), set()).add(subsystem)
+
+        # Load regulatory genes from regulations.csv
+        reg_path = os.path.join(root_dir, "data", "reference", "regulations.csv")
+        reg_genes_raw: set = set()
+        with open(reg_path, "r", encoding="utf-8") as csvf:
+            reader = csv_mod.DictReader(csvf)
+            for row in reader:
+                for field in ("TF_locusTag", "TF_altLocusTag", "TG_locusTag", "TG_altLocusTag", "TF", "Target", "tf_locus", "target_locus"):
+                    val = row.get(field, "").strip().lower()
+                    if val:
+                        reg_genes_raw.add(val)
+
+        # Expand aliases for all regulatory genes
+        unique_reg_genes: set = set()
+        for rg in reg_genes_raw:
+            unique_reg_genes.add(rg)
+            for alias in run_server.expand_gene_aliases(rg):
+                unique_reg_genes.add(alias.lower())
+
+        # Compute coverage
+        mapped_rxn_genes = 0
+        mapped_path_genes = 0
+        unique_rxns: set = set()
+        unique_paths: set = set()
+        unmapped = []
+
+        for gene in unique_reg_genes:
+            rxns = gene_to_rxns.get(gene, set())
+            paths = gene_to_paths.get(gene, set())
+            if rxns:
+                mapped_rxn_genes += 1
+                unique_rxns.update(rxns)
+            if paths:
+                mapped_path_genes += 1
+                unique_paths.update(paths)
+            if not rxns:
+                unmapped.append(gene)
+
+        unmapped = sorted(set(unmapped))
+
+        return {
+            "model_id": model.id,
+            "model_genes": len(model.genes),
+            "regulatory_gene_count": len(unique_reg_genes),
+            "genes_mapped_to_reactions": mapped_rxn_genes,
+            "genes_mapped_to_pathways": mapped_path_genes,
+            "unique_mapped_reactions": len(unique_rxns),
+            "unique_mapped_pathways": len(unique_paths),
+            "unmapped_gene_count": len(unmapped),
+            "unmapped_genes": unmapped[:100]  # cap for display
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"iCGB21FR quality endpoint failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/homolog_alignment")

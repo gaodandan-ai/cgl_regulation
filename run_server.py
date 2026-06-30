@@ -415,13 +415,26 @@ def expand_gene_aliases(locus):
     if not lower:
         return aliases
     aliases.add(lower)
+    
+    # Advanced upgrade: support mapping NCBI lcl prot gene identifiers to cg-locus tags
+    if "_" in lower:
+        parts = lower.split("_")
+        if parts[-1].isdigit():
+            num = int(parts[-1])
+            cg_tag = f"cg{num:04d}"
+            aliases.add(cg_tag)
+            
     canonical = normalize_gene_locus(lower)
     if canonical:
         aliases.add(canonical.lower())
-    if lower in CG_TO_CGL:
-        aliases.add(CG_TO_CGL[lower].lower())
-    if lower in CGL_TO_CG:
-        aliases.add(CGL_TO_CG[lower].lower())
+        
+    # Check if any alias has cgl or cg mapping
+    for alias in list(aliases):
+        if alias in CG_TO_CGL:
+            aliases.add(CG_TO_CGL[alias].lower())
+        if alias in CGL_TO_CG:
+            aliases.add(CGL_TO_CG[alias].lower())
+            
     return aliases
 
 def split_mapping_values(value):
@@ -1260,6 +1273,103 @@ def find_matching_kegg_pathways(query):
     matches.sort(key=lambda p: (0 if p["id"].lower().endswith(q_digits) and q_digits else 1, p["name"]))
     return matches
 
+def handle_imodulon_reactions(imodulon_id):
+    path = get_absolute_path(os.path.join("data", "reference", "imodulon", "imodulon_gene_weights.json"))
+    if not os.path.exists(path):
+        return {"error": "iModulon weights file not found."}
+    with open(path, "r", encoding="utf-8") as f:
+        imod_data = json.load(f)
+    if imodulon_id not in imod_data:
+        return {"error": f"iModulon {imodulon_id} not found."}
+        
+    genes = imod_data[imodulon_id].get("genes", {})
+    mapping = load_metabolic_model_mappings()
+    
+    reactions = []
+    seen = set()
+    for gene_locus in genes:
+        aliases = expand_gene_aliases(gene_locus)
+        for alias in aliases:
+            rxns = mapping.get("gene_to_reactions", {}).get(alias, [])
+            for r in rxns:
+                key = (r["model"], r["id"])
+                if key not in seen:
+                    seen.add(key)
+                    reactions.append({
+                        "reactionId": r["id"],
+                        "name": r["label"],
+                        "model": r["model"],
+                        "equation": r.get("equation", ""),
+                        "gpr_rule": r.get("gpr_rule", ""),
+                        "pathway_id": r.get("pathway_id", ""),
+                        "pathway_name": r.get("pathway_name", ""),
+                        "ec_number": r.get("ec_number", ""),
+                        "kcat": r.get("kcat"),
+                        "molecular_weight": r.get("molecular_weight"),
+                        "kcat_MW": r.get("kcat_MW")
+                    })
+    return {"imodulon_id": imodulon_id, "reactions": reactions}
+
+def handle_imodulon_simulation(imodulon_id):
+    path = get_absolute_path(os.path.join("data", "reference", "imodulon", "imodulon_gene_weights.json"))
+    if not os.path.exists(path):
+        return {"error": "iModulon weights file not found."}
+    with open(path, "r", encoding="utf-8") as f:
+        imod_data = json.load(f)
+    if imodulon_id not in imod_data:
+        return {"error": f"iModulon {imodulon_id} not found."}
+        
+    genes = list(imod_data[imodulon_id].get("genes", {}).keys())
+    if not genes:
+        return {"error": "No genes in this iModulon."}
+        
+    fba_res = {}
+    ecfba_res = {}
+    warnings = []
+    
+    # 1. Run standard FBA gene-set knockout
+    try:
+        from backend.model_loader import load_model_if_needed
+        from backend.simulation import run_gene_set_knockout
+        model = load_model_if_needed()
+        fba_res = run_gene_set_knockout(model, genes, track_reaction_ids=["EX_lys_L_e", "EX_glu_L_e"])
+    except Exception as e:
+        warnings.append(f"Standard FBA failed: {str(e)}")
+        
+    # 2. Run ecFBA simulation
+    try:
+        from backend.simulation import run_ecfba_simulation
+        json_model_path = get_absolute_path(os.path.join("data", "reference", "model", "ecCGL1-main", "ecCGL1-main", "model", "iCW773_irr_enz_constraint.json"))
+        
+        # In ecFBA, knockout means scaling enzyme bounds to 0.0
+        enzyme_perturbations = {g: 0.0 for g in genes}
+        
+        # Simulate growth objective
+        ecfba_growth = run_ecfba_simulation(json_model_path, 0.2, enzyme_perturbations, "growth", 30.0)
+        
+        # Simulate lysine excretion objective
+        ecfba_lysine = run_ecfba_simulation(json_model_path, 0.2, enzyme_perturbations, "lysine", 30.0)
+        
+        # Simulate glutamate excretion objective
+        ecfba_glutamate = run_ecfba_simulation(json_model_path, 0.2, enzyme_perturbations, "glutamate", 30.0)
+        
+        ecfba_res = {
+            "growth": ecfba_growth.get("flux") if ecfba_growth.get("status") == "success" else 0.0,
+            "lysine": ecfba_lysine.get("flux") if ecfba_lysine.get("status") == "success" else 0.0,
+            "glutamate": ecfba_glutamate.get("flux") if ecfba_glutamate.get("status") == "success" else 0.0,
+            "status": "success",
+            "warnings": ecfba_growth.get("warnings", [])
+        }
+    except Exception as e:
+        warnings.append(f"ecFBA failed: {str(e)}")
+        
+    return {
+        "imodulon_id": imodulon_id,
+        "fba": fba_res,
+        "ecfba": ecfba_res,
+        "warnings": warnings
+    }
+
 def evidence_weight(evidence):
     text = (evidence or "").lower()
     if "experimental" in text and "predicted" in text:
@@ -1985,6 +2095,105 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps(data.get("motif_enrichment", {})).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        elif urllib.parse.urlparse(self.path).path == '/api/quality/icgb21fr':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            try:
+                # Load iCGB21FR model XML
+                model_path = get_absolute_path('data/reference/model/iCGB21FR.xml')
+                if not os.path.exists(model_path):
+                    raise FileNotFoundError(f"iCGB21FR.xml not found at {model_path}")
+                import cobra
+                model = cobra.io.read_sbml_model(model_path)
+                # Build gene set from model (normalize to cg#### aliases)
+                model_gene_ids = set()
+                for gene in model.genes:
+                    g_id = gene.id.strip().lower()
+                    model_gene_ids.add(g_id)
+                    # also expand numeric suffix to cg#### via expand_gene_aliases
+                    for alias in expand_gene_aliases(g_id):
+                        model_gene_ids.add(alias.lower())
+
+                # Load regulatory gene list from regulations.csv
+                reg_path = get_absolute_path('data/regulations.csv')
+                reg_genes = set()
+                with open(reg_path, 'r', encoding='utf-8') as csvf:
+                    reader = csv.DictReader(csvf)
+                    for row in reader:
+                        for field in ('TF', 'Target', 'tf_locus', 'target_locus', 'regulator', 'gene'):
+                            val = row.get(field, '').strip().lower()
+                            if val:
+                                reg_genes.add(val)
+                                for a in expand_gene_aliases(val):
+                                    reg_genes.add(a.lower())
+
+                # Compute gene-to-reaction mappings
+                # Build a map: normalized_gene_id -> list of reaction ids
+                gene_to_rxns = {}
+                for rxn in model.reactions:
+                    for gene in rxn.genes:
+                        g_id = gene.id.strip().lower()
+                        all_ids = expand_gene_aliases(g_id)
+                        all_ids.add(g_id)
+                        for aid in all_ids:
+                            gene_to_rxns.setdefault(aid.lower(), set()).add(rxn.id)
+
+                gene_to_paths = {}
+                for rxn in model.reactions:
+                    subsystem = (rxn.subsystem or '').strip()
+                    for gene in rxn.genes:
+                        g_id = gene.id.strip().lower()
+                        all_ids = expand_gene_aliases(g_id)
+                        all_ids.add(g_id)
+                        for aid in all_ids:
+                            if subsystem:
+                                gene_to_paths.setdefault(aid.lower(), set()).add(subsystem)
+
+                # Compute coverage
+                unique_reg_genes = set()
+                for rg in reg_genes:
+                    # Normalize to cg form
+                    for alias in expand_gene_aliases(rg):
+                        unique_reg_genes.add(alias.lower())
+                    unique_reg_genes.add(rg.lower())
+
+                mapped_rxn_genes = 0
+                mapped_path_genes = 0
+                unique_rxns = set()
+                unique_paths = set()
+                unmapped = []
+
+                for gene in unique_reg_genes:
+                    rxns = gene_to_rxns.get(gene, set())
+                    paths = gene_to_paths.get(gene, set())
+                    if rxns:
+                        mapped_rxn_genes += 1
+                        unique_rxns.update(rxns)
+                    if paths:
+                        mapped_path_genes += 1
+                        unique_paths.update(paths)
+                    if not rxns:
+                        unmapped.append(gene)
+
+                # Deduplicate unmapped list
+                unmapped = sorted(set(unmapped))
+
+                result = {
+                    "model_id": model.id,
+                    "model_genes": len(model.genes),
+                    "regulatory_gene_count": len(unique_reg_genes),
+                    "genes_mapped_to_reactions": mapped_rxn_genes,
+                    "genes_mapped_to_pathways": mapped_path_genes,
+                    "unique_mapped_reactions": len(unique_rxns),
+                    "unique_mapped_pathways": len(unique_paths),
+                    "unmapped_gene_count": len(unmapped),
+                    "unmapped_genes": unmapped[:100]  # cap at 100 for display
+                }
+                self.wfile.write(json.dumps(result).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e), "loaded": False}).encode('utf-8'))
         else:
             super().do_GET()
 

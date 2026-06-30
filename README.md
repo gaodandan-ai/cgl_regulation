@@ -1,5 +1,6 @@
 # Cgl Regulation Explorer (v0.1.1)
-https://doi.org/10.5281/zenodo.21027667
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21027667.svg)](https://doi.org/10.5281/zenodo.21027667)
 An interactive, reproducible regulatory-metabolic analysis platform for **Corynebacterium glutamicum** DSM 20300 / ATCC 13032.
 
 Cgl Regulation Explorer connects transcription factor (TF) and sRNA regulatory network evidence with genome-scale metabolic reaction equations and protein constraints to support hypothesis generation and strain engineering target prioritization.
@@ -65,7 +66,7 @@ If you use Cgl Regulation Explorer in your research, please cite:
 Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum. Version 0.1.0. Available at: https://cgl-regulation.vercel.app/
 ```
 *Note: Preprints and publication DOIs will be updated here once published.*  
-Zenodo DOI: [10.5281/zenodo.placeholder](https://doi.org/10.5281/zenodo.placeholder)
+Zenodo DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21027667.svg)](https://doi.org/10.5281/zenodo.21027667) (10.5281/zenodo.21027667)
 
 ### Usage Disclaimer
 Users should cite both this platform and the original data/model resources (CoryneRegNet, iCW773, ecCGL1, and KEGG) when using exported results, figures, or derived hypotheses.

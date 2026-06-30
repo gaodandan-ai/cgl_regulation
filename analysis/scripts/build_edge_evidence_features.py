@@ -31,6 +31,7 @@ IMODULON_WEIGHTS_PATH = DATA_DIR / "reference" / "imodulon" / "imodulon_gene_wei
 IMODULON_BY_GENE_PATH = DATA_DIR / "reference" / "imodulon" / "imodulon_by_gene.json"
 TCS_SYSTEMS_PATH      = DATA_DIR / "reference" / "tcs_systems.json"
 SIGMA_ANNOT_PATH      = DATA_DIR / "reference" / "sigma_factor_annotations.json"
+DEFAULT_COMPENDIUM_CORRELATIONS = DATA_DIR / "reference" / "expression_compendium" / "tf_target_compendium_correlations.csv"
 
 
 FEATURE_COLUMNS = [
@@ -79,6 +80,9 @@ FEATURE_COLUMNS = [
     "expression_feature_available",
     "expression_correlation",
     "expression_pvalue",
+    "expression_abs_correlation",
+    "expression_sample_count",
+    "expression_source",
     "feature_missing_count",
     # --- iModulon / TCS / Sigma features (new) ---
     "target_imodulon_count",
@@ -325,7 +329,16 @@ def read_expression_correlations(path: Optional[Path], cg_to_cgl: Dict[str, str]
                 continue
             corr = safe_float(row.get("correlation") or row.get("pearson") or row.get("spearman") or row.get("r"))
             pvalue = safe_float(row.get("pvalue") or row.get("p_value") or row.get("padj"))
-            correlations[(tf, target)] = {"correlation": corr, "pvalue": pvalue}
+            abs_corr = safe_float(row.get("abs_correlation") or row.get("abs_pearson") or row.get("abs_r"))
+            sample_count = safe_float(row.get("sample_count") or row.get("n_samples") or row.get("condition_count"))
+            source = clean(row.get("source") or row.get("dataset"))
+            correlations[(tf, target)] = {
+                "correlation": corr,
+                "pvalue": pvalue,
+                "abs_correlation": abs_corr if abs_corr is not None else (abs(corr) if corr is not None else None),
+                "sample_count": sample_count,
+                "source": source,
+            }
     return correlations
 
 
@@ -425,6 +438,9 @@ def build_feature_row(
         "expression_feature_available": 1 if expr else 0,
         "expression_correlation": format_optional(expr.get("correlation"), 6),
         "expression_pvalue": format_optional(expr.get("pvalue"), 6),
+        "expression_abs_correlation": format_optional(expr.get("abs_correlation"), 6),
+        "expression_sample_count": format_optional(expr.get("sample_count"), 6),
+        "expression_source": expr.get("source", ""),
     }
 
     missing = 0
@@ -500,7 +516,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gene-mapping", type=Path, default=DATA_DIR / "gene_mapping.csv")
     parser.add_argument("--operons", type=Path, default=DATA_DIR / "operons.csv")
     parser.add_argument("--srna-regulation", type=Path, default=DATA_DIR / "rna_regulation.csv")
-    parser.add_argument("--expression-correlations", type=Path, default=None, help="Optional CSV with tf,target,correlation,pvalue columns.")
+    parser.add_argument(
+        "--expression-correlations",
+        type=Path,
+        default=None,
+        help=(
+            "Optional CSV with tf,target,correlation,pvalue columns. If omitted, "
+            "the expression compendium output is used when available."
+        ),
+    )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--negative-ratio", type=float, default=1.0, help="Number of sampled negative TF-gene pairs per positive edge.")
     parser.add_argument("--seed", type=int, default=13)
@@ -543,6 +567,9 @@ def load_integration_data() -> Dict[str, Any]:
 
 def main() -> int:
     args = parse_args()
+    if args.expression_correlations is None and DEFAULT_COMPENDIUM_CORRELATIONS.exists():
+        args.expression_correlations = DEFAULT_COMPENDIUM_CORRELATIONS
+        print(f"Using expression compendium correlations: {args.expression_correlations}")
     cg_to_cgl, cgl_to_cg, name_to_cg, gene_name, _product = read_gene_mapping(args.gene_mapping)
     regulation_rows = read_regulations(args.regulations, cg_to_cgl, cgl_to_cg, name_to_cg)
     gene_to_operon, operon_size = read_operons(args.operons, cg_to_cgl, cgl_to_cg, name_to_cg)
@@ -618,7 +645,10 @@ def main() -> int:
     print(f"Sampled negatives: {negatives_count}")
     print(f"Rows with enzyme-constrained target features: {enzyme_count}")
     print(f"Rows with iModulon co-activation score: {imodulon_enriched}")
-    print("Note: expression correlation columns remain empty unless --expression-correlations is provided.")
+    if expression_correlations:
+        print(f"Rows with expression compendium evidence: {sum(1 for r in feature_rows if r.get('expression_feature_available'))}")
+    else:
+        print("Note: expression correlation columns remain empty unless --expression-correlations is provided or compendium correlations are generated.")
     return 0
 
 

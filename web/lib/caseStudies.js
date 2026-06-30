@@ -115,18 +115,7 @@
             results.qualitySummary = qual;
             results.enzymeConstraintSummary = enz;
 
-            if (qual && qual.regulatoryGeneCount > 0) {
-                const metaCoverage = (qual.genesMappedToReactions / qual.regulatoryGeneCount) * 100;
-                if (metaCoverage < 45) {
-                    warnings.push(`Warning: Metabolic mapping coverage of the network is low (${metaCoverage.toFixed(1)}%). Some key genes may not be represented in the metabolic model.`);
-                }
-            }
-            if (enz && qual && qual.regulatoryGeneCount > 0) {
-                const enzCoverage = (enz.genesWithEnzymeMapping / qual.regulatoryGeneCount) * 100;
-                if (enzCoverage < 25) {
-                    warnings.push(`Warning: ecCGL1 enzyme constraint coverage is low (${enzCoverage.toFixed(1)}%). Many mapped reactions lack enzyme parameters (kcat, molecular weight).`);
-                }
-            }
+            // Warnings for metabolic mapping and enzyme constraint coverage are disabled per user request
 
             if (caseStudy.id === "glutamate-regulation") {
                 if (pathwayLib) {

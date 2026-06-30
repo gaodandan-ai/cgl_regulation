@@ -1,418 +1,6323 @@
 {
-  "iM_SigH": {
-    "name": "SigH_stress_regulon",
-    "linked_regulator": "sigH",
-    "linked_regulator_locus": "cg0876",
-    "category": "Stress_response",
-    "stimulus": "heat_stress, oxidative_stress, diamide",
-    "variance_explained": 0.043,
-    "description": "SigH-controlled heat shock and oxidative stress genes. Activates thioredoxin, disulfide reductases, and heat shock proteins.",
-    "genes": {
-      "cg0876": 0.92,
-      "cg2892": 0.87,
-      "cg2889": 0.85,
-      "cg1206": 0.83,
-      "cg3219": 0.81,
-      "cg2987": 0.79,
-      "cg0497": 0.77,
-      "cg1364": 0.74,
-      "cg0745": 0.72,
-      "cg1516": 0.7,
-      "cg2988": 0.68,
-      "cg2577": 0.65,
-      "cg0371": 0.63,
-      "cg1474": 0.61,
-      "cg1475": 0.58,
-      "cg2962": 0.55,
-      "cg0797": 0.52,
-      "cg2320": 0.5
-    },
-    "pmid": [
-      "19270092",
-      "25404703",
-      "16385111"
-    ]
-  },
-  "iM_SigB": {
-    "name": "SigB_general_stress",
-    "linked_regulator": "sigB",
-    "linked_regulator_locus": "cg2102",
-    "category": "Stress_response",
-    "stimulus": "osmotic_stress, stationary_phase, heat",
-    "variance_explained": 0.031,
-    "description": "SigB-dependent general stress response. Regulates osmoprotectant biosynthesis and carbon starvation genes.",
-    "genes": {
-      "cg2102": 0.89,
-      "cg1226": 0.84,
-      "cg2985": 0.81,
-      "cg1103": 0.78,
-      "cg1225": 0.75,
-      "cg0949": 0.72,
-      "cg1224": 0.69,
-      "cg3327": 0.66,
-      "cg2800": 0.63,
-      "cg0447": 0.6,
-      "cg1468": 0.57,
-      "cg1469": 0.55,
-      "cg2712": 0.52,
-      "cg2713": 0.49,
-      "cg2714": 0.47
-    },
-    "pmid": [
-      "15516578",
-      "19376865"
-    ]
-  },
-  "iM_SigE": {
-    "name": "SigE_envelope_stress",
-    "linked_regulator": "sigE",
-    "linked_regulator_locus": "cg1271",
-    "category": "Stress_response",
-    "stimulus": "cell_envelope_stress, detergents",
-    "variance_explained": 0.024,
-    "description": "SigE regulon controlling cell envelope integrity and mycolate biosynthesis under membrane stress.",
-    "genes": {
-      "cg1271": 0.91,
-      "cg1272": 0.88,
-      "cg1273": 0.85,
-      "cg0955": 0.82,
-      "cg0956": 0.79,
-      "cg1289": 0.76,
-      "cg1290": 0.73,
-      "cg0745": 0.7,
-      "cg1704": 0.67,
-      "cg1705": 0.64,
-      "cg2070": 0.61,
-      "cg2071": 0.58
-    },
-    "pmid": [
-      "23298179",
-      "16385111"
-    ]
-  },
-  "iM_SigM": {
-    "name": "SigM_oxidative_stress",
-    "linked_regulator": "sigM",
-    "linked_regulator_locus": "cg3420",
-    "category": "Stress_response",
-    "stimulus": "superoxide, methyl_viologen",
-    "variance_explained": 0.018,
-    "description": "SigM regulon for superoxide and oxidative stress defense.",
-    "genes": {
-      "cg3420": 0.9,
-      "cg3421": 0.87,
-      "cg2885": 0.84,
-      "cg2886": 0.81,
-      "cg1228": 0.78,
-      "cg1229": 0.75,
-      "cg3309": 0.72,
-      "cg3310": 0.68,
-      "cg0491": 0.65
-    },
-    "pmid": [
-      "21075931"
-    ]
-  },
-  "iM_GlxR_carbon": {
-    "name": "GlxR_cAMP_carbon_catabolite",
-    "linked_regulator": "glxR",
-    "linked_regulator_locus": "cg2181",
-    "category": "Carbon_metabolism",
-    "stimulus": "cAMP_glucose_limitation",
-    "variance_explained": 0.052,
-    "description": "Global carbon catabolite repression by GlxR. Largest single iModulon in C. glutamicum, controlling TCA, glyoxylate shunt, and sugar uptake PTS.",
-    "genes": {
-      "cg2181": 0.95,
-      "cg2889": 0.88,
-      "cg0089": 0.85,
-      "cg2887": 0.82,
-      "cg1638": 0.79,
-      "cg0088": 0.76,
-      "cg2960": 0.73,
-      "cg2961": 0.7,
-      "cg0350": 0.67,
-      "cg2091": 0.65,
-      "cg2411": 0.62,
-      "cg1818": 0.59,
-      "cg0147": 0.56,
-      "cg0148": 0.53,
-      "cg2810": 0.5,
-      "cg2277": 0.47,
-      "cg2278": 0.44,
-      "cg1819": 0.42
-    },
-    "pmid": [
-      "16385111",
-      "22178972"
-    ]
-  },
-  "iM_RamA_glycolysis": {
-    "name": "RamA_acetate_TCA",
-    "linked_regulator": "ramA",
-    "linked_regulator_locus": "cg2831",
-    "category": "Carbon_metabolism",
-    "stimulus": "acetate, propionate",
-    "variance_explained": 0.038,
-    "description": "RamA-controlled acetate assimilation and TCA cycle upregulation under acetate carbon source.",
-    "genes": {
-      "cg2831": 0.93,
-      "cg2889": 0.9,
-      "cg2887": 0.87,
-      "cg0088": 0.84,
-      "cg0089": 0.81,
-      "cg1638": 0.77,
-      "cg0799": 0.74,
-      "cg0800": 0.71,
-      "cg2411": 0.68,
-      "cg1409": 0.65,
-      "cg1410": 0.62,
-      "cg0944": 0.58
-    },
-    "pmid": [
-      "17449638"
-    ]
-  },
-  "iM_LysR_lysine": {
-    "name": "LysR_lysine_regulon",
-    "linked_regulator": "lysG",
-    "linked_regulator_locus": "cg1271",
-    "category": "Amino_acid_biosynthesis",
-    "stimulus": "lysine_accumulation",
-    "variance_explained": 0.028,
-    "description": "LysG-controlled lysine export and biosynthesis regulation. Central to industrial L-lysine production.",
-    "genes": {
-      "cg1458": 0.92,
-      "cg1459": 0.88,
-      "cg1147": 0.85,
-      "cg0300": 0.82,
-      "cg0301": 0.79,
-      "cg0655": 0.75,
-      "cg1133": 0.72,
-      "cg1134": 0.68,
-      "cg2502": 0.65
-    },
-    "pmid": [
-      "16385111",
-      "21075931"
-    ]
-  },
-  "iM_GluABCD_glutamate": {
-    "name": "GDH_glutamate_synthesis",
-    "linked_regulator": "amtR",
-    "linked_regulator_locus": "cg2384",
-    "category": "Amino_acid_biosynthesis",
-    "stimulus": "nitrogen_limitation",
-    "variance_explained": 0.033,
-    "description": "AmtR nitrogen regulon controlling glutamate dehydrogenase and nitrogen assimilation pathway.",
-    "genes": {
-      "cg2384": 0.91,
-      "cg2889": 0.88,
-      "cg1613": 0.85,
-      "cg0575": 0.82,
-      "cg0576": 0.79,
-      "cg1464": 0.76,
-      "cg1465": 0.73,
-      "cg0465": 0.7,
-      "cg1326": 0.67,
-      "cg2402": 0.64,
-      "cg2403": 0.61,
-      "cg0828": 0.58
-    },
-    "pmid": [
-      "16385111",
-      "25404703"
-    ]
-  },
-  "iM_AmtR_nitrogen": {
-    "name": "AmtR_nitrogen_regulon",
-    "linked_regulator": "amtR",
-    "linked_regulator_locus": "cg2384",
-    "category": "Nitrogen_metabolism",
-    "stimulus": "nitrogen_starvation",
-    "variance_explained": 0.041,
-    "description": "Master nitrogen regulator AmtR. Represses ammonium transport (amt), glutamine synthetase, and urea cycle genes under N-replete conditions.",
-    "genes": {
-      "cg2384": 0.94,
-      "cg2986": 0.91,
-      "cg2987": 0.88,
-      "cg0575": 0.85,
-      "cg1613": 0.82,
-      "cg1464": 0.79,
-      "cg1465": 0.76,
-      "cg0115": 0.72,
-      "cg0116": 0.69,
-      "cg0117": 0.66,
-      "cg0118": 0.63,
-      "cg2402": 0.6,
-      "cg2403": 0.57,
-      "cg0112": 0.54,
-      "cg0465": 0.51
-    },
-    "pmid": [
-      "15516578",
-      "16385111"
-    ]
-  },
-  "iM_DtxR_iron": {
-    "name": "DtxR_iron_regulon",
-    "linked_regulator": "dtxR",
-    "linked_regulator_locus": "cg2194",
-    "category": "Metal_homeostasis",
-    "stimulus": "iron_limitation",
-    "variance_explained": 0.026,
-    "description": "DtxR iron-dependent repressor. Controls siderophore biosynthesis (catecholate), iron uptake, and DtxR autoregulation.",
-    "genes": {
-      "cg2194": 0.93,
-      "cg2465": 0.9,
-      "cg2466": 0.87,
-      "cg2469": 0.84,
-      "cg2470": 0.81,
-      "cg2471": 0.78,
-      "cg0980": 0.75,
-      "cg0981": 0.72,
-      "cg2388": 0.69,
-      "cg2389": 0.66,
-      "cg2390": 0.63,
-      "cg0497": 0.59
-    },
-    "pmid": [
-      "16385111",
-      "19376865"
-    ]
-  },
-  "iM_OsR_osmotic": {
-    "name": "OsR_osmotic_compatible_solutes",
-    "linked_regulator": "mtrB",
-    "linked_regulator_locus": "cg0146",
-    "category": "Osmoregulation",
-    "stimulus": "osmotic_upshift_NaCl",
-    "variance_explained": 0.022,
-    "description": "Osmotic stress response controlling betaine/ectoine biosynthesis and compatible solute uptake.",
-    "genes": {
-      "cg0146": 0.9,
-      "cg0147": 0.87,
-      "cg0148": 0.84,
-      "cg3269": 0.81,
-      "cg3270": 0.78,
-      "cg3271": 0.75,
-      "cg1226": 0.72,
-      "cg1227": 0.69,
-      "cg0438": 0.65,
-      "cg0439": 0.62,
-      "cg0440": 0.59,
-      "cg2893": 0.55
-    },
-    "pmid": [
-      "22178972",
-      "21075931"
-    ]
-  },
-  "iM_PhoSR_phosphate": {
-    "name": "PhoSR_phosphate_starvation",
-    "linked_regulator": "phoR",
-    "linked_regulator_locus": "cg1674",
-    "category": "Phosphate_homeostasis",
-    "stimulus": "phosphate_starvation",
-    "variance_explained": 0.019,
-    "description": "PhoSR two-component system controlling phosphate uptake and scavenging under phosphate-limiting conditions.",
-    "genes": {
-      "cg1674": 0.92,
-      "cg1675": 0.89,
-      "cg1676": 0.86,
-      "cg1677": 0.83,
-      "cg1678": 0.8,
-      "cg2070": 0.76,
-      "cg2071": 0.73,
-      "cg1289": 0.69,
-      "cg1290": 0.66,
-      "cg3191": 0.62,
-      "cg3192": 0.59,
-      "cg0980": 0.55
-    },
-    "pmid": [
-      "16385111"
-    ]
-  },
-  "iM_WhiB_cell_cycle": {
-    "name": "WhiB4_redox_cell_division",
-    "linked_regulator": "whiB4",
-    "linked_regulator_locus": "cg1890",
-    "category": "Cell_cycle",
-    "stimulus": "redox_imbalance, ROS",
-    "variance_explained": 0.017,
-    "description": "WhiB4 iron-sulphur cluster protein controlling cell division and septum formation under oxidative conditions.",
-    "genes": {
-      "cg1890": 0.91,
-      "cg1891": 0.88,
-      "cg1892": 0.84,
-      "cg2312": 0.8,
-      "cg2313": 0.77,
-      "cg2314": 0.73,
-      "cg0741": 0.69,
-      "cg0742": 0.65,
-      "cg2988": 0.61,
-      "cg2989": 0.57,
-      "cg1206": 0.53,
-      "cg1207": 0.49
-    },
-    "pmid": [
-      "25876601"
-    ]
-  },
-  "iM_RpsA_ribosome": {
-    "name": "Ribosome_translation",
+  "iM_0_uncharacterized_6": {
+    "name": "uncharacterized-6",
     "linked_regulator": null,
-    "linked_regulator_locus": null,
-    "category": "Translation",
-    "stimulus": "growth_rate",
-    "variance_explained": 0.062,
-    "description": "Growth-rate correlated ribosomal protein module. Activity strongly tracks dilution rate in continuous culture.",
+    "category": "uncharacterized",
+    "variance_explained": 0.000367967,
+    "description": "",
+    "threshold": 0.116787847,
     "genes": {
-      "cg1348": 0.94,
-      "cg1349": 0.92,
-      "cg1350": 0.9,
-      "cg1351": 0.88,
-      "cg1352": 0.86,
-      "cg1353": 0.84,
-      "cg1354": 0.82,
-      "cg1355": 0.8,
-      "cg1356": 0.78,
-      "cg1357": 0.76,
-      "cg1358": 0.74,
-      "cg1359": 0.72,
-      "cg1360": 0.7,
-      "cg1361": 0.68,
-      "cg1362": 0.66,
-      "cg1363": 0.63,
-      "cg1364": 0.6,
-      "cg1365": 0.58
+      "cg0369": -0.116787847,
+      "cg0994": -0.128000416,
+      "cg1938": -0.25725867,
+      "cg2834": -0.129473353,
+      "cg3246": -0.121554565,
+      "cg3381": 0.121978592,
+      "cg3398": 0.270851891,
+      "cg3401": 0.175232681
     },
-    "pmid": []
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00543",
+        "pathway_name": "Exopolysaccharide biosynthesis",
+        "p_value": 0.0031315222996144937,
+        "fold_enrichment": 319.1666666666667,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb03070",
+        "pathway_name": "Bacterial secretion system",
+        "p_value": 0.02486931703008876,
+        "fold_enrichment": 39.895833333333336,
+        "hits": [
+          "cg3381"
+        ]
+      },
+      {
+        "pathway_id": "cgb03060",
+        "pathway_name": "Protein export",
+        "p_value": 0.027948675372859017,
+        "fold_enrichment": 35.462962962962955,
+        "hits": [
+          "cg3381"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.03255554685918578,
+        "fold_enrichment": 30.396825396825392,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.046288781556204264,
+        "fold_enrichment": 21.27777777777778,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb03010",
+        "pathway_name": "Ribosome",
+        "p_value": 0.1072081932872783,
+        "fold_enrichment": 8.990610328638498,
+        "hits": [
+          "cg0994"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.12022385268720599,
+        "fold_enrichment": 7.979166666666666,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.16408645061715177,
+        "fold_enrichment": 5.7507507507507505,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.2742960078900723,
+        "fold_enrichment": 3.290378006872852,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.3755120625919905,
+        "fold_enrichment": 2.2961630695443644,
+        "hits": [
+          "cg2834"
+        ]
+      }
+    ]
   },
-  "iM_FasR_fatty_acids": {
-    "name": "FasR_fatty_acid_biosynthesis",
-    "linked_regulator": "fasR",
-    "linked_regulator_locus": "cg2737",
-    "category": "Lipid_metabolism",
-    "stimulus": "fatty_acid_availability",
-    "variance_explained": 0.021,
-    "description": "FasR regulon controlling fatty acid and mycolic acid biosynthesis.",
+  "iM_1_SG_2": {
+    "name": "SG_2",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.000498302,
+    "description": "",
+    "threshold": 0.562279714,
     "genes": {
-      "cg2737": 0.93,
-      "cg2738": 0.9,
-      "cg2739": 0.87,
-      "cg2396": 0.84,
-      "cg2397": 0.8,
-      "cg2398": 0.76,
-      "cg1631": 0.72,
-      "cg1632": 0.68,
-      "cg1633": 0.64,
-      "cg0959": 0.6,
-      "cg0960": 0.56,
-      "cg2470": 0.52
+      "cg1325": 0.562279714
     },
-    "pmid": [
-      "21075931"
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_2_uncharacterized_16": {
+    "name": "uncharacterized-16",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.000503899,
+    "description": "",
+    "threshold": 0.146847085,
+    "genes": {
+      "cg0530": -0.151476745,
+      "cg1464": -0.198897008,
+      "cg2251": 0.16681003,
+      "cg3091": 0.146847085,
+      "cg3300": 0.178509061,
+      "cg3381": 0.256292171
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb03070",
+        "pathway_name": "Bacterial secretion system",
+        "p_value": 0.00835509138381201,
+        "fold_enrichment": 119.6875,
+        "hits": [
+          "cg3381"
+        ]
+      },
+      {
+        "pathway_id": "cgb03060",
+        "pathway_name": "Protein export",
+        "p_value": 0.009399477806788513,
+        "fold_enrichment": 106.38888888888889,
+        "hits": [
+          "cg3381"
+        ]
+      }
+    ]
+  },
+  "iM_3_SG_5": {
+    "name": "SG_5",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.000508624,
+    "description": "",
+    "threshold": 0.639658263,
+    "genes": {},
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_4_Cg3249": {
+    "name": "Cg3249",
+    "linked_regulator": null,
+    "category": "Redox",
+    "variance_explained": 0.000512987,
+    "description": "redox",
+    "threshold": 0.244698122,
+    "genes": {
+      "cg3236": 0.476383305,
+      "cg3237": 0.350599382,
+      "cg3239": 0.244698122
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb04146",
+        "pathway_name": "Peroxisome",
+        "p_value": 0.003133159268929504,
+        "fold_enrichment": 319.16666666666663,
+        "hits": [
+          "cg3237"
+        ]
+      }
+    ]
+  },
+  "iM_5_amino_acid_related_2": {
+    "name": "amino-acid-related-2",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.000557139,
+    "description": "Amino acid",
+    "threshold": 0.187876972,
+    "genes": {
+      "cg1420": 0.187876972,
+      "cg1488": 0.27729446,
+      "cg1490": 0.269394242
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00660",
+        "pathway_name": "C5-Branched dibasic acid metabolism",
+        "p_value": 0.007299246175630438,
+        "fold_enrichment": 136.7857142857143,
+        "hits": [
+          "cg1488"
+        ]
+      },
+      {
+        "pathway_id": "cgb00290",
+        "pathway_name": "Valine, leucine and isoleucine biosynthesis",
+        "p_value": 0.012496623750787791,
+        "fold_enrichment": 79.79166666666666,
+        "hits": [
+          "cg1488"
+        ]
+      },
+      {
+        "pathway_id": "cgb01210",
+        "pathway_name": "2-Oxocarboxylic acid metabolism",
+        "p_value": 0.026976708654929595,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg1488"
+        ]
+      },
+      {
+        "pathway_id": "cgb00970",
+        "pathway_name": "Aminoacyl-tRNA biosynthesis",
+        "p_value": 0.08582630118598426,
+        "fold_enrichment": 11.398809523809524,
+        "hits": [
+          "cg1420"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg1420",
+          "cg1488"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.1125956603943459,
+        "fold_enrichment": 8.626126126126126,
+        "hits": [
+          "cg1488"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg1488"
+        ]
+      }
+    ]
+  },
+  "iM_6_SG_9": {
+    "name": "SG_9",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.000583624,
+    "description": "",
+    "threshold": 0.191705806,
+    "genes": {
+      "cg0218": 0.191705806,
+      "cg0993": 0.434998298
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_7_SG_7": {
+    "name": "SG_7",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.00069478,
+    "description": "",
+    "threshold": 0.633143787,
+    "genes": {
+      "cg0470": 0.633143787
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_8_mepA_deletion": {
+    "name": "mepA-deletion",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.000771404,
+    "description": "unknown",
+    "threshold": 0.29183144,
+    "genes": {
+      "cg0900": 0.317831098,
+      "cg0901": 0.29183144
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_9_redox_related": {
+    "name": "redox-related",
+    "linked_regulator": null,
+    "category": "Redox",
+    "variance_explained": 0.000917251,
+    "description": "redox-related",
+    "threshold": 0.148725299,
+    "genes": {
+      "cg0830": -0.165094922,
+      "cg1150": -0.183021499,
+      "cg1158": 0.192123269,
+      "cg1971": -0.168044974,
+      "cg2051": -0.148725299
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_10_TRAP_transporter": {
+    "name": "TRAP-transporter",
+    "linked_regulator": null,
+    "category": "Transport",
+    "variance_explained": 0.000957204,
+    "description": "TRAP-transporter",
+    "threshold": 0.186394081,
+    "genes": {
+      "cg2569": 0.206483512,
+      "cg2494": -0.186394081
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01232",
+        "pathway_name": "Nucleotide metabolism",
+        "p_value": 0.03725414767100191,
+        "fold_enrichment": 26.59722222222222,
+        "hits": [
+          "cg2494"
+        ]
+      },
+      {
+        "pathway_id": "cgb02020",
+        "pathway_name": "Two-component system",
+        "p_value": 0.04339441957160513,
+        "fold_enrichment": 22.797619047619047,
+        "hits": [
+          "cg2569"
+        ]
+      },
+      {
+        "pathway_id": "cgb00230",
+        "pathway_name": "Purine metabolism",
+        "p_value": 0.05053324275436457,
+        "fold_enrichment": 19.54081632653061,
+        "hits": [
+          "cg2494"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.5046105240757262,
+        "fold_enrichment": 1.6887125220458552,
+        "hits": [
+          "cg2494"
+        ]
+      }
+    ]
+  },
+  "iM_11_SG_1": {
+    "name": "SG_1",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.000958383,
+    "description": "",
+    "threshold": 0.4285878,
+    "genes": {
+      "cg2900": 0.4285878
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00300",
+        "pathway_name": "Lysine biosynthesis",
+        "p_value": 0.008877284595300261,
+        "fold_enrichment": 112.6470588235294,
+        "hits": [
+          "cg2900"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.05796344647519582,
+        "fold_enrichment": 17.25225225225225,
+        "hits": [
+          "cg2900"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.14516971279373367,
+        "fold_enrichment": 6.888489208633094,
+        "hits": [
+          "cg2900"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2900"
+        ]
+      }
+    ]
+  },
+  "iM_12_peroxide_stress": {
+    "name": "peroxide-stress",
+    "linked_regulator": null,
+    "category": "Redox",
+    "variance_explained": 0.000994245,
+    "description": "peroxide stress",
+    "threshold": 0.262772944,
+    "genes": {
+      "cg2186": 0.287993537,
+      "cg2187": 0.384495348,
+      "cg2188": 0.262772944
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00860",
+        "pathway_name": "Porphyrin metabolism",
+        "p_value": 0.013577023498694517,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg2188"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.14516971279373367,
+        "fold_enrichment": 6.888489208633094,
+        "hits": [
+          "cg2188"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2188"
+        ]
+      }
+    ]
+  },
+  "iM_13_HutC": {
+    "name": "HutC",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.001025562,
+    "description": "Histidine utilization",
+    "threshold": 0.204558426,
+    "genes": {
+      "cg3202": 0.204558426,
+      "cg3203": 0.20482425,
+      "cg3204": 0.219885513
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_14_SG_8": {
+    "name": "SG_8",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.001114939,
+    "description": "",
+    "threshold": 0.495560474,
+    "genes": {
+      "cg1862": 0.495560474
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01232",
+        "pathway_name": "Nucleotide metabolism",
+        "p_value": 0.018798955613577025,
+        "fold_enrichment": 53.19444444444444,
+        "hits": [
+          "cg1862"
+        ]
+      },
+      {
+        "pathway_id": "cgb00230",
+        "pathway_name": "Purine metabolism",
+        "p_value": 0.025587467362924284,
+        "fold_enrichment": 39.08163265306122,
+        "hits": [
+          "cg1862"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg1862"
+        ]
+      }
+    ]
+  },
+  "iM_15_Signal_transduction": {
+    "name": "Signal-transduction",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.001246951,
+    "description": "Signal transduction",
+    "threshold": 0.150305413,
+    "genes": {
+      "cg1345": 0.150305413,
+      "cg0226": 0.173389538,
+      "cg3248": 0.181409407,
+      "cg3249": 0.215721004,
+      "cg3250": 0.235817483
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00910",
+        "pathway_name": "Nitrogen metabolism",
+        "p_value": 0.006788511749347258,
+        "fold_enrichment": 147.30769230769232,
+        "hits": [
+          "cg1345"
+        ]
+      }
+    ]
+  },
+  "iM_16_cadA_operon": {
+    "name": "cadA-operon",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.001263847,
+    "description": "unknown",
+    "threshold": 0.168437735,
+    "genes": {
+      "cg0569": 0.196776082,
+      "cg0570": 0.267744148,
+      "cg0571": 0.219394007,
+      "cg2792": 0.201195528,
+      "cg2793": 0.179416291,
+      "cg3335": 0.168437735
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00760",
+        "pathway_name": "Nicotinate and nicotinamide metabolism",
+        "p_value": 0.01768035991498673,
+        "fold_enrichment": 56.3235294117647,
+        "hits": [
+          "cg2792"
+        ]
+      },
+      {
+        "pathway_id": "cgb00620",
+        "pathway_name": "Pyruvate metabolism",
+        "p_value": 0.03314971994183302,
+        "fold_enrichment": 29.921875,
+        "hits": [
+          "cg3335"
+        ]
+      },
+      {
+        "pathway_id": "cgb02020",
+        "pathway_name": "Two-component system",
+        "p_value": 0.04339441957160513,
+        "fold_enrichment": 22.797619047619047,
+        "hits": [
+          "cg3335"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.08182663949297604,
+        "fold_enrichment": 11.96875,
+        "hits": [
+          "cg3335"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.11554547909999427,
+        "fold_enrichment": 8.399122807017545,
+        "hits": [
+          "cg2792"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.5046105240757262,
+        "fold_enrichment": 1.6887125220458552,
+        "hits": [
+          "cg2792"
+        ]
+      }
+    ]
+  },
+  "iM_17_uncharacterized_9": {
+    "name": "uncharacterized-9",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.001344675,
+    "description": "",
+    "threshold": 0.124691043,
+    "genes": {
+      "cg0368": 0.180641327,
+      "cg0787": 0.171364002,
+      "cg1971": -0.136393613,
+      "cg2087": 0.149460925,
+      "cg2235": 0.18071114,
+      "cg2834": -0.160693381,
+      "cg2723": 0.290696628,
+      "cg3250": 0.129057394
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00543",
+        "pathway_name": "Exopolysaccharide biosynthesis",
+        "p_value": 0.002088227189514666,
+        "fold_enrichment": 478.75,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.021817527030455815,
+        "fold_enrichment": 45.595238095238095,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.03109423213861856,
+        "fold_enrichment": 31.91666666666667,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb03010",
+        "pathway_name": "Ribosome",
+        "p_value": 0.07279547978206481,
+        "fold_enrichment": 13.485915492957746,
+        "hits": [
+          "cg2235"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.08182663949297604,
+        "fold_enrichment": 11.96875,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.1125956603943459,
+        "fold_enrichment": 8.626126126126126,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.19239573187533934,
+        "fold_enrichment": 4.935567010309279,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.5046105240757262,
+        "fold_enrichment": 1.6887125220458552,
+        "hits": [
+          "cg2834"
+        ]
+      }
+    ]
+  },
+  "iM_18_Cg1084": {
+    "name": "Cg1084",
+    "linked_regulator": null,
+    "category": "Stress",
+    "variance_explained": 0.0013985,
+    "description": "two-component system",
+    "threshold": 0.325330211,
+    "genes": {
+      "cg1083": 0.532777879,
+      "cg1084": 0.516597084,
+      "cg1086": 0.325330211
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb02020",
+        "pathway_name": "Two-component system",
+        "p_value": 0.0004698101934079246,
+        "fold_enrichment": 45.595238095238095,
+        "hits": [
+          "cg1083",
+          "cg1084"
+        ]
+      }
+    ]
+  },
+  "iM_19_sigC": {
+    "name": "sigC",
+    "linked_regulator": "WA5_RS01340",
+    "category": "Stress",
+    "variance_explained": 0.001425518,
+    "description": "Energy generation",
+    "threshold": 0.130470426,
+    "genes": {
+      "cg1299": 0.227109726,
+      "cg1300": 0.279173752,
+      "cg1301": 0.300789636,
+      "cg1302": 0.249208024,
+      "cg1884": 0.279303384,
+      "cg2560": 0.130470426
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00190",
+        "pathway_name": "Oxidative phosphorylation",
+        "p_value": 0.0010463116190767465,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg1300",
+          "cg1301"
+        ]
+      },
+      {
+        "pathway_id": "cgb02020",
+        "pathway_name": "Two-component system",
+        "p_value": 0.0027408740678862035,
+        "fold_enrichment": 22.797619047619047,
+        "hits": [
+          "cg1300",
+          "cg1301"
+        ]
+      },
+      {
+        "pathway_id": "cgb00630",
+        "pathway_name": "Glyoxylate and dicarboxylate metabolism",
+        "p_value": 0.0532529365394868,
+        "fold_enrichment": 18.41346153846154,
+        "hits": [
+          "cg2560"
+        ]
+      },
+      {
+        "pathway_id": "cgb00640",
+        "pathway_name": "Propanoate metabolism",
+        "p_value": 0.0552576947469204,
+        "fold_enrichment": 17.73148148148148,
+        "hits": [
+          "cg2560"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08055436105970522,
+        "fold_enrichment": 2.533068783068783,
+        "hits": [
+          "cg1300",
+          "cg1301",
+          "cg2560"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.15703457014799235,
+        "fold_enrichment": 5.984375,
+        "hits": [
+          "cg2560"
+        ]
+      },
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 0.16070661802405736,
+        "fold_enrichment": 5.838414634146341,
+        "hits": [
+          "cg1299"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.3479291535330252,
+        "fold_enrichment": 2.4677835051546393,
+        "hits": [
+          "cg2560"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.46631104093897097,
+        "fold_enrichment": 1.7221223021582734,
+        "hits": [
+          "cg2560"
+        ]
+      }
+    ]
+  },
+  "iM_20_translation_related": {
+    "name": "translation-related",
+    "linked_regulator": null,
+    "category": "Translation",
+    "variance_explained": 0.001467662,
+    "description": "translation-related",
+    "threshold": 0.089736418,
+    "genes": {
+      "cg0134": 0.126461573,
+      "cg0135": 0.121186548,
+      "cg0136": 0.095741626,
+      "cg0177": 0.129927932,
+      "cg0284": 0.12293636,
+      "cg0698": 0.094609062,
+      "cg0717": 0.141946274,
+      "cg0860": -0.097129024,
+      "cg0939": -0.179194851,
+      "cg0940": -0.136306992,
+      "cg0982": -0.117700161,
+      "cg1017": 0.129201654,
+      "cg1038": -0.13083184,
+      "cg1039": -0.141695896,
+      "cg1563": 0.089736418,
+      "cg1564": 0.091029627,
+      "cg1669": 0.169535456,
+      "cg2100": 0.111663698,
+      "cg2101": 0.120708511,
+      "cg2406": -0.135270092,
+      "cg2408": -0.146304504,
+      "cg3398": 0.135094752,
+      "cg3399": 0.09840296,
+      "cg1670": 0.225333648
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00190",
+        "pathway_name": "Oxidative phosphorylation",
+        "p_value": 0.0025722784783993916,
+        "fold_enrichment": 24.55128205128205,
+        "hits": [
+          "cg2406",
+          "cg2408"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.01017756583101044,
+        "fold_enrichment": 2.8145208700764255,
+        "hits": [
+          "cg0860",
+          "cg1017",
+          "cg1039",
+          "cg2406",
+          "cg2408"
+        ]
+      },
+      {
+        "pathway_id": "cgb00450",
+        "pathway_name": "Selenocompound metabolism",
+        "p_value": 0.03706146319832405,
+        "fold_enrichment": 26.59722222222222,
+        "hits": [
+          "cg1017"
+        ]
+      },
+      {
+        "pathway_id": "cgb00900",
+        "pathway_name": "Terpenoid backbone biosynthesis",
+        "p_value": 0.040097527949143834,
+        "fold_enrichment": 24.55128205128205,
+        "hits": [
+          "cg1039"
+        ]
+      },
+      {
+        "pathway_id": "cgb00670",
+        "pathway_name": "One carbon pool by folate",
+        "p_value": 0.043125611457190696,
+        "fold_enrichment": 22.797619047619047,
+        "hits": [
+          "cg0860"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.09050312138983226,
+        "fold_enrichment": 10.63888888888889,
+        "hits": [
+          "cg0860"
+        ]
+      },
+      {
+        "pathway_id": "cgb03010",
+        "pathway_name": "Ribosome",
+        "p_value": 0.20306739683099817,
+        "fold_enrichment": 4.495305164319249,
+        "hits": [
+          "cg1564"
+        ]
+      },
+      {
+        "pathway_id": "cgb00970",
+        "pathway_name": "Aminoacyl-tRNA biosynthesis",
+        "p_value": 0.23623275816135608,
+        "fold_enrichment": 3.799603174603174,
+        "hits": [
+          "cg1017"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.6103268313020103,
+        "fold_enrichment": 1.1480815347721822,
+        "hits": [
+          "cg1039"
+        ]
+      }
+    ]
+  },
+  "iM_21_YqjI": {
+    "name": "YqjI",
+    "linked_regulator": null,
+    "category": "Translation",
+    "variance_explained": 0.001592514,
+    "description": "DNA replication",
+    "threshold": 0.181338249,
+    "genes": {
+      "cg3303": 0.292120687,
+      "cg3304": 0.23624806,
+      "cg3306": 0.216276063
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb03030",
+        "pathway_name": "DNA replication",
+        "p_value": 0.01768035991498673,
+        "fold_enrichment": 56.3235294117647,
+        "hits": [
+          "cg3304"
+        ]
+      },
+      {
+        "pathway_id": "cgb03010",
+        "pathway_name": "Ribosome",
+        "p_value": 0.07279547978206481,
+        "fold_enrichment": 13.485915492957746,
+        "hits": [
+          "cg3306"
+        ]
+      }
+    ]
+  },
+  "iM_22_uncharacterized_14": {
+    "name": "uncharacterized-14",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.00160177,
+    "description": "",
+    "threshold": 0.121929522,
+    "genes": {
+      "cg0715": 0.225018082,
+      "cg0716": 0.18557832,
+      "cg1603": 0.175579139,
+      "cg2117": 0.121929522
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb02060",
+        "pathway_name": "Phosphotransferase system (PTS)",
+        "p_value": 0.004699738903394256,
+        "fold_enrichment": 212.77777777777777,
+        "hits": [
+          "cg2117"
+        ]
+      }
+    ]
+  },
+  "iM_23_PrpR": {
+    "name": "PrpR",
+    "linked_regulator": null,
+    "category": "Carbon",
+    "variance_explained": 0.001605902,
+    "description": "Carbon",
+    "threshold": 0.145604901,
+    "genes": {
+      "cg0760": 0.377598437,
+      "cg0762": 0.401467449,
+      "cg0763": 0.419519187,
+      "cg0764": 0.372833332,
+      "cg0765": 0.145604901
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00640",
+        "pathway_name": "Propanoate metabolism",
+        "p_value": 0.00019152540985619226,
+        "fold_enrichment": 70.92592592592592,
+        "hits": [
+          "cg0760",
+          "cg0762"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.001724274345144067,
+        "fold_enrichment": 23.9375,
+        "hits": [
+          "cg0760",
+          "cg0762"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.010215234182101924,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg0760",
+          "cg0762"
+        ]
+      },
+      {
+        "pathway_id": "cgb00020",
+        "pathway_name": "Citrate cycle (TCA cycle)",
+        "p_value": 0.020784053736246047,
+        "fold_enrichment": 47.875,
+        "hits": [
+          "cg0762"
+        ]
+      },
+      {
+        "pathway_id": "cgb00630",
+        "pathway_name": "Glyoxylate and dicarboxylate metabolism",
+        "p_value": 0.026976708654929595,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg0762"
+        ]
+      },
+      {
+        "pathway_id": "cgb01210",
+        "pathway_name": "2-Oxocarboxylic acid metabolism",
+        "p_value": 0.026976708654929595,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg0762"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg0760",
+          "cg0762"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.1125956603943459,
+        "fold_enrichment": 8.626126126126126,
+        "hits": [
+          "cg0762"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg0762"
+        ]
+      }
+    ]
+  },
+  "iM_24_ArsR": {
+    "name": "ArsR",
+    "linked_regulator": null,
+    "category": "Coenzyme",
+    "variance_explained": 0.001613527,
+    "description": "Coenzyme transport and metabolism",
+    "threshold": 0.301902289,
+    "genes": {
+      "cg1834": 0.350528462,
+      "cg1835": 0.301902289
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_25_PcaO": {
+    "name": "PcaO",
+    "linked_regulator": "WA5_RS11920",
+    "category": "Carbon",
+    "variance_explained": 0.001738221,
+    "description": "redox",
+    "threshold": 0.136194261,
+    "genes": {
+      "cg1227": 0.275529444,
+      "cg2628": 0.280226643,
+      "cg2629": 0.281143793,
+      "cg2630": 0.237611042,
+      "cg2631": 0.256349789,
+      "cg2633": 0.163582942,
+      "cg2635": 0.136194261,
+      "cg2636": 0.206278612,
+      "cg2637": 0.255863793
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01220",
+        "pathway_name": "Degradation of aromatic compounds",
+        "p_value": 6.273674859595433e-15,
+        "fold_enrichment": 91.19047619047619,
+        "hits": [
+          "cg2628",
+          "cg2629",
+          "cg2630",
+          "cg2631",
+          "cg2635",
+          "cg2636",
+          "cg2637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00362",
+        "pathway_name": "Benzoate degradation",
+        "p_value": 4.7912035479588335e-14,
+        "fold_enrichment": 70.92592592592592,
+        "hits": [
+          "cg2628",
+          "cg2629",
+          "cg2630",
+          "cg2631",
+          "cg2635",
+          "cg2636",
+          "cg2637"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 9.923236382835818e-08,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg2628",
+          "cg2629",
+          "cg2630",
+          "cg2631",
+          "cg2635",
+          "cg2636",
+          "cg2637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00364",
+        "pathway_name": "Fluorobenzoate degradation",
+        "p_value": 1.6640627571192927e-06,
+        "fold_enrichment": 102.58928571428571,
+        "hits": [
+          "cg2635",
+          "cg2636",
+          "cg2637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00623",
+        "pathway_name": "Toluene degradation",
+        "p_value": 0.00017068660412083346,
+        "fold_enrichment": 91.19047619047618,
+        "hits": [
+          "cg2635",
+          "cg2636"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.00019432159259804535,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2628",
+          "cg2629",
+          "cg2630",
+          "cg2631",
+          "cg2635",
+          "cg2636",
+          "cg2637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00361",
+        "pathway_name": "Chlorocyclohexane and chlorobenzene degradation",
+        "p_value": 0.0002385445754878964,
+        "fold_enrichment": 78.16326530612245,
+        "hits": [
+          "cg2635",
+          "cg2636"
+        ]
+      },
+      {
+        "pathway_id": "cgb00622",
+        "pathway_name": "Xylene degradation",
+        "p_value": 0.01816247373463794,
+        "fold_enrichment": 54.71428571428571,
+        "hits": [
+          "cg2637"
+        ]
+      }
+    ]
+  },
+  "iM_26_PdxR": {
+    "name": "PdxR",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.001995265,
+    "description": "pyridoxine biosynthesis",
+    "threshold": 0.186495174,
+    "genes": {
+      "cg0897": -0.186495174,
+      "cg1293": 0.288304838,
+      "cg1294": 0.313749928,
+      "cg1295": 0.258031589
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_27_polyketide_synthase": {
+    "name": "polyketide-synthase",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.002027568,
+    "description": "ployketide synthase",
+    "threshold": 0.135702784,
+    "genes": {
+      "cg0814": 0.208297921,
+      "cg0815": 0.221958111,
+      "cg0816": 0.145437905,
+      "cg0957": 0.193705335,
+      "cg0961": 0.145608538,
+      "cg2745": 0.153775451,
+      "cg2746": 0.135702784,
+      "cg2747": 0.162109631,
+      "cg2748": 0.154338631,
+      "cg2750": 0.165978179,
+      "cg2751": 0.160119299,
+      "cg2753": 0.156555625
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.0022473006632635767,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg0814",
+          "cg0816",
+          "cg0957",
+          "cg0961",
+          "cg2751"
+        ]
+      },
+      {
+        "pathway_id": "cgb00230",
+        "pathway_name": "Purine metabolism",
+        "p_value": 0.006107262176964234,
+        "fold_enrichment": 15.63265306122449,
+        "hits": [
+          "cg0816",
+          "cg2751"
+        ]
+      },
+      {
+        "pathway_id": "cgb00780",
+        "pathway_name": "Biotin metabolism",
+        "p_value": 0.013000350169418026,
+        "fold_enrichment": 76.60000000000001,
+        "hits": [
+          "cg0814"
+        ]
+      },
+      {
+        "pathway_id": "cgb00061",
+        "pathway_name": "Fatty acid biosynthesis",
+        "p_value": 0.01558411888625201,
+        "fold_enrichment": 63.833333333333336,
+        "hits": [
+          "cg0957"
+        ]
+      },
+      {
+        "pathway_id": "cgb01212",
+        "pathway_name": "Fatty acid metabolism",
+        "p_value": 0.01816247373463794,
+        "fold_enrichment": 54.71428571428572,
+        "hits": [
+          "cg0957"
+        ]
+      },
+      {
+        "pathway_id": "cgb00074",
+        "pathway_name": "Mycolic acid biosynthesis",
+        "p_value": 0.033519387655700957,
+        "fold_enrichment": 29.461538461538463,
+        "hits": [
+          "cg0957"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.05369573612559674,
+        "fold_enrichment": 18.238095238095237,
+        "hits": [
+          "cg0961"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.07598987332690404,
+        "fold_enrichment": 12.76666666666667,
+        "hits": [
+          "cg0961"
+        ]
+      },
+      {
+        "pathway_id": "cgb01232",
+        "pathway_name": "Nucleotide metabolism",
+        "p_value": 0.09061771456608908,
+        "fold_enrichment": 10.63888888888889,
+        "hits": [
+          "cg2751"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.15576047972711102,
+        "fold_enrichment": 2.7553956834532376,
+        "hits": [
+          "cg0816",
+          "cg0961"
+        ]
+      }
+    ]
+  },
+  "iM_28_KmtR": {
+    "name": "KmtR",
+    "linked_regulator": "WA5_RS13915",
+    "category": "Misc metabolism",
+    "variance_explained": 0.002085085,
+    "description": "WA5_RS13915",
+    "threshold": 0.085854102,
+    "genes": {
+      "cg0314": 0.090913607,
+      "cg0339": 0.1103411,
+      "cg1060": 0.146174171,
+      "cg1294": 0.086882894,
+      "cg1807": 0.113576809,
+      "cg1809": 0.155523565,
+      "cg1810": 0.130409207,
+      "cg1811": 0.103077369,
+      "cg2366": 0.085854102,
+      "cg2511": 0.125117904,
+      "cg2512": 0.146838696,
+      "cg2513": 0.092507143,
+      "cg2691": 0.117592879,
+      "cg2692": 0.139006039,
+      "cg3080": 0.105749604,
+      "cg3082": 0.126967248,
+      "cg3083": 0.12965457,
+      "cg3084": 0.110361455,
+      "cg3271": -0.125774721
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb03020",
+        "pathway_name": "RNA polymerase",
+        "p_value": 0.006256500144800761,
+        "fold_enrichment": 159.58333333333334,
+        "hits": [
+          "cg1809"
+        ]
+      },
+      {
+        "pathway_id": "cgb00770",
+        "pathway_name": "Pantothenate and CoA biosynthesis",
+        "p_value": 0.029485920482970468,
+        "fold_enrichment": 33.59649122807018,
+        "hits": [
+          "cg1807"
+        ]
+      },
+      {
+        "pathway_id": "cgb01232",
+        "pathway_name": "Nucleotide metabolism",
+        "p_value": 0.05537168592706251,
+        "fold_enrichment": 17.731481481481477,
+        "hits": [
+          "cg1810"
+        ]
+      },
+      {
+        "pathway_id": "cgb00230",
+        "pathway_name": "Purine metabolism",
+        "p_value": 0.07485309173765581,
+        "fold_enrichment": 13.02721088435374,
+        "hits": [
+          "cg1810"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.16825212592832708,
+        "fold_enrichment": 5.599415204678363,
+        "hits": [
+          "cg1807"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.21095047927796012,
+        "fold_enrichment": 2.25161669606114,
+        "hits": [
+          "cg1807",
+          "cg1810"
+        ]
+      }
+    ]
+  },
+  "iM_29_TcsR": {
+    "name": "TcsR",
+    "linked_regulator": null,
+    "category": "Stress",
+    "variance_explained": 0.002108549,
+    "description": "two-component system",
+    "threshold": 0.100879707,
+    "genes": {
+      "cg0707": 0.20557009,
+      "cg0709": 0.253584583,
+      "cg0710": 0.21485942,
+      "cg0711": 0.216212522,
+      "cg1327": 0.209163541,
+      "cg1328": 0.158136634,
+      "cg2337": 0.12006365,
+      "cg2447": 0.14670776,
+      "cg2822": 0.134970442,
+      "cg3084": 0.100879707,
+      "cg3085": 0.123495234,
+      "cg3086": 0.123257035,
+      "cg3087": 0.109197934,
+      "cg3153": 0.138517386,
+      "cg3327": 0.15957878,
+      "cg3328": 0.169258253,
+      "cg3329": 0.208063454
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00450",
+        "pathway_name": "Selenocompound metabolism",
+        "p_value": 0.0002145765620064622,
+        "fold_enrichment": 79.79166666666666,
+        "hits": [
+          "cg2337",
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.0007270711759695851,
+        "fold_enrichment": 12.93918918918919,
+        "hits": [
+          "cg2337",
+          "cg2447",
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.0013965170897075998,
+        "fold_enrichment": 31.91666666666667,
+        "hits": [
+          "cg2337",
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.010816716534118484,
+        "fold_enrichment": 5.1663669064748206,
+        "hits": [
+          "cg2337",
+          "cg2447",
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb00910",
+        "pathway_name": "Nitrogen metabolism",
+        "p_value": 0.026899657434164666,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg2447"
+        ]
+      },
+      {
+        "pathway_id": "cgb03410",
+        "pathway_name": "Base excision repair",
+        "p_value": 0.028946135546816264,
+        "fold_enrichment": 34.19642857142858,
+        "hits": [
+          "cg3328"
+        ]
+      },
+      {
+        "pathway_id": "cgb00220",
+        "pathway_name": "Arginine biosynthesis",
+        "p_value": 0.039130150352648066,
+        "fold_enrichment": 25.197368421052634,
+        "hits": [
+          "cg2447"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.043181244304770036,
+        "fold_enrichment": 22.797619047619047,
+        "hits": [
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb00250",
+        "pathway_name": "Alanine, aspartate and glutamate metabolism",
+        "p_value": 0.051244989427163344,
+        "fold_enrichment": 19.150000000000002,
+        "hits": [
+          "cg2447"
+        ]
+      },
+      {
+        "pathway_id": "cgb00630",
+        "pathway_name": "Glyoxylate and dicarboxylate metabolism",
+        "p_value": 0.0532529365394868,
+        "fold_enrichment": 18.41346153846154,
+        "hits": [
+          "cg2447"
+        ]
+      }
+    ]
+  },
+  "iM_30_SG_3": {
+    "name": "SG_3",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.00220036,
+    "description": "",
+    "threshold": 0.676477714,
+    "genes": {},
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_31_NrtR": {
+    "name": "NrtR",
+    "linked_regulator": "WA5_RS05330",
+    "category": "Coenzyme",
+    "variance_explained": 0.002259537,
+    "description": "NAD biosynthesis",
+    "threshold": 0.179893425,
+    "genes": {
+      "cg1215": 0.179893425,
+      "cg1216": 0.269619709,
+      "cg1218": 0.286736948,
+      "cg1219": 0.308505334,
+      "cg1220": 0.295074159
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00760",
+        "pathway_name": "Nicotinate and nicotinamide metabolism",
+        "p_value": 0.00022146406402465097,
+        "fold_enrichment": 75.09803921568627,
+        "hits": [
+          "cg1215",
+          "cg1216"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.010132185443328664,
+        "fold_enrichment": 11.198830409356725,
+        "hits": [
+          "cg1215",
+          "cg1216"
+        ]
+      },
+      {
+        "pathway_id": "cgb02024",
+        "pathway_name": "Quorum sensing",
+        "p_value": 0.05537168592706251,
+        "fold_enrichment": 17.731481481481477,
+        "hits": [
+          "cg1219"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.21095047927796012,
+        "fold_enrichment": 2.25161669606114,
+        "hits": [
+          "cg1215",
+          "cg1216"
+        ]
+      }
+    ]
+  },
+  "iM_32_SG_4": {
+    "name": "SG_4",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.00228752,
+    "description": "",
+    "threshold": 0.587922213,
+    "genes": {},
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_33_Replication_2": {
+    "name": "Replication-2",
+    "linked_regulator": null,
+    "category": "Replication",
+    "variance_explained": 0.002366091,
+    "description": "Replication-2",
+    "threshold": 0.161014491,
+    "genes": {
+      "cg1369": 0.161986482,
+      "cg1370": 0.166975192,
+      "cg1371": 0.161014491
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00190",
+        "pathway_name": "Oxidative phosphorylation",
+        "p_value": 0.013577023498694517,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg1369"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg1369"
+        ]
+      }
+    ]
+  },
+  "iM_34_uncharacterized_4": {
+    "name": "uncharacterized-4",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.002517707,
+    "description": "",
+    "threshold": 0.117673156,
+    "genes": {
+      "cg0270": 0.171629079,
+      "cg0295": 0.155813627,
+      "cg0561": 0.139568946,
+      "cg0562": 0.176462856,
+      "cg1724": 0.139286919,
+      "cg2707": 0.161669864,
+      "cg2708": 0.181044796,
+      "cg2841": 0.117673156,
+      "cg2844": 0.133033056
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 0.010275891637112464,
+        "fold_enrichment": 11.676829268292682,
+        "hits": [
+          "cg2708",
+          "cg2844"
+        ]
+      },
+      {
+        "pathway_id": "cgb04980",
+        "pathway_name": "Cobalamin transport and metabolism",
+        "p_value": 0.01041115906283203,
+        "fold_enrichment": 95.75,
+        "hits": [
+          "cg1724"
+        ]
+      },
+      {
+        "pathway_id": "cgb03070",
+        "pathway_name": "Bacterial secretion system",
+        "p_value": 0.03302940642732651,
+        "fold_enrichment": 29.921875,
+        "hits": [
+          "cg0561"
+        ]
+      },
+      {
+        "pathway_id": "cgb03060",
+        "pathway_name": "Protein export",
+        "p_value": 0.037099786169558044,
+        "fold_enrichment": 26.59722222222222,
+        "hits": [
+          "cg0561"
+        ]
+      },
+      {
+        "pathway_id": "cgb02024",
+        "pathway_name": "Quorum sensing",
+        "p_value": 0.07315757468575798,
+        "fold_enrichment": 13.29861111111111,
+        "hits": [
+          "cg0561"
+        ]
+      }
+    ]
+  },
+  "iM_35_pyruvate_related": {
+    "name": "pyruvate-related",
+    "linked_regulator": null,
+    "category": "Carbon",
+    "variance_explained": 0.002530365,
+    "description": "pyruvate-related",
+    "threshold": 0.183093519,
+    "genes": {
+      "cg0757": -0.183093519,
+      "cg2154": 0.271397239,
+      "cg2155": 0.265970227,
+      "cg2890": 0.218564831,
+      "cg2891": 0.33528361
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00564",
+        "pathway_name": "Glycerophospholipid metabolism",
+        "p_value": 0.008339813003538582,
+        "fold_enrichment": 119.6875,
+        "hits": [
+          "cg2154"
+        ]
+      },
+      {
+        "pathway_id": "cgb00620",
+        "pathway_name": "Pyruvate metabolism",
+        "p_value": 0.03314971994183302,
+        "fold_enrichment": 29.921875,
+        "hits": [
+          "cg2891"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2154",
+          "cg2891"
+        ]
+      }
+    ]
+  },
+  "iM_36_GabR": {
+    "name": "GabR",
+    "linked_regulator": "WA5_RS02450",
+    "category": "Amino acid",
+    "variance_explained": 0.002531405,
+    "description": "Gamma-aminobutyrate utilization",
+    "threshold": 0.186690374,
+    "genes": {
+      "cg0567": 0.198880846,
+      "cg0568": 0.186690374
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00310",
+        "pathway_name": "Lysine degradation",
+        "p_value": 0.004699738903394256,
+        "fold_enrichment": 212.77777777777777,
+        "hits": [
+          "cg0567"
+        ]
+      },
+      {
+        "pathway_id": "cgb00350",
+        "pathway_name": "Tyrosine metabolism",
+        "p_value": 0.004699738903394256,
+        "fold_enrichment": 212.77777777777777,
+        "hits": [
+          "cg0567"
+        ]
+      },
+      {
+        "pathway_id": "cgb00650",
+        "pathway_name": "Butanoate metabolism",
+        "p_value": 0.007310704960835509,
+        "fold_enrichment": 136.7857142857143,
+        "hits": [
+          "cg0567"
+        ]
+      },
+      {
+        "pathway_id": "cgb00760",
+        "pathway_name": "Nicotinate and nicotinamide metabolism",
+        "p_value": 0.008877284595300261,
+        "fold_enrichment": 112.6470588235294,
+        "hits": [
+          "cg0567"
+        ]
+      },
+      {
+        "pathway_id": "cgb00250",
+        "pathway_name": "Alanine, aspartate and glutamate metabolism",
+        "p_value": 0.013054830287206266,
+        "fold_enrichment": 76.60000000000001,
+        "hits": [
+          "cg0567"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.10130548302872062,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg0567"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg0567"
+        ]
+      }
+    ]
+  },
+  "iM_37_uncharacterized_2": {
+    "name": "uncharacterized-2",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.002615678,
+    "description": "",
+    "threshold": 0.116766207,
+    "genes": {
+      "cg0672": 0.116766207,
+      "cg0776": 0.125582247,
+      "cg1128": 0.12735751,
+      "cg1173": 0.12358473,
+      "cg1663": 0.1265986,
+      "cg1920": 0.138220191,
+      "cg1938": 0.381931723,
+      "cg2024": 0.350893017,
+      "cg3398": 0.150956572
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_38_WblB": {
+    "name": "WblB",
+    "linked_regulator": null,
+    "category": "Energy generation",
+    "variance_explained": 0.002634176,
+    "description": "Energy generation",
+    "threshold": 0.128762049,
+    "genes": {
+      "cg0695": 0.134901434,
+      "cg3084": 0.128762049,
+      "cg3085": 0.162239696,
+      "cg3086": 0.152434426,
+      "cg3103": 0.130048323,
+      "cg3104": 0.216301209,
+      "cg3105": 0.218920422
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00450",
+        "pathway_name": "Selenocompound metabolism",
+        "p_value": 0.006266318537859008,
+        "fold_enrichment": 159.58333333333331,
+        "hits": [
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.010966057441253264,
+        "fold_enrichment": 91.19047619047619,
+        "hits": [
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.015665796344647518,
+        "fold_enrichment": 63.83333333333334,
+        "hits": [
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.05796344647519582,
+        "fold_enrichment": 17.25225225225225,
+        "hits": [
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.10130548302872062,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.14516971279373367,
+        "fold_enrichment": 6.888489208633094,
+        "hits": [
+          "cg3086"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg3086"
+        ]
+      }
+    ]
+  },
+  "iM_39_SG_6": {
+    "name": "SG_6",
+    "linked_regulator": null,
+    "category": "single gene",
+    "variance_explained": 0.002886759,
+    "description": "",
+    "threshold": 0.192691272,
+    "genes": {
+      "cg3132": 0.192691272
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_40_uncharacterized_3": {
+    "name": "uncharacterized-3",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.002891583,
+    "description": "",
+    "threshold": 0.143640345,
+    "genes": {},
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_41_ArgR": {
+    "name": "ArgR",
+    "linked_regulator": "WA5_RS06975",
+    "category": "Amino acid",
+    "variance_explained": 0.003051257,
+    "description": "Arginine biosynthesis",
+    "threshold": 0.147625108,
+    "genes": {
+      "cg1581": 0.150061399,
+      "cg1582": 0.315475999,
+      "cg1583": 0.307692561,
+      "cg1584": 0.307280478,
+      "cg1585": 0.306716881,
+      "cg1586": 0.226407686,
+      "cg1588": 0.152634961,
+      "cg1589": 0.15472877,
+      "cg1814": 0.155641908,
+      "cg1815": 0.147625108
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00220",
+        "pathway_name": "Arginine biosynthesis",
+        "p_value": 2.1629053053678594e-14,
+        "fold_enrichment": 88.19078947368422,
+        "hits": [
+          "cg1581",
+          "cg1582",
+          "cg1583",
+          "cg1584",
+          "cg1586",
+          "cg1588",
+          "cg1814"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 8.469775230639694e-07,
+        "fold_enrichment": 12.93918918918919,
+        "hits": [
+          "cg1581",
+          "cg1582",
+          "cg1583",
+          "cg1584",
+          "cg1586",
+          "cg1588"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 8.918472552074909e-06,
+        "fold_enrichment": 6.027428057553958,
+        "hits": [
+          "cg1581",
+          "cg1582",
+          "cg1583",
+          "cg1584",
+          "cg1586",
+          "cg1588",
+          "cg1814"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 5.7033591118923166e-05,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg1581",
+          "cg1582",
+          "cg1583",
+          "cg1584",
+          "cg1586",
+          "cg1588",
+          "cg1814",
+          "cg1815"
+        ]
+      },
+      {
+        "pathway_id": "cgb00250",
+        "pathway_name": "Alanine, aspartate and glutamate metabolism",
+        "p_value": 0.00010554244944692195,
+        "fold_enrichment": 28.725,
+        "hits": [
+          "cg1586",
+          "cg1588",
+          "cg1814"
+        ]
+      },
+      {
+        "pathway_id": "cgb01210",
+        "pathway_name": "2-Oxocarboxylic acid metabolism",
+        "p_value": 0.00011907337486776028,
+        "fold_enrichment": 27.620192307692307,
+        "hits": [
+          "cg1581",
+          "cg1582",
+          "cg1583"
+        ]
+      },
+      {
+        "pathway_id": "cgb00240",
+        "pathway_name": "Pyrimidine metabolism",
+        "p_value": 0.005468853228794255,
+        "fold_enrichment": 17.09821428571429,
+        "hits": [
+          "cg1814",
+          "cg1815"
+        ]
+      },
+      {
+        "pathway_id": "cgb00300",
+        "pathway_name": "Lysine biosynthesis",
+        "p_value": 0.06897270577743929,
+        "fold_enrichment": 14.080882352941176,
+        "hits": [
+          "cg1583"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.07772210321962494,
+        "fold_enrichment": 4.199561403508772,
+        "hits": [
+          "cg1814",
+          "cg1815"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.5752054352772045,
+        "fold_enrichment": 1.2338917525773196,
+        "hits": [
+          "cg1583"
+        ]
+      }
+    ]
+  },
+  "iM_42_Cobalt_transport": {
+    "name": "Cobalt-transport",
+    "linked_regulator": null,
+    "category": "Metal",
+    "variance_explained": 0.003108001,
+    "description": "Cobalt transport",
+    "threshold": 0.251787931,
+    "genes": {
+      "cg0079": 0.251787931,
+      "cg0080": 0.30593415,
+      "cg0081": 0.333833353
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_43_proline_transport": {
+    "name": "proline-transport",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.003257745,
+    "description": "proline-betaine transporter",
+    "threshold": 0.158470211,
+    "genes": {
+      "cg3331": -0.257527335,
+      "cg3394": 0.259885814,
+      "cg3395": 0.158470211
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_44_lipid_metabolism": {
+    "name": "lipid-metabolism",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.003349613,
+    "description": "metabolism",
+    "threshold": 0.299538355,
+    "genes": {
+      "cg2208": 0.299538355,
+      "cg2211": 0.398449336
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00900",
+        "pathway_name": "Terpenoid backbone biosynthesis",
+        "p_value": 0.006788511749347258,
+        "fold_enrichment": 147.30769230769232,
+        "hits": [
+          "cg2208"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.14516971279373367,
+        "fold_enrichment": 6.888489208633094,
+        "hits": [
+          "cg2208"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2208"
+        ]
+      }
+    ]
+  },
+  "iM_45_Zur": {
+    "name": "Zur",
+    "linked_regulator": "WA5_RS11355",
+    "category": "Metal",
+    "variance_explained": 0.003379684,
+    "description": "Zinc ABC transporter",
+    "threshold": 0.214553081,
+    "genes": {
+      "cg0040": 0.394791462,
+      "cg0041": 0.462070421,
+      "cg0042": 0.315111912,
+      "cg0043": 0.214875768,
+      "cg2918": 0.276747736,
+      "cg2919": 0.270542202,
+      "cg2920": 0.214553081,
+      "cg2921": 0.220372245
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_46_copper_utilization": {
+    "name": "copper-utilization",
+    "linked_regulator": null,
+    "category": "Metal",
+    "variance_explained": 0.003421247,
+    "description": "copper and ion transport",
+    "threshold": 0.124423444,
+    "genes": {
+      "cg0464": 0.144297659,
+      "cg0465": 0.2017847,
+      "cg0466": 0.224627094,
+      "cg3287": 0.187066358,
+      "cg3323": 0.298207076,
+      "cg3290": 0.275017662,
+      "cg3291": 0.308658688,
+      "cg3293": 0.124423444,
+      "cg3414": 0.202074549,
+      "cg3325": 0.297764932
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00521",
+        "pathway_name": "Streptomycin biosynthesis",
+        "p_value": 0.013534462296504252,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg3323"
+        ]
+      },
+      {
+        "pathway_id": "cgb00562",
+        "pathway_name": "Inositol phosphate metabolism",
+        "p_value": 0.015608502418622163,
+        "fold_enrichment": 63.83333333333334,
+        "hits": [
+          "cg3323"
+        ]
+      },
+      {
+        "pathway_id": "cgb00860",
+        "pathway_name": "Porphyrin metabolism",
+        "p_value": 0.026976708654929595,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg3287"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg3323"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.5046105240757262,
+        "fold_enrichment": 1.6887125220458552,
+        "hits": [
+          "cg3323"
+        ]
+      }
+    ]
+  },
+  "iM_47_metE_operon": {
+    "name": "metE-operon",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.003507265,
+    "description": "unknown",
+    "threshold": 0.121309449,
+    "genes": {
+      "cg1290": 0.313941261,
+      "cg1291": 0.383807184,
+      "cg1292": 0.161045494,
+      "cg1702": 0.121309449
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00450",
+        "pathway_name": "Selenocompound metabolism",
+        "p_value": 0.012496623750787791,
+        "fold_enrichment": 79.79166666666666,
+        "hits": [
+          "cg1290"
+        ]
+      },
+      {
+        "pathway_id": "cgb00680",
+        "pathway_name": "Methane metabolism",
+        "p_value": 0.016644703995023612,
+        "fold_enrichment": 59.84375,
+        "hits": [
+          "cg1292"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.03109423213861856,
+        "fold_enrichment": 31.91666666666667,
+        "hits": [
+          "cg1290"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg1290",
+          "cg1292"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.1125956603943459,
+        "fold_enrichment": 8.626126126126126,
+        "hits": [
+          "cg1290"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.19239573187533934,
+        "fold_enrichment": 4.935567010309279,
+        "hits": [
+          "cg1292"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg1290"
+        ]
+      }
+    ]
+  },
+  "iM_48_sigD_operon": {
+    "name": "sigD-operon",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.003551138,
+    "description": "SigD operon",
+    "threshold": 0.170608207,
+    "genes": {
+      "cg0696": 0.324786773,
+      "cg0697": 0.281730733,
+      "cg2189": -0.170608207,
+      "cg2657": -0.170971011
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00860",
+        "pathway_name": "Porphyrin metabolism",
+        "p_value": 0.013577023498694517,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg2189"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.05953002610966057,
+        "fold_enrichment": 16.79824561403509,
+        "hits": [
+          "cg2189"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.10130548302872062,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg2189"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.14516971279373367,
+        "fold_enrichment": 6.888489208633094,
+        "hits": [
+          "cg2189"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2189"
+        ]
+      }
+    ]
+  },
+  "iM_49_RbsR": {
+    "name": "RbsR",
+    "linked_regulator": "WA5_RS06225",
+    "category": "Carbon",
+    "variance_explained": 0.003645382,
+    "description": "Ribose utilization",
+    "threshold": 0.158307169,
+    "genes": {
+      "cg1412": 0.158307169,
+      "cg1413": 0.219444912,
+      "cg1414": 0.276300177,
+      "cg1417": 0.223636533
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 7.578149636032537e-05,
+        "fold_enrichment": 23.353658536585364,
+        "hits": [
+          "cg1412",
+          "cg1413",
+          "cg1414"
+        ]
+      }
+    ]
+  },
+  "iM_50_TRAP_transporter_2": {
+    "name": "TRAP-transporter-2",
+    "linked_regulator": null,
+    "category": "Transport",
+    "variance_explained": 0.003875016,
+    "description": "TRAP-transporter-2",
+    "threshold": 0.20392708,
+    "genes": {
+      "cg2569": -0.20392708,
+      "cg2570": -0.228340816,
+      "cg2851": 0.215840698,
+      "cg2852": 0.247450782,
+      "cg2853": 0.260007247
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00790",
+        "pathway_name": "Folate biosynthesis",
+        "p_value": 0.020784053736246047,
+        "fold_enrichment": 47.875,
+        "hits": [
+          "cg2851"
+        ]
+      },
+      {
+        "pathway_id": "cgb02020",
+        "pathway_name": "Two-component system",
+        "p_value": 0.04339441957160513,
+        "fold_enrichment": 22.797619047619047,
+        "hits": [
+          "cg2569"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.11554547909999427,
+        "fold_enrichment": 8.399122807017545,
+        "hits": [
+          "cg2851"
+        ]
+      }
+    ]
+  },
+  "iM_51_sulfate_reduction": {
+    "name": "sulfate-reduction",
+    "linked_regulator": null,
+    "category": "Redox",
+    "variance_explained": 0.003878719,
+    "description": "Sulfur metabolism",
+    "threshold": 0.123125667,
+    "genes": {
+      "cg0964": 0.128896335,
+      "cg0965": 0.123125667,
+      "cg2615": 0.126883261,
+      "cg2841": 0.16148846,
+      "cg2842": 0.210619442,
+      "cg2843": 0.217604974,
+      "cg3101": 0.192586179,
+      "cg3102": 0.221586147,
+      "cg3116": 0.154146867,
+      "cg3118": 0.154353687,
+      "cg3199": 0.287772636,
+      "cg3200": 0.266023733
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01320",
+        "pathway_name": "Sulfur cycle",
+        "p_value": 5.439463648804136e-05,
+        "fold_enrichment": 153.20000000000002,
+        "hits": [
+          "cg3116",
+          "cg3118"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.0011232770214632268,
+        "fold_enrichment": 36.476190476190474,
+        "hits": [
+          "cg3116",
+          "cg3118"
+        ]
+      },
+      {
+        "pathway_id": "cgb04981",
+        "pathway_name": "Folate transport and metabolism",
+        "p_value": 0.013000350169418026,
+        "fold_enrichment": 76.60000000000001,
+        "hits": [
+          "cg0965"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.029151042173736947,
+        "fold_enrichment": 2.7019400352733687,
+        "hits": [
+          "cg0965",
+          "cg3102",
+          "cg3116",
+          "cg3118"
+        ]
+      },
+      {
+        "pathway_id": "cgb00670",
+        "pathway_name": "One carbon pool by folate",
+        "p_value": 0.03606008327174801,
+        "fold_enrichment": 27.35714285714286,
+        "hits": [
+          "cg0965"
+        ]
+      },
+      {
+        "pathway_id": "cgb00790",
+        "pathway_name": "Folate biosynthesis",
+        "p_value": 0.051192285692066575,
+        "fold_enrichment": 19.150000000000002,
+        "hits": [
+          "cg0965"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.07598987332690404,
+        "fold_enrichment": 12.76666666666667,
+        "hits": [
+          "cg3102"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.0831426664276498,
+        "fold_enrichment": 3.948453608247423,
+        "hits": [
+          "cg3116",
+          "cg3118"
+        ]
+      },
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 0.19672025346206223,
+        "fold_enrichment": 4.670731707317073,
+        "hits": [
+          "cg2843"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.25834998861761643,
+        "fold_enrichment": 3.4504504504504507,
+        "hits": [
+          "cg3102"
+        ]
+      }
+    ]
+  },
+  "iM_52_SsuR": {
+    "name": "SsuR",
+    "linked_regulator": "WA5_RS00045",
+    "category": "Misc metabolism",
+    "variance_explained": 0.00438068,
+    "description": "Sulfur metabolism",
+    "threshold": 0.197862278,
+    "genes": {
+      "cg1152": 0.252584214,
+      "cg1153": 0.284500629,
+      "cg1156": 0.258297166,
+      "cg1157": 0.261976472,
+      "cg1158": 0.197862278,
+      "cg1379": 0.299977176,
+      "cg1380": 0.282458247
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 4.5202235587461535e-06,
+        "fold_enrichment": 68.39285714285714,
+        "hits": [
+          "cg1156",
+          "cg1379",
+          "cg1380"
+        ]
+      },
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 0.010275891637112464,
+        "fold_enrichment": 11.676829268292682,
+        "hits": [
+          "cg1379",
+          "cg1380"
+        ]
+      },
+      {
+        "pathway_id": "cgb00710",
+        "pathway_name": "Carbon fixation by Calvin cycle",
+        "p_value": 0.024849946338712667,
+        "fold_enrichment": 39.89583333333333,
+        "hits": [
+          "cg1157"
+        ]
+      },
+      {
+        "pathway_id": "cgb00051",
+        "pathway_name": "Fructose and mannose metabolism",
+        "p_value": 0.026899657434164666,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg1157"
+        ]
+      },
+      {
+        "pathway_id": "cgb00680",
+        "pathway_name": "Methane metabolism",
+        "p_value": 0.03302940642732651,
+        "fold_enrichment": 29.921875,
+        "hits": [
+          "cg1157"
+        ]
+      },
+      {
+        "pathway_id": "cgb00030",
+        "pathway_name": "Pentose phosphate pathway",
+        "p_value": 0.037099786169558044,
+        "fold_enrichment": 26.59722222222222,
+        "hits": [
+          "cg1157"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.05339657096121355,
+        "fold_enrichment": 4.935567010309279,
+        "hits": [
+          "cg1156",
+          "cg1157"
+        ]
+      },
+      {
+        "pathway_id": "cgb00010",
+        "pathway_name": "Glycolysis / Gluconeogenesis",
+        "p_value": 0.05925765795763663,
+        "fold_enrichment": 16.508620689655174,
+        "hits": [
+          "cg1157"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.15703457014799235,
+        "fold_enrichment": 5.984375,
+        "hits": [
+          "cg1157"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.34134659749621504,
+        "fold_enrichment": 1.6887125220458552,
+        "hits": [
+          "cg1156",
+          "cg1157"
+        ]
+      }
+    ]
+  },
+  "iM_53_SufR": {
+    "name": "SufR",
+    "linked_regulator": "WA5_RS07815",
+    "category": "Metal",
+    "variance_explained": 0.004687027,
+    "description": "Fe-S cluster",
+    "threshold": 0.190451315,
+    "genes": {
+      "cg1761": 0.190451315,
+      "cg1762": 0.228564758,
+      "cg1763": 0.278018687,
+      "cg1764": 0.278534841,
+      "cg1765": 0.264522579,
+      "cg1766": 0.240988583
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00450",
+        "pathway_name": "Selenocompound metabolism",
+        "p_value": 0.006266318537859008,
+        "fold_enrichment": 159.58333333333331,
+        "hits": [
+          "cg1761"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg1761"
+        ]
+      }
+    ]
+  },
+  "iM_54_uncharacterized_1": {
+    "name": "uncharacterized-1",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.004778912,
+    "description": "",
+    "threshold": 0.048778472,
+    "genes": {
+      "cg0012": 0.115785256,
+      "cg0158": 0.06414279,
+      "cg0159": 0.054652001,
+      "cg0738": 0.108666466,
+      "cg0756": 0.101785191,
+      "cg1379": 0.072442358,
+      "cg1380": 0.073137747,
+      "cg1388": 0.058467279,
+      "cg1807": 0.053832623,
+      "cg1809": 0.048778472,
+      "cg2680": 0.125747985,
+      "cg2683": 0.146012223,
+      "cg2684": 0.160402782,
+      "cg2685": 0.156834132,
+      "cg2686": 0.098214819,
+      "cg2697": 0.077866479,
+      "cg2840": 0.141739972,
+      "cg3119": 0.140819887,
+      "cg3120": 0.238450663,
+      "cg3122": 0.252998376,
+      "cg3125": 0.274531867,
+      "cg3126": 0.273566146,
+      "cg3127": 0.272124258,
+      "cg3128": 0.253755678,
+      "cg3129": 0.143960675,
+      "cg3137": 0.060351652,
+      "cg3138": 0.080601131,
+      "cg3139": 0.053678043,
+      "cg3140": 0.05970722,
+      "cg3384": 0.060693242,
+      "cg3411": 0.071150372,
+      "cg3412": 0.178385241,
+      "cg3413": 0.135482227,
+      "cg3124": 0.247808118
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb02020",
+        "pathway_name": "Two-component system",
+        "p_value": 0.002409203883573184,
+        "fold_enrichment": 10.521978021978022,
+        "hits": [
+          "cg3125",
+          "cg3126",
+          "cg3127"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.00830936226358449,
+        "fold_enrichment": 14.02930402930403,
+        "hits": [
+          "cg1379",
+          "cg1380"
+        ]
+      },
+      {
+        "pathway_id": "cgb00430",
+        "pathway_name": "Taurine and hypotaurine metabolism",
+        "p_value": 0.026899657434164663,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg2680"
+        ]
+      },
+      {
+        "pathway_id": "cgb03020",
+        "pathway_name": "RNA polymerase",
+        "p_value": 0.026899657434164663,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg1809"
+        ]
+      },
+      {
+        "pathway_id": "cgb00410",
+        "pathway_name": "beta-Alanine metabolism",
+        "p_value": 0.05958479947290533,
+        "fold_enrichment": 16.367521367521366,
+        "hits": [
+          "cg2680"
+        ]
+      },
+      {
+        "pathway_id": "cgb00730",
+        "pathway_name": "Thiamine metabolism",
+        "p_value": 0.08499996498670669,
+        "fold_enrichment": 11.331360946745562,
+        "hits": [
+          "cg1388"
+        ]
+      },
+      {
+        "pathway_id": "cgb04122",
+        "pathway_name": "Sulfur relay system",
+        "p_value": 0.08499996498670669,
+        "fold_enrichment": 11.331360946745562,
+        "hits": [
+          "cg1388"
+        ]
+      },
+      {
+        "pathway_id": "cgb00650",
+        "pathway_name": "Butanoate metabolism",
+        "p_value": 0.09125390844368504,
+        "fold_enrichment": 10.521978021978024,
+        "hits": [
+          "cg2840"
+        ]
+      },
+      {
+        "pathway_id": "cgb03410",
+        "pathway_name": "Base excision repair",
+        "p_value": 0.09125390844368504,
+        "fold_enrichment": 10.521978021978024,
+        "hits": [
+          "cg3140"
+        ]
+      },
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 0.10409927253283521,
+        "fold_enrichment": 3.592870544090056,
+        "hits": [
+          "cg1379",
+          "cg1380"
+        ]
+      }
+    ]
+  },
+  "iM_55_Thiamine_metabolism": {
+    "name": "Thiamine-metabolism",
+    "linked_regulator": "TPP",
+    "category": "Misc metabolism",
+    "variance_explained": 0.005155628,
+    "description": "Thiamine-metabolism",
+    "threshold": 0.095699284,
+    "genes": {
+      "cg0826": 0.114604607,
+      "cg0828": 0.216721565,
+      "cg0829": 0.13598459,
+      "cg0993": -0.103531449,
+      "cg1228": 0.167397643,
+      "cg1229": 0.264765523,
+      "cg1230": 0.25782238,
+      "cg1231": 0.260930805,
+      "cg1232": 0.245881363,
+      "cg1233": 0.164564531,
+      "cg1476": 0.301676716,
+      "cg1478": 0.314392149,
+      "cg1654": 0.141655193,
+      "cg1655": 0.159840703,
+      "cg1656": 0.147817613,
+      "cg2242": 0.180116422,
+      "cg2243": 0.184877516,
+      "cg2922": 0.095699284
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00730",
+        "pathway_name": "Thiamine metabolism",
+        "p_value": 2.4281611925477048e-06,
+        "fold_enrichment": 88.38461538461539,
+        "hits": [
+          "cg1476",
+          "cg1654",
+          "cg1655"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.0018826101003474505,
+        "fold_enrichment": 10.078947368421053,
+        "hits": [
+          "cg1476",
+          "cg1654",
+          "cg1655"
+        ]
+      },
+      {
+        "pathway_id": "cgb00740",
+        "pathway_name": "Riboflavin metabolism",
+        "p_value": 0.01816247373463794,
+        "fold_enrichment": 54.71428571428572,
+        "hits": [
+          "cg1655"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.029151042173736947,
+        "fold_enrichment": 2.7019400352733687,
+        "hits": [
+          "cg1476",
+          "cg1654",
+          "cg1655",
+          "cg1656"
+        ]
+      },
+      {
+        "pathway_id": "cgb00190",
+        "pathway_name": "Oxidative phosphorylation",
+        "p_value": 0.066133848967521,
+        "fold_enrichment": 14.730769230769232,
+        "hits": [
+          "cg1656"
+        ]
+      },
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 0.19672025346206223,
+        "fold_enrichment": 4.670731707317073,
+        "hits": [
+          "cg1229"
+        ]
+      }
+    ]
+  },
+  "iM_56_QacR": {
+    "name": "QacR",
+    "linked_regulator": "WA5_RS13100",
+    "category": "Stress",
+    "variance_explained": 0.00519084,
+    "description": "Drug resistance",
+    "threshold": 0.116656121,
+    "genes": {
+      "cg0079": 0.202974199,
+      "cg0080": 0.172509367,
+      "cg0081": 0.117258706,
+      "cg0292": 0.116656121,
+      "cg0999": 0.15358926,
+      "cg1001": 0.195752198,
+      "cg1002": 0.140602897,
+      "cg2893": 0.137709609,
+      "cg2894": 0.159109702,
+      "cg2895": 0.14833449,
+      "cg3345": 0.139920231,
+      "cg1000": 0.204603302
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_57_uncharacterized_13": {
+    "name": "uncharacterized-13",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.005210617,
+    "description": "",
+    "threshold": 0.155070639,
+    "genes": {},
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_58_uncharacterized_11": {
+    "name": "uncharacterized-11",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.005897098,
+    "description": "",
+    "threshold": 0.10169907,
+    "genes": {
+      "cg0414": 0.105999529,
+      "cg0487": 0.103650517,
+      "cg0609": 0.111480636,
+      "cg0610": 0.241259102,
+      "cg0698": 0.117888329,
+      "cg0699": 0.305398203,
+      "cg1248": 0.178408655,
+      "cg2323": 0.122157617,
+      "cg2324": 0.296593013,
+      "cg2579": 0.112727807,
+      "cg2729": 0.102173809,
+      "cg2730": 0.10169907,
+      "cg2731": 0.103772366,
+      "cg2884": 0.123271074,
+      "cg3181": 0.111385812,
+      "cg3182": 0.102964538,
+      "cg3186": 0.123621923
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb03010",
+        "pathway_name": "Ribosome",
+        "p_value": 0.018459844384019,
+        "fold_enrichment": 8.990610328638498,
+        "hits": [
+          "cg0609",
+          "cg0610"
+        ]
+      },
+      {
+        "pathway_id": "cgb00040",
+        "pathway_name": "Pentose and glucuronate interconversions",
+        "p_value": 0.024837054962122677,
+        "fold_enrichment": 39.895833333333336,
+        "hits": [
+          "cg2731"
+        ]
+      },
+      {
+        "pathway_id": "cgb00561",
+        "pathway_name": "Glycerolipid metabolism",
+        "p_value": 0.024837054962122677,
+        "fold_enrichment": 39.895833333333336,
+        "hits": [
+          "cg3186"
+        ]
+      },
+      {
+        "pathway_id": "cgb00572",
+        "pathway_name": "Arabinogalactan biosynthesis - Mycobacterium",
+        "p_value": 0.03096532266050545,
+        "fold_enrichment": 31.916666666666664,
+        "hits": [
+          "cg3186"
+        ]
+      },
+      {
+        "pathway_id": "cgb00074",
+        "pathway_name": "Mycolic acid biosynthesis",
+        "p_value": 0.040097527949143834,
+        "fold_enrichment": 24.55128205128205,
+        "hits": [
+          "cg3186"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.04316557729820369,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg0699",
+          "cg2323",
+          "cg3186"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.06709799485918996,
+        "fold_enrichment": 2.25161669606114,
+        "hits": [
+          "cg0699",
+          "cg2323",
+          "cg2731",
+          "cg3186"
+        ]
+      },
+      {
+        "pathway_id": "cgb00500",
+        "pathway_name": "Starch and sucrose metabolism",
+        "p_value": 0.07002196934057743,
+        "fold_enrichment": 13.876811594202898,
+        "hits": [
+          "cg2323"
+        ]
+      },
+      {
+        "pathway_id": "cgb01232",
+        "pathway_name": "Nucleotide metabolism",
+        "p_value": 0.10775790423918898,
+        "fold_enrichment": 8.865740740740739,
+        "hits": [
+          "cg0699"
+        ]
+      },
+      {
+        "pathway_id": "cgb00230",
+        "pathway_name": "Purine metabolism",
+        "p_value": 0.14420909980068863,
+        "fold_enrichment": 6.51360544217687,
+        "hits": [
+          "cg0699"
+        ]
+      }
+    ]
+  },
+  "iM_59_DtxR": {
+    "name": "DtxR",
+    "linked_regulator": "WA5_RS09565",
+    "category": "Metal",
+    "variance_explained": 0.006006586,
+    "description": "Iron homeostasis",
+    "threshold": 0.097963028,
+    "genes": {
+      "cg0408": 0.130397156,
+      "cg0467": 0.150662694,
+      "cg0468": 0.140401591,
+      "cg0471": 0.119859,
+      "cg0472": 0.245010764,
+      "cg0474": 0.214262877,
+      "cg0591": 0.120022581,
+      "cg0592": 0.148434359,
+      "cg0593": 0.181748453,
+      "cg0594": 0.131207277,
+      "cg0750": 0.110050989,
+      "cg0751": 0.11699012,
+      "cg0769": 0.102371864,
+      "cg0770": 0.136620809,
+      "cg0771": 0.164332505,
+      "cg0772": 0.135136585,
+      "cg0773": 0.112054135,
+      "cg0923": 0.14754001,
+      "cg0924": 0.101249525,
+      "cg0926": 0.167426581,
+      "cg0927": 0.162359099,
+      "cg0928": 0.12422924,
+      "cg1121": 0.116455277,
+      "cg1122": 0.155118226,
+      "cg1932": 0.138893681,
+      "cg1934": 0.108134895,
+      "cg2234": 0.186658529,
+      "cg2449": 0.097963028,
+      "cg3415": 0.134668314,
+      "cg0470": 0.09797772
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 2.715291077424472e-05,
+        "fold_enrichment": 11.676829268292682,
+        "hits": [
+          "cg0591",
+          "cg0769",
+          "cg0770",
+          "cg0771",
+          "cg2234"
+        ]
+      },
+      {
+        "pathway_id": "cgb03010",
+        "pathway_name": "Ribosome",
+        "p_value": 0.0503166295170388,
+        "fold_enrichment": 5.394366197183099,
+        "hits": [
+          "cg0593",
+          "cg0594"
+        ]
+      },
+      {
+        "pathway_id": "cgb03018",
+        "pathway_name": "RNA degradation",
+        "p_value": 0.06599896400955392,
+        "fold_enrichment": 14.730769230769232,
+        "hits": [
+          "cg3415"
+        ]
+      },
+      {
+        "pathway_id": "cgb00670",
+        "pathway_name": "One carbon pool by folate",
+        "p_value": 0.07090958985598107,
+        "fold_enrichment": 13.67857142857143,
+        "hits": [
+          "cg0750"
+        ]
+      },
+      {
+        "pathway_id": "cgb03410",
+        "pathway_name": "Base excision repair",
+        "p_value": 0.07090958985598107,
+        "fold_enrichment": 13.67857142857143,
+        "hits": [
+          "cg0773"
+        ]
+      },
+      {
+        "pathway_id": "cgb00720",
+        "pathway_name": "Other carbon fixation pathways",
+        "p_value": 0.1046384659187035,
+        "fold_enrichment": 9.119047619047619,
+        "hits": [
+          "cg0750"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.3480317096573855,
+        "fold_enrichment": 2.3937500000000003,
+        "hits": [
+          "cg0750"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.4594932119458233,
+        "fold_enrichment": 1.679824561403509,
+        "hits": [
+          "cg0750"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.6572586640257563,
+        "fold_enrichment": 0.9871134020618557,
+        "hits": [
+          "cg0750"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.9704265991128631,
+        "fold_enrichment": 0.3377425044091711,
+        "hits": [
+          "cg0750"
+        ]
+      }
+    ]
+  },
+  "iM_60_AmtR": {
+    "name": "AmtR",
+    "linked_regulator": "WA5_RS04335",
+    "category": "Misc metabolism",
+    "variance_explained": 0.006217038,
+    "description": "Nitrogen metabolism",
+    "threshold": 0.085061146,
+    "genes": {
+      "cg0104": 0.162889881,
+      "cg0105": 0.145817007,
+      "cg0107": 0.120497241,
+      "cg0115": 0.104099611,
+      "cg0116": 0.110427473,
+      "cg0117": 0.122669374,
+      "cg0118": 0.106444901,
+      "cg0119": 0.112605232,
+      "cg0120": 0.100114777,
+      "cg0229": 0.190674189,
+      "cg0230": 0.239149741,
+      "cg0233": 0.187701161,
+      "cg1062": 0.097877096,
+      "cg1064": 0.20218172,
+      "cg1065": 0.169459314,
+      "cg1066": 0.218597917,
+      "cg1067": 0.212987665,
+      "cg1068": 0.157058149,
+      "cg1298": 0.1251914,
+      "cg1784": 0.144309236,
+      "cg1785": 0.248271939,
+      "cg1786": 0.26858384,
+      "cg2263": 0.179040569,
+      "cg2438": 0.085061146
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00910",
+        "pathway_name": "Nitrogen metabolism",
+        "p_value": 3.9130270474611776e-05,
+        "fold_enrichment": 40.17482517482517,
+        "hits": [
+          "cg0229",
+          "cg0230",
+          "cg1068"
+        ]
+      },
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 4.811268595671439e-05,
+        "fold_enrichment": 10.61529933481153,
+        "hits": [
+          "cg1062",
+          "cg1064",
+          "cg1065",
+          "cg1066",
+          "cg1298"
+        ]
+      },
+      {
+        "pathway_id": "cgb00250",
+        "pathway_name": "Alanine, aspartate and glutamate metabolism",
+        "p_value": 0.00837581434908701,
+        "fold_enrichment": 13.927272727272728,
+        "hits": [
+          "cg0229",
+          "cg0230"
+        ]
+      },
+      {
+        "pathway_id": "cgb00330",
+        "pathway_name": "Arginine and proline metabolism",
+        "p_value": 0.05062851413790292,
+        "fold_enrichment": 19.343434343434343,
+        "hits": [
+          "cg0104"
+        ]
+      },
+      {
+        "pathway_id": "cgb03070",
+        "pathway_name": "Bacterial secretion system",
+        "p_value": 0.08838267435723728,
+        "fold_enrichment": 10.880681818181818,
+        "hits": [
+          "cg1786"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.09180418953362524,
+        "fold_enrichment": 2.692127460168697,
+        "hits": [
+          "cg0115",
+          "cg0229",
+          "cg0230"
+        ]
+      },
+      {
+        "pathway_id": "cgb03060",
+        "pathway_name": "Protein export",
+        "p_value": 0.09891598015228951,
+        "fold_enrichment": 9.671717171717171,
+        "hits": [
+          "cg1786"
+        ]
+      },
+      {
+        "pathway_id": "cgb00220",
+        "pathway_name": "Arginine biosynthesis",
+        "p_value": 0.10414103245504379,
+        "fold_enrichment": 9.162679425837322,
+        "hits": [
+          "cg0115"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.13015914495647055,
+        "fold_enrichment": 3.136773136773137,
+        "hits": [
+          "cg0229",
+          "cg0230"
+        ]
+      },
+      {
+        "pathway_id": "cgb00240",
+        "pathway_name": "Pyrimidine metabolism",
+        "p_value": 0.14994197047060365,
+        "fold_enrichment": 6.217532467532468,
+        "hits": [
+          "cg0104"
+        ]
+      }
+    ]
+  },
+  "iM_61_RamA": {
+    "name": "RamA",
+    "linked_regulator": null,
+    "category": "Energy generation",
+    "variance_explained": 0.00691002,
+    "description": "Energy generation",
+    "threshold": 0.039275964,
+    "genes": {
+      "cg0931": 0.039275964,
+      "cg2824": 0.04376411,
+      "cg2831": -0.042377171,
+      "cg2835": 0.531726644,
+      "cg2836": 0.174662784,
+      "cg3264": -0.040419924,
+      "cg3267": 0.161069832,
+      "cg3269": 0.58342759,
+      "cg3271": 0.120173933,
+      "cg3268": 0.511010879
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00660",
+        "pathway_name": "C5-Branched dibasic acid metabolism",
+        "p_value": 0.007299246175630438,
+        "fold_enrichment": 136.7857142857143,
+        "hits": [
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.010215234182101924,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg0931",
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb00300",
+        "pathway_name": "Lysine biosynthesis",
+        "p_value": 0.01768035991498673,
+        "fold_enrichment": 56.3235294117647,
+        "hits": [
+          "cg0931"
+        ]
+      },
+      {
+        "pathway_id": "cgb00020",
+        "pathway_name": "Citrate cycle (TCA cycle)",
+        "p_value": 0.020784053736246047,
+        "fold_enrichment": 47.875,
+        "hits": [
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb00720",
+        "pathway_name": "Other carbon fixation pathways",
+        "p_value": 0.021817527030455815,
+        "fold_enrichment": 45.595238095238095,
+        "hits": [
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb00640",
+        "pathway_name": "Propanoate metabolism",
+        "p_value": 0.028006908010509344,
+        "fold_enrichment": 35.46296296296296,
+        "hits": [
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.08182663949297604,
+        "fold_enrichment": 11.96875,
+        "hits": [
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg0931",
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.1125956603943459,
+        "fold_enrichment": 8.626126126126126,
+        "hits": [
+          "cg0931"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg2836"
+        ]
+      }
+    ]
+  },
+  "iM_62_Cysteine_biosynthesis": {
+    "name": "Cysteine-biosynthesis",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.006943228,
+    "description": "Cysteine biosynthesis",
+    "threshold": 0.139800195,
+    "genes": {
+      "cg0921": 0.294564663,
+      "cg2833": 0.150956847,
+      "cg2834": 0.230833019,
+      "cg2836": 0.285637046,
+      "cg3266": 0.139800195,
+      "cg3267": 0.211858727,
+      "cg3271": 0.303122119,
+      "cg2494": 0.180131458
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.00027272590418530787,
+        "fold_enrichment": 17.953125,
+        "hits": [
+          "cg2833",
+          "cg2834",
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.0006784545224330119,
+        "fold_enrichment": 45.595238095238095,
+        "hits": [
+          "cg2833",
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.0013965170897075998,
+        "fold_enrichment": 31.91666666666667,
+        "hits": [
+          "cg2833",
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.00379378873053323,
+        "fold_enrichment": 7.403350515463917,
+        "hits": [
+          "cg2833",
+          "cg2834",
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb00543",
+        "pathway_name": "Exopolysaccharide biosynthesis",
+        "p_value": 0.004174271753275985,
+        "fold_enrichment": 239.375,
+        "hits": [
+          "cg2834"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.007628048965358251,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2494",
+          "cg2833",
+          "cg2834",
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb01320",
+        "pathway_name": "Sulfur cycle",
+        "p_value": 0.01041115906283203,
+        "fold_enrichment": 95.75,
+        "hits": [
+          "cg2833"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.010816716534118484,
+        "fold_enrichment": 5.1663669064748206,
+        "hits": [
+          "cg2833",
+          "cg2834",
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb00660",
+        "pathway_name": "C5-Branched dibasic acid metabolism",
+        "p_value": 0.014552776946897638,
+        "fold_enrichment": 68.39285714285715,
+        "hits": [
+          "cg2836"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.018501088721498804,
+        "fold_enrichment": 8.626126126126126,
+        "hits": [
+          "cg2833",
+          "cg2834"
+        ]
+      }
+    ]
+  },
+  "iM_63_amino_acid_related_3": {
+    "name": "amino-acid-related-3",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.006973712,
+    "description": "",
+    "threshold": 0.19144586,
+    "genes": {
+      "cg0103": 0.19144586,
+      "cg0932": 0.409986638,
+      "cg1598": 0.328436545,
+      "cg2823": 0.396585274,
+      "cg2830": 0.341578347,
+      "cg3263": 0.278661709
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb04980",
+        "pathway_name": "Cobalamin transport and metabolism",
+        "p_value": 0.005216475550499139,
+        "fold_enrichment": 191.5,
+        "hits": [
+          "cg2830"
+        ]
+      },
+      {
+        "pathway_id": "cgb00561",
+        "pathway_name": "Glycerolipid metabolism",
+        "p_value": 0.008339813003538582,
+        "fold_enrichment": 119.6875,
+        "hits": [
+          "cg1598"
+        ]
+      },
+      {
+        "pathway_id": "cgb00860",
+        "pathway_name": "Porphyrin metabolism",
+        "p_value": 0.026976708654929595,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg2830"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg1598",
+          "cg2830"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.11554547909999427,
+        "fold_enrichment": 8.399122807017545,
+        "hits": [
+          "cg2830"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg1598"
+        ]
+      }
+    ]
+  },
+  "iM_64_ripA": {
+    "name": "ripA",
+    "linked_regulator": "WA5_RS04910",
+    "category": "Metal",
+    "variance_explained": 0.007605521,
+    "description": "RipA",
+    "threshold": 0.140753044,
+    "genes": {
+      "cg0446": 0.162098689,
+      "cg0447": 0.172757732,
+      "cg0448": 0.173198115,
+      "cg4001": 0.175660025,
+      "cg0450": 0.152543168,
+      "cg1081": -0.140753044,
+      "cg1082": -0.151066444
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00650",
+        "pathway_name": "Butanoate metabolism",
+        "p_value": 4.965473588864243e-05,
+        "fold_enrichment": 136.7857142857143,
+        "hits": [
+          "cg0446",
+          "cg0447"
+        ]
+      },
+      {
+        "pathway_id": "cgb00020",
+        "pathway_name": "Citrate cycle (TCA cycle)",
+        "p_value": 0.00010367472328397871,
+        "fold_enrichment": 95.75,
+        "hits": [
+          "cg0446",
+          "cg0447"
+        ]
+      },
+      {
+        "pathway_id": "cgb00720",
+        "pathway_name": "Other carbon fixation pathways",
+        "p_value": 0.00011458785205071332,
+        "fold_enrichment": 91.19047619047619,
+        "hits": [
+          "cg0446",
+          "cg0447"
+        ]
+      },
+      {
+        "pathway_id": "cgb00190",
+        "pathway_name": "Oxidative phosphorylation",
+        "p_value": 0.00017733834245943727,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg0446",
+          "cg0447"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.001724274345144067,
+        "fold_enrichment": 23.9375,
+        "hits": [
+          "cg0446",
+          "cg0447"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.010215234182101924,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg0446",
+          "cg0447"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.021009409845279117,
+        "fold_enrichment": 6.888489208633094,
+        "hits": [
+          "cg0446",
+          "cg0447"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg0446",
+          "cg0447"
+        ]
+      }
+    ]
+  },
+  "iM_65_IolR": {
+    "name": "IolR",
+    "linked_regulator": "WA5_RS00825",
+    "category": "Carbon",
+    "variance_explained": 0.008273755,
+    "description": "Inositol phosphate metabolism",
+    "threshold": 0.151612398,
+    "genes": {
+      "cg0199": 0.160845105,
+      "cg0201": 0.164090913,
+      "cg0202": 0.151612398,
+      "cg0203": 0.177795523,
+      "cg0204": 0.172569373,
+      "cg0205": 0.156174104,
+      "cg0206": 0.171728429
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00562",
+        "pathway_name": "Inositol phosphate metabolism",
+        "p_value": 1.4065731452924333e-11,
+        "fold_enrichment": 127.66666666666669,
+        "hits": [
+          "cg0199",
+          "cg0201",
+          "cg0202",
+          "cg0203",
+          "cg0204"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 1.0182935175822394e-05,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg0199",
+          "cg0201",
+          "cg0202",
+          "cg0203",
+          "cg0204"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.0022473006632635767,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg0199",
+          "cg0201",
+          "cg0202",
+          "cg0203",
+          "cg0204"
+        ]
+      },
+      {
+        "pathway_id": "cgb00410",
+        "pathway_name": "beta-Alanine metabolism",
+        "p_value": 0.02330297586662523,
+        "fold_enrichment": 42.55555555555556,
+        "hits": [
+          "cg0199"
+        ]
+      },
+      {
+        "pathway_id": "cgb00521",
+        "pathway_name": "Streptomycin biosynthesis",
+        "p_value": 0.033519387655700957,
+        "fold_enrichment": 29.461538461538463,
+        "hits": [
+          "cg0204"
+        ]
+      },
+      {
+        "pathway_id": "cgb00280",
+        "pathway_name": "Valine, leucine and isoleucine degradation",
+        "p_value": 0.043650127760241325,
+        "fold_enrichment": 22.529411764705884,
+        "hits": [
+          "cg0199"
+        ]
+      },
+      {
+        "pathway_id": "cgb00640",
+        "pathway_name": "Propanoate metabolism",
+        "p_value": 0.06860570219947568,
+        "fold_enrichment": 14.185185185185185,
+        "hits": [
+          "cg0199"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.19232354680323077,
+        "fold_enrichment": 4.7875000000000005,
+        "hits": [
+          "cg0199"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.543948681241936,
+        "fold_enrichment": 1.3776978417266188,
+        "hits": [
+          "cg0204"
+        ]
+      }
+    ]
+  },
+  "iM_66_FruR_NanR": {
+    "name": "FruR-NanR",
+    "linked_regulator": "WA5_RS09635/WA5_RS13290",
+    "category": "Carbon",
+    "variance_explained": 0.008432627,
+    "description": "Carbohydrate transport and metabolism",
+    "threshold": 0.138613848,
+    "genes": {
+      "cg2120": 0.138613848,
+      "cg2121": 0.153030127,
+      "cg2124": 0.23563917,
+      "cg2125": 0.228345543,
+      "cg2126": 0.152434277,
+      "cg2932": 0.153141834,
+      "cg2933": 0.26719212,
+      "cg2935": 0.16477488
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb02060",
+        "pathway_name": "Phosphotransferase system (PTS)",
+        "p_value": 0.00011728743162554726,
+        "fold_enrichment": 106.38888888888889,
+        "hits": [
+          "cg2120",
+          "cg2121"
+        ]
+      },
+      {
+        "pathway_id": "cgb00520",
+        "pathway_name": "Amino sugar and nucleotide sugar metabolism",
+        "p_value": 0.0013965170897075998,
+        "fold_enrichment": 31.91666666666667,
+        "hits": [
+          "cg2932",
+          "cg2933"
+        ]
+      },
+      {
+        "pathway_id": "cgb00052",
+        "pathway_name": "Galactose metabolism",
+        "p_value": 0.024849946338712667,
+        "fold_enrichment": 39.89583333333333,
+        "hits": [
+          "cg2932"
+        ]
+      },
+      {
+        "pathway_id": "cgb00051",
+        "pathway_name": "Fructose and mannose metabolism",
+        "p_value": 0.026899657434164666,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg2120"
+        ]
+      },
+      {
+        "pathway_id": "cgb00521",
+        "pathway_name": "Streptomycin biosynthesis",
+        "p_value": 0.026899657434164666,
+        "fold_enrichment": 36.82692307692308,
+        "hits": [
+          "cg2932"
+        ]
+      },
+      {
+        "pathway_id": "cgb00500",
+        "pathway_name": "Starch and sucrose metabolism",
+        "p_value": 0.04721951496658702,
+        "fold_enrichment": 20.815217391304348,
+        "hits": [
+          "cg2932"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.05339657096121355,
+        "fold_enrichment": 4.935567010309279,
+        "hits": [
+          "cg2120",
+          "cg2932"
+        ]
+      },
+      {
+        "pathway_id": "cgb01250",
+        "pathway_name": "Biosynthesis of nucleotide sugars",
+        "p_value": 0.05725926742754133,
+        "fold_enrichment": 17.09821428571429,
+        "hits": [
+          "cg2932"
+        ]
+      },
+      {
+        "pathway_id": "cgb00010",
+        "pathway_name": "Glycolysis / Gluconeogenesis",
+        "p_value": 0.05925765795763663,
+        "fold_enrichment": 16.508620689655174,
+        "hits": [
+          "cg2932"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08055436105970522,
+        "fold_enrichment": 2.533068783068783,
+        "hits": [
+          "cg2120",
+          "cg2932",
+          "cg2933"
+        ]
+      }
+    ]
+  },
+  "iM_67_Aromatic_degradation": {
+    "name": "Aromatic-degradation",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.01074102,
+    "description": "Aromatic-degradation",
+    "threshold": 0.081004161,
+    "genes": {
+      "cg0498": 0.083973286,
+      "cg1398": 0.085027354,
+      "cg1399": 0.095400857,
+      "cg1690": 0.120849664,
+      "cg2109": 0.13411833,
+      "cg2110": 0.115950442,
+      "cg2199": 0.100229381,
+      "cg2200": 0.145169783,
+      "cg2255": 0.091883094,
+      "cg2256": 0.085652184,
+      "cg2418": 0.085923266,
+      "cg3243": 0.110330292,
+      "cg3311": 0.122524574,
+      "cg3312": 0.081004161,
+      "cg3385": 0.090435059,
+      "cg3386": 0.100609447,
+      "cg3417": 0.093669339
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00361",
+        "pathway_name": "Chlorocyclohexane and chlorobenzene degradation",
+        "p_value": 0.00017068660412083346,
+        "fold_enrichment": 91.19047619047619,
+        "hits": [
+          "cg3385",
+          "cg3386"
+        ]
+      },
+      {
+        "pathway_id": "cgb00362",
+        "pathway_name": "Benzoate degradation",
+        "p_value": 0.0027741680617422875,
+        "fold_enrichment": 23.641975308641975,
+        "hits": [
+          "cg3385",
+          "cg3386"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.016252886308098145,
+        "fold_enrichment": 4.935567010309279,
+        "hits": [
+          "cg0498",
+          "cg3385",
+          "cg3386"
+        ]
+      },
+      {
+        "pathway_id": "cgb00623",
+        "pathway_name": "Toluene degradation",
+        "p_value": 0.018676524795509856,
+        "fold_enrichment": 53.19444444444444,
+        "hits": [
+          "cg3386"
+        ]
+      },
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 0.02428847540941591,
+        "fold_enrichment": 7.784552845528455,
+        "hits": [
+          "cg2255",
+          "cg2256"
+        ]
+      },
+      {
+        "pathway_id": "cgb00364",
+        "pathway_name": "Fluorobenzoate degradation",
+        "p_value": 0.024837054962122677,
+        "fold_enrichment": 39.895833333333336,
+        "hits": [
+          "cg3386"
+        ]
+      },
+      {
+        "pathway_id": "cgb00290",
+        "pathway_name": "Valine, leucine and isoleucine biosynthesis",
+        "p_value": 0.03706146319832405,
+        "fold_enrichment": 26.59722222222222,
+        "hits": [
+          "cg2418"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.045009167453563016,
+        "fold_enrichment": 5.599415204678363,
+        "hits": [
+          "cg0498",
+          "cg2418"
+        ]
+      },
+      {
+        "pathway_id": "cgb00280",
+        "pathway_name": "Valine, leucine and isoleucine degradation",
+        "p_value": 0.05216214232991457,
+        "fold_enrichment": 18.774509803921568,
+        "hits": [
+          "cg2418"
+        ]
+      },
+      {
+        "pathway_id": "cgb00770",
+        "pathway_name": "Pantothenate and CoA biosynthesis",
+        "p_value": 0.05814689721055404,
+        "fold_enrichment": 16.79824561403509,
+        "hits": [
+          "cg2418"
+        ]
+      }
+    ]
+  },
+  "iM_68_histidine_biosynthetic": {
+    "name": "histidine-biosynthetic",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.011232943,
+    "description": "histidine biosynthetic",
+    "threshold": 0.103341283,
+    "genes": {
+      "cg0910": 0.109149086,
+      "cg0911": 0.111628704,
+      "cg1096": 0.109803658,
+      "cg1098": 0.129440585,
+      "cg1511": 0.104833006,
+      "cg1512": 0.1208623,
+      "cg1760": 0.114179302,
+      "cg2743": 0.108722137,
+      "cg2712": 0.119752873,
+      "cg2713": 0.133569321,
+      "cg2714": 0.129895716,
+      "cg2715": 0.11741266,
+      "cg2716": 0.134591057,
+      "cg3253": 0.112741407
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00061",
+        "pathway_name": "Fatty acid biosynthesis",
+        "p_value": 0.006258133691283957,
+        "fold_enrichment": 159.58333333333331,
+        "hits": [
+          "cg2743"
+        ]
+      },
+      {
+        "pathway_id": "cgb01212",
+        "pathway_name": "Fatty acid metabolism",
+        "p_value": 0.007299246175630438,
+        "fold_enrichment": 136.7857142857143,
+        "hits": [
+          "cg2743"
+        ]
+      },
+      {
+        "pathway_id": "cgb00074",
+        "pathway_name": "Mycolic acid biosynthesis",
+        "p_value": 0.013534462296504252,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg2743"
+        ]
+      },
+      {
+        "pathway_id": "cgb00340",
+        "pathway_name": "Histidine metabolism",
+        "p_value": 0.013534462296504252,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg0910"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg0910",
+          "cg2743"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.1125956603943459,
+        "fold_enrichment": 8.626126126126126,
+        "hits": [
+          "cg0910"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg0910"
+        ]
+      }
+    ]
+  },
+  "iM_69_Cg2712": {
+    "name": "Cg2712",
+    "linked_regulator": null,
+    "category": "Energy generation",
+    "variance_explained": 0.012256364,
+    "description": "Energy production",
+    "threshold": 0.163974271,
+    "genes": {
+      "cg2743": 0.235190575,
+      "cg2712": 0.187390719,
+      "cg2713": 0.164182203,
+      "cg2714": 0.163974271
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00061",
+        "pathway_name": "Fatty acid biosynthesis",
+        "p_value": 0.003133159268929504,
+        "fold_enrichment": 319.16666666666663,
+        "hits": [
+          "cg2743"
+        ]
+      },
+      {
+        "pathway_id": "cgb01212",
+        "pathway_name": "Fatty acid metabolism",
+        "p_value": 0.0036553524804177544,
+        "fold_enrichment": 273.5714285714286,
+        "hits": [
+          "cg2743"
+        ]
+      },
+      {
+        "pathway_id": "cgb00074",
+        "pathway_name": "Mycolic acid biosynthesis",
+        "p_value": 0.006788511749347258,
+        "fold_enrichment": 147.30769230769232,
+        "hits": [
+          "cg2743"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2743"
+        ]
+      }
+    ]
+  },
+  "iM_70_cell_membrane_1": {
+    "name": "cell-membrane-1",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.012373785,
+    "description": "cell-membrane-1",
+    "threshold": 0.105206248,
+    "genes": {
+      "cg0836": 0.12291841,
+      "cg0953": 0.119982281,
+      "cg0954": 0.191747983,
+      "cg0955": 0.17019289,
+      "cg1110": 0.11204543,
+      "cg1111": 0.105206248,
+      "cg2141": 0.135854276,
+      "cg2145": 0.123127889,
+      "cg2565": 0.130829001
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb03018",
+        "pathway_name": "RNA degradation",
+        "p_value": 0.013534462296504252,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg1111"
+        ]
+      },
+      {
+        "pathway_id": "cgb00680",
+        "pathway_name": "Methane metabolism",
+        "p_value": 0.016644703995023612,
+        "fold_enrichment": 59.84375,
+        "hits": [
+          "cg1111"
+        ]
+      },
+      {
+        "pathway_id": "cgb03440",
+        "pathway_name": "Homologous recombination",
+        "p_value": 0.023882836649560337,
+        "fold_enrichment": 41.630434782608695,
+        "hits": [
+          "cg2141"
+        ]
+      },
+      {
+        "pathway_id": "cgb00010",
+        "pathway_name": "Glycolysis / Gluconeogenesis",
+        "p_value": 0.030065669752353825,
+        "fold_enrichment": 33.01724137931035,
+        "hits": [
+          "cg1111"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.08182663949297604,
+        "fold_enrichment": 11.96875,
+        "hits": [
+          "cg1111"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.1125956603943459,
+        "fold_enrichment": 8.626126126126126,
+        "hits": [
+          "cg1111"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.19239573187533934,
+        "fold_enrichment": 4.935567010309279,
+        "hits": [
+          "cg1111"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.26933001574218823,
+        "fold_enrichment": 3.444244604316547,
+        "hits": [
+          "cg1111"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.5046105240757262,
+        "fold_enrichment": 1.6887125220458552,
+        "hits": [
+          "cg1111"
+        ]
+      }
+    ]
+  },
+  "iM_71_Cg0646": {
+    "name": "Cg0646",
+    "linked_regulator": "WA5_RS02795",
+    "category": "Carbon",
+    "variance_explained": 0.012829267,
+    "description": "Cg0646",
+    "threshold": 0.107615302,
+    "genes": {
+      "cg0638": 0.107615302,
+      "cg0639": 0.130691448,
+      "cg0640": 0.151848681,
+      "cg0641": 0.183629359,
+      "cg0642": 0.151268097,
+      "cg0644": 0.191873594,
+      "cg0645": 0.183055747,
+      "cg0646": 0.227433329,
+      "cg2971": 0.198010544,
+      "cg3300": 0.145948845
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.0001024188901105084,
+        "fold_enrichment": 9.871134020618557,
+        "hits": [
+          "cg0639",
+          "cg0640",
+          "cg0642",
+          "cg0644"
+        ]
+      },
+      {
+        "pathway_id": "cgb00680",
+        "pathway_name": "Methane metabolism",
+        "p_value": 0.00038904883837550527,
+        "fold_enrichment": 59.84375,
+        "hits": [
+          "cg0642",
+          "cg0644"
+        ]
+      },
+      {
+        "pathway_id": "cgb00720",
+        "pathway_name": "Other carbon fixation pathways",
+        "p_value": 0.0006784545224330119,
+        "fold_enrichment": 45.595238095238095,
+        "hits": [
+          "cg0642",
+          "cg0644"
+        ]
+      },
+      {
+        "pathway_id": "cgb00362",
+        "pathway_name": "Benzoate degradation",
+        "p_value": 0.0011292231462134486,
+        "fold_enrichment": 35.46296296296296,
+        "hits": [
+          "cg0639",
+          "cg0640"
+        ]
+      },
+      {
+        "pathway_id": "cgb00010",
+        "pathway_name": "Glycolysis / Gluconeogenesis",
+        "p_value": 0.0013043325848728748,
+        "fold_enrichment": 33.01724137931035,
+        "hits": [
+          "cg0642",
+          "cg0644"
+        ]
+      },
+      {
+        "pathway_id": "cgb00620",
+        "pathway_name": "Pyruvate metabolism",
+        "p_value": 0.0015901121939462153,
+        "fold_enrichment": 29.921875,
+        "hits": [
+          "cg0642",
+          "cg0644"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.009791700304846919,
+        "fold_enrichment": 11.96875,
+        "hits": [
+          "cg0642",
+          "cg0644"
+        ]
+      },
+      {
+        "pathway_id": "cgb00360",
+        "pathway_name": "Phenylalanine metabolism",
+        "p_value": 0.01041115906283203,
+        "fold_enrichment": 95.75,
+        "hits": [
+          "cg0639"
+        ]
+      },
+      {
+        "pathway_id": "cgb00071",
+        "pathway_name": "Fatty acid degradation",
+        "p_value": 0.018681381115205474,
+        "fold_enrichment": 53.19444444444444,
+        "hits": [
+          "cg0639"
+        ]
+      },
+      {
+        "pathway_id": "cgb01220",
+        "pathway_name": "Degradation of aromatic compounds",
+        "p_value": 0.043181244304770036,
+        "fold_enrichment": 22.797619047619047,
+        "hits": [
+          "cg0639"
+        ]
+      }
+    ]
+  },
+  "iM_72_amino_acid_related": {
+    "name": "amino-acid-related",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.013170573,
+    "description": "amino acid related",
+    "threshold": 0.072829308,
+    "genes": {
+      "cg0103": 0.218099282,
+      "cg0931": 0.351571166,
+      "cg2824": 0.356756396,
+      "cg2830": 0.072829308,
+      "cg2831": 0.40759755,
+      "cg2833": 0.2858681,
+      "cg3263": 0.101707938,
+      "cg3264": 0.399075498,
+      "cg3266": 0.293996481
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01320",
+        "pathway_name": "Sulfur cycle",
+        "p_value": 0.007816537036253193,
+        "fold_enrichment": 127.66666666666666,
+        "hits": [
+          "cg2833"
+        ]
+      },
+      {
+        "pathway_id": "cgb04980",
+        "pathway_name": "Cobalamin transport and metabolism",
+        "p_value": 0.007816537036253193,
+        "fold_enrichment": 127.66666666666666,
+        "hits": [
+          "cg2830"
+        ]
+      },
+      {
+        "pathway_id": "cgb01230",
+        "pathway_name": "Biosynthesis of amino acids",
+        "p_value": 0.009614079948734195,
+        "fold_enrichment": 11.501501501501501,
+        "hits": [
+          "cg0931",
+          "cg2833"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.025859626988944992,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg0931",
+          "cg2830",
+          "cg2833"
+        ]
+      },
+      {
+        "pathway_id": "cgb00300",
+        "pathway_name": "Lysine biosynthesis",
+        "p_value": 0.026409807840467765,
+        "fold_enrichment": 37.549019607843135,
+        "hits": [
+          "cg0931"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.02859517984587339,
+        "fold_enrichment": 6.580756013745704,
+        "hits": [
+          "cg0931",
+          "cg2833"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 0.03255554685918578,
+        "fold_enrichment": 30.396825396825392,
+        "hits": [
+          "cg2833"
+        ]
+      },
+      {
+        "pathway_id": "cgb00860",
+        "pathway_name": "Porphyrin metabolism",
+        "p_value": 0.04020128030938429,
+        "fold_enrichment": 24.55128205128205,
+        "hits": [
+          "cg2830"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.046288781556204264,
+        "fold_enrichment": 21.27777777777778,
+        "hits": [
+          "cg2833"
+        ]
+      },
+      {
+        "pathway_id": "cgb01200",
+        "pathway_name": "Carbon metabolism",
+        "p_value": 0.12022385268720599,
+        "fold_enrichment": 7.979166666666666,
+        "hits": [
+          "cg2833"
+        ]
+      }
+    ]
+  },
+  "iM_73_Tyrosine_metabolism": {
+    "name": "Tyrosine-metabolism",
+    "linked_regulator": null,
+    "category": "Amino acid",
+    "variance_explained": 0.014428867,
+    "description": "Tyrosine metabolism",
+    "threshold": 0.096986569,
+    "genes": {
+      "cg1113": 0.100127956,
+      "cg2112": 0.109044943,
+      "cg3226": 0.139119194,
+      "cg3227": 0.178319481,
+      "cg3349": 0.096986569,
+      "cg3350": 0.116224578
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00350",
+        "pathway_name": "Tyrosine metabolism",
+        "p_value": 5.878713640418195e-05,
+        "fold_enrichment": 141.85185185185182,
+        "hits": [
+          "cg3349",
+          "cg3350"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.025859626988944992,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg3227",
+          "cg3349",
+          "cg3350"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.02859517984587339,
+        "fold_enrichment": 6.580756013745704,
+        "hits": [
+          "cg3349",
+          "cg3350"
+        ]
+      },
+      {
+        "pathway_id": "cgb00620",
+        "pathway_name": "Pyruvate metabolism",
+        "p_value": 0.04932285583407628,
+        "fold_enrichment": 19.947916666666668,
+        "hits": [
+          "cg3227"
+        ]
+      }
+    ]
+  },
+  "iM_74_Fructose_utilization": {
+    "name": "Fructose-utilization",
+    "linked_regulator": null,
+    "category": "Carbon",
+    "variance_explained": 0.015410197,
+    "description": "growth related",
+    "threshold": 0.109044644,
+    "genes": {
+      "cg2792": 0.127551267,
+      "cg2793": 0.109044644,
+      "cg2898": 0.113366813,
+      "cg2964": 0.11554851
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00760",
+        "pathway_name": "Nicotinate and nicotinamide metabolism",
+        "p_value": 0.01768035991498673,
+        "fold_enrichment": 56.3235294117647,
+        "hits": [
+          "cg2792"
+        ]
+      },
+      {
+        "pathway_id": "cgb01232",
+        "pathway_name": "Nucleotide metabolism",
+        "p_value": 0.03725414767100191,
+        "fold_enrichment": 26.59722222222222,
+        "hits": [
+          "cg2964"
+        ]
+      },
+      {
+        "pathway_id": "cgb00230",
+        "pathway_name": "Purine metabolism",
+        "p_value": 0.05053324275436457,
+        "fold_enrichment": 19.54081632653061,
+        "hits": [
+          "cg2964"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2792",
+          "cg2964"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.11554547909999427,
+        "fold_enrichment": 8.399122807017545,
+        "hits": [
+          "cg2792"
+        ]
+      }
+    ]
+  },
+  "iM_75_uncharacterized_12": {
+    "name": "uncharacterized-12",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.016711271,
+    "description": "",
+    "threshold": 0.09828642,
+    "genes": {
+      "cg0042": 0.113831489,
+      "cg0258": 0.201642814,
+      "cg0527": 0.294249137,
+      "cg0528": 0.207177917,
+      "cg2098": 0.09828642,
+      "cg2924": 0.118486679
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb04122",
+        "pathway_name": "Sulfur relay system",
+        "p_value": 0.013534462296504252,
+        "fold_enrichment": 73.65384615384616,
+        "hits": [
+          "cg0258"
+        ]
+      },
+      {
+        "pathway_id": "cgb00790",
+        "pathway_name": "Folate biosynthesis",
+        "p_value": 0.020784053736246047,
+        "fold_enrichment": 47.875,
+        "hits": [
+          "cg0258"
+        ]
+      },
+      {
+        "pathway_id": "cgb00970",
+        "pathway_name": "Aminoacyl-tRNA biosynthesis",
+        "p_value": 0.08582630118598426,
+        "fold_enrichment": 11.398809523809524,
+        "hits": [
+          "cg2924"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.11554547909999427,
+        "fold_enrichment": 8.399122807017545,
+        "hits": [
+          "cg0258"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.5046105240757262,
+        "fold_enrichment": 1.6887125220458552,
+        "hits": [
+          "cg0258"
+        ]
+      }
+    ]
+  },
+  "iM_76_Cg0725": {
+    "name": "Cg0725",
+    "linked_regulator": "WA5_RS03145",
+    "category": "Misc metabolism",
+    "variance_explained": 0.019914809,
+    "description": "Degradation of aromatic compounds",
+    "threshold": 0.04039925,
+    "genes": {
+      "cg0647": 0.050297823,
+      "cg0707": 0.066818635,
+      "cg0709": 0.041607178,
+      "cg0712": 0.087530926,
+      "cg0713": 0.084987819,
+      "cg0714": 0.065752793,
+      "cg0717": 0.078846294,
+      "cg0718": 0.081628204,
+      "cg0719": 0.073091942,
+      "cg0720": 0.079207147,
+      "cg0721": 0.085883789,
+      "cg0722": 0.093863328,
+      "cg0723": 0.089641334,
+      "cg0725": 0.09640979,
+      "cg0726": 0.088608398,
+      "cg0727": 0.104851601,
+      "cg0728": 0.095695668,
+      "cg0730": 0.09566061,
+      "cg0732": 0.088224908,
+      "cg0733": 0.053613019,
+      "cg0735": 0.066055556,
+      "cg0736": 0.073066152,
+      "cg0737": 0.100880142,
+      "cg0738": 0.106779196,
+      "cg0740": 0.050527913,
+      "cg0741": 0.082530659,
+      "cg0742": 0.075986758,
+      "cg0745": 0.076729142,
+      "cg0747": 0.074073496,
+      "cg0748": 0.084806997,
+      "cg0749": 0.089785551,
+      "cg0750": 0.068208496,
+      "cg0824": 0.048583545,
+      "cg0826": 0.048128909,
+      "cg0828": 0.088135928,
+      "cg0829": 0.115468612,
+      "cg0830": 0.112597259,
+      "cg0831": 0.10876423,
+      "cg0832": 0.090422942,
+      "cg0833": 0.094770345,
+      "cg0834": 0.089088353,
+      "cg0835": 0.116211932,
+      "cg0836": 0.120808408,
+      "cg0838": 0.075072153,
+      "cg0839": 0.067668,
+      "cg0840": 0.066076722,
+      "cg0841": 0.081242265,
+      "cg0842": 0.078305809,
+      "cg0843": 0.062467005,
+      "cg0844": 0.075111109,
+      "cg0845": 0.069006401,
+      "cg0847": 0.066248529,
+      "cg1019": 0.061535579,
+      "cg1020": 0.064094479,
+      "cg1021": 0.055190059,
+      "cg1027": 0.080840204,
+      "cg1032": 0.076179905,
+      "cg1033": 0.070223694,
+      "cg1176": 0.076238607,
+      "cg1178": 0.042302862,
+      "cg1179": 0.089643233,
+      "cg1182": 0.093029775,
+      "cg1183": 0.083323376,
+      "cg1190": 0.072825322,
+      "cg1191": 0.051873916,
+      "cg1192": 0.067874803,
+      "cg1193": 0.062946593,
+      "cg1194": 0.062561429,
+      "cg1197": 0.071819861,
+      "cg1198": 0.072627726,
+      "cg1199": 0.066119493,
+      "cg1202": 0.055941804,
+      "cg1203": 0.068173485,
+      "cg1204": 0.091977462,
+      "cg1205": 0.091916958,
+      "cg1206": 0.079755801,
+      "cg1207": 0.093580604,
+      "cg1208": 0.096986989,
+      "cg1209": 0.081315362,
+      "cg1211": 0.06950355,
+      "cg1212": 0.085446923,
+      "cg0692": 0.068953848,
+      "cg1214": 0.071927,
+      "cg1227": -0.05158719,
+      "cg1293": 0.066721458,
+      "cg1294": 0.059897639,
+      "cg1295": 0.066452915,
+      "cg1296": 0.040645125,
+      "cg1302": 0.048616801,
+      "cg1303": 0.072852778,
+      "cg1305": 0.088719054,
+      "cg1624": -0.073675659,
+      "cg1697": -0.046226624,
+      "cg2320": 0.043714549,
+      "cg2321": 0.045542324,
+      "cg2322": 0.064470023,
+      "cg2323": 0.060278193,
+      "cg2324": 0.087062716,
+      "cg2355": 0.086931874,
+      "cg2328": 0.065397147,
+      "cg2635": 0.040581256,
+      "cg2636": 0.04039925,
+      "cg2637": 0.052174859,
+      "cg2639": 0.060809378,
+      "cg2640": 0.072205845,
+      "cg2641": 0.082995911,
+      "cg2644": 0.050887027,
+      "cg2645": 0.047869885,
+      "cg2647": 0.057126041,
+      "cg2650": 0.042871913,
+      "cg2675": 0.078904089,
+      "cg2676": 0.065119664,
+      "cg2678": 0.046864768,
+      "cg2679": 0.090373025,
+      "cg2680": 0.073986461,
+      "cg2683": 0.074429434,
+      "cg2684": 0.07539829,
+      "cg2685": 0.073826892,
+      "cg2686": 0.067316805,
+      "cg2687": 0.071706155,
+      "cg2688": 0.080971842,
+      "cg2689": 0.077143481,
+      "cg2690": 0.053056252,
+      "cg2723": 0.085215118,
+      "cg2767": 0.046061431,
+      "cg2768": 0.07163196,
+      "cg2770": 0.076467982,
+      "cg2772": 0.084839663,
+      "cg2773": 0.057535991,
+      "cg3107": 0.068201964,
+      "cg3112": 0.046861785,
+      "cg3113": 0.054446348,
+      "cg3114": 0.052180651,
+      "cg3115": 0.043683645,
+      "cg3116": 0.09534963,
+      "cg3118": 0.098714765,
+      "cg1185": 0.08303305,
+      "cg1201": 0.045289778,
+      "cg1018": 0.049370914,
+      "cg1187": 0.084103936
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01220",
+        "pathway_name": "Degradation of aromatic compounds",
+        "p_value": 5.318695234533826e-08,
+        "fold_enrichment": 17.25225225225225,
+        "hits": [
+          "cg1193",
+          "cg2635",
+          "cg2636",
+          "cg2637",
+          "cg2639",
+          "cg2640",
+          "cg3107"
+        ]
+      },
+      {
+        "pathway_id": "cgb00364",
+        "pathway_name": "Fluorobenzoate degradation",
+        "p_value": 1.096123749856971e-07,
+        "fold_enrichment": 32.347972972972975,
+        "hits": [
+          "cg2635",
+          "cg2636",
+          "cg2637",
+          "cg2639",
+          "cg2640"
+        ]
+      },
+      {
+        "pathway_id": "cgb01320",
+        "pathway_name": "Sulfur cycle",
+        "p_value": 5.829967323460829e-07,
+        "fold_enrichment": 41.40540540540541,
+        "hits": [
+          "cg3114",
+          "cg3115",
+          "cg3116",
+          "cg3118"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 5.654216750676684e-06,
+        "fold_enrichment": 3.735023683477292,
+        "hits": [
+          "cg0750",
+          "cg1027",
+          "cg1193",
+          "cg2635",
+          "cg2636",
+          "cg2637",
+          "cg2639",
+          "cg2640",
+          "cg2687",
+          "cg3107",
+          "cg3114",
+          "cg3115",
+          "cg3116",
+          "cg3118"
+        ]
+      },
+      {
+        "pathway_id": "cgb00362",
+        "pathway_name": "Benzoate degradation",
+        "p_value": 7.540089821739938e-06,
+        "fold_enrichment": 11.501501501501501,
+        "hits": [
+          "cg1193",
+          "cg2635",
+          "cg2636",
+          "cg2637",
+          "cg2639",
+          "cg2640"
+        ]
+      },
+      {
+        "pathway_id": "cgb00920",
+        "pathway_name": "Sulfur metabolism",
+        "p_value": 3.317486997143916e-05,
+        "fold_enrichment": 12.323037323037322,
+        "hits": [
+          "cg2687",
+          "cg3114",
+          "cg3115",
+          "cg3116",
+          "cg3118"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 3.415903115663195e-05,
+        "fold_enrichment": 2.099480432813766,
+        "hits": [
+          "cg0723",
+          "cg0745",
+          "cg0750",
+          "cg0847",
+          "cg1027",
+          "cg1193",
+          "cg1203",
+          "cg1214",
+          "cg1697",
+          "cg2323",
+          "cg2635",
+          "cg2636",
+          "cg2637",
+          "cg2639",
+          "cg2640",
+          "cg2680",
+          "cg2687",
+          "cg3107",
+          "cg3113",
+          "cg3114",
+          "cg3115",
+          "cg3116",
+          "cg3118"
+        ]
+      },
+      {
+        "pathway_id": "cgb00622",
+        "pathway_name": "Xylene degradation",
+        "p_value": 6.472726761836142e-05,
+        "fold_enrichment": 31.054054054054056,
+        "hits": [
+          "cg2637",
+          "cg2639",
+          "cg2640"
+        ]
+      },
+      {
+        "pathway_id": "cgb02010",
+        "pathway_name": "ABC transporters",
+        "p_value": 0.00011249148533697728,
+        "fold_enrichment": 5.049439683586026,
+        "hits": [
+          "cg0735",
+          "cg0736",
+          "cg0737",
+          "cg0748",
+          "cg0831",
+          "cg0832",
+          "cg0834",
+          "cg0835"
+        ]
+      },
+      {
+        "pathway_id": "cgb00450",
+        "pathway_name": "Selenocompound metabolism",
+        "p_value": 0.0012965641890559094,
+        "fold_enrichment": 12.93918918918919,
+        "hits": [
+          "cg2687",
+          "cg3114",
+          "cg3115"
+        ]
+      }
+    ]
+  },
+  "iM_77_uncharacterized_5": {
+    "name": "uncharacterized-5",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.021687873,
+    "description": "",
+    "threshold": 0.074212399,
+    "genes": {
+      "cg0067": -0.098402503,
+      "cg0128": 0.08626758,
+      "cg0139": 0.081244512,
+      "cg0141": 0.078555423,
+      "cg0152": -0.084413026,
+      "cg0217": 0.075295993,
+      "cg0331": 0.077457921,
+      "cg0384": 0.11949077,
+      "cg0442": -0.084744913,
+      "cg0443": -0.084373199,
+      "cg0549": 0.078648524,
+      "cg0905": 0.087124941,
+      "cg1027": 0.115813911,
+      "cg1032": 0.100113306,
+      "cg1033": 0.089724418,
+      "cg1160": 0.081793296,
+      "cg1162": 0.079865391,
+      "cg1179": -0.096078268,
+      "cg1182": -0.094052926,
+      "cg1183": -0.109261424,
+      "cg1190": -0.089182368,
+      "cg1540": 0.07667243,
+      "cg1541": 0.075341141,
+      "cg1592": 0.074669104,
+      "cg2263": 0.082385123,
+      "cg2607": 0.096994566,
+      "cg2804": 0.085722152,
+      "cg2983": 0.077739269,
+      "cg3096": 0.09048362,
+      "cg3097": 0.097521415,
+      "cg3098": 0.103409976,
+      "cg3099": 0.108916541,
+      "cg3112": 0.079850394,
+      "cg3113": 0.07985007,
+      "cg3115": 0.074512177,
+      "cg3146": -0.084525167,
+      "cg3221": 0.112013267,
+      "cg3223": 0.10061308,
+      "cg3224": 0.093252673,
+      "cg3413": 0.074212399,
+      "cg1185": -0.114133527,
+      "cg1201": 0.077995565,
+      "cg3147": -0.079040438,
+      "cg1187": -0.111936816
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.00037955600675944096,
+        "fold_enrichment": 3.002155594748187,
+        "hits": [
+          "cg0067",
+          "cg0442",
+          "cg0549",
+          "cg1027",
+          "cg2983",
+          "cg3096",
+          "cg3113",
+          "cg3115"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.0009104332263104254,
+        "fold_enrichment": 5.483963344788087,
+        "hits": [
+          "cg0067",
+          "cg0442",
+          "cg1027",
+          "cg3096",
+          "cg3115"
+        ]
+      },
+      {
+        "pathway_id": "cgb00790",
+        "pathway_name": "Folate biosynthesis",
+        "p_value": 0.0035716470504679977,
+        "fold_enrichment": 21.277777777777775,
+        "hits": [
+          "cg0549",
+          "cg2983"
+        ]
+      },
+      {
+        "pathway_id": "cgb00620",
+        "pathway_name": "Pyruvate metabolism",
+        "p_value": 0.009054060972062886,
+        "fold_enrichment": 13.29861111111111,
+        "hits": [
+          "cg1027",
+          "cg3096"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.013257006089028895,
+        "fold_enrichment": 5.599415204678363,
+        "hits": [
+          "cg0442",
+          "cg2983",
+          "cg3113"
+        ]
+      },
+      {
+        "pathway_id": "cgb01320",
+        "pathway_name": "Sulfur cycle",
+        "p_value": 0.023302975866625227,
+        "fold_enrichment": 42.55555555555555,
+        "hits": [
+          "cg3115"
+        ]
+      },
+      {
+        "pathway_id": "cgb00261",
+        "pathway_name": "Monobactam biosynthesis",
+        "p_value": 0.032488163955433934,
+        "fold_enrichment": 30.396825396825395,
+        "hits": [
+          "cg3115"
+        ]
+      },
+      {
+        "pathway_id": "cgb00040",
+        "pathway_name": "Pentose and glucuronate interconversions",
+        "p_value": 0.03705189903111585,
+        "fold_enrichment": 26.59722222222222,
+        "hits": [
+          "cg0442"
+        ]
+      },
+      {
+        "pathway_id": "cgb00310",
+        "pathway_name": "Lysine degradation",
+        "p_value": 0.041596488915080186,
+        "fold_enrichment": 23.64197530864197,
+        "hits": [
+          "cg0067"
+        ]
+      },
+      {
+        "pathway_id": "cgb00350",
+        "pathway_name": "Tyrosine metabolism",
+        "p_value": 0.041596488915080186,
+        "fold_enrichment": 23.64197530864197,
+        "hits": [
+          "cg0067"
+        ]
+      }
+    ]
+  },
+  "iM_78_acpP_operon": {
+    "name": "acpP-operon",
+    "linked_regulator": null,
+    "category": "Misc metabolism",
+    "variance_explained": 0.022359327,
+    "description": "metabolism",
+    "threshold": 0.138826706,
+    "genes": {
+      "cg2473": 0.154183723,
+      "cg2474": 0.139214628,
+      "cg2471": 0.138826706
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00998",
+        "pathway_name": "Biosynthesis of various antibiotics",
+        "p_value": 0.002088227189514666,
+        "fold_enrichment": 478.75,
+        "hits": [
+          "cg2473"
+        ]
+      },
+      {
+        "pathway_id": "cgb00760",
+        "pathway_name": "Nicotinate and nicotinamide metabolism",
+        "p_value": 0.01768035991498673,
+        "fold_enrichment": 56.3235294117647,
+        "hits": [
+          "cg2474"
+        ]
+      },
+      {
+        "pathway_id": "cgb01110",
+        "pathway_name": "Biosynthesis of secondary metabolites",
+        "p_value": 0.021009409845279117,
+        "fold_enrichment": 6.888489208633094,
+        "hits": [
+          "cg2473",
+          "cg2474"
+        ]
+      },
+      {
+        "pathway_id": "cgb00240",
+        "pathway_name": "Pyrimidine metabolism",
+        "p_value": 0.029036561709650754,
+        "fold_enrichment": 34.19642857142858,
+        "hits": [
+          "cg2474"
+        ]
+      },
+      {
+        "pathway_id": "cgb01232",
+        "pathway_name": "Nucleotide metabolism",
+        "p_value": 0.03725414767100191,
+        "fold_enrichment": 26.59722222222222,
+        "hits": [
+          "cg2474"
+        ]
+      },
+      {
+        "pathway_id": "cgb00230",
+        "pathway_name": "Purine metabolism",
+        "p_value": 0.05053324275436457,
+        "fold_enrichment": 19.54081632653061,
+        "hits": [
+          "cg2474"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.08755657775195004,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2473",
+          "cg2474"
+        ]
+      }
+    ]
+  },
+  "iM_79_Intracellular_trafficking": {
+    "name": "Intracellular-trafficking",
+    "linked_regulator": null,
+    "category": "Other Functional",
+    "variance_explained": 0.022624189,
+    "description": "",
+    "threshold": 0.093147161,
+    "genes": {
+      "cg1983": 0.093147161,
+      "cg1991": 0.094932625,
+      "cg1992": 0.12246132,
+      "cg1998": 0.108655369,
+      "cg1999": 0.102679549,
+      "cg2001": 0.120664649,
+      "cg2002": 0.145267758,
+      "cg2003": 0.121964225,
+      "cg2005": 0.141885496,
+      "cg2006": 0.140302653,
+      "cg2007": 0.107782079,
+      "cg2008": 0.107043761,
+      "cg2012": 0.095445348,
+      "cg2031": 0.144577598,
+      "cg2032": 0.141346607,
+      "cg2033": 0.104548543,
+      "cg2034": 0.113823601,
+      "cg2027": 0.12606222
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": []
+  },
+  "iM_80_uncharacterized_17": {
+    "name": "uncharacterized-17",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.027179252,
+    "description": "",
+    "threshold": 0.08275882,
+    "genes": {
+      "cg0471": 0.087590411,
+      "cg0596": 0.101166181,
+      "cg0684": 0.127118352,
+      "cg0796": 0.093730841,
+      "cg0868": 0.152992692,
+      "cg0966": 0.08275882,
+      "cg1048": 0.116988552,
+      "cg1112": 0.09401065,
+      "cg1113": 0.107013185,
+      "cg1364": 0.124593934,
+      "cg1793": 0.089045498,
+      "cg2099": 0.165486973,
+      "cg2569": 0.121597493,
+      "cg2570": 0.143964626,
+      "cg2716": 0.083235329,
+      "cg2801": 0.117146661,
+      "cg2802": 0.12176103,
+      "cg3087": 0.090919072,
+      "cg3271": -0.086251802,
+      "cg2494": 0.173273079
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01232",
+        "pathway_name": "Nucleotide metabolism",
+        "p_value": 0.006802276850852044,
+        "fold_enrichment": 15.198412698412696,
+        "hits": [
+          "cg0966",
+          "cg2494"
+        ]
+      },
+      {
+        "pathway_id": "cgb04981",
+        "pathway_name": "Folate transport and metabolism",
+        "p_value": 0.01816247373463794,
+        "fold_enrichment": 54.71428571428571,
+        "hits": [
+          "cg0966"
+        ]
+      },
+      {
+        "pathway_id": "cgb00670",
+        "pathway_name": "One carbon pool by folate",
+        "p_value": 0.05014302446902899,
+        "fold_enrichment": 19.540816326530614,
+        "hits": [
+          "cg0966"
+        ]
+      },
+      {
+        "pathway_id": "cgb03070",
+        "pathway_name": "Bacterial secretion system",
+        "p_value": 0.05712724373206274,
+        "fold_enrichment": 17.098214285714285,
+        "hits": [
+          "cg0868"
+        ]
+      },
+      {
+        "pathway_id": "cgb03060",
+        "pathway_name": "Protein export",
+        "p_value": 0.06406739864244158,
+        "fold_enrichment": 15.198412698412696,
+        "hits": [
+          "cg0868"
+        ]
+      },
+      {
+        "pathway_id": "cgb00190",
+        "pathway_name": "Oxidative phosphorylation",
+        "p_value": 0.0913919984557597,
+        "fold_enrichment": 10.521978021978022,
+        "hits": [
+          "cg1364"
+        ]
+      },
+      {
+        "pathway_id": "cgb00640",
+        "pathway_name": "Propanoate metabolism",
+        "p_value": 0.09475899475581774,
+        "fold_enrichment": 10.132275132275131,
+        "hits": [
+          "cg0796"
+        ]
+      },
+      {
+        "pathway_id": "cgb00240",
+        "pathway_name": "Pyrimidine metabolism",
+        "p_value": 0.09811529085576967,
+        "fold_enrichment": 9.770408163265307,
+        "hits": [
+          "cg0966"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.12060936030143171,
+        "fold_enrichment": 1.929957168052406,
+        "hits": [
+          "cg0796",
+          "cg0966",
+          "cg1364",
+          "cg2494"
+        ]
+      },
+      {
+        "pathway_id": "cgb02024",
+        "pathway_name": "Quorum sensing",
+        "p_value": 0.12458384213724506,
+        "fold_enrichment": 7.599206349206348,
+        "hits": [
+          "cg0868"
+        ]
+      }
+    ]
+  },
+  "iM_81_uncharacterized_8": {
+    "name": "uncharacterized-8",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.034683965,
+    "description": "",
+    "threshold": 0.052534084,
+    "genes": {
+      "cg0067": 0.054953783,
+      "cg0139": 0.055797424,
+      "cg0141": 0.05546374,
+      "cg0142": 0.06413477,
+      "cg0162": 0.090323882,
+      "cg0163": 0.092116189,
+      "cg0165": 0.086026936,
+      "cg0166": 0.077433929,
+      "cg0315": -0.060369414,
+      "cg0400": 0.075574639,
+      "cg0408": 0.065890471,
+      "cg0415": 0.098978205,
+      "cg0416": 0.10019681,
+      "cg0417": 0.095420072,
+      "cg0418": 0.099881276,
+      "cg0419": 0.08306247,
+      "cg0420": 0.114776135,
+      "cg0421": 0.122893209,
+      "cg0422": 0.100700495,
+      "cg0423": 0.1138413,
+      "cg0424": 0.122442644,
+      "cg0431": 0.106360118,
+      "cg0432": 0.08641114,
+      "cg0435": 0.104774259,
+      "cg0437": 0.128630661,
+      "cg0438": 0.119285679,
+      "cg0439": 0.11864824,
+      "cg0441": 0.118889969,
+      "cg0442": 0.075065823,
+      "cg0443": 0.080732496,
+      "cg0444": 0.083275145,
+      "cg0839": 0.059552038,
+      "cg0840": 0.05797786,
+      "cg0841": 0.065159608,
+      "cg0842": 0.076196399,
+      "cg0844": 0.062020834,
+      "cg0845": 0.057225522,
+      "cg0847": 0.056186825,
+      "cg0905": 0.053701252,
+      "cg0978": 0.069644591,
+      "cg0979": 0.05855631,
+      "cg1120": 0.08145082,
+      "cg1176": 0.090803562,
+      "cg1182": 0.053804746,
+      "cg1183": 0.052534084,
+      "cg1511": -0.060424241,
+      "cg1512": -0.075606518,
+      "cg1519": -0.081774974,
+      "cg1520": -0.061117425,
+      "cg1543": 0.068902115,
+      "cg2811": 0.098918025,
+      "cg2812": 0.08526908,
+      "cg3065": 0.121212661,
+      "cg3066": 0.12813746,
+      "cg3067": 0.118063934,
+      "cg3068": 0.064135269,
+      "cg3069": 0.101138379,
+      "cg3070": 0.101706289,
+      "cg3130": 0.053645861,
+      "cg3281": 0.056201004,
+      "cg3319": 0.06433981,
+      "cg3284": 0.067387731,
+      "cg3285": 0.068629689,
+      "cg3286": 0.08668581,
+      "cg3396": 0.078064377,
+      "cg3400": 0.10714586,
+      "cg3403": 0.076817561,
+      "cg3404": 0.078275483,
+      "cg3405": 0.080376153,
+      "cg3407": 0.081029884,
+      "cg3409": 0.075272091,
+      "cg3410": 0.084823331,
+      "cg3411": 0.083405347,
+      "cg3412": 0.086979061,
+      "cg3414": 0.074585179,
+      "cg1185": 0.058023174,
+      "cg1515": -0.054502489,
+      "cg0426": 0.125651924,
+      "cg0428": 0.129871335,
+      "cg1187": 0.060247614,
+      "cg1514": -0.057862966
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 2.0322266144292097e-05,
+        "fold_enrichment": 2.894935752078609,
+        "hits": [
+          "cg0067",
+          "cg0400",
+          "cg0422",
+          "cg0423",
+          "cg0435",
+          "cg0441",
+          "cg0442",
+          "cg0847",
+          "cg1543",
+          "cg3068",
+          "cg3400",
+          "cg3409"
+        ]
+      },
+      {
+        "pathway_id": "cgb01250",
+        "pathway_name": "Biosynthesis of nucleotide sugars",
+        "p_value": 3.31664773700689e-05,
+        "fold_enrichment": 19.540816326530614,
+        "hits": [
+          "cg0422",
+          "cg0423",
+          "cg0435",
+          "cg0442"
+        ]
+      },
+      {
+        "pathway_id": "cgb00520",
+        "pathway_name": "Amino sugar and nucleotide sugar metabolism",
+        "p_value": 4.401881050032535e-05,
+        "fold_enrichment": 18.238095238095237,
+        "hits": [
+          "cg0422",
+          "cg0423",
+          "cg0435",
+          "cg0442"
+        ]
+      },
+      {
+        "pathway_id": "cgb01240",
+        "pathway_name": "Biosynthesis of cofactors",
+        "p_value": 0.0008895228166033104,
+        "fold_enrichment": 5.99937343358396,
+        "hits": [
+          "cg0435",
+          "cg0441",
+          "cg0442",
+          "cg3400",
+          "cg3409"
+        ]
+      },
+      {
+        "pathway_id": "cgb00010",
+        "pathway_name": "Glycolysis / Gluconeogenesis",
+        "p_value": 0.0010169318490511191,
+        "fold_enrichment": 14.150246305418719,
+        "hits": [
+          "cg0400",
+          "cg0441",
+          "cg3068"
+        ]
+      },
+      {
+        "pathway_id": "cgb00750",
+        "pathway_name": "Vitamin B6 metabolism",
+        "p_value": 0.001021133386160849,
+        "fold_enrichment": 39.08163265306123,
+        "hits": [
+          "cg3400",
+          "cg3409"
+        ]
+      },
+      {
+        "pathway_id": "cgb00040",
+        "pathway_name": "Pentose and glucuronate interconversions",
+        "p_value": 0.0013558213233082735,
+        "fold_enrichment": 34.19642857142857,
+        "hits": [
+          "cg0435",
+          "cg0442"
+        ]
+      },
+      {
+        "pathway_id": "cgb01120",
+        "pathway_name": "Microbial metabolism in diverse environments",
+        "p_value": 0.001500331664390788,
+        "fold_enrichment": 4.230486008836524,
+        "hits": [
+          "cg0067",
+          "cg0400",
+          "cg0435",
+          "cg0441",
+          "cg0442",
+          "cg3068"
+        ]
+      },
+      {
+        "pathway_id": "cgb00310",
+        "pathway_name": "Lysine degradation",
+        "p_value": 0.0017359148978947562,
+        "fold_enrichment": 30.396825396825392,
+        "hits": [
+          "cg0067",
+          "cg0441"
+        ]
+      },
+      {
+        "pathway_id": "cgb00541",
+        "pathway_name": "Biosynthesis of various nucleotide sugars",
+        "p_value": 0.0017359148978947562,
+        "fold_enrichment": 30.396825396825392,
+        "hits": [
+          "cg0435",
+          "cg0442"
+        ]
+      }
+    ]
+  },
+  "iM_82_Replication": {
+    "name": "Replication",
+    "linked_regulator": null,
+    "category": "Replication",
+    "variance_explained": 0.036323193,
+    "description": "Replication",
+    "threshold": 0.07921044,
+    "genes": {
+      "cg2076": 0.143403345,
+      "cg2077": 0.09641812,
+      "cg2087": 0.155880814,
+      "cg2092": 0.210859442,
+      "cg2096": 0.147423508,
+      "cg2066": 0.27287935,
+      "cg2067": 0.114044137,
+      "cg2068": 0.127036629,
+      "cg2069": 0.163535609,
+      "cg3059": 0.087184155
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00572",
+        "pathway_name": "Arabinogalactan biosynthesis - Mycobacterium",
+        "p_value": 0.005221932114882507,
+        "fold_enrichment": 191.5,
+        "hits": [
+          "cg2077"
+        ]
+      }
+    ]
+  },
+  "iM_83_uncharacterized_15": {
+    "name": "uncharacterized-15",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.045167105,
+    "description": "",
+    "threshold": 0.089051013,
+    "genes": {
+      "cg1917": -0.090611154,
+      "cg1930": -0.09129682,
+      "cg1955": -0.089051013,
+      "cg1980": -0.113259523,
+      "cg2067": -0.119207818,
+      "cg2066": 0.166942246,
+      "cg2829": -0.109612983
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00550",
+        "pathway_name": "Peptidoglycan biosynthesis",
+        "p_value": 0.010966057441253264,
+        "fold_enrichment": 91.19047619047619,
+        "hits": [
+          "cg2829"
+        ]
+      },
+      {
+        "pathway_id": "cgb01250",
+        "pathway_name": "Biosynthesis of nucleotide sugars",
+        "p_value": 0.014621409921671017,
+        "fold_enrichment": 68.39285714285715,
+        "hits": [
+          "cg2829"
+        ]
+      },
+      {
+        "pathway_id": "cgb00520",
+        "pathway_name": "Amino sugar and nucleotide sugar metabolism",
+        "p_value": 0.015665796344647518,
+        "fold_enrichment": 63.83333333333334,
+        "hits": [
+          "cg2829"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.29608355091383814,
+        "fold_enrichment": 3.3774250440917104,
+        "hits": [
+          "cg2829"
+        ]
+      }
+    ]
+  },
+  "iM_84_Replication_3": {
+    "name": "Replication-3",
+    "linked_regulator": null,
+    "category": "Replication",
+    "variance_explained": 0.053494331,
+    "description": "",
+    "threshold": 0.054342025,
+    "genes": {
+      "cg0715": 0.061928548,
+      "cg0716": 0.06606404,
+      "cg1890": 0.122639166,
+      "cg3095": 0.081681013,
+      "cg1893": 0.11171808,
+      "cg1896": 0.088335609,
+      "cg1897": 0.166667353,
+      "cg1898": 0.179130216,
+      "cg1899": 0.205428715,
+      "cg1901": 0.165794681,
+      "cg1920": 0.058196804,
+      "cg1921": 0.145731328,
+      "cg1919": 0.134123248,
+      "cg1935": 0.070640319,
+      "cg1957": 0.08926265,
+      "cg1959": 0.105257573,
+      "cg1963": 0.055529881,
+      "cg1974": 0.071899195,
+      "cg1975": 0.079183659,
+      "cg1976": 0.079241492,
+      "cg1978": 0.118046104,
+      "cg1980": 0.056103726,
+      "cg1981": 0.079453253,
+      "cg1996": 0.123203535,
+      "cg1997": 0.112800083,
+      "cg2009": 0.118803672,
+      "cg2011": 0.129927809,
+      "cg2012": 0.07843823,
+      "cg2014": 0.062274416,
+      "cg2015": 0.115662801,
+      "cg2018": 0.074125948,
+      "cg2019": 0.101399539,
+      "cg2020": 0.140478679,
+      "cg2021": 0.094536049,
+      "cg2022": 0.09449639,
+      "cg2023": 0.086599744,
+      "cg2024": 0.105033053,
+      "cg2026": 0.173482026,
+      "cg2033": 0.090101352,
+      "cg2034": 0.068666811,
+      "cg2064": 0.058172574,
+      "cg2065": 0.14278412,
+      "cg2066": 0.149801328,
+      "cg2068": 0.072146842,
+      "cg2077": 0.064713887,
+      "cg2078": 0.090513863,
+      "cg2691": 0.05439295,
+      "cg2069": 0.054342025
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00572",
+        "pathway_name": "Arabinogalactan biosynthesis - Mycobacterium",
+        "p_value": 0.01041930969003986,
+        "fold_enrichment": 95.75,
+        "hits": [
+          "cg2077"
+        ]
+      },
+      {
+        "pathway_id": "cgb00270",
+        "pathway_name": "Cysteine and methionine metabolism",
+        "p_value": 0.03109423213861856,
+        "fold_enrichment": 31.91666666666667,
+        "hits": [
+          "cg1996"
+        ]
+      },
+      {
+        "pathway_id": "cgb01100",
+        "pathway_name": "Metabolic pathways",
+        "p_value": 0.5046105240757262,
+        "fold_enrichment": 1.6887125220458552,
+        "hits": [
+          "cg1996"
+        ]
+      }
+    ]
+  },
+  "iM_85_uncharacterized_10": {
+    "name": "uncharacterized-10",
+    "linked_regulator": null,
+    "category": "uncharacterized",
+    "variance_explained": 0.062130536,
+    "description": "",
+    "threshold": 0.044001956,
+    "genes": {
+      "cg0218": -0.048331836,
+      "cg1511": 0.071414071,
+      "cg1512": 0.095434562,
+      "cg1516": 0.151582007,
+      "cg1519": 0.088482163,
+      "cg1520": 0.062345686,
+      "cg1523": 0.049135472,
+      "cg1521": 0.065241134,
+      "cg1752": 0.067790911,
+      "cg1753": 0.044001956,
+      "cg1890": -0.048808298,
+      "cg1895": 0.085683222,
+      "cg1903": 0.090449441,
+      "cg1904": 0.091352736,
+      "cg1905": 0.128561909,
+      "cg1907": 0.13381841,
+      "cg1909": 0.129094914,
+      "cg1911": 0.11991908,
+      "cg1912": 0.121199512,
+      "cg1913": 0.058923439,
+      "cg1916": 0.050636258,
+      "cg1920": 0.049329091,
+      "cg1921": 0.053880667,
+      "cg1927": 0.046254697,
+      "cg1925": 0.075058643,
+      "cg1932": 0.094929285,
+      "cg1934": 0.103243334,
+      "cg1936": 0.05700312,
+      "cg1937": 0.045679746,
+      "cg1944": 0.052353679,
+      "cg1945": 0.128378381,
+      "cg1946": 0.062554923,
+      "cg1947": 0.082152776,
+      "cg1949": 0.0806445,
+      "cg1955": 0.053765556,
+      "cg1960": 0.050661022,
+      "cg1965": 0.087663354,
+      "cg1966": 0.053427771,
+      "cg1971": 0.091225466,
+      "cg1998": 0.054062163,
+      "cg1999": 0.057823561,
+      "cg2031": 0.059804525,
+      "cg2037": 0.094391803,
+      "cg2039": 0.103952283,
+      "cg2040": 0.094665788,
+      "cg2041": 0.102801309,
+      "cg2043": 0.104699467,
+      "cg2044": 0.1025257,
+      "cg2050": 0.126423566,
+      "cg2051": 0.066448106,
+      "cg2057": 0.072364531,
+      "cg2059": 0.174537525,
+      "cg2060": 0.164172013,
+      "cg2061": 0.085817544,
+      "cg2064": 0.060276869,
+      "cg2071": 0.063557661,
+      "cg2072": 0.069889472,
+      "cg2073": 0.067249437,
+      "cg2074": 0.054578077,
+      "cg2107": 0.061461161,
+      "cg2076": 0.048917262,
+      "cg2077": 0.062402033,
+      "cg2733": 0.045745496,
+      "cg1515": 0.144710551,
+      "cg2027": 0.045173998,
+      "cg1750": 0.079636995,
+      "cg1514": 0.102291304,
+      "cg2053": 0.064981943
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb00572",
+        "pathway_name": "Arabinogalactan biosynthesis - Mycobacterium",
+        "p_value": 0.005221932114882507,
+        "fold_enrichment": 191.5,
+        "hits": [
+          "cg2077"
+        ]
+      }
+    ]
+  },
+  "iM_86_Ribosome": {
+    "name": "Ribosome",
+    "linked_regulator": null,
+    "category": "Translation",
+    "variance_explained": 0.11942899,
+    "description": "Ribosome structual and translation",
+    "threshold": 0.074919633,
+    "genes": {
+      "cg0565": 0.086217829,
+      "cg0575": 0.121224332,
+      "cg0583": 0.077070033,
+      "cg0588": 0.075497728,
+      "cg0596": 0.099942557,
+      "cg0597": 0.114012232,
+      "cg0598": 0.130104103,
+      "cg0599": 0.117776172,
+      "cg0600": 0.126598537,
+      "cg0601": 0.127351055,
+      "cg0602": 0.123867912,
+      "cg0603": 0.115581514,
+      "cg0604": 0.117803633,
+      "cg0606": 0.104818417,
+      "cg0607": 0.101714941,
+      "cg0608": 0.084063816,
+      "cg0611": 0.112485606,
+      "cg0612": 0.102177672,
+      "cg0631": 0.109550348,
+      "cg0632": 0.121106424,
+      "cg0634": 0.125193994,
+      "cg0635": 0.118124898,
+      "cg0636": 0.117919703,
+      "cg0637": 0.115492468,
+      "cg0655": 0.110379318,
+      "cg0656": 0.117816226,
+      "cg0657": 0.118961118,
+      "cg0658": 0.095814581,
+      "cg0675": 0.102109793,
+      "cg0992": 0.107563442,
+      "cg0997": 0.078904433,
+      "cg1566": 0.093306065,
+      "cg2179": 0.08268189,
+      "cg2180": 0.074919633,
+      "cg2581": 0.080825608,
+      "cg2600": 0.075601861,
+      "cg3316": 0.096879563,
+      "cg3317": 0.090197922,
+      "cg3318": 0.087190983
+    },
+    "regulon_overlap": null,
+    "enriched_pathways": [
+      {
+        "pathway_id": "cgb03010",
+        "pathway_name": "Ribosome",
+        "p_value": 2.4892404112044798e-17,
+        "fold_enrichment": 19.873980726464048,
+        "hits": [
+          "cg0596",
+          "cg0597",
+          "cg0598",
+          "cg0599",
+          "cg0600",
+          "cg0601",
+          "cg0602",
+          "cg0603",
+          "cg0604",
+          "cg0608",
+          "cg0631",
+          "cg0632",
+          "cg0634",
+          "cg0656"
+        ]
+      },
+      {
+        "pathway_id": "cgb00410",
+        "pathway_name": "beta-Alanine metabolism",
+        "p_value": 0.0032223541910172877,
+        "fold_enrichment": 22.397660818713447,
+        "hits": [
+          "cg0635",
+          "cg0637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00280",
+        "pathway_name": "Valine, leucine and isoleucine degradation",
+        "p_value": 0.011610318946819366,
+        "fold_enrichment": 11.857585139318884,
+        "hits": [
+          "cg0635",
+          "cg0637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00625",
+        "pathway_name": "Chloroalkane and chloroalkene degradation",
+        "p_value": 0.02948592048297047,
+        "fold_enrichment": 33.59649122807017,
+        "hits": [
+          "cg0637"
+        ]
+      },
+      {
+        "pathway_id": "cgb03020",
+        "pathway_name": "RNA polymerase",
+        "p_value": 0.039130150352648066,
+        "fold_enrichment": 25.19736842105263,
+        "hits": [
+          "cg0655"
+        ]
+      },
+      {
+        "pathway_id": "cgb00380",
+        "pathway_name": "Tryptophan metabolism",
+        "p_value": 0.05814689721055405,
+        "fold_enrichment": 16.798245614035086,
+        "hits": [
+          "cg0637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00053",
+        "pathway_name": "Ascorbate and aldarate metabolism",
+        "p_value": 0.07680671658196694,
+        "fold_enrichment": 12.598684210526315,
+        "hits": [
+          "cg0637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00561",
+        "pathway_name": "Glycerolipid metabolism",
+        "p_value": 0.07680671658196694,
+        "fold_enrichment": 12.598684210526315,
+        "hits": [
+          "cg0637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00071",
+        "pathway_name": "Fatty acid degradation",
+        "p_value": 0.08600476188083567,
+        "fold_enrichment": 11.198830409356724,
+        "hits": [
+          "cg0637"
+        ]
+      },
+      {
+        "pathway_id": "cgb00310",
+        "pathway_name": "Lysine degradation",
+        "p_value": 0.08600476188083567,
+        "fold_enrichment": 11.198830409356724,
+        "hits": [
+          "cg0637"
+        ]
+      }
     ]
   }
 }

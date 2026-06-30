@@ -1,534 +1,2753 @@
 {
-  "cg0876": [
-    "iM_SigH"
+  "cg0369": [
+    "iM_0_uncharacterized_6"
   ],
-  "cg2892": [
-    "iM_SigH"
+  "cg0994": [
+    "iM_0_uncharacterized_6"
   ],
-  "cg2889": [
-    "iM_SigH",
-    "iM_GlxR_carbon",
-    "iM_RamA_glycolysis",
-    "iM_GluABCD_glutamate"
+  "cg1938": [
+    "iM_0_uncharacterized_6",
+    "iM_37_uncharacterized_2"
   ],
-  "cg1206": [
-    "iM_SigH",
-    "iM_WhiB_cell_cycle"
+  "cg2834": [
+    "iM_0_uncharacterized_6",
+    "iM_17_uncharacterized_9",
+    "iM_62_Cysteine_biosynthesis"
   ],
-  "cg3219": [
-    "iM_SigH"
+  "cg3246": [
+    "iM_0_uncharacterized_6"
   ],
-  "cg2987": [
-    "iM_SigH",
-    "iM_AmtR_nitrogen"
+  "cg3381": [
+    "iM_0_uncharacterized_6",
+    "iM_2_uncharacterized_16"
   ],
-  "cg0497": [
-    "iM_SigH",
-    "iM_DtxR_iron"
+  "cg3398": [
+    "iM_0_uncharacterized_6",
+    "iM_20_translation_related",
+    "iM_37_uncharacterized_2"
   ],
-  "cg1364": [
-    "iM_SigH",
-    "iM_RpsA_ribosome"
+  "cg3401": [
+    "iM_0_uncharacterized_6"
   ],
-  "cg0745": [
-    "iM_SigH",
-    "iM_SigE"
+  "cg1325": [
+    "iM_1_SG_2"
   ],
-  "cg1516": [
-    "iM_SigH"
-  ],
-  "cg2988": [
-    "iM_SigH",
-    "iM_WhiB_cell_cycle"
-  ],
-  "cg2577": [
-    "iM_SigH"
-  ],
-  "cg0371": [
-    "iM_SigH"
-  ],
-  "cg1474": [
-    "iM_SigH"
-  ],
-  "cg1475": [
-    "iM_SigH"
-  ],
-  "cg2962": [
-    "iM_SigH"
-  ],
-  "cg0797": [
-    "iM_SigH"
-  ],
-  "cg2320": [
-    "iM_SigH"
-  ],
-  "cg2102": [
-    "iM_SigB"
-  ],
-  "cg1226": [
-    "iM_SigB",
-    "iM_OsR_osmotic"
-  ],
-  "cg2985": [
-    "iM_SigB"
-  ],
-  "cg1103": [
-    "iM_SigB"
-  ],
-  "cg1225": [
-    "iM_SigB"
-  ],
-  "cg0949": [
-    "iM_SigB"
-  ],
-  "cg1224": [
-    "iM_SigB"
-  ],
-  "cg3327": [
-    "iM_SigB"
-  ],
-  "cg2800": [
-    "iM_SigB"
-  ],
-  "cg0447": [
-    "iM_SigB"
-  ],
-  "cg1468": [
-    "iM_SigB"
-  ],
-  "cg1469": [
-    "iM_SigB"
-  ],
-  "cg2712": [
-    "iM_SigB"
-  ],
-  "cg2713": [
-    "iM_SigB"
-  ],
-  "cg2714": [
-    "iM_SigB"
-  ],
-  "cg1271": [
-    "iM_SigE"
-  ],
-  "cg1272": [
-    "iM_SigE"
-  ],
-  "cg1273": [
-    "iM_SigE"
-  ],
-  "cg0955": [
-    "iM_SigE"
-  ],
-  "cg0956": [
-    "iM_SigE"
-  ],
-  "cg1289": [
-    "iM_SigE",
-    "iM_PhoSR_phosphate"
-  ],
-  "cg1290": [
-    "iM_SigE",
-    "iM_PhoSR_phosphate"
-  ],
-  "cg1704": [
-    "iM_SigE"
-  ],
-  "cg1705": [
-    "iM_SigE"
-  ],
-  "cg2070": [
-    "iM_SigE",
-    "iM_PhoSR_phosphate"
-  ],
-  "cg2071": [
-    "iM_SigE",
-    "iM_PhoSR_phosphate"
-  ],
-  "cg3420": [
-    "iM_SigM"
-  ],
-  "cg3421": [
-    "iM_SigM"
-  ],
-  "cg2885": [
-    "iM_SigM"
-  ],
-  "cg2886": [
-    "iM_SigM"
-  ],
-  "cg1228": [
-    "iM_SigM"
-  ],
-  "cg1229": [
-    "iM_SigM"
-  ],
-  "cg3309": [
-    "iM_SigM"
-  ],
-  "cg3310": [
-    "iM_SigM"
-  ],
-  "cg0491": [
-    "iM_SigM"
-  ],
-  "cg2181": [
-    "iM_GlxR_carbon"
-  ],
-  "cg0089": [
-    "iM_GlxR_carbon",
-    "iM_RamA_glycolysis"
-  ],
-  "cg2887": [
-    "iM_GlxR_carbon",
-    "iM_RamA_glycolysis"
-  ],
-  "cg1638": [
-    "iM_GlxR_carbon",
-    "iM_RamA_glycolysis"
-  ],
-  "cg0088": [
-    "iM_GlxR_carbon",
-    "iM_RamA_glycolysis"
-  ],
-  "cg2960": [
-    "iM_GlxR_carbon"
-  ],
-  "cg2961": [
-    "iM_GlxR_carbon"
-  ],
-  "cg0350": [
-    "iM_GlxR_carbon"
-  ],
-  "cg2091": [
-    "iM_GlxR_carbon"
-  ],
-  "cg2411": [
-    "iM_GlxR_carbon",
-    "iM_RamA_glycolysis"
-  ],
-  "cg1818": [
-    "iM_GlxR_carbon"
-  ],
-  "cg0147": [
-    "iM_GlxR_carbon",
-    "iM_OsR_osmotic"
-  ],
-  "cg0148": [
-    "iM_GlxR_carbon",
-    "iM_OsR_osmotic"
-  ],
-  "cg2810": [
-    "iM_GlxR_carbon"
-  ],
-  "cg2277": [
-    "iM_GlxR_carbon"
-  ],
-  "cg2278": [
-    "iM_GlxR_carbon"
-  ],
-  "cg1819": [
-    "iM_GlxR_carbon"
-  ],
-  "cg2831": [
-    "iM_RamA_glycolysis"
-  ],
-  "cg0799": [
-    "iM_RamA_glycolysis"
-  ],
-  "cg0800": [
-    "iM_RamA_glycolysis"
-  ],
-  "cg1409": [
-    "iM_RamA_glycolysis"
-  ],
-  "cg1410": [
-    "iM_RamA_glycolysis"
-  ],
-  "cg0944": [
-    "iM_RamA_glycolysis"
-  ],
-  "cg1458": [
-    "iM_LysR_lysine"
-  ],
-  "cg1459": [
-    "iM_LysR_lysine"
-  ],
-  "cg1147": [
-    "iM_LysR_lysine"
-  ],
-  "cg0300": [
-    "iM_LysR_lysine"
-  ],
-  "cg0301": [
-    "iM_LysR_lysine"
-  ],
-  "cg0655": [
-    "iM_LysR_lysine"
-  ],
-  "cg1133": [
-    "iM_LysR_lysine"
-  ],
-  "cg1134": [
-    "iM_LysR_lysine"
-  ],
-  "cg2502": [
-    "iM_LysR_lysine"
-  ],
-  "cg2384": [
-    "iM_GluABCD_glutamate",
-    "iM_AmtR_nitrogen"
-  ],
-  "cg1613": [
-    "iM_GluABCD_glutamate",
-    "iM_AmtR_nitrogen"
-  ],
-  "cg0575": [
-    "iM_GluABCD_glutamate",
-    "iM_AmtR_nitrogen"
-  ],
-  "cg0576": [
-    "iM_GluABCD_glutamate"
+  "cg0530": [
+    "iM_2_uncharacterized_16"
   ],
   "cg1464": [
-    "iM_GluABCD_glutamate",
-    "iM_AmtR_nitrogen"
+    "iM_2_uncharacterized_16"
   ],
-  "cg1465": [
-    "iM_GluABCD_glutamate",
-    "iM_AmtR_nitrogen"
+  "cg2251": [
+    "iM_2_uncharacterized_16"
   ],
-  "cg0465": [
-    "iM_GluABCD_glutamate",
-    "iM_AmtR_nitrogen"
+  "cg3091": [
+    "iM_2_uncharacterized_16"
   ],
-  "cg1326": [
-    "iM_GluABCD_glutamate"
+  "cg3300": [
+    "iM_2_uncharacterized_16",
+    "iM_71_Cg0646"
   ],
-  "cg2402": [
-    "iM_GluABCD_glutamate",
-    "iM_AmtR_nitrogen"
+  "cg3236": [
+    "iM_4_Cg3249"
   ],
-  "cg2403": [
-    "iM_GluABCD_glutamate",
-    "iM_AmtR_nitrogen"
+  "cg3237": [
+    "iM_4_Cg3249"
   ],
-  "cg0828": [
-    "iM_GluABCD_glutamate"
+  "cg3239": [
+    "iM_4_Cg3249"
   ],
-  "cg2986": [
-    "iM_AmtR_nitrogen"
+  "cg1420": [
+    "iM_5_amino_acid_related_2"
   ],
-  "cg0115": [
-    "iM_AmtR_nitrogen"
+  "cg1488": [
+    "iM_5_amino_acid_related_2"
   ],
-  "cg0116": [
-    "iM_AmtR_nitrogen"
+  "cg1490": [
+    "iM_5_amino_acid_related_2"
   ],
-  "cg0117": [
-    "iM_AmtR_nitrogen"
+  "cg0218": [
+    "iM_6_SG_9",
+    "iM_85_uncharacterized_10"
   ],
-  "cg0118": [
-    "iM_AmtR_nitrogen"
+  "cg0993": [
+    "iM_6_SG_9",
+    "iM_55_Thiamine_metabolism"
   ],
-  "cg0112": [
-    "iM_AmtR_nitrogen"
+  "cg0470": [
+    "iM_7_SG_7",
+    "iM_59_DtxR"
   ],
-  "cg2194": [
-    "iM_DtxR_iron"
+  "cg0900": [
+    "iM_8_mepA_deletion"
   ],
-  "cg2465": [
-    "iM_DtxR_iron"
+  "cg0901": [
+    "iM_8_mepA_deletion"
   ],
-  "cg2466": [
-    "iM_DtxR_iron"
+  "cg0830": [
+    "iM_9_redox_related",
+    "iM_76_Cg0725"
   ],
-  "cg2469": [
-    "iM_DtxR_iron"
+  "cg1150": [
+    "iM_9_redox_related"
   ],
-  "cg2470": [
-    "iM_DtxR_iron",
-    "iM_FasR_fatty_acids"
+  "cg1158": [
+    "iM_9_redox_related",
+    "iM_52_SsuR"
   ],
-  "cg2471": [
-    "iM_DtxR_iron"
+  "cg1971": [
+    "iM_9_redox_related",
+    "iM_17_uncharacterized_9",
+    "iM_85_uncharacterized_10"
   ],
-  "cg0980": [
-    "iM_DtxR_iron",
-    "iM_PhoSR_phosphate"
+  "cg2051": [
+    "iM_9_redox_related",
+    "iM_85_uncharacterized_10"
   ],
-  "cg0981": [
-    "iM_DtxR_iron"
+  "cg2569": [
+    "iM_10_TRAP_transporter",
+    "iM_50_TRAP_transporter_2",
+    "iM_80_uncharacterized_17"
   ],
-  "cg2388": [
-    "iM_DtxR_iron"
+  "cg2494": [
+    "iM_10_TRAP_transporter",
+    "iM_62_Cysteine_biosynthesis",
+    "iM_80_uncharacterized_17"
   ],
-  "cg2389": [
-    "iM_DtxR_iron"
+  "cg2900": [
+    "iM_11_SG_1"
   ],
-  "cg2390": [
-    "iM_DtxR_iron"
+  "cg2186": [
+    "iM_12_peroxide_stress"
   ],
-  "cg0146": [
-    "iM_OsR_osmotic"
+  "cg2187": [
+    "iM_12_peroxide_stress"
   ],
-  "cg3269": [
-    "iM_OsR_osmotic"
+  "cg2188": [
+    "iM_12_peroxide_stress"
   ],
-  "cg3270": [
-    "iM_OsR_osmotic"
+  "cg3202": [
+    "iM_13_HutC"
   ],
-  "cg3271": [
-    "iM_OsR_osmotic"
+  "cg3203": [
+    "iM_13_HutC"
+  ],
+  "cg3204": [
+    "iM_13_HutC"
+  ],
+  "cg1862": [
+    "iM_14_SG_8"
+  ],
+  "cg1345": [
+    "iM_15_Signal_transduction"
+  ],
+  "cg0226": [
+    "iM_15_Signal_transduction"
+  ],
+  "cg3248": [
+    "iM_15_Signal_transduction"
+  ],
+  "cg3249": [
+    "iM_15_Signal_transduction"
+  ],
+  "cg3250": [
+    "iM_15_Signal_transduction",
+    "iM_17_uncharacterized_9"
+  ],
+  "cg0569": [
+    "iM_16_cadA_operon"
+  ],
+  "cg0570": [
+    "iM_16_cadA_operon"
+  ],
+  "cg0571": [
+    "iM_16_cadA_operon"
+  ],
+  "cg2792": [
+    "iM_16_cadA_operon",
+    "iM_74_Fructose_utilization"
+  ],
+  "cg2793": [
+    "iM_16_cadA_operon",
+    "iM_74_Fructose_utilization"
+  ],
+  "cg3335": [
+    "iM_16_cadA_operon"
+  ],
+  "cg0368": [
+    "iM_17_uncharacterized_9"
+  ],
+  "cg0787": [
+    "iM_17_uncharacterized_9"
+  ],
+  "cg2087": [
+    "iM_17_uncharacterized_9",
+    "iM_82_Replication"
+  ],
+  "cg2235": [
+    "iM_17_uncharacterized_9"
+  ],
+  "cg2723": [
+    "iM_17_uncharacterized_9",
+    "iM_76_Cg0725"
+  ],
+  "cg1083": [
+    "iM_18_Cg1084"
+  ],
+  "cg1084": [
+    "iM_18_Cg1084"
+  ],
+  "cg1086": [
+    "iM_18_Cg1084"
+  ],
+  "cg1299": [
+    "iM_19_sigC"
+  ],
+  "cg1300": [
+    "iM_19_sigC"
+  ],
+  "cg1301": [
+    "iM_19_sigC"
+  ],
+  "cg1302": [
+    "iM_19_sigC",
+    "iM_76_Cg0725"
+  ],
+  "cg1884": [
+    "iM_19_sigC"
+  ],
+  "cg2560": [
+    "iM_19_sigC"
+  ],
+  "cg0134": [
+    "iM_20_translation_related"
+  ],
+  "cg0135": [
+    "iM_20_translation_related"
+  ],
+  "cg0136": [
+    "iM_20_translation_related"
+  ],
+  "cg0177": [
+    "iM_20_translation_related"
+  ],
+  "cg0284": [
+    "iM_20_translation_related"
+  ],
+  "cg0698": [
+    "iM_20_translation_related",
+    "iM_58_uncharacterized_11"
+  ],
+  "cg0717": [
+    "iM_20_translation_related",
+    "iM_76_Cg0725"
+  ],
+  "cg0860": [
+    "iM_20_translation_related"
+  ],
+  "cg0939": [
+    "iM_20_translation_related"
+  ],
+  "cg0940": [
+    "iM_20_translation_related"
+  ],
+  "cg0982": [
+    "iM_20_translation_related"
+  ],
+  "cg1017": [
+    "iM_20_translation_related"
+  ],
+  "cg1038": [
+    "iM_20_translation_related"
+  ],
+  "cg1039": [
+    "iM_20_translation_related"
+  ],
+  "cg1563": [
+    "iM_20_translation_related"
+  ],
+  "cg1564": [
+    "iM_20_translation_related"
+  ],
+  "cg1669": [
+    "iM_20_translation_related"
+  ],
+  "cg2100": [
+    "iM_20_translation_related"
+  ],
+  "cg2101": [
+    "iM_20_translation_related"
+  ],
+  "cg2406": [
+    "iM_20_translation_related"
+  ],
+  "cg2408": [
+    "iM_20_translation_related"
+  ],
+  "cg3399": [
+    "iM_20_translation_related"
+  ],
+  "cg1670": [
+    "iM_20_translation_related"
+  ],
+  "cg3303": [
+    "iM_21_YqjI"
+  ],
+  "cg3304": [
+    "iM_21_YqjI"
+  ],
+  "cg3306": [
+    "iM_21_YqjI"
+  ],
+  "cg0715": [
+    "iM_22_uncharacterized_14",
+    "iM_84_Replication_3"
+  ],
+  "cg0716": [
+    "iM_22_uncharacterized_14",
+    "iM_84_Replication_3"
+  ],
+  "cg1603": [
+    "iM_22_uncharacterized_14"
+  ],
+  "cg2117": [
+    "iM_22_uncharacterized_14"
+  ],
+  "cg0760": [
+    "iM_23_PrpR"
+  ],
+  "cg0762": [
+    "iM_23_PrpR"
+  ],
+  "cg0763": [
+    "iM_23_PrpR"
+  ],
+  "cg0764": [
+    "iM_23_PrpR"
+  ],
+  "cg0765": [
+    "iM_23_PrpR"
+  ],
+  "cg1834": [
+    "iM_24_ArsR"
+  ],
+  "cg1835": [
+    "iM_24_ArsR"
   ],
   "cg1227": [
-    "iM_OsR_osmotic"
+    "iM_25_PcaO",
+    "iM_76_Cg0725"
   ],
-  "cg0438": [
-    "iM_OsR_osmotic"
+  "cg2628": [
+    "iM_25_PcaO"
   ],
-  "cg0439": [
-    "iM_OsR_osmotic"
+  "cg2629": [
+    "iM_25_PcaO"
   ],
-  "cg0440": [
-    "iM_OsR_osmotic"
+  "cg2630": [
+    "iM_25_PcaO"
+  ],
+  "cg2631": [
+    "iM_25_PcaO"
+  ],
+  "cg2633": [
+    "iM_25_PcaO"
+  ],
+  "cg2635": [
+    "iM_25_PcaO",
+    "iM_76_Cg0725"
+  ],
+  "cg2636": [
+    "iM_25_PcaO",
+    "iM_76_Cg0725"
+  ],
+  "cg2637": [
+    "iM_25_PcaO",
+    "iM_76_Cg0725"
+  ],
+  "cg0897": [
+    "iM_26_PdxR"
+  ],
+  "cg1293": [
+    "iM_26_PdxR",
+    "iM_76_Cg0725"
+  ],
+  "cg1294": [
+    "iM_26_PdxR",
+    "iM_28_KmtR",
+    "iM_76_Cg0725"
+  ],
+  "cg1295": [
+    "iM_26_PdxR",
+    "iM_76_Cg0725"
+  ],
+  "cg0814": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg0815": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg0816": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg0957": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg0961": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg2745": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg2746": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg2747": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg2748": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg2750": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg2751": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg2753": [
+    "iM_27_polyketide_synthase"
+  ],
+  "cg0314": [
+    "iM_28_KmtR"
+  ],
+  "cg0339": [
+    "iM_28_KmtR"
+  ],
+  "cg1060": [
+    "iM_28_KmtR"
+  ],
+  "cg1807": [
+    "iM_28_KmtR",
+    "iM_54_uncharacterized_1"
+  ],
+  "cg1809": [
+    "iM_28_KmtR",
+    "iM_54_uncharacterized_1"
+  ],
+  "cg1810": [
+    "iM_28_KmtR"
+  ],
+  "cg1811": [
+    "iM_28_KmtR"
+  ],
+  "cg2366": [
+    "iM_28_KmtR"
+  ],
+  "cg2511": [
+    "iM_28_KmtR"
+  ],
+  "cg2512": [
+    "iM_28_KmtR"
+  ],
+  "cg2513": [
+    "iM_28_KmtR"
+  ],
+  "cg2691": [
+    "iM_28_KmtR",
+    "iM_84_Replication_3"
+  ],
+  "cg2692": [
+    "iM_28_KmtR"
+  ],
+  "cg3080": [
+    "iM_28_KmtR"
+  ],
+  "cg3082": [
+    "iM_28_KmtR"
+  ],
+  "cg3083": [
+    "iM_28_KmtR"
+  ],
+  "cg3084": [
+    "iM_28_KmtR",
+    "iM_29_TcsR",
+    "iM_38_WblB"
+  ],
+  "cg3271": [
+    "iM_28_KmtR",
+    "iM_61_RamA",
+    "iM_62_Cysteine_biosynthesis",
+    "iM_80_uncharacterized_17"
+  ],
+  "cg0707": [
+    "iM_29_TcsR",
+    "iM_76_Cg0725"
+  ],
+  "cg0709": [
+    "iM_29_TcsR",
+    "iM_76_Cg0725"
+  ],
+  "cg0710": [
+    "iM_29_TcsR"
+  ],
+  "cg0711": [
+    "iM_29_TcsR"
+  ],
+  "cg1327": [
+    "iM_29_TcsR"
+  ],
+  "cg1328": [
+    "iM_29_TcsR"
+  ],
+  "cg2337": [
+    "iM_29_TcsR"
+  ],
+  "cg2447": [
+    "iM_29_TcsR"
+  ],
+  "cg2822": [
+    "iM_29_TcsR"
+  ],
+  "cg3085": [
+    "iM_29_TcsR",
+    "iM_38_WblB"
+  ],
+  "cg3086": [
+    "iM_29_TcsR",
+    "iM_38_WblB"
+  ],
+  "cg3087": [
+    "iM_29_TcsR",
+    "iM_80_uncharacterized_17"
+  ],
+  "cg3153": [
+    "iM_29_TcsR"
+  ],
+  "cg3327": [
+    "iM_29_TcsR"
+  ],
+  "cg3328": [
+    "iM_29_TcsR"
+  ],
+  "cg3329": [
+    "iM_29_TcsR"
+  ],
+  "cg1215": [
+    "iM_31_NrtR"
+  ],
+  "cg1216": [
+    "iM_31_NrtR"
+  ],
+  "cg1218": [
+    "iM_31_NrtR"
+  ],
+  "cg1219": [
+    "iM_31_NrtR"
+  ],
+  "cg1220": [
+    "iM_31_NrtR"
+  ],
+  "cg1369": [
+    "iM_33_Replication_2"
+  ],
+  "cg1370": [
+    "iM_33_Replication_2"
+  ],
+  "cg1371": [
+    "iM_33_Replication_2"
+  ],
+  "cg0270": [
+    "iM_34_uncharacterized_4"
+  ],
+  "cg0295": [
+    "iM_34_uncharacterized_4"
+  ],
+  "cg0561": [
+    "iM_34_uncharacterized_4"
+  ],
+  "cg0562": [
+    "iM_34_uncharacterized_4"
+  ],
+  "cg1724": [
+    "iM_34_uncharacterized_4"
+  ],
+  "cg2707": [
+    "iM_34_uncharacterized_4"
+  ],
+  "cg2708": [
+    "iM_34_uncharacterized_4"
+  ],
+  "cg2841": [
+    "iM_34_uncharacterized_4",
+    "iM_51_sulfate_reduction"
+  ],
+  "cg2844": [
+    "iM_34_uncharacterized_4"
+  ],
+  "cg0757": [
+    "iM_35_pyruvate_related"
+  ],
+  "cg2154": [
+    "iM_35_pyruvate_related"
+  ],
+  "cg2155": [
+    "iM_35_pyruvate_related"
+  ],
+  "cg2890": [
+    "iM_35_pyruvate_related"
+  ],
+  "cg2891": [
+    "iM_35_pyruvate_related"
+  ],
+  "cg0567": [
+    "iM_36_GabR"
+  ],
+  "cg0568": [
+    "iM_36_GabR"
+  ],
+  "cg0672": [
+    "iM_37_uncharacterized_2"
+  ],
+  "cg0776": [
+    "iM_37_uncharacterized_2"
+  ],
+  "cg1128": [
+    "iM_37_uncharacterized_2"
+  ],
+  "cg1173": [
+    "iM_37_uncharacterized_2"
+  ],
+  "cg1663": [
+    "iM_37_uncharacterized_2"
+  ],
+  "cg1920": [
+    "iM_37_uncharacterized_2",
+    "iM_84_Replication_3",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2024": [
+    "iM_37_uncharacterized_2",
+    "iM_84_Replication_3"
+  ],
+  "cg0695": [
+    "iM_38_WblB"
+  ],
+  "cg3103": [
+    "iM_38_WblB"
+  ],
+  "cg3104": [
+    "iM_38_WblB"
+  ],
+  "cg3105": [
+    "iM_38_WblB"
+  ],
+  "cg3132": [
+    "iM_39_SG_6"
+  ],
+  "cg1581": [
+    "iM_41_ArgR"
+  ],
+  "cg1582": [
+    "iM_41_ArgR"
+  ],
+  "cg1583": [
+    "iM_41_ArgR"
+  ],
+  "cg1584": [
+    "iM_41_ArgR"
+  ],
+  "cg1585": [
+    "iM_41_ArgR"
+  ],
+  "cg1586": [
+    "iM_41_ArgR"
+  ],
+  "cg1588": [
+    "iM_41_ArgR"
+  ],
+  "cg1589": [
+    "iM_41_ArgR"
+  ],
+  "cg1814": [
+    "iM_41_ArgR"
+  ],
+  "cg1815": [
+    "iM_41_ArgR"
+  ],
+  "cg0079": [
+    "iM_42_Cobalt_transport",
+    "iM_56_QacR"
+  ],
+  "cg0080": [
+    "iM_42_Cobalt_transport",
+    "iM_56_QacR"
+  ],
+  "cg0081": [
+    "iM_42_Cobalt_transport",
+    "iM_56_QacR"
+  ],
+  "cg3331": [
+    "iM_43_proline_transport"
+  ],
+  "cg3394": [
+    "iM_43_proline_transport"
+  ],
+  "cg3395": [
+    "iM_43_proline_transport"
+  ],
+  "cg2208": [
+    "iM_44_lipid_metabolism"
+  ],
+  "cg2211": [
+    "iM_44_lipid_metabolism"
+  ],
+  "cg0040": [
+    "iM_45_Zur"
+  ],
+  "cg0041": [
+    "iM_45_Zur"
+  ],
+  "cg0042": [
+    "iM_45_Zur",
+    "iM_75_uncharacterized_12"
+  ],
+  "cg0043": [
+    "iM_45_Zur"
+  ],
+  "cg2918": [
+    "iM_45_Zur"
+  ],
+  "cg2919": [
+    "iM_45_Zur"
+  ],
+  "cg2920": [
+    "iM_45_Zur"
+  ],
+  "cg2921": [
+    "iM_45_Zur"
+  ],
+  "cg0464": [
+    "iM_46_copper_utilization"
+  ],
+  "cg0465": [
+    "iM_46_copper_utilization"
+  ],
+  "cg0466": [
+    "iM_46_copper_utilization"
+  ],
+  "cg3287": [
+    "iM_46_copper_utilization"
+  ],
+  "cg3323": [
+    "iM_46_copper_utilization"
+  ],
+  "cg3290": [
+    "iM_46_copper_utilization"
+  ],
+  "cg3291": [
+    "iM_46_copper_utilization"
+  ],
+  "cg3293": [
+    "iM_46_copper_utilization"
+  ],
+  "cg3414": [
+    "iM_46_copper_utilization",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3325": [
+    "iM_46_copper_utilization"
+  ],
+  "cg1290": [
+    "iM_47_metE_operon"
+  ],
+  "cg1291": [
+    "iM_47_metE_operon"
+  ],
+  "cg1292": [
+    "iM_47_metE_operon"
+  ],
+  "cg1702": [
+    "iM_47_metE_operon"
+  ],
+  "cg0696": [
+    "iM_48_sigD_operon"
+  ],
+  "cg0697": [
+    "iM_48_sigD_operon"
+  ],
+  "cg2189": [
+    "iM_48_sigD_operon"
+  ],
+  "cg2657": [
+    "iM_48_sigD_operon"
+  ],
+  "cg1412": [
+    "iM_49_RbsR"
+  ],
+  "cg1413": [
+    "iM_49_RbsR"
+  ],
+  "cg1414": [
+    "iM_49_RbsR"
+  ],
+  "cg1417": [
+    "iM_49_RbsR"
+  ],
+  "cg2570": [
+    "iM_50_TRAP_transporter_2",
+    "iM_80_uncharacterized_17"
+  ],
+  "cg2851": [
+    "iM_50_TRAP_transporter_2"
+  ],
+  "cg2852": [
+    "iM_50_TRAP_transporter_2"
+  ],
+  "cg2853": [
+    "iM_50_TRAP_transporter_2"
+  ],
+  "cg0964": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg0965": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg2615": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg2842": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg2843": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg3101": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg3102": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg3116": [
+    "iM_51_sulfate_reduction",
+    "iM_76_Cg0725"
+  ],
+  "cg3118": [
+    "iM_51_sulfate_reduction",
+    "iM_76_Cg0725"
+  ],
+  "cg3199": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg3200": [
+    "iM_51_sulfate_reduction"
+  ],
+  "cg1152": [
+    "iM_52_SsuR"
+  ],
+  "cg1153": [
+    "iM_52_SsuR"
+  ],
+  "cg1156": [
+    "iM_52_SsuR"
+  ],
+  "cg1157": [
+    "iM_52_SsuR"
+  ],
+  "cg1379": [
+    "iM_52_SsuR",
+    "iM_54_uncharacterized_1"
+  ],
+  "cg1380": [
+    "iM_52_SsuR",
+    "iM_54_uncharacterized_1"
+  ],
+  "cg1761": [
+    "iM_53_SufR"
+  ],
+  "cg1762": [
+    "iM_53_SufR"
+  ],
+  "cg1763": [
+    "iM_53_SufR"
+  ],
+  "cg1764": [
+    "iM_53_SufR"
+  ],
+  "cg1765": [
+    "iM_53_SufR"
+  ],
+  "cg1766": [
+    "iM_53_SufR"
+  ],
+  "cg0012": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg0158": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg0159": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg0738": [
+    "iM_54_uncharacterized_1",
+    "iM_76_Cg0725"
+  ],
+  "cg0756": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg1388": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg2680": [
+    "iM_54_uncharacterized_1",
+    "iM_76_Cg0725"
+  ],
+  "cg2683": [
+    "iM_54_uncharacterized_1",
+    "iM_76_Cg0725"
+  ],
+  "cg2684": [
+    "iM_54_uncharacterized_1",
+    "iM_76_Cg0725"
+  ],
+  "cg2685": [
+    "iM_54_uncharacterized_1",
+    "iM_76_Cg0725"
+  ],
+  "cg2686": [
+    "iM_54_uncharacterized_1",
+    "iM_76_Cg0725"
+  ],
+  "cg2697": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg2840": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3119": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3120": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3122": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3125": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3126": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3127": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3128": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3129": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3137": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3138": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3139": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3140": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3384": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg3411": [
+    "iM_54_uncharacterized_1",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3412": [
+    "iM_54_uncharacterized_1",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3413": [
+    "iM_54_uncharacterized_1",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3124": [
+    "iM_54_uncharacterized_1"
+  ],
+  "cg0826": [
+    "iM_55_Thiamine_metabolism",
+    "iM_76_Cg0725"
+  ],
+  "cg0828": [
+    "iM_55_Thiamine_metabolism",
+    "iM_76_Cg0725"
+  ],
+  "cg0829": [
+    "iM_55_Thiamine_metabolism",
+    "iM_76_Cg0725"
+  ],
+  "cg1228": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1229": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1230": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1231": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1232": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1233": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1476": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1478": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1654": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1655": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg1656": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg2242": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg2243": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg2922": [
+    "iM_55_Thiamine_metabolism"
+  ],
+  "cg0292": [
+    "iM_56_QacR"
+  ],
+  "cg0999": [
+    "iM_56_QacR"
+  ],
+  "cg1001": [
+    "iM_56_QacR"
+  ],
+  "cg1002": [
+    "iM_56_QacR"
   ],
   "cg2893": [
-    "iM_OsR_osmotic"
+    "iM_56_QacR"
   ],
-  "cg1674": [
-    "iM_PhoSR_phosphate"
+  "cg2894": [
+    "iM_56_QacR"
   ],
-  "cg1675": [
-    "iM_PhoSR_phosphate"
+  "cg2895": [
+    "iM_56_QacR"
   ],
-  "cg1676": [
-    "iM_PhoSR_phosphate"
+  "cg3345": [
+    "iM_56_QacR"
   ],
-  "cg1677": [
-    "iM_PhoSR_phosphate"
+  "cg1000": [
+    "iM_56_QacR"
   ],
-  "cg1678": [
-    "iM_PhoSR_phosphate"
+  "cg0414": [
+    "iM_58_uncharacterized_11"
   ],
-  "cg3191": [
-    "iM_PhoSR_phosphate"
+  "cg0487": [
+    "iM_58_uncharacterized_11"
   ],
-  "cg3192": [
-    "iM_PhoSR_phosphate"
+  "cg0609": [
+    "iM_58_uncharacterized_11"
   ],
-  "cg1890": [
-    "iM_WhiB_cell_cycle"
+  "cg0610": [
+    "iM_58_uncharacterized_11"
   ],
-  "cg1891": [
-    "iM_WhiB_cell_cycle"
+  "cg0699": [
+    "iM_58_uncharacterized_11"
   ],
-  "cg1892": [
-    "iM_WhiB_cell_cycle"
+  "cg1248": [
+    "iM_58_uncharacterized_11"
   ],
-  "cg2312": [
-    "iM_WhiB_cell_cycle"
+  "cg2323": [
+    "iM_58_uncharacterized_11",
+    "iM_76_Cg0725"
   ],
-  "cg2313": [
-    "iM_WhiB_cell_cycle"
+  "cg2324": [
+    "iM_58_uncharacterized_11",
+    "iM_76_Cg0725"
   ],
-  "cg2314": [
-    "iM_WhiB_cell_cycle"
+  "cg2579": [
+    "iM_58_uncharacterized_11"
+  ],
+  "cg2729": [
+    "iM_58_uncharacterized_11"
+  ],
+  "cg2730": [
+    "iM_58_uncharacterized_11"
+  ],
+  "cg2731": [
+    "iM_58_uncharacterized_11"
+  ],
+  "cg2884": [
+    "iM_58_uncharacterized_11"
+  ],
+  "cg3181": [
+    "iM_58_uncharacterized_11"
+  ],
+  "cg3182": [
+    "iM_58_uncharacterized_11"
+  ],
+  "cg3186": [
+    "iM_58_uncharacterized_11"
+  ],
+  "cg0408": [
+    "iM_59_DtxR",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0467": [
+    "iM_59_DtxR"
+  ],
+  "cg0468": [
+    "iM_59_DtxR"
+  ],
+  "cg0471": [
+    "iM_59_DtxR",
+    "iM_80_uncharacterized_17"
+  ],
+  "cg0472": [
+    "iM_59_DtxR"
+  ],
+  "cg0474": [
+    "iM_59_DtxR"
+  ],
+  "cg0591": [
+    "iM_59_DtxR"
+  ],
+  "cg0592": [
+    "iM_59_DtxR"
+  ],
+  "cg0593": [
+    "iM_59_DtxR"
+  ],
+  "cg0594": [
+    "iM_59_DtxR"
+  ],
+  "cg0750": [
+    "iM_59_DtxR",
+    "iM_76_Cg0725"
+  ],
+  "cg0751": [
+    "iM_59_DtxR"
+  ],
+  "cg0769": [
+    "iM_59_DtxR"
+  ],
+  "cg0770": [
+    "iM_59_DtxR"
+  ],
+  "cg0771": [
+    "iM_59_DtxR"
+  ],
+  "cg0772": [
+    "iM_59_DtxR"
+  ],
+  "cg0773": [
+    "iM_59_DtxR"
+  ],
+  "cg0923": [
+    "iM_59_DtxR"
+  ],
+  "cg0924": [
+    "iM_59_DtxR"
+  ],
+  "cg0926": [
+    "iM_59_DtxR"
+  ],
+  "cg0927": [
+    "iM_59_DtxR"
+  ],
+  "cg0928": [
+    "iM_59_DtxR"
+  ],
+  "cg1121": [
+    "iM_59_DtxR"
+  ],
+  "cg1122": [
+    "iM_59_DtxR"
+  ],
+  "cg1932": [
+    "iM_59_DtxR",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1934": [
+    "iM_59_DtxR",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2234": [
+    "iM_59_DtxR"
+  ],
+  "cg2449": [
+    "iM_59_DtxR"
+  ],
+  "cg3415": [
+    "iM_59_DtxR"
+  ],
+  "cg0104": [
+    "iM_60_AmtR"
+  ],
+  "cg0105": [
+    "iM_60_AmtR"
+  ],
+  "cg0107": [
+    "iM_60_AmtR"
+  ],
+  "cg0115": [
+    "iM_60_AmtR"
+  ],
+  "cg0116": [
+    "iM_60_AmtR"
+  ],
+  "cg0117": [
+    "iM_60_AmtR"
+  ],
+  "cg0118": [
+    "iM_60_AmtR"
+  ],
+  "cg0119": [
+    "iM_60_AmtR"
+  ],
+  "cg0120": [
+    "iM_60_AmtR"
+  ],
+  "cg0229": [
+    "iM_60_AmtR"
+  ],
+  "cg0230": [
+    "iM_60_AmtR"
+  ],
+  "cg0233": [
+    "iM_60_AmtR"
+  ],
+  "cg1062": [
+    "iM_60_AmtR"
+  ],
+  "cg1064": [
+    "iM_60_AmtR"
+  ],
+  "cg1065": [
+    "iM_60_AmtR"
+  ],
+  "cg1066": [
+    "iM_60_AmtR"
+  ],
+  "cg1067": [
+    "iM_60_AmtR"
+  ],
+  "cg1068": [
+    "iM_60_AmtR"
+  ],
+  "cg1298": [
+    "iM_60_AmtR"
+  ],
+  "cg1784": [
+    "iM_60_AmtR"
+  ],
+  "cg1785": [
+    "iM_60_AmtR"
+  ],
+  "cg1786": [
+    "iM_60_AmtR"
+  ],
+  "cg2263": [
+    "iM_60_AmtR",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg2438": [
+    "iM_60_AmtR"
+  ],
+  "cg0931": [
+    "iM_61_RamA",
+    "iM_72_amino_acid_related"
+  ],
+  "cg2824": [
+    "iM_61_RamA",
+    "iM_72_amino_acid_related"
+  ],
+  "cg2831": [
+    "iM_61_RamA",
+    "iM_72_amino_acid_related"
+  ],
+  "cg2835": [
+    "iM_61_RamA"
+  ],
+  "cg2836": [
+    "iM_61_RamA",
+    "iM_62_Cysteine_biosynthesis"
+  ],
+  "cg3264": [
+    "iM_61_RamA",
+    "iM_72_amino_acid_related"
+  ],
+  "cg3267": [
+    "iM_61_RamA",
+    "iM_62_Cysteine_biosynthesis"
+  ],
+  "cg3269": [
+    "iM_61_RamA"
+  ],
+  "cg3268": [
+    "iM_61_RamA"
+  ],
+  "cg0921": [
+    "iM_62_Cysteine_biosynthesis"
+  ],
+  "cg2833": [
+    "iM_62_Cysteine_biosynthesis",
+    "iM_72_amino_acid_related"
+  ],
+  "cg3266": [
+    "iM_62_Cysteine_biosynthesis",
+    "iM_72_amino_acid_related"
+  ],
+  "cg0103": [
+    "iM_63_amino_acid_related_3",
+    "iM_72_amino_acid_related"
+  ],
+  "cg0932": [
+    "iM_63_amino_acid_related_3"
+  ],
+  "cg1598": [
+    "iM_63_amino_acid_related_3"
+  ],
+  "cg2823": [
+    "iM_63_amino_acid_related_3"
+  ],
+  "cg2830": [
+    "iM_63_amino_acid_related_3",
+    "iM_72_amino_acid_related"
+  ],
+  "cg3263": [
+    "iM_63_amino_acid_related_3",
+    "iM_72_amino_acid_related"
+  ],
+  "cg0446": [
+    "iM_64_ripA"
+  ],
+  "cg0447": [
+    "iM_64_ripA"
+  ],
+  "cg0448": [
+    "iM_64_ripA"
+  ],
+  "cg4001": [
+    "iM_64_ripA"
+  ],
+  "cg0450": [
+    "iM_64_ripA"
+  ],
+  "cg1081": [
+    "iM_64_ripA"
+  ],
+  "cg1082": [
+    "iM_64_ripA"
+  ],
+  "cg0199": [
+    "iM_65_IolR"
+  ],
+  "cg0201": [
+    "iM_65_IolR"
+  ],
+  "cg0202": [
+    "iM_65_IolR"
+  ],
+  "cg0203": [
+    "iM_65_IolR"
+  ],
+  "cg0204": [
+    "iM_65_IolR"
+  ],
+  "cg0205": [
+    "iM_65_IolR"
+  ],
+  "cg0206": [
+    "iM_65_IolR"
+  ],
+  "cg2120": [
+    "iM_66_FruR_NanR"
+  ],
+  "cg2121": [
+    "iM_66_FruR_NanR"
+  ],
+  "cg2124": [
+    "iM_66_FruR_NanR"
+  ],
+  "cg2125": [
+    "iM_66_FruR_NanR"
+  ],
+  "cg2126": [
+    "iM_66_FruR_NanR"
+  ],
+  "cg2932": [
+    "iM_66_FruR_NanR"
+  ],
+  "cg2933": [
+    "iM_66_FruR_NanR"
+  ],
+  "cg2935": [
+    "iM_66_FruR_NanR"
+  ],
+  "cg0498": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg1398": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg1399": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg1690": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg2109": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg2110": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg2199": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg2200": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg2255": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg2256": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg2418": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg3243": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg3311": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg3312": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg3385": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg3386": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg3417": [
+    "iM_67_Aromatic_degradation"
+  ],
+  "cg0910": [
+    "iM_68_histidine_biosynthetic"
+  ],
+  "cg0911": [
+    "iM_68_histidine_biosynthetic"
+  ],
+  "cg1096": [
+    "iM_68_histidine_biosynthetic"
+  ],
+  "cg1098": [
+    "iM_68_histidine_biosynthetic"
+  ],
+  "cg1511": [
+    "iM_68_histidine_biosynthetic",
+    "iM_81_uncharacterized_8",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1512": [
+    "iM_68_histidine_biosynthetic",
+    "iM_81_uncharacterized_8",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1760": [
+    "iM_68_histidine_biosynthetic"
+  ],
+  "cg2743": [
+    "iM_68_histidine_biosynthetic",
+    "iM_69_Cg2712"
+  ],
+  "cg2712": [
+    "iM_68_histidine_biosynthetic",
+    "iM_69_Cg2712"
+  ],
+  "cg2713": [
+    "iM_68_histidine_biosynthetic",
+    "iM_69_Cg2712"
+  ],
+  "cg2714": [
+    "iM_68_histidine_biosynthetic",
+    "iM_69_Cg2712"
+  ],
+  "cg2715": [
+    "iM_68_histidine_biosynthetic"
+  ],
+  "cg2716": [
+    "iM_68_histidine_biosynthetic",
+    "iM_80_uncharacterized_17"
+  ],
+  "cg3253": [
+    "iM_68_histidine_biosynthetic"
+  ],
+  "cg0836": [
+    "iM_70_cell_membrane_1",
+    "iM_76_Cg0725"
+  ],
+  "cg0953": [
+    "iM_70_cell_membrane_1"
+  ],
+  "cg0954": [
+    "iM_70_cell_membrane_1"
+  ],
+  "cg0955": [
+    "iM_70_cell_membrane_1"
+  ],
+  "cg1110": [
+    "iM_70_cell_membrane_1"
+  ],
+  "cg1111": [
+    "iM_70_cell_membrane_1"
+  ],
+  "cg2141": [
+    "iM_70_cell_membrane_1"
+  ],
+  "cg2145": [
+    "iM_70_cell_membrane_1"
+  ],
+  "cg2565": [
+    "iM_70_cell_membrane_1"
+  ],
+  "cg0638": [
+    "iM_71_Cg0646"
+  ],
+  "cg0639": [
+    "iM_71_Cg0646"
+  ],
+  "cg0640": [
+    "iM_71_Cg0646"
+  ],
+  "cg0641": [
+    "iM_71_Cg0646"
+  ],
+  "cg0642": [
+    "iM_71_Cg0646"
+  ],
+  "cg0644": [
+    "iM_71_Cg0646"
+  ],
+  "cg0645": [
+    "iM_71_Cg0646"
+  ],
+  "cg0646": [
+    "iM_71_Cg0646"
+  ],
+  "cg2971": [
+    "iM_71_Cg0646"
+  ],
+  "cg1113": [
+    "iM_73_Tyrosine_metabolism",
+    "iM_80_uncharacterized_17"
+  ],
+  "cg2112": [
+    "iM_73_Tyrosine_metabolism"
+  ],
+  "cg3226": [
+    "iM_73_Tyrosine_metabolism"
+  ],
+  "cg3227": [
+    "iM_73_Tyrosine_metabolism"
+  ],
+  "cg3349": [
+    "iM_73_Tyrosine_metabolism"
+  ],
+  "cg3350": [
+    "iM_73_Tyrosine_metabolism"
+  ],
+  "cg2898": [
+    "iM_74_Fructose_utilization"
+  ],
+  "cg2964": [
+    "iM_74_Fructose_utilization"
+  ],
+  "cg0258": [
+    "iM_75_uncharacterized_12"
+  ],
+  "cg0527": [
+    "iM_75_uncharacterized_12"
+  ],
+  "cg0528": [
+    "iM_75_uncharacterized_12"
+  ],
+  "cg2098": [
+    "iM_75_uncharacterized_12"
+  ],
+  "cg2924": [
+    "iM_75_uncharacterized_12"
+  ],
+  "cg0647": [
+    "iM_76_Cg0725"
+  ],
+  "cg0712": [
+    "iM_76_Cg0725"
+  ],
+  "cg0713": [
+    "iM_76_Cg0725"
+  ],
+  "cg0714": [
+    "iM_76_Cg0725"
+  ],
+  "cg0718": [
+    "iM_76_Cg0725"
+  ],
+  "cg0719": [
+    "iM_76_Cg0725"
+  ],
+  "cg0720": [
+    "iM_76_Cg0725"
+  ],
+  "cg0721": [
+    "iM_76_Cg0725"
+  ],
+  "cg0722": [
+    "iM_76_Cg0725"
+  ],
+  "cg0723": [
+    "iM_76_Cg0725"
+  ],
+  "cg0725": [
+    "iM_76_Cg0725"
+  ],
+  "cg0726": [
+    "iM_76_Cg0725"
+  ],
+  "cg0727": [
+    "iM_76_Cg0725"
+  ],
+  "cg0728": [
+    "iM_76_Cg0725"
+  ],
+  "cg0730": [
+    "iM_76_Cg0725"
+  ],
+  "cg0732": [
+    "iM_76_Cg0725"
+  ],
+  "cg0733": [
+    "iM_76_Cg0725"
+  ],
+  "cg0735": [
+    "iM_76_Cg0725"
+  ],
+  "cg0736": [
+    "iM_76_Cg0725"
+  ],
+  "cg0737": [
+    "iM_76_Cg0725"
+  ],
+  "cg0740": [
+    "iM_76_Cg0725"
   ],
   "cg0741": [
-    "iM_WhiB_cell_cycle"
+    "iM_76_Cg0725"
   ],
   "cg0742": [
-    "iM_WhiB_cell_cycle"
+    "iM_76_Cg0725"
   ],
-  "cg2989": [
-    "iM_WhiB_cell_cycle"
+  "cg0745": [
+    "iM_76_Cg0725"
+  ],
+  "cg0747": [
+    "iM_76_Cg0725"
+  ],
+  "cg0748": [
+    "iM_76_Cg0725"
+  ],
+  "cg0749": [
+    "iM_76_Cg0725"
+  ],
+  "cg0824": [
+    "iM_76_Cg0725"
+  ],
+  "cg0831": [
+    "iM_76_Cg0725"
+  ],
+  "cg0832": [
+    "iM_76_Cg0725"
+  ],
+  "cg0833": [
+    "iM_76_Cg0725"
+  ],
+  "cg0834": [
+    "iM_76_Cg0725"
+  ],
+  "cg0835": [
+    "iM_76_Cg0725"
+  ],
+  "cg0838": [
+    "iM_76_Cg0725"
+  ],
+  "cg0839": [
+    "iM_76_Cg0725",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0840": [
+    "iM_76_Cg0725",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0841": [
+    "iM_76_Cg0725",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0842": [
+    "iM_76_Cg0725",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0843": [
+    "iM_76_Cg0725"
+  ],
+  "cg0844": [
+    "iM_76_Cg0725",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0845": [
+    "iM_76_Cg0725",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0847": [
+    "iM_76_Cg0725",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1019": [
+    "iM_76_Cg0725"
+  ],
+  "cg1020": [
+    "iM_76_Cg0725"
+  ],
+  "cg1021": [
+    "iM_76_Cg0725"
+  ],
+  "cg1027": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1032": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1033": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1176": [
+    "iM_76_Cg0725",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1178": [
+    "iM_76_Cg0725"
+  ],
+  "cg1179": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1182": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1183": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1190": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1191": [
+    "iM_76_Cg0725"
+  ],
+  "cg1192": [
+    "iM_76_Cg0725"
+  ],
+  "cg1193": [
+    "iM_76_Cg0725"
+  ],
+  "cg1194": [
+    "iM_76_Cg0725"
+  ],
+  "cg1197": [
+    "iM_76_Cg0725"
+  ],
+  "cg1198": [
+    "iM_76_Cg0725"
+  ],
+  "cg1199": [
+    "iM_76_Cg0725"
+  ],
+  "cg1202": [
+    "iM_76_Cg0725"
+  ],
+  "cg1203": [
+    "iM_76_Cg0725"
+  ],
+  "cg1204": [
+    "iM_76_Cg0725"
+  ],
+  "cg1205": [
+    "iM_76_Cg0725"
+  ],
+  "cg1206": [
+    "iM_76_Cg0725"
   ],
   "cg1207": [
-    "iM_WhiB_cell_cycle"
+    "iM_76_Cg0725"
   ],
-  "cg1348": [
-    "iM_RpsA_ribosome"
+  "cg1208": [
+    "iM_76_Cg0725"
   ],
-  "cg1349": [
-    "iM_RpsA_ribosome"
+  "cg1209": [
+    "iM_76_Cg0725"
   ],
-  "cg1350": [
-    "iM_RpsA_ribosome"
+  "cg1211": [
+    "iM_76_Cg0725"
   ],
-  "cg1351": [
-    "iM_RpsA_ribosome"
+  "cg1212": [
+    "iM_76_Cg0725"
   ],
-  "cg1352": [
-    "iM_RpsA_ribosome"
+  "cg0692": [
+    "iM_76_Cg0725"
   ],
-  "cg1353": [
-    "iM_RpsA_ribosome"
+  "cg1214": [
+    "iM_76_Cg0725"
   ],
-  "cg1354": [
-    "iM_RpsA_ribosome"
+  "cg1296": [
+    "iM_76_Cg0725"
   ],
-  "cg1355": [
-    "iM_RpsA_ribosome"
+  "cg1303": [
+    "iM_76_Cg0725"
   ],
-  "cg1356": [
-    "iM_RpsA_ribosome"
+  "cg1305": [
+    "iM_76_Cg0725"
   ],
-  "cg1357": [
-    "iM_RpsA_ribosome"
+  "cg1624": [
+    "iM_76_Cg0725"
   ],
-  "cg1358": [
-    "iM_RpsA_ribosome"
+  "cg1697": [
+    "iM_76_Cg0725"
   ],
-  "cg1359": [
-    "iM_RpsA_ribosome"
+  "cg2320": [
+    "iM_76_Cg0725"
   ],
-  "cg1360": [
-    "iM_RpsA_ribosome"
+  "cg2321": [
+    "iM_76_Cg0725"
   ],
-  "cg1361": [
-    "iM_RpsA_ribosome"
+  "cg2322": [
+    "iM_76_Cg0725"
   ],
-  "cg1362": [
-    "iM_RpsA_ribosome"
+  "cg2355": [
+    "iM_76_Cg0725"
   ],
-  "cg1363": [
-    "iM_RpsA_ribosome"
+  "cg2328": [
+    "iM_76_Cg0725"
   ],
-  "cg1365": [
-    "iM_RpsA_ribosome"
+  "cg2639": [
+    "iM_76_Cg0725"
   ],
-  "cg2737": [
-    "iM_FasR_fatty_acids"
+  "cg2640": [
+    "iM_76_Cg0725"
   ],
-  "cg2738": [
-    "iM_FasR_fatty_acids"
+  "cg2641": [
+    "iM_76_Cg0725"
   ],
-  "cg2739": [
-    "iM_FasR_fatty_acids"
+  "cg2644": [
+    "iM_76_Cg0725"
   ],
-  "cg2396": [
-    "iM_FasR_fatty_acids"
+  "cg2645": [
+    "iM_76_Cg0725"
   ],
-  "cg2397": [
-    "iM_FasR_fatty_acids"
+  "cg2647": [
+    "iM_76_Cg0725"
   ],
-  "cg2398": [
-    "iM_FasR_fatty_acids"
+  "cg2650": [
+    "iM_76_Cg0725"
   ],
-  "cg1631": [
-    "iM_FasR_fatty_acids"
+  "cg2675": [
+    "iM_76_Cg0725"
   ],
-  "cg1632": [
-    "iM_FasR_fatty_acids"
+  "cg2676": [
+    "iM_76_Cg0725"
   ],
-  "cg1633": [
-    "iM_FasR_fatty_acids"
+  "cg2678": [
+    "iM_76_Cg0725"
   ],
-  "cg0959": [
-    "iM_FasR_fatty_acids"
+  "cg2679": [
+    "iM_76_Cg0725"
   ],
-  "cg0960": [
-    "iM_FasR_fatty_acids"
+  "cg2687": [
+    "iM_76_Cg0725"
+  ],
+  "cg2688": [
+    "iM_76_Cg0725"
+  ],
+  "cg2689": [
+    "iM_76_Cg0725"
+  ],
+  "cg2690": [
+    "iM_76_Cg0725"
+  ],
+  "cg2767": [
+    "iM_76_Cg0725"
+  ],
+  "cg2768": [
+    "iM_76_Cg0725"
+  ],
+  "cg2770": [
+    "iM_76_Cg0725"
+  ],
+  "cg2772": [
+    "iM_76_Cg0725"
+  ],
+  "cg2773": [
+    "iM_76_Cg0725"
+  ],
+  "cg3107": [
+    "iM_76_Cg0725"
+  ],
+  "cg3112": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3113": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3114": [
+    "iM_76_Cg0725"
+  ],
+  "cg3115": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1185": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1201": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1018": [
+    "iM_76_Cg0725"
+  ],
+  "cg1187": [
+    "iM_76_Cg0725",
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0067": [
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0128": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg0139": [
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0141": [
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0152": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg0217": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg0331": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg0384": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg0442": [
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0443": [
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0549": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg0905": [
+    "iM_77_uncharacterized_5",
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1160": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1162": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1540": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1541": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg1592": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg2607": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg2804": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg2983": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3096": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3097": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3098": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3099": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3146": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3221": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3223": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3224": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg3147": [
+    "iM_77_uncharacterized_5"
+  ],
+  "cg2473": [
+    "iM_78_acpP_operon"
+  ],
+  "cg2474": [
+    "iM_78_acpP_operon"
+  ],
+  "cg2471": [
+    "iM_78_acpP_operon"
+  ],
+  "cg1983": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg1991": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg1992": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg1998": [
+    "iM_79_Intracellular_trafficking",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1999": [
+    "iM_79_Intracellular_trafficking",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2001": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg2002": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg2003": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg2005": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg2006": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg2007": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg2008": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg2012": [
+    "iM_79_Intracellular_trafficking",
+    "iM_84_Replication_3"
+  ],
+  "cg2031": [
+    "iM_79_Intracellular_trafficking",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2032": [
+    "iM_79_Intracellular_trafficking"
+  ],
+  "cg2033": [
+    "iM_79_Intracellular_trafficking",
+    "iM_84_Replication_3"
+  ],
+  "cg2034": [
+    "iM_79_Intracellular_trafficking",
+    "iM_84_Replication_3"
+  ],
+  "cg2027": [
+    "iM_79_Intracellular_trafficking",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg0596": [
+    "iM_80_uncharacterized_17",
+    "iM_86_Ribosome"
+  ],
+  "cg0684": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg0796": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg0868": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg0966": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg1048": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg1112": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg1364": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg1793": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg2099": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg2801": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg2802": [
+    "iM_80_uncharacterized_17"
+  ],
+  "cg0142": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0162": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0163": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0165": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0166": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0315": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0400": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0415": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0416": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0417": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0418": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0419": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0420": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0421": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0422": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0423": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0424": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0431": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0432": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0435": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0437": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0438": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0439": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0441": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0444": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0978": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0979": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1120": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1519": [
+    "iM_81_uncharacterized_8",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1520": [
+    "iM_81_uncharacterized_8",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1543": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg2811": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg2812": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3065": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3066": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3067": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3068": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3069": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3070": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3130": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3281": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3319": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3284": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3285": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3286": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3396": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3400": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3403": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3404": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3405": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3407": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3409": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg3410": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1515": [
+    "iM_81_uncharacterized_8",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg0426": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg0428": [
+    "iM_81_uncharacterized_8"
+  ],
+  "cg1514": [
+    "iM_81_uncharacterized_8",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2076": [
+    "iM_82_Replication",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2077": [
+    "iM_82_Replication",
+    "iM_84_Replication_3",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2092": [
+    "iM_82_Replication"
+  ],
+  "cg2096": [
+    "iM_82_Replication"
+  ],
+  "cg2066": [
+    "iM_82_Replication",
+    "iM_83_uncharacterized_15",
+    "iM_84_Replication_3"
+  ],
+  "cg2067": [
+    "iM_82_Replication",
+    "iM_83_uncharacterized_15"
+  ],
+  "cg2068": [
+    "iM_82_Replication",
+    "iM_84_Replication_3"
+  ],
+  "cg2069": [
+    "iM_82_Replication",
+    "iM_84_Replication_3"
+  ],
+  "cg3059": [
+    "iM_82_Replication"
+  ],
+  "cg1917": [
+    "iM_83_uncharacterized_15"
+  ],
+  "cg1930": [
+    "iM_83_uncharacterized_15"
+  ],
+  "cg1955": [
+    "iM_83_uncharacterized_15",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1980": [
+    "iM_83_uncharacterized_15",
+    "iM_84_Replication_3"
+  ],
+  "cg2829": [
+    "iM_83_uncharacterized_15"
+  ],
+  "cg1890": [
+    "iM_84_Replication_3",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg3095": [
+    "iM_84_Replication_3"
+  ],
+  "cg1893": [
+    "iM_84_Replication_3"
+  ],
+  "cg1896": [
+    "iM_84_Replication_3"
+  ],
+  "cg1897": [
+    "iM_84_Replication_3"
+  ],
+  "cg1898": [
+    "iM_84_Replication_3"
+  ],
+  "cg1899": [
+    "iM_84_Replication_3"
+  ],
+  "cg1901": [
+    "iM_84_Replication_3"
+  ],
+  "cg1921": [
+    "iM_84_Replication_3",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1919": [
+    "iM_84_Replication_3"
+  ],
+  "cg1935": [
+    "iM_84_Replication_3"
+  ],
+  "cg1957": [
+    "iM_84_Replication_3"
+  ],
+  "cg1959": [
+    "iM_84_Replication_3"
+  ],
+  "cg1963": [
+    "iM_84_Replication_3"
+  ],
+  "cg1974": [
+    "iM_84_Replication_3"
+  ],
+  "cg1975": [
+    "iM_84_Replication_3"
+  ],
+  "cg1976": [
+    "iM_84_Replication_3"
+  ],
+  "cg1978": [
+    "iM_84_Replication_3"
+  ],
+  "cg1981": [
+    "iM_84_Replication_3"
+  ],
+  "cg1996": [
+    "iM_84_Replication_3"
+  ],
+  "cg1997": [
+    "iM_84_Replication_3"
+  ],
+  "cg2009": [
+    "iM_84_Replication_3"
+  ],
+  "cg2011": [
+    "iM_84_Replication_3"
+  ],
+  "cg2014": [
+    "iM_84_Replication_3"
+  ],
+  "cg2015": [
+    "iM_84_Replication_3"
+  ],
+  "cg2018": [
+    "iM_84_Replication_3"
+  ],
+  "cg2019": [
+    "iM_84_Replication_3"
+  ],
+  "cg2020": [
+    "iM_84_Replication_3"
+  ],
+  "cg2021": [
+    "iM_84_Replication_3"
+  ],
+  "cg2022": [
+    "iM_84_Replication_3"
+  ],
+  "cg2023": [
+    "iM_84_Replication_3"
+  ],
+  "cg2026": [
+    "iM_84_Replication_3"
+  ],
+  "cg2064": [
+    "iM_84_Replication_3",
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2065": [
+    "iM_84_Replication_3"
+  ],
+  "cg2078": [
+    "iM_84_Replication_3"
+  ],
+  "cg1516": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1523": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1521": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1752": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1753": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1895": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1903": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1904": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1905": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1907": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1909": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1911": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1912": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1913": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1916": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1927": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1925": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1936": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1937": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1944": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1945": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1946": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1947": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1949": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1960": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1965": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1966": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2037": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2039": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2040": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2041": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2043": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2044": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2050": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2057": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2059": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2060": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2061": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2071": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2072": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2073": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2074": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2107": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2733": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg1750": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg2053": [
+    "iM_85_uncharacterized_10"
+  ],
+  "cg0565": [
+    "iM_86_Ribosome"
+  ],
+  "cg0575": [
+    "iM_86_Ribosome"
+  ],
+  "cg0583": [
+    "iM_86_Ribosome"
+  ],
+  "cg0588": [
+    "iM_86_Ribosome"
+  ],
+  "cg0597": [
+    "iM_86_Ribosome"
+  ],
+  "cg0598": [
+    "iM_86_Ribosome"
+  ],
+  "cg0599": [
+    "iM_86_Ribosome"
+  ],
+  "cg0600": [
+    "iM_86_Ribosome"
+  ],
+  "cg0601": [
+    "iM_86_Ribosome"
+  ],
+  "cg0602": [
+    "iM_86_Ribosome"
+  ],
+  "cg0603": [
+    "iM_86_Ribosome"
+  ],
+  "cg0604": [
+    "iM_86_Ribosome"
+  ],
+  "cg0606": [
+    "iM_86_Ribosome"
+  ],
+  "cg0607": [
+    "iM_86_Ribosome"
+  ],
+  "cg0608": [
+    "iM_86_Ribosome"
+  ],
+  "cg0611": [
+    "iM_86_Ribosome"
+  ],
+  "cg0612": [
+    "iM_86_Ribosome"
+  ],
+  "cg0631": [
+    "iM_86_Ribosome"
+  ],
+  "cg0632": [
+    "iM_86_Ribosome"
+  ],
+  "cg0634": [
+    "iM_86_Ribosome"
+  ],
+  "cg0635": [
+    "iM_86_Ribosome"
+  ],
+  "cg0636": [
+    "iM_86_Ribosome"
+  ],
+  "cg0637": [
+    "iM_86_Ribosome"
+  ],
+  "cg0655": [
+    "iM_86_Ribosome"
+  ],
+  "cg0656": [
+    "iM_86_Ribosome"
+  ],
+  "cg0657": [
+    "iM_86_Ribosome"
+  ],
+  "cg0658": [
+    "iM_86_Ribosome"
+  ],
+  "cg0675": [
+    "iM_86_Ribosome"
+  ],
+  "cg0992": [
+    "iM_86_Ribosome"
+  ],
+  "cg0997": [
+    "iM_86_Ribosome"
+  ],
+  "cg1566": [
+    "iM_86_Ribosome"
+  ],
+  "cg2179": [
+    "iM_86_Ribosome"
+  ],
+  "cg2180": [
+    "iM_86_Ribosome"
+  ],
+  "cg2581": [
+    "iM_86_Ribosome"
+  ],
+  "cg2600": [
+    "iM_86_Ribosome"
+  ],
+  "cg3316": [
+    "iM_86_Ribosome"
+  ],
+  "cg3317": [
+    "iM_86_Ribosome"
+  ],
+  "cg3318": [
+    "iM_86_Ribosome"
   ]
 }
