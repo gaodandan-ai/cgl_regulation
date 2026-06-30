@@ -1,28 +1,26 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.py": {
-      "includeFiles": [
-        "data/reference/gene_mapping.csv",
-        "data/reference/kegg_cache/kegg_cgl_cgb.json",
-        "data/reference/regulations.csv",
-        "data/reference/rna_regulation.csv",
-        "data/reference/AllOrganismsFiles/**",
-        "data/reference/model/iCGB21FR.xml",
-        "data/reference/model/iCGB21FR.omex",
-        "data/reference/model/ecCGL1-main/ecCGL1-main/model/*.json",
-        "data/reference/model/ecCGL1/model/*.json",
-        "data/reference/imodulon/*.json",
-        "data/reference/rna_seq_analysis_results.json",
-        "data/reference/metabolic_models/**",
-        "backend/models/**"
-      ]
-    }
-  },
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": [
+          "data/reference/gene_mapping.csv",
+          "data/reference/kegg_cache/kegg_cgl_cgb.json",
+          "data/reference/regulations.csv",
+          "data/reference/rna_regulation.csv",
+          "data/reference/AllOrganismsFiles/**",
+          "data/reference/model/iCGB21FR.xml",
+          "data/reference/model/iCGB21FR.omex",
+          "data/reference/model/ecCGL1-main/ecCGL1-main/model/*.json",
+          "data/reference/model/ecCGL1/model/*.json",
+          "data/reference/imodulon/*.json",
+          "data/reference/rna_seq_analysis_results.json",
+          "data/reference/metabolic_models/**",
+          "backend/models/**"
+        ]
+      }
     },
     {
       "src": "web/**",
