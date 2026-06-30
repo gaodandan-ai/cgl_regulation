@@ -140,10 +140,7 @@
                 <i class="fa-solid fa-chart-line"></i>
                 <span>Data &amp; Model Quality</span>
             </button>
-            <button class="workflow-entry" id="workflow-entry-glutamate" data-workflow="glutamate">
-                <i class="fa-solid fa-flask"></i>
-                <span>Glutamate Scenario</span>
-            </button>
+
             <button class="workflow-entry" id="workflow-entry-rna-seq" data-workflow="rna-seq">
                 <i class="fa-solid fa-temperature-high"></i>
                 <span>High-temp GRN &amp; ecFBA</span>
@@ -411,12 +408,11 @@
                                     <th>Pathways</th>
                                     <th>Key pathways</th>
                                     <th>Regulation</th>
-                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="engineering-target-tbody">
                                 <tr>
-                                    <td colspan="10">Loading candidate regulators...</td>
+                                    <td colspan="9">Loading candidate regulators...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1831,248 +1827,7 @@
                     </div>
                 </div>
 
-                <!-- Glutamate Production-oriented Scenario Overlay -->
-                <div id="glutamate-scenario-overlay" class="release-notes-container hidden">
-                    <div class="dashboard-header">
-                        <div class="dashboard-title-area">
-                            <h2><i class="fa-solid fa-flask" style="color:#0284c7;"></i> Glutamate Production-oriented
-                                Scenario</h2>
-                            <p class="dashboard-subtitle">A verified simulation workflow to evaluate downstream flux
-                                changes under targeted genetic interventions.</p>
-                        </div>
-                    </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; margin-top: 15px;">
-                        <!-- Left column: Configuration Steps -->
-                        <div class="release-card"
-                            style="margin-top: 0; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color);">
-                            <h3
-                                style="font-size: 13px; margin-top: 0; margin-bottom: 12px; color: var(--color-primary-accent); display: flex; align-items: center; gap: 6px;">
-                                <span
-                                    style="background: var(--color-primary-accent); color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">1</span>
-                                Search & Selection
-                            </h3>
-
-                            <!-- Step 1: Find glutamate reactions -->
-                            <div style="margin-bottom: 16px;">
-                                <p
-                                    style="font-size: 11.5px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 8px;">
-                                    Query candidate reactions in the metabolic model that involve glutamate or its
-                                    transporters:
-                                </p>
-                                <button id="btn-search-glutamate-candidates" class="secondary-btn"
-                                    style="background: var(--color-primary-accent); color: white; border: none; font-weight: 600; padding: 6px 12px; height: 32px; font-size: 11px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fa-solid fa-search"></i> Search Glutamate Candidates
-                                </button>
-
-                                <div id="glutamate-candidates-table-container" class="hidden"
-                                    style="margin-top: 12px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; max-height: 200px; overflow-y: auto;">
-                                    <table
-                                        style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
-                                        <thead
-                                            style="background: var(--bg-secondary); position: sticky; top: 0; z-index: 1;">
-                                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                                <th style="padding: 6px 8px;">Reaction ID</th>
-                                                <th style="padding: 6px 8px;">Equation</th>
-                                                <th style="padding: 6px 8px;">Classification</th>
-                                                <th style="padding: 6px 8px; width: 60px;">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="glutamate-candidates-table-body">
-                                            <!-- Dynamically populated -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- Step 2: Verification -->
-                            <h3
-                                style="font-size: 13px; margin-top: 20px; margin-bottom: 12px; color: var(--color-primary-accent); display: flex; align-items: center; gap: 6px;">
-                                <span
-                                    style="background: var(--color-primary-accent); color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">2</span>
-                                Verify Target Reaction
-                            </h3>
-                            <div
-                                style="background: rgba(30, 58, 138, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                                <div id="selected-glutamate-info"
-                                    style="font-size: 11.5px; color: var(--text-secondary); margin-bottom: 8px;">
-                                    <em>No reaction selected. Please select a candidate from Step 1.</em>
-                                </div>
-                                <div id="glutamate-verification-warning" class="hidden"
-                                    style="font-size: 10.5px; line-height: 1.4; color: #b45309; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 8px; margin-bottom: 8px;">
-                                    <strong>Verify Exchange/Export Context:</strong>
-                                    <p style="margin: 3px 0 0 0;">Please verify that this reaction corresponds to
-                                        glutamate export or exchange boundary flux in the model before proceeding.</p>
-                                </div>
-                                <label
-                                    style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; color: var(--text-primary); font-weight: 500;">
-                                    <input type="checkbox" id="chk-glutamate-verified" disabled
-                                        style="margin-top: 2px;">
-                                    <span>I confirm this reaction should be used as the glutamate-associated flux for
-                                        this analysis.</span>
-                                </label>
-                            </div>
-
-                            <!-- Step 3: Choose simulation mode -->
-                            <h3
-                                style="font-size: 13px; margin-top: 20px; margin-bottom: 12px; color: var(--color-primary-accent); display: flex; align-items: center; gap: 6px;">
-                                <span
-                                    style="background: var(--color-primary-accent); color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">3</span>
-                                Choose Perturbation Target
-                            </h3>
-                            <div
-                                style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 8px; margin-bottom: 20px;">
-                                <div>
-                                    <label
-                                        style="display: block; font-size: 10.5px; color: var(--text-secondary); margin-bottom: 4px;">Target
-                                        Gene or TF Locus:</label>
-                                    <input type="text" id="glutamate-scenario-locus"
-                                        placeholder="Enter locus (e.g. Cgl0291, cg0041)..."
-                                        style="width: 100%; height: 28px; font-size: 11px; padding: 2px 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
-                                </div>
-                                <div>
-                                    <label
-                                        style="display: block; font-size: 10.5px; color: var(--text-secondary); margin-bottom: 4px;">Type:</label>
-                                    <select id="glutamate-scenario-type"
-                                        style="width: 100%; height: 28px; font-size: 11px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
-                                        <option value="TF">Transcription Factor (TF)</option>
-                                        <option value="gene">Gene knockout</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div style="margin-bottom: 20px;">
-                                <label
-                                    style="display: block; font-size: 10.5px; color: var(--text-secondary); margin-bottom: 4px;">Simulation
-                                    Algorithm / Method:</label>
-                                <select id="glutamate-scenario-method"
-                                    style="width: 100%; height: 28px; font-size: 11px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary);">
-                                    <option value="fba">FBA (Standard Flux Balance Analysis)</option>
-                                    <option value="moma">MOMA (Minimization of Metabolic Adjustment)</option>
-                                </select>
-                            </div>
-
-                            <button id="btn-run-glutamate-scenario" class="secondary-btn"
-                                style="width: 100%; height: 36px; background: var(--color-primary-accent); color: white; font-weight: 700; border: none; font-size: 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 8px;"
-                                disabled>
-                                <i class="fa-solid fa-play"></i> Run Glutamate Production Simulation
-                            </button>
-                        </div>
-
-                        <!-- Right column: Simulation Results & Cautious Interpretation -->
-                        <div class="release-card"
-                            style="margin-top: 0; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color);">
-                            <h3
-                                style="font-size: 13px; margin-top: 0; margin-bottom: 12px; color: var(--color-primary-accent); display: flex; align-items: center; gap: 6px;">
-                                <i class="fa-solid fa-chart-bar"></i> FBA Simulation Outputs
-                            </h3>
-
-                            <div id="glutamate-scenario-results-empty"
-                                style="flex: 1; display: flex; align-items: center; justify-content: center; font-size: 11.5px; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: 8px; min-height: 200px; text-align: center; padding: 20px;">
-                                Configure steps on the left, verify the reaction, and click "Run Simulation" to
-                                calculate results.
-                            </div>
-
-                            <div id="glutamate-scenario-results-box" class="hidden"
-                                style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
-                                <!-- Biomass Table -->
-                                <div
-                                    style="background: rgba(30, 58, 138, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
-                                    <div
-                                        style="font-size: 11.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
-                                        <i class="fa-solid fa-dna"></i> Biomass Growth Objective:</div>
-                                    <div
-                                        style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                                        <span style="color: var(--text-secondary);">- Baseline:</span>
-                                        <span id="glu-res-biomass-baseline"
-                                            style="font-family: monospace; font-weight: 600;">-</span>
-                                    </div>
-                                    <div
-                                        style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                                        <span style="color: var(--text-secondary);">- Perturbed:</span>
-                                        <span id="glu-res-biomass-perturbed"
-                                            style="font-family: monospace; font-weight: 600;">-</span>
-                                    </div>
-                                    <div
-                                        style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; border-top: 1px dashed var(--border-color); padding-top: 4px; margin-top: 4px;">
-                                        <span style="color: var(--text-primary);">Growth Change:</span>
-                                        <span id="glu-res-biomass-change"
-                                            style="font-family: monospace; font-weight: 600;">-</span>
-                                    </div>
-                                </div>
-
-                                <!-- Export Flux Table -->
-                                <div
-                                    style="background: rgba(15, 118, 110, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
-                                    <div
-                                        style="font-size: 11.5px; font-weight: 600; color: #0f766e; margin-bottom: 8px;">
-                                        <i class="fa-solid fa-right-from-bracket"></i> Glutamate Associated Flux:</div>
-                                    <div
-                                        style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                                        <span style="color: var(--text-secondary);">- Baseline:</span>
-                                        <span id="glu-res-flux-baseline"
-                                            style="font-family: monospace; font-weight: 600;">-</span>
-                                    </div>
-                                    <div
-                                        style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                                        <span style="color: var(--text-secondary);">- Perturbed:</span>
-                                        <span id="glu-res-flux-perturbed"
-                                            style="font-family: monospace; font-weight: 600;">-</span>
-                                    </div>
-                                    <div
-                                        style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; border-top: 1px dashed var(--border-color); padding-top: 4px; margin-top: 4px;">
-                                        <span style="color: #0f766e;">Flux Change:</span>
-                                        <span id="glu-res-flux-change"
-                                            style="font-family: monospace; font-weight: 600;">-</span>
-                                    </div>
-                                </div>
-
-                                <!-- FVA Section in Glutamate Scenario -->
-                                <div
-                                    style="margin-top: 10px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
-                                    <button id="btn-glu-run-fva" class="secondary-btn"
-                                        style="width: 100%; height: 28px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: 1px solid #0f766e; background: transparent; color: #0f766e; border-radius: 4px;">
-                                        <i class="fa-solid fa-calculator"></i> Run Flux Variability Analysis (FVA)
-                                    </button>
-
-                                    <div id="glu-fva-results" class="hidden" style="margin-top: 8px; font-size: 11px;">
-                                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
-                                            <i class="fa-solid fa-arrows-left-right"></i> FVA Feasible Bounds (95%
-                                            Optimum):</div>
-                                        <div
-                                            style="border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; max-height: 120px; overflow-y: auto;">
-                                            <table
-                                                style="width: 100%; border-collapse: collapse; text-align: left; font-size: 10.5px;">
-                                                <thead style="background: var(--bg-secondary);">
-                                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                                        <th style="padding: 4px 6px;">Reaction</th>
-                                                        <th style="padding: 4px 6px;">Baseline Min/Max</th>
-                                                        <th style="padding: 4px 6px;">Perturbed Min/Max</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="glu-fva-results-tbody">
-                                                    <!-- Filled dynamically -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Cautious Interpretation -->
-                                <div
-                                    style="font-size: 10.5px; line-height: 1.4; color: #b45309; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 10px; margin-top: auto;">
-                                    <strong>Interpretation:</strong>
-                                    <p id="glu-res-interpretation"
-                                        style="margin: 3px 0 0 0; font-size: 10.5px; font-weight: 500;"></p>
-                                </div>
-                            </div>
-
-                            <div id="glutamate-scenario-error-box" class="hidden"
-                                style="font-size: 11px; color: #d32f2f; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px; padding: 10px; margin-top: 12px;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- High-temp RNA-seq & GRN Analysis Overlay -->
                 <div id="rna-seq-overlay" class="release-notes-container hidden"
@@ -4148,8 +3903,6 @@
     <script src="lib/analysisQuality.js?v=1.0"></script>
     <script src="lib/caseStudies.js?v=1.0"></script>
     <!-- Custom Application Logic -->
-    <script src="lib/glutamateScenario.js?v=1.0"></script>
-    <script src="lib/glutamateScenarioInterpretation.js?v=1.0"></script>
     <script src="lib/modelObjectives.js?v=1.0"></script>
     <script src="lib/objectiveInterpretation.js?v=1.0"></script>
     <script src="lib/simulationClient.js?v=1.0"></script>

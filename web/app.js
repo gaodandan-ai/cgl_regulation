@@ -1628,11 +1628,6 @@ function renderEngineeringTargetCandidates() {
                 <td>${escapeHtml(candidate.totalPathways || 0)}</td>
                 <td>${escapeHtml((candidate.keyPathways || []).slice(0, 3).join(', ') || '-')}</td>
                 <td>${escapeHtml(regulationText)}</td>
-                <td>
-                    <button class="secondary-btn btn-run-glutamate-scenario" style="background:#0f766e; color:white; border:none; padding:4px 8px; font-size:10px; cursor:pointer; border-radius:3px; font-weight:600; display:flex; align-items:center; gap:3px;">
-                        <i class="fa-solid fa-flask"></i> Run glutamate scenario
-                    </button>
-                </td>
             </tr>
         `;
     }).join('');
@@ -1646,15 +1641,6 @@ function renderEngineeringTargetCandidates() {
             showNodeDetails(tfId);
             highlightPathwayRegulator(tfId, genes);
         });
-
-        const runBtn = row.querySelector('.btn-run-glutamate-scenario');
-        if (runBtn) {
-            runBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const tfId = row.getAttribute('data-tf-id');
-                runGlutamateScenarioFromEngineering(tfId);
-            });
-        }
     });
 }
 
@@ -1781,16 +1767,7 @@ function setActiveWorkflowEntry(workflow) {
         }
     }
 
-    // Toggle glutamate scenario container
-    const glutamateDashboard = document.getElementById('glutamate-scenario-overlay');
-    if (glutamateDashboard) {
-        if (workflow === 'glutamate') {
-            glutamateDashboard.classList.remove('hidden');
-            initGlutamateScenarioDashboard();
-        } else {
-            glutamateDashboard.classList.add('hidden');
-        }
-    }
+
 
     // Toggle high-temp RNA-seq network container
     const rnaSeqDashboard = document.getElementById('rna-seq-overlay');
@@ -1982,13 +1959,7 @@ function initWorkflowEntrypoints() {
         });
     }
 
-    const glutamateEntry = document.getElementById('workflow-entry-glutamate');
-    if (glutamateEntry && !glutamateEntry.dataset.bound) {
-        glutamateEntry.dataset.bound = '1';
-        glutamateEntry.addEventListener('click', () => {
-            setActiveWorkflowEntry('glutamate');
-        });
-    }
+
 
     const rnaSeqEntry = document.getElementById('workflow-entry-rna-seq');
     if (rnaSeqEntry && !rnaSeqEntry.dataset.bound) {
@@ -11790,329 +11761,7 @@ function exportCaseReportJSON(caseResult) {
     URL.revokeObjectURL(url);
 }
 
-let glutamateSelectedReaction = null;
-let glutamateCandidatesList = [];
 
-function initGlutamateScenarioDashboard() {
-    const searchBtn = document.getElementById('btn-search-glutamate-candidates');
-    if (searchBtn && !searchBtn.dataset.bound) {
-        searchBtn.dataset.bound = '1';
-        searchBtn.addEventListener('click', async () => {
-            const tableContainer = document.getElementById('glutamate-candidates-table-container');
-            const tableBody = document.getElementById('glutamate-candidates-table-body');
-            const errorBox = document.getElementById('glutamate-scenario-error-box');
-            
-            if (errorBox) errorBox.classList.add('hidden');
-            searchBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
-            searchBtn.disabled = true;
-            
-            try {
-                const response = await fetch('/api/model/reactions/glutamate-candidates');
-                if (!response.ok) {
-                    throw new Error(`API error: ${response.statusText}`);
-                }
-                const data = await response.json();
-                glutamateCandidatesList = data.candidates || [];
-                
-                tableBody.innerHTML = '';
-                if (glutamateCandidatesList.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="4" style="padding: 10px; text-align: center; color: var(--text-muted);">No glutamate candidates found in model.</td></tr>';
-                } else {
-                    glutamateCandidatesList.forEach(cand => {
-                        const row = document.createElement('tr');
-                        row.style.borderBottom = '1px solid var(--border-color)';
-                        row.innerHTML = `
-                            <td style="padding: 6px 8px; font-weight: 600;">${escapeHtml(cand.reactionId)}</td>
-                            <td style="padding: 6px 8px; font-family: monospace;">${escapeHtml(cand.equation)}</td>
-                            <td style="padding: 6px 8px;"><span class="badge-role ${escapeHtml(cand.classification)}" style="font-size: 10px;">${escapeHtml(cand.classification)}</span></td>
-                            <td style="padding: 6px 8px;">
-                                <button class="secondary-btn btn-select-glutamate" data-id="${escapeHtml(cand.reactionId)}" style="padding: 3px 6px; font-size: 10px; font-weight:600; cursor: pointer; border-radius: 3px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary);">
-                                    Select
-                                </button>
-                            </td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                    
-                    tableBody.querySelectorAll('.btn-select-glutamate').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const rxnId = btn.getAttribute('data-id');
-                            const found = glutamateCandidatesList.find(c => c.reactionId === rxnId);
-                            if (found) {
-                                selectGlutamateCandidate(found);
-                            }
-                        });
-                    });
-                }
-                
-                if (tableContainer) tableContainer.classList.remove('hidden');
-            } catch (err) {
-                console.error("Failed to fetch glutamate candidates:", err);
-                if (errorBox) {
-                    errorBox.textContent = `Failed to retrieve glutamate candidates from backend: ${err.message}. Please make sure the backend server is running.`;
-                    errorBox.classList.remove('hidden');
-                }
-            } finally {
-                searchBtn.innerHTML = '<i class="fa-solid fa-search"></i> Search Glutamate Candidates';
-                searchBtn.disabled = false;
-            }
-        });
-    }
-
-    const chkVerified = document.getElementById('chk-glutamate-verified');
-    if (chkVerified && !chkVerified.dataset.bound) {
-        chkVerified.dataset.bound = '1';
-        chkVerified.addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            window.glutamateScenario.glutamateState.userVerified = isChecked;
-            
-            const runBtn = document.getElementById('btn-run-glutamate-scenario');
-            if (runBtn) {
-                runBtn.disabled = !isChecked;
-            }
-        });
-    }
-
-    const runBtn = document.getElementById('btn-run-glutamate-scenario');
-    if (runBtn && !runBtn.dataset.bound) {
-        runBtn.dataset.bound = '1';
-        runBtn.addEventListener('click', async () => {
-            const locusInput = document.getElementById('glutamate-scenario-locus');
-            const typeSelect = document.getElementById('glutamate-scenario-type');
-            const errorBox = document.getElementById('glutamate-scenario-error-box');
-            const resultsBox = document.getElementById('glutamate-scenario-results-box');
-            const resultsEmpty = document.getElementById('glutamate-scenario-results-empty');
-            
-            const locus = locusInput ? locusInput.value.trim() : '';
-            const type = typeSelect ? typeSelect.value : 'TF';
-            
-            if (errorBox) errorBox.classList.add('hidden');
-            const gluFvaBox = document.getElementById('glu-fva-results');
-            if (gluFvaBox) gluFvaBox.classList.add('hidden');
-            
-            if (!locus) {
-                if (errorBox) {
-                    errorBox.textContent = "Please enter a target gene or TF locus.";
-                    errorBox.classList.remove('hidden');
-                }
-                return;
-            }
-            
-            if (!glutamateSelectedReaction || !window.glutamateScenario.glutamateState.userVerified) {
-                if (errorBox) {
-                    errorBox.textContent = "Please select and verify a glutamate reaction before simulating.";
-                    errorBox.classList.remove('hidden');
-                }
-                return;
-            }
-            
-            runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Simulating...';
-            runBtn.disabled = true;
-            
-            try {
-                const methodSelect = document.getElementById('glutamate-scenario-method');
-                const method = methodSelect ? methodSelect.value : 'fba';
-                
-                let res = null;
-                const objective = { objectiveType: "biomass" };
-                const trackedReactionIds = [glutamateSelectedReaction.reactionId];
-                
-                if (type === 'gene') {
-                    res = await window.simulationClient.runGeneKnockout(locus, objective, trackedReactionIds, method);
-                } else {
-                    const targetGeneIds = [];
-                    if (cy) {
-                        cy.edges().forEach(edge => {
-                            if (edge.source().id().toLowerCase() === locus.toLowerCase()) {
-                                targetGeneIds.push(edge.target().id());
-                            }
-                        });
-                    }
-                    
-                    if (targetGeneIds.length === 0) {
-                        try {
-                            const info = await window.metabolicModelAdapter.fetchGeneReactionPathwayMapping(locus);
-                            if (info && info.targetGenes) {
-                                info.targetGenes.forEach(tg => targetGeneIds.push(tg));
-                            }
-                        } catch (e) {
-                            console.warn("Could not retrieve target genes dynamically:", e);
-                        }
-                    }
-                    
-                    if (targetGeneIds.length === 0) {
-                        targetGeneIds.push(locus);
-                    }
-                    
-                    res = await window.simulationClient.runTFPerturbation(locus, targetGeneIds, objective, trackedReactionIds, method);
-                }
-                
-                if (!res || res.status === "error") {
-                    throw new Error(res?.warnings?.join(", ") || "FBA simulation returned an unsuccessful status.");
-                }
-                
-                document.getElementById('glu-res-biomass-baseline').textContent = `${Number(res.baselineObjective || 0).toFixed(4)} mmol/gDCW/h`;
-                document.getElementById('glu-res-biomass-perturbed').textContent = `${Number(res.perturbedObjective || 0).toFixed(4)} mmol/gDCW/h`;
-                const biomassPct = res.objectiveChangePercent ? res.objectiveChangePercent.toFixed(2) : '0.00';
-                document.getElementById('glu-res-biomass-change').textContent = `${biomassPct}%`;
-                
-                let baselineFlux = 0;
-                let perturbedFlux = 0;
-                let fluxChangePercent = 0;
-                if (res.trackedFluxes && res.trackedFluxes.length > 0) {
-                    const tf = res.trackedFluxes[0];
-                    baselineFlux = tf.baselineFlux || 0;
-                    perturbedFlux = tf.perturbedFlux || 0;
-                    fluxChangePercent = tf.fluxChangePercent || 0;
-                }
-                
-                document.getElementById('glu-res-flux-baseline').textContent = `${Number(baselineFlux).toFixed(4)} mmol/gDCW/h`;
-                document.getElementById('glu-res-flux-perturbed').textContent = `${Number(perturbedFlux).toFixed(4)} mmol/gDCW/h`;
-                const fluxChangeVal = perturbedFlux - baselineFlux;
-                const sign = fluxChangeVal > 0 ? '+' : '';
-                document.getElementById('glu-res-flux-change').textContent = `${sign}${Number(fluxChangeVal).toFixed(4)} (${fluxChangePercent.toFixed(2)}%)`;
-                
-                const interpretation = window.glutamateScenarioInterpretation.generateGlutamateScenarioInterpretation(res, glutamateSelectedReaction);
-                document.getElementById('glu-res-interpretation').textContent = interpretation;
-                
-                if (resultsEmpty) resultsEmpty.classList.add('hidden');
-                if (resultsBox) resultsBox.classList.remove('hidden');
-            } catch (err) {
-                console.error("FBA glutamate scenario simulation error:", err);
-                if (errorBox) {
-                    errorBox.textContent = `Simulation failed: ${err.message}.`;
-                    errorBox.classList.remove('hidden');
-                }
-            } finally {
-                runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Glutamate Production Simulation';
-                runBtn.disabled = false;
-            }
-        });
-    }
-
-    const btnGluRunFva = document.getElementById('btn-glu-run-fva');
-    const gluFvaResultsBox = document.getElementById('glu-fva-results');
-    const gluFvaResultsTbody = document.getElementById('glu-fva-results-tbody');
-    
-    if (btnGluRunFva && gluFvaResultsBox && gluFvaResultsTbody) {
-        btnGluRunFva.dataset.bound = '1';
-        btnGluRunFva.onclick = async () => {
-            const locusInput = document.getElementById('glutamate-scenario-locus');
-            const typeSelect = document.getElementById('glutamate-scenario-type');
-            const errorBox = document.getElementById('glutamate-scenario-error-box');
-            
-            const locus = locusInput ? locusInput.value.trim() : '';
-            const type = typeSelect ? typeSelect.value : 'TF';
-            
-            if (errorBox) errorBox.classList.add('hidden');
-            
-            if (!locus || !glutamateSelectedReaction || !window.glutamateScenario.glutamateState.userVerified) {
-                if (errorBox) {
-                    errorBox.textContent = "Please configure, select and verify target reactions first.";
-                    errorBox.classList.remove('hidden');
-                }
-                return;
-            }
-            
-            btnGluRunFva.disabled = true;
-            btnGluRunFva.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running FVA...';
-            
-            try {
-                const mode = type === 'gene' ? 'gene-knockout' : 'tf-perturbation';
-                const objective = { objectiveType: "biomass" };
-                const trackReactionIds = [glutamateSelectedReaction.reactionId];
-                
-                let targetGeneIds = [];
-                if (mode === 'tf-perturbation' && cy) {
-                    cy.edges().forEach(edge => {
-                        if (edge.source().id().toLowerCase() === locus.toLowerCase()) {
-                            targetGeneIds.push(edge.target().id());
-                        }
-                    });
-                }
-                
-                if (mode === 'tf-perturbation' && targetGeneIds.length === 0) {
-                    try {
-                        const info = await window.metabolicModelAdapter.fetchGeneReactionPathwayMapping(locus);
-                        if (info && info.targetGenes) {
-                            info.targetGenes.forEach(tg => targetGeneIds.push(tg));
-                        }
-                    } catch (e) {
-                        console.warn("Could not retrieve target genes dynamically:", e);
-                    }
-                }
-                
-                if (mode === 'tf-perturbation' && targetGeneIds.length === 0) {
-                    targetGeneIds.push(locus);
-                }
-                
-                const res = await window.simulationClient.runFluxVariabilityAnalysis(
-                    mode,
-                    locus,
-                    targetGeneIds,
-                    objective,
-                    trackReactionIds,
-                    0.95
-                );
-                
-                if (res && res.status !== 'error') {
-                    gluFvaResultsTbody.innerHTML = '';
-                    res.fvaRanges.forEach(range => {
-                        const row = document.createElement('tr');
-                        row.style.borderBottom = '1px solid var(--border-color)';
-                        row.innerHTML = `
-                            <td style="padding: 4px 6px; font-weight:600;">${escapeHtml(range.reactionId)}</td>
-                            <td style="padding: 4px 6px; font-family:monospace;">[${range.baselineMin.toFixed(4)}, ${range.baselineMax.toFixed(4)}]</td>
-                            <td style="padding: 4px 6px; font-family:monospace;">[${range.perturbedMin.toFixed(4)}, ${range.perturbedMax.toFixed(4)}]</td>
-                        `;
-                        gluFvaResultsTbody.appendChild(row);
-                    });
-                    gluFvaResultsBox.classList.remove('hidden');
-                } else {
-                    throw new Error(res.error || 'FVA request failed.');
-                }
-            } catch (err) {
-                console.error("Glutamate Scenario FVA error:", err);
-                if (errorBox) {
-                    errorBox.textContent = `FVA failed: ${err.message}`;
-                    errorBox.classList.remove('hidden');
-                }
-            } finally {
-                btnGluRunFva.disabled = false;
-                btnGluRunFva.innerHTML = '<i class="fa-solid fa-calculator"></i> Run Flux Variability Analysis (FVA)';
-            }
-        };
-    }
-}
-
-function selectGlutamateCandidate(candidate) {
-    glutamateSelectedReaction = candidate;
-    window.glutamateScenario.glutamateState.selectedGlutamateReactionId = candidate.reactionId;
-    window.glutamateScenario.glutamateState.selectedGlutamateReactionClass = candidate.classification;
-    window.glutamateScenario.glutamateState.userVerified = false;
-
-    const chkVerified = document.getElementById('chk-glutamate-verified');
-    if (chkVerified) {
-        chkVerified.checked = false;
-        chkVerified.disabled = false;
-    }
-
-    const runBtn = document.getElementById('btn-run-glutamate-scenario');
-    if (runBtn) { runBtn.disabled = true; }
-
-    const infoArea = document.getElementById('selected-glutamate-info');
-    if (infoArea) {
-        infoArea.innerHTML = `
-            <strong>Selected:</strong> ${escapeHtml(candidate.reactionId)} (${escapeHtml(candidate.name || 'Unnamed')})<br>
-            <strong>Equation:</strong> <code style="font-family: monospace;">${escapeHtml(candidate.equation)}</code><br>
-            <strong>Classification:</strong> <span class="badge-role ${escapeHtml(candidate.classification)}" style="font-size: 10px;">${escapeHtml(candidate.classification)}</span>
-            (Confidence: <strong>${escapeHtml(candidate.confidence)}</strong>)
-        `;
-    }
-
-    const warningBox = document.getElementById('glutamate-verification-warning');
-    if (warningBox) warningBox.classList.remove('hidden');
-}
 
 // ==========================================================================
 // Network Export Utilities (Module D)
@@ -12182,32 +11831,7 @@ function exportNetworkPNG() {
         'image/png'
     );
     showToast('Export', 'Network exported as high-res PNG (3×)', 'success', 3000);
-}
 
-function runGlutamateScenarioFromEngineering(tfId) {
-    setActiveWorkflowEntry('glutamate');
-    
-    const locusInput = document.getElementById('glutamate-scenario-locus');
-    const typeSelect = document.getElementById('glutamate-scenario-type');
-    if (locusInput) locusInput.value = tfId;
-    if (typeSelect) typeSelect.value = 'TF';
-    
-    const verified = window.glutamateScenario.glutamateState.userVerified;
-    const reactionId = window.glutamateScenario.glutamateState.selectedGlutamateReactionId;
-    
-    if (!reactionId || !verified) {
-        const errorBox = document.getElementById('glutamate-scenario-error-box');
-        if (errorBox) {
-            errorBox.textContent = `Glutamate Scenario initiated for ${tfId}. Please select and verify a target reaction in Step 1 and Step 2 first.`;
-            errorBox.classList.remove('hidden');
-        }
-        const searchBtn = document.getElementById('btn-search-glutamate-candidates');
-        if (searchBtn) searchBtn.click();
-    } else {
-        const runBtn = document.getElementById('btn-run-glutamate-scenario');
-        if (runBtn) runBtn.click();
-    }
-}
 
 // ==========================================
 // iModulon Explorer Dashboard Orchestrator
