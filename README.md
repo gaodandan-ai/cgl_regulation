@@ -1,6 +1,6 @@
 # Cgl Regulation Explorer (v0.3.0)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21027667.svg)](https://doi.org/10.5281/zenodo.21027667)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21053092.svg)](https://doi.org/10.5281/zenodo.21053092)
 
 An interactive, reproducible regulatory-metabolic analysis platform for **Corynebacterium glutamicum** DSM 20300 / ATCC 13032.
 
@@ -77,7 +77,7 @@ If you use Cgl Regulation Explorer in your research, please cite:
 Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum. Version 0.3.0. Available at: https://cgl-regulation.vercel.app/
 ```
 
-Zenodo DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21027667.svg)](https://doi.org/10.5281/zenodo.21027667) (10.5281/zenodo.21027667)
+Zenodo DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21053092.svg)](https://doi.org/10.5281/zenodo.21053092) (10.5281/zenodo.21053092)
 
 ### Usage Disclaimer
 
