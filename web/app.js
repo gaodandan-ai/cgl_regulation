@@ -11831,6 +11831,7 @@ function exportNetworkPNG() {
         'image/png'
     );
     showToast('Export', 'Network exported as high-res PNG (3×)', 'success', 3000);
+}
 
 
 // ==========================================
