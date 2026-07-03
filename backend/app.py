@@ -470,6 +470,8 @@ def predict_motif(tf: str = ""):
         result = handler_instance.perform_motif_prediction(tf)
         return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/predict_binding_affinity")
@@ -561,6 +563,8 @@ def regulon_enrichment(tf: str = ""):
         result = run_server.handle_regulon_enrichment(tf)
         return result
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/imodulon/reactions")
