@@ -12205,6 +12205,12 @@ function initTopologyDashboard() {
         fflFilter._topoWired = true;
         fflFilter.addEventListener('change', () => { if (_topoReport) renderFFL(_topoReport); });
     }
+    // Wire FFL search
+    const fflSearch = document.getElementById('topo-ffl-search');
+    if (fflSearch && !fflSearch._topoSearchWired) {
+        fflSearch._topoSearchWired = true;
+        fflSearch.addEventListener('input', () => { if (_topoReport) renderFFL(_topoReport); });
+    }
     // Wire multi-input filter
     const multiFilter = document.getElementById('topo-multi-filter');
     if (multiFilter && !multiFilter._topoWired) {
@@ -12385,17 +12391,41 @@ function renderFFL(report) {
     const container = document.getElementById('topo-ffl-list');
     if (!container) return;
     const filterType = (document.getElementById('topo-ffl-filter-type') || {}).value || 'all';
+    const searchQuery = ((document.getElementById('topo-ffl-search') || {}).value || '').trim().toLowerCase();
+
+    const mapSubtype = {
+        'CAAA': 'C1-FFL', 'CRRA': 'C2-FFL', 'CARR': 'C3-FFL', 'CRAR': 'C4-FFL',
+        'IARA': 'I1-FFL', 'IRRR': 'I2-FFL', 'IAAR': 'I3-FFL', 'IRAR': 'I4-FFL',
+    };
 
     container.innerHTML = report.fflsByMasterTF.map(group => {
-        const filtered = filterType === 'all' ? group.ffls
+        let filtered = filterType === 'all' ? group.ffls
             : filterType === 'coherent' ? group.ffls.filter(f => f.isCoherent)
             : group.ffls.filter(f => !f.isCoherent);
+
+        if (searchQuery) {
+            filtered = filtered.filter(f => {
+                const mTF = (f.masterTF || '').toLowerCase();
+                const mTFName = (f.masterTFName || '').toLowerCase();
+                const iTF = (f.intermediateTF || '').toLowerCase();
+                const iTFName = (f.intermediateTFName || '').toLowerCase();
+                const tg = (f.target || '').toLowerCase();
+                const tgName = (f.targetName || '').toLowerCase();
+
+                return mTF.includes(searchQuery) || mTFName.includes(searchQuery) ||
+                       iTF.includes(searchQuery) || iTFName.includes(searchQuery) ||
+                       tg.includes(searchQuery) || tgName.includes(searchQuery);
+            });
+        }
+
         if (filtered.length === 0) return '';
 
         const ffls = filtered.slice(0, 30); // cap per group
-        const countBadge = `<span style="background:#6366f115;color:#6366f1;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:700;margin-left:6px;">${group.ffls.length} FFL${group.ffls.length!==1?'s':''}</span>`;
-        const cBadge = group.coherentCount > 0 ? `<span style="background:#dcfce7;color:#16a34a;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:4px;">${group.coherentCount} coherent</span>` : '';
-        const iBadge = group.incoherentCount > 0 ? `<span style="background:#fef3c7;color:#d97706;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:4px;">${group.incoherentCount} incoherent</span>` : '';
+        const countBadge = `<span style="background:#6366f115;color:#6366f1;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:700;margin-left:6px;">${filtered.length} FFL${filtered.length!==1?'s':''}</span>`;
+        const cCount = filtered.filter(f => f.isCoherent).length;
+        const iCount = filtered.length - cCount;
+        const cBadge = cCount > 0 ? `<span style="background:#dcfce7;color:#16a34a;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:4px;">${cCount} coherent</span>` : '';
+        const iBadge = iCount > 0 ? `<span style="background:#fef3c7;color:#d97706;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:4px;">${iCount} incoherent</span>` : '';
 
         const rows = ffls.map(ffl => {
             const typeStyle = ffl.isCoherent
@@ -12404,8 +12434,12 @@ function renderFFL(report) {
             const roleIcon = r => r === 'A' ? '<span style="color:#16a34a;font-weight:700;">→+</span>'
                 : r === 'R' ? '<span style="color:#dc2626;font-weight:700;">→-</span>'
                 : '<span style="color:var(--text-muted);">→?</span>';
+
+            const normalizedSubtype = (ffl.subtype || '').toUpperCase();
+            const friendlySubtype = mapSubtype[normalizedSubtype] || ffl.subtype;
+
             return `<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:12px;border-top:1px solid var(--border-color);">
-                <span style="flex:0 0 auto;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;${typeStyle}">${ffl.subtype}</span>
+                <span style="flex:0 0 auto;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;${typeStyle}">${friendlySubtype}</span>
                 <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.masterTF)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(ffl.masterTFName !== ffl.masterTF ? ffl.masterTFName : ffl.masterTF)}</a>
                 ${roleIcon(ffl.roleAB)}
                 <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.intermediateTF)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(ffl.intermediateTFName !== ffl.intermediateTF ? ffl.intermediateTFName : ffl.intermediateTF)}</a>
