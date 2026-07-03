@@ -12408,11 +12408,16 @@ function renderHubTFTable(report) {
         const rawStr = rawVal > 0 ? rawVal.toExponential(1) : '0';
         const bcCell = `<span title="Absolute: ${rawVal.toExponential(4)}">${bcPercent} <span style="font-size:9px;color:var(--text-muted);">(${rawStr})</span></span>`;
 
+        const tfLocusLower = tf.locus.toLowerCase();
+        const cglLocus = cgToCgl[tfLocusLower] || tf.locus;
+        const hasName = tf.name && tf.name.toLowerCase() !== tfLocusLower;
+        const displayText = hasName ? `${tf.name} (${cglLocus})` : cglLocus;
+
         const bar = `<div style="background:#e2e8f0;border-radius:3px;height:6px;width:80px;overflow:hidden;display:inline-block;">
             <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:100%;width:${pct}%;"></div></div>`;
         return `<tr style="border-bottom:1px solid var(--border-color);cursor:pointer;" onmouseover="this.style.background='rgba(99,102,241,0.04)'" onmouseout="this.style.background=''">
             <td style="padding:7px 10px;color:var(--text-muted);">${i+1}</td>
-            <td style="padding:7px 10px;"><a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(tf.name !== tf.locus ? tf.name + ' (' + tf.locus + ')' : tf.locus)}</a></td>
+            <td style="padding:7px 10px;"><a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(displayText)}</a></td>
             <td style="padding:7px 10px;text-align:center;font-weight:700;">${tf.outDegree}</td>
             <td style="padding:7px 10px;text-align:center;">${tf.inDegree}</td>
             <td style="padding:7px 10px;text-align:center;color:#16a34a;">${tf.activationCount}</td>
