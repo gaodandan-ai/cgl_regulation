@@ -693,7 +693,8 @@ def homolog_alignment(gene_name: str = "", accession: str = ""):
 def list_organisms():
     try:
         organisms = []
-        folder = os.path.join(os.getcwd(), 'data', 'reference', 'AllOrganismsFiles')
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        folder = os.path.join(root_dir, 'data', 'reference', 'AllOrganismsFiles')
         if os.path.exists(folder):
             for filename in os.listdir(folder):
                 if filename.endswith('_regulations.csv'):

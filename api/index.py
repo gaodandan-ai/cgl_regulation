@@ -1,9 +1,16 @@
 import os
 import sys
+
+# Set writable directories for Vercel / AWS Lambda serverless environments
+if os.environ.get("VERCEL") == "1" or "AWS_LAMBDA_FUNCTION_NAME" in os.environ:
+    os.environ["HOME"] = "/tmp"
+    os.environ["XDG_CACHE_HOME"] = "/tmp/.cache"
+
 import math
 import traceback
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
 
 if not hasattr(math, 'comb'):
     def math_comb(n, k):
