@@ -12411,7 +12411,11 @@ function renderHubTFTable(report) {
         const tfLocusLower = tf.locus.toLowerCase();
         const cglLocus = cgToCgl[tfLocusLower] || tf.locus;
         const hasName = tf.name && tf.name.toLowerCase() !== tfLocusLower;
-        const displayText = hasName ? `${tf.name} (${cglLocus})` : cglLocus;
+        let formattedName = tf.name;
+        if (hasName && formattedName) {
+            formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1);
+        }
+        const displayText = hasName ? `${formattedName} (${cglLocus})` : cglLocus;
 
         const bar = `<div style="background:#e2e8f0;border-radius:3px;height:6px;width:80px;overflow:hidden;display:inline-block;">
             <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:100%;width:${pct}%;"></div></div>`;
