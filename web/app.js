@@ -12090,17 +12090,8 @@ function updateIModulonTabContent() {
             
             const locusLower = locus.toLowerCase();
             const cglLocus = cgToCgl[locusLower] || locus;
-            
-            const hasGeneName = window.GENE_NAMES && window.GENE_NAMES[locus] && window.GENE_NAMES[locus].toLowerCase() !== locusLower;
-            
-            let nameDisplay = cglLocus;
-            if (hasGeneName) {
-                let nameRaw = window.GENE_NAMES[locus];
-                if (nameRaw) {
-                    nameRaw = nameRaw.charAt(0).toUpperCase() + nameRaw.slice(1);
-                }
-                nameDisplay = `${nameRaw} (${cglLocus})`;
-            }
+            const geneName = window.GENE_NAMES ? (window.GENE_NAMES[locus] || locus) : locus;
+            const nameDisplay = formatGeneName(locus, geneName);
             
             tr.innerHTML = `
                 <td style="padding:6px;"><span style="font-weight:700; color:#4f46e5; cursor:pointer;" onclick="searchAndExploreGene('${locus}')"><i class="fa-solid fa-magnifying-glass"></i> ${cglLocus}</span></td>
@@ -12425,20 +12416,13 @@ function renderHubTFTable(report) {
         const rawStr = rawVal > 0 ? rawVal.toExponential(1) : '0';
         const bcCell = `<span title="Absolute: ${rawVal.toExponential(4)}">${bcPercent} <span style="font-size:9px;color:var(--text-muted);">(${rawStr})</span></span>`;
 
-        const tfLocusLower = tf.locus.toLowerCase();
-        const cglLocus = cgToCgl[tfLocusLower] || tf.locus;
-        const hasName = tf.name && tf.name.toLowerCase() !== tfLocusLower;
-        let formattedName = tf.name;
-        if (hasName && formattedName) {
-            formattedName = formattedName.charAt(0).toUpperCase() + formattedName.slice(1);
-        }
-        const displayText = hasName ? `${formattedName} (${cglLocus})` : cglLocus;
+        const displayText = formatTFProtein(tf.locus, tf.name);
 
         const bar = `<div style="background:#e2e8f0;border-radius:3px;height:6px;width:80px;overflow:hidden;display:inline-block;">
             <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:100%;width:${pct}%;"></div></div>`;
         return `<tr style="border-bottom:1px solid var(--border-color);cursor:pointer;" onmouseover="this.style.background='rgba(99,102,241,0.04)'" onmouseout="this.style.background=''">
             <td style="padding:7px 10px;color:var(--text-muted);">${i+1}</td>
-            <td style="padding:7px 10px;"><a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(displayText)}</a></td>
+            <td style="padding:7px 10px;"><a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${displayText}</a></td>
             <td style="padding:7px 10px;text-align:center;font-weight:700;">${tf.outDegree}</td>
             <td style="padding:7px 10px;text-align:center;">${tf.inDegree}</td>
             <td style="padding:7px 10px;text-align:center;color:#16a34a;">${tf.activationCount}</td>
@@ -12513,12 +12497,12 @@ function renderFFL(report) {
 
             return `<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;font-size:12px;border-top:1px solid var(--border-color);">
                 <span style="flex:0 0 auto;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;${typeStyle}">${friendlySubtype}</span>
-                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.masterTF)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(ffl.masterTFName !== ffl.masterTF ? ffl.masterTFName : ffl.masterTF)}</a>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.masterTF)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${formatTFProtein(ffl.masterTF, ffl.masterTFName)}</a>
                 ${roleIcon(ffl.roleAB)}
-                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.intermediateTF)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(ffl.intermediateTFName !== ffl.intermediateTF ? ffl.intermediateTFName : ffl.intermediateTF)}</a>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.intermediateTF)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${formatTFProtein(ffl.intermediateTF, ffl.intermediateTFName)}</a>
                 ${roleIcon(ffl.roleBC)}
-                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.target)}" style="color:var(--text-primary);text-decoration:none;">${escapeHtml(ffl.targetName !== ffl.target ? ffl.targetName + ' (' + ffl.target + ')' : ffl.target)}</a>
-                <span style="color:var(--text-muted);font-size:10px;margin-left:auto;">[also ${escapeHtml(ffl.masterTFName!==ffl.masterTF?ffl.masterTFName:ffl.masterTF)} ${roleIcon(ffl.roleAC)} target]</span>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(ffl.target)}" style="color:var(--text-primary);text-decoration:none;">${formatGeneName(ffl.target, ffl.targetName)}</a>
+                <span style="color:var(--text-muted);font-size:10px;margin-left:auto;">[also ${formatTFProtein(ffl.masterTF, ffl.masterTFName)} ${roleIcon(ffl.roleAC)} target]</span>
             </div>`;
         }).join('');
         const more = filtered.length > 30 ? `<div style="padding:5px 12px;font-size:11px;color:var(--text-muted);">… and ${filtered.length - 30} more</div>` : '';
@@ -12526,7 +12510,7 @@ function renderFFL(report) {
         return `<details style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;flex-shrink:0;">
             <summary style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;list-style:none;display:flex;align-items:center;gap:4px;">
                 <i class="fa-solid fa-chevron-right" style="font-size:10px;transition:transform 0.2s;"></i>
-                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(group.locus)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(group.name !== group.locus ? group.name + ' (' + group.locus + ')' : group.locus)}</a>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(group.locus)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;">${formatTFProtein(group.locus, group.name)}</a>
                 ${countBadge}${cBadge}${iBadge}
                 <span style="margin-left:auto;color:var(--text-secondary);font-size:11px;">out-degree: ${group.outDegree}</span>
             </summary>
@@ -12565,7 +12549,7 @@ function renderAutoregulation(report) {
             : '<span style="color:var(--text-muted);">Unknown</span>';
         const evBadge = ar.evidence ? `<span style="font-size:10px;color:var(--text-secondary);">${escapeHtml(ar.evidence)}</span>` : '';
         return `<tr style="border-bottom:1px solid var(--border-color);">
-            <td style="padding:7px 10px;"><a href="#" class="topo-gene-link" data-locus="${escapeHtml(ar.locus)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(ar.name !== ar.locus ? ar.name + ' (' + ar.locus + ')' : ar.locus)}</a></td>
+            <td style="padding:7px 10px;"><a href="#" class="topo-gene-link" data-locus="${escapeHtml(ar.locus)}" style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;">${formatTFProtein(ar.locus, ar.name)}</a></td>
             <td style="padding:7px 10px;text-align:center;">${roleLabel}</td>
             <td style="padding:7px 10px;text-align:center;">${evBadge}</td>
             <td style="padding:7px 10px;text-align:center;">${ar.outDegree}</td>
@@ -12593,12 +12577,12 @@ function renderMutualRegulation(report) {
         const colorBA = mr.roleBA === 'A' ? '#16a34a' : mr.roleBA === 'R' ? '#dc2626' : '#64748b';
         return `<div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:10px;padding:16px 20px;min-width:260px;max-width:340px;">
             <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:10px;">
-                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(mr.nodeA)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:13px;">${escapeHtml(mr.nameA)}</a>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(mr.nodeA)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:13px;">${formatTFProtein(mr.nodeA, mr.nameA)}</a>
                 <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
                     <span style="color:${colorAB};font-weight:700;font-size:12px;">${roleAB}</span>
                     <span style="color:${colorBA};font-weight:700;font-size:12px;transform:scaleX(-1);display:inline-block;">${roleBA}</span>
                 </div>
-                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(mr.nodeB)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:13px;">${escapeHtml(mr.nameB)}</a>
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(mr.nodeB)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:13px;">${formatTFProtein(mr.nodeB, mr.nameB)}</a>
             </div>
             <div style="font-size:10.5px;color:var(--text-secondary);text-align:center;">
                 ${escapeHtml(mr.nodeA)} ${roleAB} ${escapeHtml(mr.nodeB)} &nbsp;|&nbsp; ${escapeHtml(mr.nodeB)} ${roleBA} ${escapeHtml(mr.nodeA)}<br>
@@ -12630,13 +12614,12 @@ function renderMultiInput(report) {
             return `<a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}"
                 style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;
                        background:${roleColor}18;border:1px solid ${roleColor}44;color:${roleColor};text-decoration:none;cursor:pointer;">
-                <span style="font-size:9px;">${roleIcon}</span>${escapeHtml(tf.name !== tf.locus ? tf.name : tf.locus)}
+                <span style="font-size:9px;">${roleIcon}</span>${formatTFProtein(tf.locus, tf.name)}
             </a>`;
         }).join('');
         return `<div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:8px;padding:10px 14px;display:flex;align-items:flex-start;gap:12px;">
             <div style="flex:0 0 160px;">
-                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(m.gene)}" style="font-weight:700;color:var(--text-primary);text-decoration:none;font-size:13px;">${escapeHtml(m.geneName !== m.gene ? m.geneName : m.gene)}</a>
-                ${m.geneName !== m.gene ? `<div style="font-size:10px;color:var(--text-muted);">${escapeHtml(m.gene)}</div>` : ''}
+                <a href="#" class="topo-gene-link" data-locus="${escapeHtml(m.gene)}" style="font-weight:700;color:var(--text-primary);text-decoration:none;font-size:13px;">${formatGeneName(m.gene, m.geneName)}</a>
                 <div style="margin-top:3px;"><span style="background:#6366f115;color:#6366f1;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:700;">${m.tfCount} TF inputs</span></div>
             </div>
             <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;">${tfBadges}</div>
@@ -12660,13 +12643,13 @@ function renderBiFan(report) {
     container.innerHTML = report.biFans.map((bf, i) => {
         const targetsHtml = bf.sharedTargets.map(t =>
             `<a href="#" class="topo-gene-link" data-locus="${escapeHtml(t.locus)}"
-             style="padding:1px 8px;background:var(--surface-secondary);border:1px solid var(--border-color);border-radius:6px;font-size:11px;color:var(--text-primary);text-decoration:none;">${escapeHtml(t.name !== t.locus ? t.name : t.locus)}</a>`
+             style="padding:1px 8px;background:var(--surface-secondary);border:1px solid var(--border-color);border-radius:6px;font-size:11px;color:var(--text-primary);text-decoration:none;">${formatGeneName(t.locus, t.name)}</a>`
         ).join('');
         return `<div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px;">
             <span style="color:var(--text-muted);font-size:11px;flex:0 0 24px;">#${i+1}</span>
-            <a href="#" class="topo-gene-link" data-locus="${escapeHtml(bf.tfA)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:12px;">${escapeHtml(bf.nameA !== bf.tfA ? bf.nameA : bf.tfA)}</a>
+            <a href="#" class="topo-gene-link" data-locus="${escapeHtml(bf.tfA)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:12px;">${formatTFProtein(bf.tfA, bf.nameA)}</a>
             <span style="color:var(--text-muted);font-size:11px;">&amp;</span>
-            <a href="#" class="topo-gene-link" data-locus="${escapeHtml(bf.tfB)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:12px;">${escapeHtml(bf.nameB !== bf.tfB ? bf.nameB : bf.tfB)}</a>
+            <a href="#" class="topo-gene-link" data-locus="${escapeHtml(bf.tfB)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;font-size:12px;">${formatTFProtein(bf.tfB, bf.nameB)}</a>
             <span style="background:#6366f115;color:#6366f1;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:700;flex:0 0 auto;">${bf.sharedCount} shared targets</span>
             <div style="flex:1;display:flex;flex-wrap:wrap;gap:4px;">${targetsHtml}${bf.sharedCount > 5 ? `<span style="font-size:10px;color:var(--text-muted);padding-top:3px;">+${bf.sharedCount - 5} more</span>` : ''}</div>
         </div>`;
@@ -12680,4 +12663,26 @@ function renderBiFan(report) {
             setTimeout(() => queryGene(a.getAttribute('data-locus')), 100);
         });
     });
+}
+
+function formatTFProtein(locus, name) {
+    const locusLower = locus.toLowerCase();
+    const cgl = cgToCgl[locusLower] || locus;
+    const hasName = name && name.toLowerCase() !== locusLower;
+    if (hasName) {
+        const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+        return `${escapeHtml(capitalized)} (${escapeHtml(cgl)})`;
+    }
+    return escapeHtml(cgl);
+}
+
+function formatGeneName(locus, name) {
+    const locusLower = locus.toLowerCase();
+    const cgl = cgToCgl[locusLower] || locus;
+    const hasName = name && name.toLowerCase() !== locusLower;
+    if (hasName) {
+        const lowercased = name.toLowerCase();
+        return `<span style="font-style: italic;">${escapeHtml(lowercased)}</span> (${escapeHtml(cgl)})`;
+    }
+    return escapeHtml(cgl);
 }
