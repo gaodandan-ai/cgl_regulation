@@ -12088,11 +12088,23 @@ function updateIModulonTabContent() {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid var(--border-color)';
             
-            const geneName = window.GENE_NAMES ? (window.GENE_NAMES[locus] || locus) : locus;
+            const locusLower = locus.toLowerCase();
+            const cglLocus = cgToCgl[locusLower] || locus;
+            
+            const hasGeneName = window.GENE_NAMES && window.GENE_NAMES[locus] && window.GENE_NAMES[locus].toLowerCase() !== locusLower;
+            
+            let nameDisplay = cglLocus;
+            if (hasGeneName) {
+                let nameRaw = window.GENE_NAMES[locus];
+                if (nameRaw) {
+                    nameRaw = nameRaw.charAt(0).toUpperCase() + nameRaw.slice(1);
+                }
+                nameDisplay = `${nameRaw} (${cglLocus})`;
+            }
             
             tr.innerHTML = `
-                <td style="padding:6px;"><span style="font-weight:700; color:#4f46e5; cursor:pointer;" onclick="searchAndExploreGene('${locus}')"><i class="fa-solid fa-magnifying-glass"></i> ${locus}</span></td>
-                <td style="padding:6px; font-weight:600;">${geneName}</td>
+                <td style="padding:6px;"><span style="font-weight:700; color:#4f46e5; cursor:pointer;" onclick="searchAndExploreGene('${locus}')"><i class="fa-solid fa-magnifying-glass"></i> ${cglLocus}</span></td>
+                <td style="padding:6px; font-weight:600;">${nameDisplay}</td>
                 <td style="padding:6px; text-align:right; font-family:monospace; color:${val >= 0 ? '#10b981' : '#ef4444'}; font-weight:700;">${val.toFixed(4)}</td>
                 <td style="padding:6px; color:#64748b; font-size:10px;">Catalyzes metabolic functions in Corynebacterium glutamicum.</td>
             `;
