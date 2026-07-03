@@ -77,7 +77,7 @@ def debug_endpoint():
 async def catch_all(request: Request, path: str):
     try:
         from backend.app import app as real_app
-        return await real_app(request.scope, request.receive, request.send)
+        return await real_app(request.scope, request._receive, request._send)
     except Exception as e:
         tb = traceback.format_exc()
         return JSONResponse(
