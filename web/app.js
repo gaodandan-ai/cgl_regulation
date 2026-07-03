@@ -12389,12 +12389,25 @@ function renderHubTFTable(report) {
     if (!tbody) return;
     const maxOut = report.hubTFs.length > 0 ? report.hubTFs[0].outDegree : 1;
     const bc = report.betweenness || {};
+    
+    // Find the maximum betweenness centrality value
+    let maxBc = 0;
+    Object.values(bc).forEach(val => {
+        if (val > maxBc) maxBc = val;
+    });
+
     tbody.innerHTML = report.hubTFs.slice(0, 50).map((tf, i) => {
         const pct = maxOut > 0 ? Math.round(tf.outDegree / maxOut * 100) : 0;
         const autoCell = tf.isAutoRegulated
             ? `<span style="color:${tf.autoRole==='A'?'#16a34a':'#dc2626'};font-weight:700;">${tf.autoRole==='A'?'+ Positive':'- Negative'}</span>`
             : '<span style="color:var(--text-muted);">–</span>';
-        const bcVal = bc[tf.locus] != null ? bc[tf.locus].toFixed(4) : '–';
+        
+        const rawVal = bc[tf.locus] || 0;
+        const relativeBc = maxBc > 0 ? rawVal / maxBc : 0;
+        const bcPercent = (relativeBc * 100).toFixed(1) + '%';
+        const rawStr = rawVal > 0 ? rawVal.toExponential(1) : '0';
+        const bcCell = `<span title="Absolute: ${rawVal.toExponential(4)}">${bcPercent} <span style="font-size:9px;color:var(--text-muted);">(${rawStr})</span></span>`;
+
         const bar = `<div style="background:#e2e8f0;border-radius:3px;height:6px;width:80px;overflow:hidden;display:inline-block;">
             <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:100%;width:${pct}%;"></div></div>`;
         return `<tr style="border-bottom:1px solid var(--border-color);cursor:pointer;" onmouseover="this.style.background='rgba(99,102,241,0.04)'" onmouseout="this.style.background=''">
@@ -12405,7 +12418,7 @@ function renderHubTFTable(report) {
             <td style="padding:7px 10px;text-align:center;color:#16a34a;">${tf.activationCount}</td>
             <td style="padding:7px 10px;text-align:center;color:#dc2626;">${tf.repressionCount}</td>
             <td style="padding:7px 10px;text-align:center;">${autoCell}</td>
-            <td style="padding:7px 10px;text-align:center;font-family:monospace;font-size:11px;">${bcVal}</td>
+            <td style="padding:7px 10px;text-align:center;font-family:monospace;font-size:11px;">${bcCell}</td>
             <td style="padding:7px 10px;text-align:center;">${bar}</td>
         </tr>`;
     }).join('');
