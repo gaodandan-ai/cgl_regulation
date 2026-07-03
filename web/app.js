@@ -2510,7 +2510,7 @@ function queryGene(locus) {
     }
 
     // 3. Set the first input value to the clicked locus
-    const firstInput = document.querySelector('.gene-input');
+    const firstInput = document.querySelector('#gene-inputs-container .gene-input');
     if (firstInput) {
         firstInput.value = locus;
     }
