@@ -1603,7 +1603,13 @@ function renderEngineeringTargetCandidates() {
     if (minScoreValue) minScoreValue.textContent = minScore.toFixed(2);
 
     const filtered = engineeringTargetCandidates
-        .filter(candidate => !search || `${candidate.tfId} ${candidate.tfLabel}`.toLowerCase().includes(search))
+        .filter(candidate => {
+            if (!search) return true;
+            const locusLower = candidate.tfId.toLowerCase();
+            const cgl = (cgToCgl[locusLower] || '').toLowerCase();
+            const label = (candidate.tfLabel || '').toLowerCase();
+            return locusLower.includes(search) || label.includes(search) || cgl.includes(search);
+        })
         .filter(candidate => !pathwayFilter || (candidate.keyPathways || []).some(pathway => String(pathway).toLowerCase().includes(pathwayFilter)))
         .filter(candidate => !level || candidate.recommendationLevel === level)
         .filter(candidate => Number(candidate.candidateScore || 0) >= minScore);
@@ -1626,10 +1632,11 @@ function renderEngineeringTargetCandidates() {
     tbody.innerHTML = filtered.map((candidate, index) => {
         const profile = candidate.regulationProfile || {};
         const regulationText = `${profile.activationCount || 0} activation / ${profile.repressionCount || 0} repression`;
+        const tfDisplay = formatTFProtein(candidate.tfId, candidate.tfLabel);
         return `
-            <tr class="engineering-target-row" data-tf-id="${escapeHtml(candidate.tfId)}" data-genes="${encodeMetabolicList(candidate.regulatedKeyGenes || [])}" title="${escapeHtml(candidate.rationale || '')}">
+            <tr class="engineering-target-row" data-tf-id="${escapeHtml(candidate.tfId)}" data-genes="${encodeMetabolicList(candidate.regulatedKeyGenes || [])}" title="${escapeHtml(candidate.rationale || '')}" style="cursor:pointer;">
                 <td>${index + 1}</td>
-                <td><strong>${escapeHtml(candidate.tfLabel || candidate.tfId)}</strong><div class="metabolic-muted">${escapeHtml(candidate.tfId)}</div></td>
+                <td><strong>${tfDisplay}</strong></td>
                 <td><span class="engineering-target-score">${escapeHtml(Number(candidate.candidateScore || 0).toFixed(2))}</span></td>
                 <td><span class="engineering-target-level ${escapeHtml(candidate.recommendationLevel || 'low')}">${escapeHtml(candidate.recommendationLevel || 'low')}</span></td>
                 <td>${escapeHtml(candidate.mappedTargetGenes || 0)}</td>
@@ -1646,9 +1653,12 @@ function renderEngineeringTargetCandidates() {
             const tfId = row.getAttribute('data-tf-id');
             const genes = decodeMetabolicList(row.getAttribute('data-genes'));
             if (!tfId) return;
-            querySingleGene(tfId);
-            showNodeDetails(tfId);
-            highlightPathwayRegulator(tfId, genes);
+            setActiveWorkflowEntry('gene');
+            setTimeout(() => {
+                querySingleGene(tfId);
+                showNodeDetails(tfId);
+                highlightPathwayRegulator(tfId, genes);
+            }, 100);
         });
     });
 }
