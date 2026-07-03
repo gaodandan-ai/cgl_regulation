@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "env": {
+    "LD_LIBRARY_PATH": "/var/task/backend/lib"
+  },
   "builds": [
     {
       "src": "api/index.py",
@@ -18,7 +21,8 @@
           "data/reference/imodulon/*.json",
           "data/reference/rna_seq_analysis_results.json",
           "data/reference/metabolic_models/**",
-          "backend/models/**"
+          "backend/models/**",
+          "backend/lib/libexpat.so.1"
         ]
       }
     },
