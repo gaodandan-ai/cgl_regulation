@@ -37,9 +37,11 @@ app = FastAPI()
 
 @app.get("/api/debug")
 def debug_endpoint():
+    import platform
     info = {
         "sys.path": sys.path,
         "os.getcwd": os.getcwd(),
+        "glibc_version": platform.libc_ver(),
         "environ": {k: v for k, v in os.environ.items() if "KEY" not in k and "PASSWORD" not in k and "SECRET" not in k},
     }
     
