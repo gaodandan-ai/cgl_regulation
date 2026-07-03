@@ -2485,6 +2485,40 @@ function triggerSearchFromInputs() {
 
 }
 
+function queryGene(locus) {
+    if (!locus) return;
+
+    // 1. Switch tab to Single mode if tab elements exist
+    const tabSingleBtn = document.getElementById('tab-single-btn');
+    const tabBatchBtn = document.getElementById('tab-batch-btn');
+    const tabSingleContent = document.getElementById('search-tab-single-content');
+    const tabBatchContent = document.getElementById('search-tab-batch-content');
+    if (tabSingleBtn && tabBatchBtn) {
+        tabSingleBtn.classList.add('active');
+        tabBatchBtn.classList.remove('active');
+        if (tabSingleContent) tabSingleContent.classList.remove('hidden');
+        if (tabBatchContent) tabBatchContent.classList.add('hidden');
+    }
+
+    // 2. Clear all input rows in single mode except the first one
+    const inputsContainer = document.getElementById('gene-inputs-container');
+    if (inputsContainer) {
+        const rows = inputsContainer.querySelectorAll('.gene-input-row');
+        for (let i = 1; i < rows.length; i++) {
+            rows[i].remove();
+        }
+    }
+
+    // 3. Set the first input value to the clicked locus
+    const firstInput = document.querySelector('.gene-input');
+    if (firstInput) {
+        firstInput.value = locus;
+    }
+
+    // 4. Trigger search
+    triggerSearchFromInputs();
+}
+
 
 
 function renderNetwork(locusTag) {
