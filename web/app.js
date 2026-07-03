@@ -12484,7 +12484,7 @@ function renderFFL(report) {
         }).join('');
         const more = filtered.length > 30 ? `<div style="padding:5px 12px;font-size:11px;color:var(--text-muted);">… and ${filtered.length - 30} more</div>` : '';
 
-        return `<details style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;">
+        return `<details style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;flex-shrink:0;">
             <summary style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;list-style:none;display:flex;align-items:center;gap:4px;">
                 <i class="fa-solid fa-chevron-right" style="font-size:10px;transition:transform 0.2s;"></i>
                 <a href="#" class="topo-gene-link" data-locus="${escapeHtml(group.locus)}" style="font-weight:700;color:var(--color-primary-accent);text-decoration:none;">${escapeHtml(group.name !== group.locus ? group.name + ' (' + group.locus + ')' : group.locus)}</a>
