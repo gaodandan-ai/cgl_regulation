@@ -194,7 +194,8 @@ GENE_LOCUS_PARAMS = {
     # Ea: quinone-coupled proton pumping; bacterial 48-60 kJ/mol; Tm ~41.5C
     "Cgl0360": {"E_a": 53000.0, "H_d": 242000.0, "S_d": 770.0,
                 "confidence": "LOW", "source": "NADH-DH Complex I nuo EC1.6.5.3; 48-60kJ/mol; Tm~41.5C"},
-    # Cytochrome bc1 (qcrABC; Cgl0829-0831)
+    # Cytochrome bc1 (qcrB/qcrA/qcrC; Cgl2189-Cgl2191).
+    # Note: Cgl0829 is gltA/citrate synthase, not qcr.
     "Cgl0829": {"E_a": 55000.0, "H_d": 254520.0, "S_d": 800.0,
                 "hill_n": 2.0,
                 "confidence": "HIGH", "source": "CS gltA EC2.3.3.16; Niebisch2001; Tm_eff=45.0C"},
@@ -248,11 +249,13 @@ GENE_LOCUS_PARAMS = {
     "Cgl1180": {"E_a": 50000.0, "H_d": 225000.0, "S_d": 717.0,
                 "confidence": "LOW", "source": "LysE; lysine exporter; membrane transporter class"},
     # ------- Glutamate / Amino Acid Family (additional) -------
-    # GOGAT (Cgl0672 gltB large subunit) - glutamate synthase (NADPH-dep)
+    # GOGAT (Cgl0184 gltB / Cgl0185 gltD) - glutamate synthase (NADPH-dep)
     # Ea: large Fe-S flavoprotein; bacterial GOGAT 55-65 kJ/mol (BRENDA EC 1.4.1.13)
     # Tm: ~40.5C - multiple cofactors (FAD, FMN, Fe-S) reduce thermal stability
-    "Cgl0672": {"E_a": 60000.0, "H_d": 238000.0, "S_d": 762.0,
+    "Cgl0184": {"E_a": 60000.0, "H_d": 238000.0, "S_d": 762.0,
                 "confidence": "MED", "source": "GOGAT gltB EC1.4.1.13; Fe-S flav; 55-65kJ/mol; Tm~40.5C"},
+    "Cgl0185": {"E_a": 60000.0, "H_d": 238000.0, "S_d": 762.0,
+                "confidence": "MED", "source": "GOGAT gltD EC1.4.1.13; Fe-S flav; same complex as gltB"},
     # ArgB (Cgl0847) - N-acetylglutamate kinase (Arg biosynthesis committed step)
     "Cgl0847": {"E_a": 58000.0, "H_d": 245000.0, "S_d": 785.0,
                 "confidence": "LOW", "source": "ArgB EC2.7.2.8; N-AcGlu kinase; Arg pathway"},
@@ -278,11 +281,14 @@ GENE_LOCUS_PARAMS = {
                 "hill_n": 2.5,
                 "confidence": "HIGH",
                 "source": "GDH EC1.4.1.4 gdh; Takeno2010 AEM; Tm_eff=41.0C (calibrated); hill_n=2.5 (hexameric)"},
-    # GS (Cgl2482 glnA) - glutamine synthetase
+    # GS (Cgl2214 glnA / Cgl2229 glnA2) - glutamine synthetase
     # Very stable dodecameric structure; Tm ~49.6C
-    "Cgl2482": {"E_a": 55000.0, "H_d": 265000.0, "S_d": 821.0,
+    "Cgl2214": {"E_a": 55000.0, "H_d": 265000.0, "S_d": 821.0,
                 "confidence": "MED",
                 "source": "GS EC6.3.1.2 glnA; dodecameric; thermostable; 50-60kJ/mol"},
+    "Cgl2229": {"E_a": 55000.0, "H_d": 265000.0, "S_d": 821.0,
+                "confidence": "MED",
+                "source": "GS EC6.3.1.2 glnA2; dodecameric; same class as glnA"},
 }
 
 # Reaction-ID-based fallback (when gene locus lookup misses)
@@ -354,9 +360,11 @@ DEFAULT_PARAMS = {
 HILL_N_OVERRIDES = {
     "Cgl0251": 4.0,   # LysC tetramer - unified to 4.0 (standard α2β2)
     "Cgl2079": 2.5,   # GDH hexamer
-    "Cgl2482": 3.0,   # GS dodecamer
+    "Cgl2214": 3.0,   # GS/glnA dodecamer
+    "Cgl2229": 3.0,   # GS/glnA2 dodecamer
     "Cgl1400": 2.0,   # GOGAT large oligomer
-    "Cgl0672": 2.0,   # GOGAT (alternative locus)
+    "Cgl0184": 2.0,   # GOGAT/gltB large subunit
+    "Cgl0185": 2.0,   # GOGAT/gltD small subunit
     "Cgl0829": 2.0,   # CS gltA dimer
     "Cgl0696": 2.0,   # CS gltA dimer
     "Cgl1250": 4.0,   # pfkA tetramer

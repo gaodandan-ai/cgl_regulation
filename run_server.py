@@ -2213,10 +2213,6 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             relative_path = path_str[6:] # strip '/data/'
             return get_absolute_path(os.path.join('data', 'reference', relative_path))
             
-        # Route requests starting with /outputs/ to local analysis/outputs/ folder
-        if path_str.startswith('/outputs/'):
-            relative_path = path_str[9:] # strip '/outputs/'
-            return get_absolute_path(os.path.join('analysis', 'outputs', relative_path))
             
         # Route other requests to local web/ folder
         relative_path = path_str.lstrip('/')
