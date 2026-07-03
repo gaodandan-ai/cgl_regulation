@@ -12200,12 +12200,17 @@ function searchAndExploreGene(geneId) {
 }
 
 function viewPathwayMap(pathwayId) {
+    if (!pathwayId) return;
     setActiveWorkflowEntry('pathway');
-    const input = document.getElementById('pathway-search-input');
+    const input = document.getElementById('pathway-view-input');
     if (input) {
         input.value = pathwayId;
-        const searchBtn = document.getElementById('btn-search-pathways');
-        if (searchBtn) searchBtn.click();
+        const searchBtn = document.getElementById('pathway-view-run-btn');
+        if (searchBtn) {
+            searchBtn.click();
+        } else if (typeof runPathwayRegulatoryView === 'function') {
+            runPathwayRegulatoryView();
+        }
     }
 }
 
