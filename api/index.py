@@ -42,6 +42,19 @@ def debug_endpoint():
         "os.getcwd": os.getcwd(),
         "environ": {k: v for k, v in os.environ.items() if "KEY" not in k and "PASSWORD" not in k and "SECRET" not in k},
     }
+    
+    # Search for libexpat in system library directories
+    expat_files = []
+    for lib_dir in ["/lib64", "/usr/lib64", "/lib", "/usr/lib"]:
+        if os.path.exists(lib_dir):
+            try:
+                for f in os.listdir(lib_dir):
+                    if "libexpat" in f:
+                        expat_files.append(os.path.join(lib_dir, f))
+            except Exception as e:
+                expat_files.append(f"error reading {lib_dir}: {e}")
+    info["libexpat_files"] = expat_files
+
     try:
         import cobra
         info["cobra_import"] = "SUCCESS"
