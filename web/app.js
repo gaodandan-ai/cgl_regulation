@@ -12211,6 +12211,11 @@ function initTopologyDashboard() {
         multiFilter._topoWired = true;
         multiFilter.addEventListener('change', () => { if (_topoReport) renderMultiInput(_topoReport); });
     }
+
+    // Automatically trigger analysis if not already computed
+    if (!_topoReport) {
+        runTopologyAnalysis();
+    }
 }
 
 function runTopologyAnalysis() {
