@@ -38,10 +38,23 @@ app = FastAPI()
 @app.get("/api/debug")
 def debug_endpoint():
     import platform
+    
+    # List workspace files on Vercel
+    workspace_dirs = {}
+    for d in ["/var/task", "/var/task/data/reference", "/var/task/data/reference/model", "/var/task/data/reference/metabolic_models"]:
+        if os.path.exists(d):
+            try:
+                workspace_dirs[d] = os.listdir(d)
+            except Exception as e:
+                workspace_dirs[d] = f"error: {e}"
+        else:
+            workspace_dirs[d] = "NOT_EXISTS"
+
     info = {
         "sys.path": sys.path,
         "os.getcwd": os.getcwd(),
         "glibc_version": platform.libc_ver(),
+        "workspace_dirs": workspace_dirs,
         "environ": {k: v for k, v in os.environ.items() if "KEY" not in k and "PASSWORD" not in k and "SECRET" not in k},
     }
     
