@@ -5,6 +5,22 @@ import logging
 import sys
 import os
 import json
+import math
+
+if not hasattr(math, 'comb'):
+    def math_comb(n, k):
+        if k < 0 or k > n:
+            return 0
+        if k == 0 or k == n:
+            return 1
+        k = min(k, n - k)
+        numerator = 1
+        denominator = 1
+        for i in range(1, k + 1):
+            numerator *= n - i + 1
+            denominator *= i
+        return numerator // denominator
+    math.comb = math_comb
 
 # Add backend directory and parent directory to sys.path
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))

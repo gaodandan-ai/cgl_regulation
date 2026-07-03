@@ -2594,7 +2594,11 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         print(f"[MOTIF] Fetching promoter sequences for targets of {tf_name}: {test_loci}")
         
         # 3. Fetch promoter sequences in parallel
-        promoters = self.fetch_promoters_parallel(test_loci)
+        if os.environ.get('VERCEL'):
+            print("[MOTIF] Running on Vercel. Bypassing NCBI fetch to avoid timeout.")
+            promoters = {}
+        else:
+            promoters = self.fetch_promoters_parallel(test_loci)
         is_mocked = False
         if not promoters:
             print("[MOTIF] NCBI fetch returned empty. Simulating promoter sequences locally.")
