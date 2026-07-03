@@ -1222,46 +1222,45 @@ async function renderKeggPathwayMap(summary) {
                             selector: 'node[type="reaction"]',
                             style: {
                                 'shape': 'round-rectangle',
-                                'background-color': '#d1fae5',
+                                'background-color': '#10b981',
                                 'background-opacity': 1,
-                                'border-width': 1.8,
-                                'border-color': '#10b981',
+                                'border-width': 0,
                                 'label': 'data(label)',
-                                'width': 80,
-                                'height': 28,
-                                'color': '#065f46',
-                                'font-size': '9px',
+                                'width': 90,
+                                'height': 30,
+                                'color': '#ffffff',
+                                'font-size': '9.5px',
                                 'text-valign': 'center',
                                 'text-halign': 'center',
                                 'font-weight': '700',
                                 'text-wrap': 'ellipsis',
-                                'text-max-width': '74px',
+                                'text-max-width': '84px',
                                 'font-family': 'ui-monospace, monospace'
                             }
                         },
                         {
                             selector: 'node[type="reaction"]:selected',
                             style: {
-                                'border-color': '#059669',
-                                'border-width': 2.5,
-                                'background-color': '#a7f3d0',
-                                'color': '#064e3b'
+                                'background-color': '#059669',
+                                'border-width': 3.5,
+                                'border-color': '#a7f3d0',
+                                'color': '#ffffff'
                             }
                         },
                         {
                             selector: 'node[type="metabolite"]',
                             style: {
                                 'shape': 'ellipse',
-                                'background-color': '#e0f2fe',
-                                'border-width': 1.8,
-                                'border-color': '#0284c7',
+                                'background-color': '#ffffff',
+                                'border-width': 2,
+                                'border-color': '#6366f1',
                                 'label': 'data(label)',
-                                'width': 42,
-                                'height': 42,
-                                'color': '#0f172a',
-                                'font-size': '8.5px',
+                                'width': 14,
+                                'height': 14,
+                                'color': '#1e293b',
+                                'font-size': '8px',
                                 'text-valign': 'bottom',
-                                'text-margin-y': 5,
+                                'text-margin-y': 4,
                                 'text-halign': 'center',
                                 'font-weight': '600'
                             }
@@ -1269,44 +1268,43 @@ async function renderKeggPathwayMap(summary) {
                         {
                             selector: 'node[type="metabolite"][?isHub]',
                             style: {
-                                'background-color': '#bae6fd',
-                                'border-color': '#0284c7',
-                                'width': 48,
-                                'height': 48,
-                                'color': '#0f172a'
+                                'background-color': '#ffffff',
+                                'border-color': '#4f46e5',
+                                'border-width': 2.5,
+                                'width': 18,
+                                'height': 18
                             }
                         },
                         {
                             selector: 'node[type="metabolite"]:selected',
                             style: {
-                                'border-color': '#0369a1',
-                                'border-width': 2.5,
-                                'background-color': '#7dd3fc',
-                                'color': '#0f172a'
+                                'border-color': '#4f46e5',
+                                'border-width': 3.5,
+                                'background-color': '#e0e7ff'
                             }
                         },
                         {
                             selector: 'edge[type="reactant-edge"]',
                             style: {
-                                'width': 1.8,
-                                'line-color': '#6366f1',
-                                'target-arrow-color': '#6366f1',
+                                'width': 1.5,
+                                'line-color': '#cbd5e1',
+                                'target-arrow-color': '#cbd5e1',
                                 'target-arrow-shape': 'triangle',
                                 'curve-style': 'bezier',
-                                'arrow-scale': 0.9,
-                                'opacity': 0.8
+                                'arrow-scale': 0.8,
+                                'opacity': 0.7
                             }
                         },
                         {
                             selector: 'edge[type="product-edge"]',
                             style: {
-                                'width': 1.8,
-                                'line-color': '#f97316',
-                                'target-arrow-color': '#f97316',
+                                'width': 1.5,
+                                'line-color': '#94a3b8',
+                                'target-arrow-color': '#94a3b8',
                                 'target-arrow-shape': 'triangle',
                                 'curve-style': 'bezier',
-                                'arrow-scale': 0.9,
-                                'opacity': 0.8
+                                'arrow-scale': 0.8,
+                                'opacity': 0.9
                             }
                         },
                         {
@@ -1315,14 +1313,16 @@ async function renderKeggPathwayMap(summary) {
                         }
                     ],
                     layout: {
-                        name: 'breadthfirst',
+                        name: 'cose',
                         animate: true,
                         animationDuration: 400,
-                        directed: true,
-                        padding: 50,
-                        spacingFactor: 1.75,
-                        avoidOverlap: true,
-                        maximal: false
+                        fit: true,
+                        padding: 40,
+                        nodeOverlap: 20,
+                        componentSpacing: 60,
+                        nodeRepulsion: 400000,
+                        edgeElasticity: 100,
+                        idealEdgeLength: 50
                     },
                     minZoom: 0.3,
                     maxZoom: 4
