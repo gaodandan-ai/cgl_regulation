@@ -965,6 +965,7 @@
                             display: flex;
                             min-height: 0;
                             overflow: hidden;
+                            position: relative;
                         }
 
                         #pathway-kegg-cy-wrap {
@@ -981,7 +982,6 @@
                             background-color: #f8fafc;
                             background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
                             background-size: 20px 20px;
-                            border-right: 1px solid var(--border-color);
                         }
 
                         /* Floating zoom controls */
@@ -1038,14 +1038,28 @@
                         #pathway-kegg-stats span { color: var(--text-secondary); }
                         #pathway-kegg-stats strong { color: #10b981; }
 
-                        /* Right detail panel */
+                        /* Floating right detail panel */
                         #pathway-kegg-detail-panel {
-                            width: 280px;
-                            flex: 0 0 280px;
-                            background: var(--bg-sidebar);
+                            position: absolute;
+                            top: 16px;
+                            right: 16px;
+                            width: 300px;
+                            height: calc(100% - 32px);
+                            background: rgba(255, 255, 255, 0.95);
+                            border: 1px solid var(--border-color);
+                            border-radius: 12px;
+                            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+                            backdrop-filter: blur(8px);
                             display: flex;
                             flex-direction: column;
                             overflow: hidden;
+                            z-index: 20;
+                            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+                        }
+                        #pathway-kegg-detail-panel.hidden-panel {
+                            transform: translateX(340px);
+                            opacity: 0;
+                            pointer-events: none;
                         }
 
                         #pathway-kegg-detail-header {
@@ -1192,9 +1206,12 @@
 
                         <!-- Right detail panel -->
                         <div id="pathway-kegg-detail-panel">
-                            <div id="pathway-kegg-detail-header">
-                                <i class="fa-solid fa-circle-info"></i>
-                                Node Inspector
+                            <div id="pathway-kegg-detail-header" style="display:flex; justify-content:space-between; align-items:center; width:100%; box-sizing:border-box;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    <span>Node Inspector</span>
+                                </div>
+                                <button id="pk-close-detail-btn" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; padding:2px; display:flex; align-items:center; justify-content:center;" title="Hide panel"><i class="fa-solid fa-xmark"></i></button>
                             </div>
                             <div id="pathway-kegg-detail-content">
                                 <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:120px;gap:8px;opacity:0.5;">
@@ -3197,7 +3214,7 @@
     <script src="lib/simulationClient.js?v=1.0"></script>
     
     <script src="lib/networkTopology.js?v=1.0"></script>
-    <script src="app.js?v=4.0"></script>
+    <script src="app.js?v=4.1"></script>
 </body>
 
 </html>

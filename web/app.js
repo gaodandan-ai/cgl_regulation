@@ -1081,6 +1081,9 @@ function bindPathwayKeggZoomControls() {
     document.getElementById('pk-zoom-reset')?.addEventListener('click', () => {
         if (pathwayKeggCy) { pathwayKeggCy.reset(); pathwayKeggCy.fit(undefined, 40); }
     });
+    document.getElementById('pk-close-detail-btn')?.addEventListener('click', () => {
+        document.getElementById('pathway-kegg-detail-panel')?.classList.add('hidden-panel');
+    });
 }
 
 async function renderKeggPathwayMap(summary) {
@@ -1100,6 +1103,9 @@ async function renderKeggPathwayMap(summary) {
 
     if (loading) loading.classList.remove('hidden');
     if (statsEl) statsEl.classList.add('hidden');
+
+    // Ensure detail panel is visible when loading a new map
+    document.getElementById('pathway-kegg-detail-panel')?.classList.remove('hidden-panel');
 
     // Reset detail panel
     if (detailContent) {
@@ -1344,13 +1350,16 @@ async function renderKeggPathwayMap(summary) {
                     evt.target.connectedEdges().style({ 'opacity': 1, 'width': 2.5 });
                 });
                 pathwayKeggCy.on('mouseout', 'node', function(evt) {
-                    evt.target.connectedEdges().style({ 'opacity': 0.75, 'width': 1.8 });
+                    evt.target.connectedEdges().removeStyle();
                 });
 
                 // Node click → detail panel
                 pathwayKeggCy.on('tap', 'node', function(evt) {
                     const node = evt.target;
                     const data = node.data();
+
+                    // Ensure panel slides in when a node is clicked
+                    document.getElementById('pathway-kegg-detail-panel')?.classList.remove('hidden-panel');
 
                     if (detailContent) {
                         if (data.type === 'reaction') {
