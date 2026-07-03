@@ -1,6 +1,9 @@
 import os
 import sys
 import math
+import traceback
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 if not hasattr(math, 'comb'):
     def math_comb(n, k):
@@ -23,4 +26,44 @@ PARENT_DIR = os.path.dirname(BASE_DIR)
 if PARENT_DIR not in sys.path:
     sys.path.insert(0, PARENT_DIR)
 
-from backend.app import app
+app = FastAPI()
+
+@app.get("/api/debug")
+def debug_endpoint():
+    info = {
+        "sys.path": sys.path,
+        "os.getcwd": os.getcwd(),
+        "environ": {k: v for k, v in os.environ.items() if "KEY" not in k and "PASSWORD" not in k and "SECRET" not in k},
+    }
+    try:
+        import cobra
+        info["cobra_import"] = "SUCCESS"
+    except Exception as e:
+        info["cobra_import"] = f"FAILED: {str(e)}"
+        info["cobra_import_trace"] = traceback.format_exc()
+        
+    try:
+        from backend.app import app as real_app
+        info["backend_app_import"] = "SUCCESS"
+    except Exception as e:
+        info["backend_app_import"] = f"FAILED: {str(e)}"
+        info["backend_app_import_trace"] = traceback.format_exc()
+        
+    return info
+
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"])
+async def catch_all(request: Request, path: str):
+    try:
+        from backend.app import app as real_app
+        return await real_app(request.scope, request.receive, request.send)
+    except Exception as e:
+        tb = traceback.format_exc()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Failed to load real backend app",
+                "detail": str(e),
+                "traceback": tb
+            }
+        )
+
