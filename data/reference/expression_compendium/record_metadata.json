@@ -1,0 +1,18 @@
+{
+  "title": "A compendium of expression profiles for Corynebacterium glutamicum",
+  "doi": "10.5281/zenodo.6842664",
+  "publication_date": "2022-07-16",
+  "license": "cc-by-4.0",
+  "files": [
+    {
+      "key": "Filtered differential expression results.xlsx",
+      "size": 4230817,
+      "url": "https://zenodo.org/api/records/6842664/files/Filtered%20differential%20expression%20results.xlsx/content"
+    },
+    {
+      "key": "Normalized expression matrix_fluorescence intensities.xlsx",
+      "size": 91239269,
+      "url": "https://zenodo.org/api/records/6842664/files/Normalized%20expression%20matrix_fluorescence%20intensities.xlsx/content"
+    }
+  ]
+}

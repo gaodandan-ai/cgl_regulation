@@ -1,0 +1,182 @@
+{
+  "cg0001": {
+    "gene": "dnaA",
+    "category": "Replication",
+    "description": "Chromosomal replication initiation protein",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0002": {
+    "gene": "dnaN",
+    "category": "Replication",
+    "description": "DNA polymerase III subunit beta",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0003": {
+    "gene": "gyrB",
+    "category": "Replication/Topology",
+    "description": "DNA gyrase subunit B",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0018": {
+    "gene": "gyrA",
+    "category": "Replication/Topology",
+    "description": "DNA gyrase subunit A",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0484": {
+    "gene": "rpoA",
+    "category": "Transcription",
+    "description": "RNA polymerase subunit alpha",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0485": {
+    "gene": "rpoB",
+    "category": "Transcription",
+    "description": "RNA polymerase subunit beta",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0486": {
+    "gene": "rpoC",
+    "category": "Transcription",
+    "description": "RNA polymerase subunit beta'",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0786": {
+    "gene": "tuf",
+    "category": "Translation",
+    "description": "Elongation factor Tu",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0754": {
+    "gene": "accD1",
+    "category": "Lipid Metabolism",
+    "description": "Acetyl-CoA carboxylase carboxyltransferase subunit beta",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0816": {
+    "gene": "murA",
+    "category": "Cell Wall Biosynthesis",
+    "description": "UDP-N-acetylglucosamine 1-carboxyvinyltransferase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0808": {
+    "gene": "ftsZ",
+    "category": "Cell Division",
+    "description": "Cell division protein FtsZ",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0352": {
+    "gene": "gapA",
+    "category": "Central Metabolism",
+    "description": "Glyceraldehyde-3-phosphate dehydrogenase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0415": {
+    "gene": "eno",
+    "category": "Central Metabolism",
+    "description": "Enolase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg1254": {
+    "gene": "gltA",
+    "category": "TCA Cycle",
+    "description": "Citrate synthase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg1581": {
+    "gene": "pyk",
+    "category": "Central Metabolism",
+    "description": "Pyruvate kinase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0482": {
+    "gene": "rpsL",
+    "category": "Translation",
+    "description": "30S ribosomal protein S12",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0483": {
+    "gene": "rpsG",
+    "category": "Translation",
+    "description": "30S ribosomal protein S7",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0481": {
+    "gene": "rplJ",
+    "category": "Translation",
+    "description": "50S ribosomal protein L10",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0480": {
+    "gene": "rplL",
+    "category": "Translation",
+    "description": "50S ribosomal protein L7/L12",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0478": {
+    "gene": "secY",
+    "category": "Protein Secretion",
+    "description": "Preprotein translocase subunit SecY",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg0477": {
+    "gene": "adk",
+    "category": "Nucleotide Metabolism",
+    "description": "Adenylate kinase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg1959": {
+    "gene": "infB",
+    "category": "Translation",
+    "description": "Translation initiation factor IF-2",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg2093": {
+    "gene": "ppa",
+    "category": "Phosphate Metabolism",
+    "description": "Inorganic pyrophosphatase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg2201": {
+    "gene": "pyrG",
+    "category": "Nucleotide Metabolism",
+    "description": "CTP synthase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg2341": {
+    "gene": "prfA",
+    "category": "Translation",
+    "description": "Peptide chain release factor 1",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg2379": {
+    "gene": "thrS",
+    "category": "Translation",
+    "description": "Threonine--tRNA ligase",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg2810": {
+    "gene": "pheS",
+    "category": "Translation",
+    "description": "Phenylalanine--tRNA ligase subunit alpha",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg2811": {
+    "gene": "pheT",
+    "category": "Translation",
+    "description": "Phenylalanine--tRNA ligase subunit beta",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg2837": {
+    "gene": "rplM",
+    "category": "Translation",
+    "description": "50S ribosomal protein L13",
+    "reference": "Unthan et al., 2015"
+  },
+  "cg2838": {
+    "gene": "rpsI",
+    "category": "Translation",
+    "description": "30S ribosomal protein S9",
+    "reference": "Unthan et al., 2015"
+  }
+}

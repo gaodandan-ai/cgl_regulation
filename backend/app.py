@@ -71,8 +71,56 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+ESSENTIAL_GENES = {}
+PRODORIC_PWMS = {}
+BRENDA_KCAT_MAPPINGS = {}
+STRING_INTERACTIONS = {}
+ABASY_ROLES = {}
+
+def check_essentiality(gene_id: str):
+    """
+    Check if a gene locus tag (e.g. cg0001) or its aliases are classified as essential.
+    """
+    if not gene_id or not ESSENTIAL_GENES:
+        return None
+    
+    # Try direct lookup
+    g_lower = gene_id.strip().lower()
+    if g_lower in ESSENTIAL_GENES:
+        return ESSENTIAL_GENES[g_lower]
+        
+    # Try resolving aliases
+    aliases = run_server.expand_gene_aliases(g_lower)
+    for alias in aliases:
+        a_lower = alias.lower()
+        if a_lower in ESSENTIAL_GENES:
+            return ESSENTIAL_GENES[a_lower]
+            
+    return None
+
+def check_abasy_role(gene_id: str):
+    """
+    Check if a gene locus tag has an Abasy role classification.
+    """
+    if not gene_id or not ABASY_ROLES:
+        return None
+        
+    g_lower = gene_id.strip().lower()
+    if g_lower in ABASY_ROLES:
+        return ABASY_ROLES[g_lower]
+        
+    # Resolve aliases
+    aliases = run_server.expand_gene_aliases(g_lower)
+    for alias in aliases:
+        a_lower = alias.lower()
+        if a_lower in ABASY_ROLES:
+            return ABASY_ROLES[a_lower]
+            
+    return None
+
 @app.on_event("startup")
 def startup_event():
+    global ESSENTIAL_GENES, PRODORIC_PWMS, BRENDA_KCAT_MAPPINGS, STRING_INTERACTIONS, ABASY_ROLES
     logger.info("Initializing FBA simulator service...")
     try:
         load_model_if_needed()
@@ -86,6 +134,71 @@ def startup_event():
         logger.info("Successfully loaded gene mappings and KEGG links from run_server.")
     except Exception as e:
         logger.warning(f"Failed to load run_server mappings/caches: {str(e)}")
+
+    # Load essential genes
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        eg_path = os.path.join(root_dir, "data", "reference", "essential_genes.json")
+        if os.path.exists(eg_path):
+            with open(eg_path, "r", encoding="utf-8") as f:
+                ESSENTIAL_GENES = json.load(f)
+            logger.info(f"Loaded {len(ESSENTIAL_GENES)} essential genes.")
+        else:
+            logger.warning(f"essential_genes.json not found at {eg_path}")
+    except Exception as e:
+        logger.error(f"Error loading essential_genes.json: {e}")
+
+    # Load PRODORIC motifs
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        pp_path = os.path.join(root_dir, "data", "reference", "prodoric_pwms.json")
+        if os.path.exists(pp_path):
+            with open(pp_path, "r", encoding="utf-8") as f:
+                PRODORIC_PWMS = json.load(f)
+            logger.info(f"Loaded {len(PRODORIC_PWMS)} PRODORIC motifs.")
+        else:
+            logger.warning(f"prodoric_pwms.json not found at {pp_path}")
+    except Exception as e:
+        logger.error(f"Error loading prodoric_pwms.json: {e}")
+
+    # Load BRENDA kcat mappings
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        bk_path = os.path.join(root_dir, "data", "reference", "brenda_kcat_mappings.json")
+        if os.path.exists(bk_path):
+            with open(bk_path, "r", encoding="utf-8") as f:
+                BRENDA_KCAT_MAPPINGS = json.load(f)
+            logger.info(f"Loaded {len(BRENDA_KCAT_MAPPINGS)} BRENDA kcat mappings.")
+        else:
+            logger.warning(f"brenda_kcat_mappings.json not found at {bk_path}")
+    except Exception as e:
+        logger.error(f"Error loading brenda_kcat_mappings.json: {e}")
+
+    # Load STRING interactions
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        si_path = os.path.join(root_dir, "data", "reference", "string_interactions.json")
+        if os.path.exists(si_path):
+            with open(si_path, "r", encoding="utf-8") as f:
+                STRING_INTERACTIONS = json.load(f)
+            logger.info(f"Loaded {len(STRING_INTERACTIONS)} STRING interactions.")
+        else:
+            logger.warning(f"string_interactions.json not found at {si_path}")
+    except Exception as e:
+        logger.error(f"Error loading string_interactions.json: {e}")
+
+    # Load Abasy roles
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        ab_path = os.path.join(root_dir, "data", "reference", "abasy_roles.json")
+        if os.path.exists(ab_path):
+            with open(ab_path, "r", encoding="utf-8") as f:
+                ABASY_ROLES = json.load(f)
+            logger.info(f"Loaded {len(ABASY_ROLES)} Abasy roles.")
+        else:
+            logger.warning(f"abasy_roles.json not found at {ab_path}")
+    except Exception as e:
+        logger.error(f"Error loading abasy_roles.json: {e}")
 
 @app.get("/api/model/status", response_model=ModelStatusResponse)
 def model_status():
@@ -149,6 +262,28 @@ def get_glutamate_candidates():
                     
         if is_glu_related:
             classification, confidence, reason = classify_glutamate_reaction(rxn)
+            
+            # Check reaction essential genes
+            essential_genes_in_rxn = []
+            is_rxn_essential = False
+            
+            # Check reaction global regulators (Abasy Atlas)
+            global_regulators_in_rxn = []
+            has_global_reg = False
+            
+            for g in rxn.genes:
+                eg_info = check_essentiality(g.id)
+                if eg_info:
+                    essential_genes_in_rxn.append(f"{g.id} ({eg_info.get('gene', '')})")
+                    is_rxn_essential = True
+                    
+                ab_info = check_abasy_role(g.id)
+                if ab_info:
+                    role = ab_info.get("role", "")
+                    if role in ("Global Regulator", "Basal Machinery"):
+                        global_regulators_in_rxn.append(f"{g.id} ({role})")
+                        has_global_reg = True
+                        
             candidates.append({
                 "reactionId": rxn.id,
                 "name": rxn.name,
@@ -157,7 +292,11 @@ def get_glutamate_candidates():
                 "upperBound": float(rxn.upper_bound),
                 "classification": classification,
                 "confidence": confidence,
-                "reason": reason
+                "reason": reason,
+                "isEssential": is_rxn_essential,
+                "essentialGenes": essential_genes_in_rxn,
+                "hasGlobalRegulator": has_global_reg,
+                "globalRegulators": global_regulators_in_rxn
             })
             
     # Check if any exchange/export candidate was found
@@ -342,7 +481,8 @@ def ecfba_simulation(req: ECFBARequest):
             req.enzymePerturbations,
             req.targetProduct,
             req.temperature,
-            req.calibrateTimepoint
+            req.calibrateTimepoint,
+            brenda_kcat_mappings=BRENDA_KCAT_MAPPINGS
         )
         if isinstance(result, dict):
             if "pool_limit" in result and "poolLimit" not in result:
@@ -482,6 +622,32 @@ def binding_site(
 @app.get("/api/predict_motif")
 def predict_motif(tf: str = ""):
     try:
+        tf_lower = tf.strip().lower()
+        
+        # Check PRODORIC_PWMS first
+        if tf_lower in PRODORIC_PWMS:
+            pwm_data = PRODORIC_PWMS[tf_lower]
+            return {
+                "tf": tf_lower,
+                "tf_name": pwm_data.get("tf_name", tf),
+                "consensus": pwm_data.get("consensus", ""),
+                "pwm": pwm_data.get("pwm"),
+                "nsites": pwm_data.get("targets_count", 0),
+                "source": "PRODORIC (Local DB)"
+            }
+        else:
+            # Check by TF name (e.g. "glxr" -> "cg0350")
+            for k, v in PRODORIC_PWMS.items():
+                if v.get("tf_name", "").lower() == tf_lower:
+                    return {
+                        "tf": k,
+                        "tf_name": v.get("tf_name", tf),
+                        "consensus": v.get("consensus", ""),
+                        "pwm": v.get("pwm"),
+                        "nsites": v.get("targets_count", 0),
+                        "source": "PRODORIC (Local DB)"
+                    }
+                    
         handler_instance = run_server.CustomHTTPRequestHandler.__new__(run_server.CustomHTTPRequestHandler)
         result = handler_instance.perform_motif_prediction(tf)
         return result
@@ -495,12 +661,41 @@ def predict_binding_affinity(tf: str = "", sequence: str = "", temperature: floa
     if not tf or not sequence:
         raise HTTPException(status_code=400, detail="Missing tf or sequence parameter")
     try:
-        handler_instance = run_server.CustomHTTPRequestHandler.__new__(run_server.CustomHTTPRequestHandler)
-        motif_res = handler_instance.perform_motif_prediction(tf)
-        if "error" in motif_res:
-            raise HTTPException(status_code=400, detail=motif_res["error"])
+        tf_lower = tf.strip().lower()
+        pwm = None
+        tf_name = tf
+        consensus = ""
+        targets_count = 0
         
-        pwm = motif_res.get("pwm")
+        # Check PRODORIC_PWMS first
+        if tf_lower in PRODORIC_PWMS:
+            pwm_data = PRODORIC_PWMS[tf_lower]
+            pwm = pwm_data.get("pwm")
+            tf_name = pwm_data.get("tf_name", tf)
+            consensus = pwm_data.get("consensus", "")
+            targets_count = pwm_data.get("targets_count", 0)
+        else:
+            # Check by TF name (e.g. "glxr" -> "cg0350")
+            for k, v in PRODORIC_PWMS.items():
+                if v.get("tf_name", "").lower() == tf_lower:
+                    pwm = v.get("pwm")
+                    tf_name = v.get("tf_name", tf)
+                    consensus = v.get("consensus", "")
+                    targets_count = v.get("targets_count", 0)
+                    break
+        
+        if not pwm:
+            # Fallback to dynamic de novo prediction flow
+            handler_instance = run_server.CustomHTTPRequestHandler.__new__(run_server.CustomHTTPRequestHandler)
+            motif_res = handler_instance.perform_motif_prediction(tf)
+            if "error" in motif_res:
+                raise HTTPException(status_code=400, detail=motif_res["error"])
+            
+            pwm = motif_res.get("pwm")
+            tf_name = motif_res.get("tf_name", tf)
+            consensus = motif_res.get("consensus", "")
+            targets_count = motif_res.get("targets_count", 0)
+            
         if not pwm:
             raise HTTPException(status_code=400, detail="Could not resolve PWM motif matrix for the TF")
             
@@ -511,9 +706,9 @@ def predict_binding_affinity(tf: str = "", sequence: str = "", temperature: floa
             
         return {
             "tf": tf,
-            "tf_name": motif_res.get("tf_name", tf),
-            "consensus": motif_res.get("consensus", ""),
-            "targets_count": motif_res.get("targets_count", 0),
+            "tf_name": tf_name,
+            "consensus": consensus,
+            "targets_count": targets_count,
             **affinity_res
         }
     except HTTPException as he:
@@ -598,6 +793,45 @@ def imodulon_simulation(imodulon: str = ""):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/quality/essential")
+def get_essential_genes():
+    """Return the database of C. glutamicum essential genes."""
+    return ESSENTIAL_GENES
+
+@app.get("/api/quality/brenda")
+def get_brenda_mappings():
+    """Return the database of C. glutamicum BRENDA kcat mappings."""
+    return BRENDA_KCAT_MAPPINGS
+
+@app.get("/api/quality/abasy")
+def get_abasy_roles():
+    """Return the database of C. glutamicum Abasy roles."""
+    return ABASY_ROLES
+
+@app.get("/api/analysis/string_ppi")
+def get_string_ppi(gene: str = ""):
+    """Return STRING protein-protein interaction partners for a gene locus tag."""
+    if not gene:
+        raise HTTPException(status_code=400, detail="Missing gene parameter")
+    gene_lower = gene.strip().lower()
+    
+    # Try direct lookup
+    partners = STRING_INTERACTIONS.get(gene_lower)
+    
+    # If not found, try mapping aliases
+    if not partners:
+        aliases = run_server.expand_gene_aliases(gene_lower)
+        for alias in aliases:
+            a_lower = alias.lower()
+            if a_lower in STRING_INTERACTIONS:
+                partners = STRING_INTERACTIONS[a_lower]
+                break
+                
+    if not partners:
+        return {"gene": gene, "partners": []}
+        
+    return {"gene": gene, "partners": partners}
 
 @app.get("/api/quality/icgb21fr")
 def quality_icgb21fr():

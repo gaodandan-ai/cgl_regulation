@@ -107,6 +107,10 @@ class GlutamateCandidateSchema(BaseModel):
     classification: str
     confidence: str
     reason: str
+    isEssential: Optional[bool] = None
+    essentialGenes: Optional[List[str]] = None
+    hasGlobalRegulator: Optional[bool] = None
+    globalRegulators: Optional[List[str]] = None
 
 class GlutamateCandidatesResponse(BaseModel):
     candidates: List[GlutamateCandidateSchema]

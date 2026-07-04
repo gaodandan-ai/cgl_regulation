@@ -1,0 +1,34 @@
+{
+  "cg0350": [
+    {"partner": "cg0444", "score": 850, "type": "functional association"},
+    {"partner": "cg2114", "score": 910, "type": "experimental complex"},
+    {"partner": "cg2831", "score": 750, "type": "textmining"}
+  ],
+  "cg0444": [
+    {"partner": "cg0350", "score": 850, "type": "functional association"},
+    {"partner": "cg2114", "score": 780, "type": "textmining"}
+  ],
+  "cg2114": [
+    {"partner": "cg0350", "score": 910, "type": "experimental complex"},
+    {"partner": "cg0444", "score": 780, "type": "textmining"},
+    {"partner": "cg2831", "score": 880, "type": "coexpression"}
+  ],
+  "cg1254": [
+    {"partner": "cg1193", "score": 950, "type": "experimental complex"},
+    {"partner": "cg0838", "score": 910, "type": "coexpression"}
+  ],
+  "cg1193": [
+    {"partner": "cg1254", "score": 950, "type": "experimental complex"},
+    {"partner": "cg0838", "score": 960, "type": "experimental complex"}
+  ],
+  "cg0838": [
+    {"partner": "cg1193", "score": 960, "type": "experimental complex"},
+    {"partner": "cg1254", "score": 910, "type": "coexpression"}
+  ],
+  "cg2280": [
+    {"partner": "cg0229", "score": 820, "type": "coexpression"}
+  ],
+  "cg0229": [
+    {"partner": "cg2280", "score": 820, "type": "coexpression"}
+  ]
+}

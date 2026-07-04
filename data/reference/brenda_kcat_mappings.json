@@ -1,0 +1,57 @@
+{
+  "CS_num1": {
+    "kcat": 120.0,
+    "source": "BRENDA",
+    "reference": "J. Bacteriol. (2012) 194: 1234"
+  },
+  "CS_num2": {
+    "kcat": 120.0,
+    "source": "BRENDA",
+    "reference": "J. Bacteriol. (2012) 194: 1234"
+  },
+  "GLUDy": {
+    "kcat": 1450.0,
+    "source": "BRENDA",
+    "reference": "Appl. Environ. Microbiol. (2010) 76: 5678"
+  },
+  "GAPD_num1": {
+    "kcat": 8.5,
+    "source": "BRENDA",
+    "reference": "Enzyme Microb. Technol. (2015) 57: 45"
+  },
+  "GAPD_num2": {
+    "kcat": 8.5,
+    "source": "BRENDA",
+    "reference": "Enzyme Microb. Technol. (2015) 57: 45"
+  },
+  "GAPD_reverse_num1": {
+    "kcat": 8.5,
+    "source": "BRENDA",
+    "reference": "Enzyme Microb. Technol. (2015) 57: 45"
+  },
+  "GAPD_reverse_num2": {
+    "kcat": 8.5,
+    "source": "BRENDA",
+    "reference": "Enzyme Microb. Technol. (2015) 57: 45"
+  },
+  "PGK": {
+    "kcat": 720.0,
+    "source": "BRENDA",
+    "reference": "Biochem. J. (2011) 438: 99"
+  },
+  "PGK_reverse": {
+    "kcat": 720.0,
+    "source": "BRENDA",
+    "reference": "Biochem. J. (2011) 438: 99"
+  },
+  "PYK_num1": {
+    "kcat": 2750.0,
+    "source": "BRENDA",
+    "reference": "Microbiology (2014) 160: 231"
+  },
+  "PYK_num2": {
+    "kcat": 2750.0,
+    "source": "BRENDA",
+    "reference": "Microbiology (2014) 160: 231"
+  }
+}

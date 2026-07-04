@@ -43,3 +43,14 @@ data/raw/Metabolome/
 data/raw/protemic/
 data/reference/rna_seq_analysis_results.json
 # ──────────────────────────────────────────────────────────────────────────────
+
+# Local Vercel configuration
+.vercel/
+
+# Scratch and pipeline temp folders
+data_pipeline/scratch/
+data_pipeline/scratch*
+.agents/
+.gemini/
+*.log
+

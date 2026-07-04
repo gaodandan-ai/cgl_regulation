@@ -1,0 +1,62 @@
+{
+  "cg0350": {
+    "role": "Global Regulator",
+    "description": "Master regulator of carbon metabolism and stress response. High pleiotropy risk.",
+    "risk": "High"
+  },
+  "cg1409": {
+    "role": "Global Regulator",
+    "description": "Master regulator of iron homeostasis. High pleiotropy risk.",
+    "risk": "High"
+  },
+  "cg2831": {
+    "role": "Modular Regulator",
+    "description": "Regulator of acetate metabolism.",
+    "risk": "Medium"
+  },
+  "cg2114": {
+    "role": "Modular Regulator",
+    "description": "Key activator of acetate and ethanol metabolism.",
+    "risk": "Medium"
+  },
+  "cg0444": {
+    "role": "Modular Regulator",
+    "description": "Regulator of glycolysis and sugar uptake.",
+    "risk": "Medium"
+  },
+  "cg1254": {
+    "role": "Modular Gene",
+    "description": "Citrate synthase, catalyzing the first step of the TCA cycle.",
+    "risk": "Low"
+  },
+  "cg1193": {
+    "role": "Modular Gene",
+    "description": "Aconitase, catalyzing citrate conversion to isocitrate.",
+    "risk": "Low"
+  },
+  "cg0838": {
+    "role": "Modular Gene",
+    "description": "Isocitrate dehydrogenase in the TCA cycle.",
+    "risk": "Low"
+  },
+  "cg2280": {
+    "role": "Modular Gene",
+    "description": "Glutamate dehydrogenase. Connects the TCA cycle to glutamate synthesis.",
+    "risk": "Low"
+  },
+  "cg0001": {
+    "role": "Basal Machinery",
+    "description": "Chromosomal replication initiator protein. Core housekeeping machinery.",
+    "risk": "High"
+  },
+  "cg0012": {
+    "role": "Basal Machinery",
+    "description": "DNA gyrase subunit B. Core housekeeping machinery.",
+    "risk": "High"
+  },
+  "cg0019": {
+    "role": "Basal Machinery",
+    "description": "DNA replication and repair protein. Core housekeeping machinery.",
+    "risk": "High"
+  }
+}

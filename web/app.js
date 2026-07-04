@@ -31,6 +31,18 @@ let cgToCgl = {};
 let dlkcatPredictions = {};
 window.dlkcatPredictions = dlkcatPredictions;
 
+let essentialGenes = {};
+window.essentialGenes = essentialGenes;
+
+let brendaKcatMappings = {};
+window.brendaKcatMappings = brendaKcatMappings;
+
+let activePpiInteractions = [];
+window.activePpiInteractions = activePpiInteractions;
+
+let abasyRoles = {};
+window.abasyRoles = abasyRoles;
+
 let nameToCg = {};
 
 let cgToProduct = {};
@@ -123,6 +135,8 @@ const filterSrna = document.getElementById('filter-srna');
 const filterCoregulated = document.getElementById('filter-coregulated');
 
 const filterOnlyTfTargets = document.getElementById('filter-only-tf-targets');
+
+const filterPpi = document.getElementById('filter-ppi');
 
 const srnaThresholdPanel = document.getElementById('srna-threshold-panel');
 
@@ -277,6 +291,42 @@ async function loadNetworkData() {
             }
         } catch (e) {
             console.warn('Failed to load DLKcat predictions database:', e);
+        }
+
+        try {
+            updateStatus('Loading essential genes database...', 'loading');
+            const essentialResponse = await fetch('/api/quality/essential');
+            if (essentialResponse.ok) {
+                essentialGenes = await essentialResponse.json();
+                window.essentialGenes = essentialGenes;
+                console.log(`Loaded ${Object.keys(essentialGenes).length} essential genes.`);
+            }
+        } catch (e) {
+            console.warn('Failed to load essential genes database:', e);
+        }
+
+        try {
+            updateStatus('Loading BRENDA kcat database...', 'loading');
+            const brendaResponse = await fetch('/api/quality/brenda');
+            if (brendaResponse.ok) {
+                brendaKcatMappings = await brendaResponse.json();
+                window.brendaKcatMappings = brendaKcatMappings;
+                console.log(`Loaded ${Object.keys(brendaKcatMappings).length} BRENDA kcat mappings.`);
+            }
+        } catch (e) {
+            console.warn('Failed to load BRENDA kcat database:', e);
+        }
+
+        try {
+            updateStatus('Loading Abasy Atlas roles...', 'loading');
+            const abasyResponse = await fetch('/api/quality/abasy');
+            if (abasyResponse.ok) {
+                abasyRoles = await abasyResponse.json();
+                window.abasyRoles = abasyRoles;
+                console.log(`Loaded ${Object.keys(abasyRoles).length} Abasy roles.`);
+            }
+        } catch (e) {
+            console.warn('Failed to load Abasy roles database:', e);
         }
 
         updateStatus('Loading gene name mapping data...', 'loading');
@@ -933,18 +983,59 @@ function renderGlobalMetabolicImpactRanking() {
         return;
     }
 
-    tbody.innerHTML = filtered.map((rank, index) => `
-        <tr class="global-metabolic-row" data-tf-id="${escapeHtml(rank.tfId)}" title="${escapeHtml(rank.explanation || '')}">
-            <td>${index + 1}</td>
-            <td><strong>${escapeHtml(rank.tfLabel || rank.tfId)}</strong><div class="metabolic-muted">${escapeHtml(rank.tfId)}</div></td>
-            <td><span class="global-metabolic-score">${escapeHtml(Number(rank.impactScore || 0).toFixed(2))}</span></td>
-            <td>${escapeHtml(rank.totalTargetGenes || 0)}</td>
-            <td>${escapeHtml(rank.mappedTargetGenes || 0)}</td>
-            <td>${escapeHtml(rank.totalReactions || 0)}</td>
-            <td>${escapeHtml(rank.totalPathways || 0)}</td>
-            <td>${escapeHtml((rank.keyPathways || []).slice(0, 3).join(', ') || '-')}</td>
-        </tr>
-    `).join('');
+    // Resolve current search inputs to highlight relevant TFs
+    const queries = typeof getQueryGenes === 'function' ? getQueryGenes() : [];
+    const activeQueriesResolved = new Set(queries.map(q => q.toLowerCase()));
+    queries.forEach(q => {
+        const lower = q.toLowerCase();
+        if (typeof nameToCg !== 'undefined' && nameToCg[lower]) activeQueriesResolved.add(nameToCg[lower].toLowerCase());
+        if (typeof cglToCg !== 'undefined' && cglToCg[lower]) activeQueriesResolved.add(cglToCg[lower].toLowerCase());
+        for (const [name, cg] of Object.entries(nameToCg || {})) {
+            if (name.toLowerCase() === lower) activeQueriesResolved.add(cg.toLowerCase());
+        }
+    });
+
+    const regulatorsOfInput = new Set();
+    if (typeof cy !== 'undefined' && cy) {
+        cy.edges().forEach(edge => {
+            const targetId = edge.data('target')?.toLowerCase();
+            const sourceId = edge.data('source')?.toLowerCase();
+            if (targetId && sourceId && (activeQueriesResolved.has(targetId) || activeQueriesResolved.has(cgToCgl[targetId]?.toLowerCase()))) {
+                regulatorsOfInput.add(sourceId);
+            }
+        });
+    }
+
+    tbody.innerHTML = filtered.map((rank, index) => {
+        const tfIdLower = rank.tfId.toLowerCase();
+        const tfLabelLower = (rank.tfLabel || '').toLowerCase();
+        
+        const isDirectMatch = activeQueriesResolved.has(tfIdLower) || activeQueriesResolved.has(tfLabelLower);
+        const isRegulatorMatch = regulatorsOfInput.has(tfIdLower);
+        
+        let highlightClass = '';
+        let badge = '';
+        if (isDirectMatch) {
+            highlightClass = ' global-metabolic-row-highlight-direct';
+            badge = ` <span class="badge-role activation" style="font-size: 8px; padding: 1px 4px; border-radius: 3px; font-weight: 600; display: inline-block; vertical-align: middle; margin-left: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;" title="This TF is currently in the search input"><i class="fa-solid fa-magnifying-glass"></i> Input TF</span>`;
+        } else if (isRegulatorMatch) {
+            highlightClass = ' global-metabolic-row-highlight-regulator';
+            badge = ` <span class="badge-role dual" style="font-size: 8px; padding: 1px 4px; border-radius: 3px; font-weight: 600; display: inline-block; vertical-align: middle; margin-left: 4px; background: #fef3c7; color: #d97706; border: 1px solid #fde68a;" title="This TF regulates one of your search input genes"><i class="fa-solid fa-link"></i> Regulator of Input</span>`;
+        }
+
+        return `
+            <tr class="global-metabolic-row${highlightClass}" data-tf-id="${escapeHtml(rank.tfId)}" title="${escapeHtml(rank.explanation || '')}">
+                <td>${index + 1}</td>
+                <td><strong>${escapeHtml(rank.tfLabel || rank.tfId)}</strong>${badge}<div class="metabolic-muted">${escapeHtml(rank.tfId)}</div></td>
+                <td><span class="global-metabolic-score">${escapeHtml(Number(rank.impactScore || 0).toFixed(2))}</span></td>
+                <td>${escapeHtml(rank.totalTargetGenes || 0)}</td>
+                <td>${escapeHtml(rank.mappedTargetGenes || 0)}</td>
+                <td>${escapeHtml(rank.totalReactions || 0)}</td>
+                <td>${escapeHtml(rank.totalPathways || 0)}</td>
+                <td>${escapeHtml((rank.keyPathways || []).slice(0, 3).join(', ') || '-')}</td>
+            </tr>
+        `;
+    }).join('');
 
     tbody.querySelectorAll('.global-metabolic-row').forEach(row => {
         row.addEventListener('click', () => {
@@ -1004,6 +1095,23 @@ function initGlobalMetabolicImpactRanking() {
             }
         });
     });
+
+    // Dynamic search input updates linkage
+    const inputsContainer = document.getElementById('gene-inputs-container');
+    if (inputsContainer && !inputsContainer.dataset.metabolicBound) {
+        inputsContainer.dataset.metabolicBound = '1';
+        inputsContainer.addEventListener('input', (e) => {
+            if (e.target.classList.contains('gene-input')) {
+                renderGlobalMetabolicImpactRanking();
+            }
+        });
+    }
+    const batchTextarea = document.getElementById('gene-batch-textarea');
+    if (batchTextarea && !batchTextarea.dataset.metabolicBound) {
+        batchTextarea.dataset.metabolicBound = '1';
+        batchTextarea.addEventListener('input', renderGlobalMetabolicImpactRanking);
+    }
+
     refreshGlobalMetabolicImpactRanking();
 }
 
@@ -1633,10 +1741,26 @@ function renderEngineeringTargetCandidates() {
         const profile = candidate.regulationProfile || {};
         const regulationText = `${profile.activationCount || 0} activation / ${profile.repressionCount || 0} repression`;
         const tfDisplay = formatTFProtein(candidate.tfId, candidate.tfLabel);
+        
+        // Check if the TF itself is essential
+        const locusLower = candidate.tfId.toLowerCase();
+        const tfIsEssential = essentialGenes[locusLower] || (cgToCgl[locusLower] && essentialGenes[cgToCgl[locusLower].toLowerCase()]);
+        const essentialBadge = tfIsEssential ? ` <span style="background:#fee2e2; color:#dc2626; font-size:8px; padding:1px 4px; border-radius:3px; font-weight:600; display:inline-block; vertical-align:middle; margin-left:4px;" title="This TF is essential for growth. Downregulation/knockout is lethal."><i class="fa-solid fa-triangle-exclamation"></i> Essential</span>` : '';
+
+        // Check if the TF has Abasy systemic role warning
+        const abasyRoleInfo = abasyRoles[locusLower] || (cgToCgl[locusLower] && abasyRoles[cgToCgl[locusLower].toLowerCase()]);
+        let abasyBadge = '';
+        if (abasyRoleInfo) {
+            const role = abasyRoleInfo.role;
+            if (role === 'Global Regulator' || role === 'Basal Machinery') {
+                abasyBadge = ` <span style="background:#fef3c7; color:#d97706; font-size:8px; padding:1px 4px; border-radius:3px; font-weight:600; display:inline-block; vertical-align:middle; margin-left:4px;" title="Abasy role: ${role}. Modification of global hubs carries high pleiotropic risk of metabolic failure."><i class="fa-solid fa-circle-nodes"></i> Global Hub</span>`;
+            }
+        }
+
         return `
             <tr class="engineering-target-row" data-tf-id="${escapeHtml(candidate.tfId)}" data-genes="${encodeMetabolicList(candidate.regulatedKeyGenes || [])}" title="${escapeHtml(candidate.rationale || '')}" style="cursor:pointer;">
                 <td>${index + 1}</td>
-                <td><strong>${tfDisplay}</strong></td>
+                <td><strong>${tfDisplay}</strong>${essentialBadge}${abasyBadge}</td>
                 <td><span class="engineering-target-score">${escapeHtml(Number(candidate.candidateScore || 0).toFixed(2))}</span></td>
                 <td><span class="engineering-target-level ${escapeHtml(candidate.recommendationLevel || 'low')}">${escapeHtml(candidate.recommendationLevel || 'low')}</span></td>
                 <td>${escapeHtml(candidate.mappedTargetGenes || 0)}</td>
@@ -2540,11 +2664,41 @@ function queryGene(locus) {
 
 
 
-function renderNetwork(locusTag) {
+async function renderNetwork(locusTag) {
 
     // Reset simulation states first
 
     resetPerturbationSimulation();
+
+
+
+    // 0. Fetch STRING PPI mappings if active
+    if (filterPpi && filterPpi.checked) {
+        const queryList = Array.isArray(locusTag) ? locusTag : [locusTag];
+        activePpiInteractions = [];
+        for (const locus of queryList) {
+            try {
+                const response = await fetch(`/api/analysis/string_ppi?gene=${encodeURIComponent(locus)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.partners) {
+                        data.partners.forEach(partner => {
+                            activePpiInteractions.push({
+                                source: locus,
+                                target: partner.partner,
+                                score: partner.score,
+                                type: partner.type
+                            });
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn(`Failed to fetch STRING PPI for ${locus}:`, e);
+            }
+        }
+    } else {
+        activePpiInteractions = [];
+    }
 
 
 
@@ -2840,6 +2994,18 @@ function renderNetwork(locusTag) {
 
                 }
 
+            },
+
+            {
+                selector: 'edge[regulationType="ppi"]',
+                style: {
+                    'line-color': '#10b981',
+                    'line-style': 'dashed',
+                    'target-arrow-shape': 'none',
+                    'width': (edge) => 1.5 + (((edge.data('score') || 700) - 700) / 300) * 2,
+                    'opacity': 0.8,
+                    'curve-style': 'bezier'
+                }
             },
 
             {
@@ -3181,6 +3347,8 @@ function renderNetwork(locusTag) {
 
     }
 
+    renderGlobalMetabolicImpactRanking();
+
 }
 
 
@@ -3330,6 +3498,8 @@ function buildElements(queryLoci) {
     }
 
     const showOnlyCoRegulated = filterCoregulated.checked;
+    let ppiResults = { nodes: Object.values(nodesMap), edges: edges };
+
     if (showOnlyCoRegulated) {
         const inDegreeMap = {};
         edges.forEach(e => {
@@ -3358,16 +3528,47 @@ function buildElements(queryLoci) {
             keptNodeIds.add(e.data.target);
         });
 
-        return {
+        ppiResults = {
             nodes: Object.values(nodesMap).filter(n => keptNodeIds.has(n.data.id)),
             edges: keptEdges
         };
     }
 
-    return {
-        nodes: Object.values(nodesMap),
-        edges
-    };
+    if (filterPpi && filterPpi.checked && activePpiInteractions && activePpiInteractions.length > 0) {
+        const nodeSet = new Set(ppiResults.nodes.map(n => n.data.id.toLowerCase()));
+        activePpiInteractions.forEach(ppi => {
+            const src = ppi.source.toLowerCase();
+            const tgt = ppi.target.toLowerCase();
+            if (nodeSet.has(src) && nodeSet.has(tgt)) {
+                const actualSrcNode = ppiResults.nodes.find(n => n.data.id.toLowerCase() === src);
+                const actualTgtNode = ppiResults.nodes.find(n => n.data.id.toLowerCase() === tgt);
+                if (actualSrcNode && actualTgtNode) {
+                    const actualSrc = actualSrcNode.data.id;
+                    const actualTgt = actualTgtNode.data.id;
+                    const ppiId = `ppi-${actualSrc}-${actualTgt}`;
+                    
+                    if (!ppiResults.edges.some(e => e.data.id === ppiId || e.data.id === `ppi-${actualTgt}-${actualSrc}`)) {
+                        ppiResults.edges.push({
+                            data: {
+                                id: ppiId,
+                                source: actualSrc,
+                                target: actualTgt,
+                                role: 'protein-protein interaction',
+                                type: 'PPI',
+                                regulationType: 'ppi',
+                                score: ppi.score,
+                                interactionType: ppi.type,
+                                schemaVersion: 'unified-v1'
+                            },
+                            classes: 'ppi-edge'
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    return ppiResults;
 }
 
 
@@ -3528,7 +3729,50 @@ function showNodeDetails(locusTag) {
 
     }
 
+    // Update essentiality info
+    const essentialRow = document.getElementById('info-essential-row');
+    const infoEssential = document.getElementById('info-essential');
+    if (essentialRow && infoEssential) {
+        let essentialInfo = essentialGenes[resolvedLower];
+        if (!essentialInfo && cgl) {
+            essentialInfo = essentialGenes[cgl.toLowerCase()];
+        }
+        
+        if (essentialInfo) {
+            essentialRow.style.display = '';
+            infoEssential.innerHTML = `<span style="color:#dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Essential (${essentialInfo.category || 'Core'})</span>`;
+            infoEssential.title = `${essentialInfo.description || ''} (Ref: ${essentialInfo.reference || ''})`;
+        } else {
+            essentialRow.style.display = 'none';
+        }
+    }
 
+    // Update Abasy systemic role info
+    const abasyRow = document.getElementById('info-abasy-row');
+    const infoAbasy = document.getElementById('info-abasy');
+    if (abasyRow && infoAbasy) {
+        let abasyInfo = abasyRoles[resolvedLower];
+        if (!abasyInfo && cgl) {
+            abasyInfo = abasyRoles[cgl.toLowerCase()];
+        }
+        
+        if (abasyInfo) {
+            abasyRow.style.display = '';
+            let color = '#4b5563';
+            const role = abasyInfo.role;
+            if (role === 'Global Regulator' || role === 'Basal Machinery') {
+                color = '#dc2626';
+            } else if (role === 'Modular Regulator') {
+                color = '#2563eb';
+            } else if (role === 'Modular Gene') {
+                color = '#16a34a';
+            }
+            infoAbasy.innerHTML = `<span style="color:${color}; font-weight:700;"><i class="fa-solid fa-circle-nodes"></i> ${role} (Risk: ${abasyInfo.risk || 'Unknown'})</span>`;
+            infoAbasy.title = `${abasyInfo.description || ''}`;
+        } else {
+            abasyRow.style.display = 'none';
+        }
+    }
 
     const product = cgToProduct[lower];
 
@@ -5465,6 +5709,10 @@ function initEventListeners() {
 
     filterCoregulated.addEventListener('change', reRender);
 
+    if (filterPpi) {
+        filterPpi.addEventListener('change', reRender);
+    }
+
     
 
     if (filterOnlyTfTargets) {
@@ -6970,11 +7218,23 @@ function parseMarkdownToHtml(mdText) {
 
     if (!mdText) return "";
 
-    let html = mdText;
+    let cleaned = mdText.trim();
+    if (cleaned.startsWith("```markdown")) {
+        cleaned = cleaned.substring("```markdown".length).trim();
+    } else if (cleaned.startsWith("```")) {
+        cleaned = cleaned.substring(3).trim();
+    }
+    if (cleaned.endsWith("```")) {
+        cleaned = cleaned.substring(0, cleaned.length - 3).trim();
+    }
 
-    
+    let html = cleaned;
 
-    // Replace headers (###, ####, etc.) and bold bullet headings
+    // Replace headers (#, ##, ###, ####, etc.) and bold bullet headings
+
+    html = html.replace(/^(?:#\s+)(.*?)$/gm, '<h3>$1</h3>');
+
+    html = html.replace(/^(?:##\s+)(.*?)$/gm, '<h4>$1</h4>');
 
     html = html.replace(/^(?:###\s+)(.*?)$/gm, '<h4>$1</h4>');
 
@@ -7032,7 +7292,7 @@ function parseMarkdownToHtml(mdText) {
 
                 // If it is a heading, don't wrap in p
 
-                if (trimmed.startsWith('<h4>') || trimmed.startsWith('</h4>') || trimmed.startsWith('<ul>') || trimmed.startsWith('</ul>')) {
+                if (trimmed.startsWith('<h3>') || trimmed.startsWith('<h4>') || trimmed.startsWith('</h4>') || trimmed.startsWith('<ul>') || trimmed.startsWith('</ul>')) {
 
                     processedLines.push(trimmed);
 
@@ -7150,10 +7410,20 @@ function renderEnzymeConstraintBadges(reaction) {
     const sourceCount = reaction.kcat_source_count ?? enzyme.kcat_source_count;
 
     let isPredicted = false;
+    let isBrenda = false;
     const DEFAULT_VAL = 7398.8133918117555;
     
     const rxnId = reaction.id;
-    if (rxnId && window.dlkcatPredictions && window.dlkcatPredictions[rxnId]) {
+    if (rxnId && window.brendaKcatMappings && window.brendaKcatMappings[rxnId]) {
+        const brendaInfo = window.brendaKcatMappings[rxnId];
+        kcat = brendaInfo.kcat;
+        isBrenda = true;
+        if (molecularWeight !== undefined && molecularWeight !== null && molecularWeight > 0) {
+            kcatMw = (kcat * 3600 * 1000) / molecularWeight;
+        } else {
+            kcatMw = null;
+        }
+    } else if (rxnId && window.dlkcatPredictions && window.dlkcatPredictions[rxnId]) {
         const predInfo = window.dlkcatPredictions[rxnId];
         if (predInfo.source === 'dlkcat_prediction') {
             if (kcat === undefined || kcat === null || Number.isNaN(kcat) || Math.abs(Number(kcat) - DEFAULT_VAL) < 1e-3) {
@@ -7170,7 +7440,11 @@ function renderEnzymeConstraintBadges(reaction) {
 
     if (ecNumber) badges.push({ text: 'EC ' + escapeHtml(ecNumber) });
     if (kcat !== undefined && kcat !== null && !Number.isNaN(kcat)) {
-        if (isPredicted) {
+        if (isBrenda) {
+            const brendaInfo = window.brendaKcatMappings[rxnId] || {};
+            const refText = brendaInfo.reference ? ` (Ref: ${brendaInfo.reference})` : '';
+            badges.push({ text: 'kcat ' + escapeHtml(formatMetabolicNumber(kcat, 3)) + ' (BRENDA literature)', brenda: true, title: `Source: BRENDA database${refText}` });
+        } else if (isPredicted) {
             badges.push({ text: 'kcat ' + escapeHtml(formatMetabolicNumber(kcat, 3)) + ' (DLKcat predicted)', predicted: true });
         } else {
             badges.push({ text: 'kcat ' + escapeHtml(formatMetabolicNumber(kcat, 3)) });
@@ -7180,7 +7454,9 @@ function renderEnzymeConstraintBadges(reaction) {
         badges.push({ text: 'MW ' + escapeHtml(formatMetabolicNumber(molecularWeight, 1)) + ' Da' });
     }
     if (kcatMw !== undefined && kcatMw !== null && !Number.isNaN(kcatMw)) {
-        if (isPredicted) {
+        if (isBrenda) {
+            badges.push({ text: 'kcat/MW ' + escapeHtml(formatMetabolicNumber(kcatMw, 3)) + ' (BRENDA)', brenda: true });
+        } else if (isPredicted) {
             badges.push({ text: 'kcat/MW ' + escapeHtml(formatMetabolicNumber(kcatMw, 3)) + ' (DLKcat)', predicted: true });
         } else {
             badges.push({ text: 'kcat/MW ' + escapeHtml(formatMetabolicNumber(kcatMw, 3)) });
@@ -7194,8 +7470,9 @@ function renderEnzymeConstraintBadges(reaction) {
     if (badges.length === 0) return '';
     return '<div class="metabolic-enzyme-badges">'
         + badges.map(b => {
-            const cls = 'metabolic-enzyme-badge' + (b.predicted ? ' predicted' : '');
-            return '<span class="' + cls + '">' + b.text + '</span>';
+            const cls = 'metabolic-enzyme-badge' + (b.predicted ? ' predicted' : '') + (b.brenda ? ' brenda' : '');
+            const titleAttr = b.title ? ` title="${escapeHtml(b.title)}"` : '';
+            return '<span class="' + cls + '"' + titleAttr + '>' + b.text + '</span>';
         }).join('')
         + '</div>';
 }

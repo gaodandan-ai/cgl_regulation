@@ -905,7 +905,8 @@ def run_ecfba_simulation(
     enzyme_perturbations: Dict[str, float],
     target_product: str,
     temperature: float = 30.0,
-    calibrate_timepoint: Optional[str] = None
+    calibrate_timepoint: Optional[str] = None,
+    brenda_kcat_mappings: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     import os, sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -1089,6 +1090,18 @@ def run_ecfba_simulation(
             for eachr in dictionary_model['reactions']:
                 if rxn.id == eachr['id']:
                     kcat_mw = eachr.get('kcat_MW')
+                    
+                    # Check BRENDA mappings first
+                    if brenda_kcat_mappings and rxn.id in brenda_kcat_mappings:
+                        brenda_info = brenda_kcat_mappings[rxn.id]
+                        kcat_brenda = brenda_info.get("kcat")
+                        if kcat_brenda and eachr.get('kcat'):
+                            kcat_orig = float(eachr.get('kcat'))
+                            kcat_mw_orig = float(kcat_mw) if kcat_mw else 0
+                            if kcat_mw_orig > 0 and kcat_orig > 0:
+                                mw_calc = (kcat_orig * 3.6e6) / kcat_mw_orig
+                                kcat_mw = (float(kcat_brenda) * 3.6e6) / mw_calc
+                                
                     if kcat_mw:
                         rxn_genes = [g.id.replace("g_", "").replace("gene_", "") for g in rxn.genes]
 
