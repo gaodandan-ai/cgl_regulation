@@ -868,12 +868,15 @@ input[type="range"] {
 }
 
 .example-tag {
+    font-family: var(--font-primary) !important;
+    font-style: italic;
     background-color: var(--bg-input);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
     padding: 6px 12px;
     font-size: 12px;
     border-radius: 15px;
+    font-weight: 500;
 }
 
 .example-tag:hover {
@@ -1649,6 +1652,35 @@ details.advanced-filters-details[open] > .advanced-filters-summary::before {
     border-radius: 8px;
     background-color: rgba(0, 0, 0, 0.1);
 }
+
+/* AI Markdown Tables style */
+.markdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 11px;
+    line-height: 1.4;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.markdown-table th {
+    background-color: var(--bg-sidebar);
+    color: var(--text-primary);
+    padding: 6px 8px;
+    font-weight: 700;
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+}
+.markdown-table td {
+    border-bottom: 1px solid var(--border-color);
+    padding: 5px 8px;
+    color: var(--text-primary);
+}
+.markdown-table tr:hover {
+    background-color: rgba(99, 102, 241, 0.04);
+}
+
 
 .relations-table {
     width: 100%;
@@ -3451,6 +3483,16 @@ a.ai-pathway-gene-badge:hover {
 
 .landing-search-tip p {
     margin: 0 0 10px 0;
+}
+
+.landing-search-tip code {
+    font-family: var(--font-primary) !important;
+    font-style: italic;
+    font-size: 12.5px;
+    background: none;
+    padding: 0;
+    color: var(--color-primary-accent);
+    font-weight: 600;
 }
 
 .landing-grid-bullets {

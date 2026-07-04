@@ -585,14 +585,7 @@
                             <i class="fa-solid fa-dharmachakra pulse-slow hero-icon"></i>
                             <h3>Cgl Regulation Explorer</h3>
                             <p class="hero-description">
-                                An interactive regulatory-metabolic analysis platform for <em>Corynebacterium
-                                    glutamicum</em>.
-                                It integrates transcriptional regulatory networks, Random Forest-based edge confidence
-                                scoring,
-                                genome-scale metabolic model mapping, and ecCGL1 enzyme-constrained annotations to
-                                support
-                                regulatory-metabolic hypothesis generation and candidate engineering target
-                                prioritization.
+                                An interactive regulatory-metabolic analysis platform for <em>Corynebacterium glutamicum</em>.
                             </p>
                         </div>
 
@@ -3231,6 +3224,21 @@
     <script src="lib/simulationClient.js?v=1.0"></script>
     
     <script src="lib/networkTopology.js?v=1.0"></script>
+    <!-- Mermaid.js for regulatory signaling charts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        if (window.mermaid) {
+            window.mermaid.initialize({
+                startOnLoad: false,
+                theme: 'neutral',
+                securityLevel: 'loose',
+                flowchart: {
+                    useMaxWidth: true,
+                    htmlLabels: true
+                }
+            });
+        }
+    </script>
     <script src="app.js?v=4.2"></script>
 </body>
 

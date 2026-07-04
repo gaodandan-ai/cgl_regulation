@@ -7197,6 +7197,7 @@ async function triggerAiSummary() {
         }
         
         summaryCard.innerHTML = htmlContent;
+        triggerMermaidRender(summaryCard);
         
     } catch (err) {
         console.error(err);
@@ -7215,7 +7216,6 @@ async function triggerAiSummary() {
 }
 
 function parseMarkdownToHtml(mdText) {
-
     if (!mdText) return "";
 
     let cleaned = mdText.trim();
@@ -7230,96 +7230,112 @@ function parseMarkdownToHtml(mdText) {
 
     let html = cleaned;
 
-    // Replace headers (#, ##, ###, ####, etc.) and bold bullet headings
-
-    html = html.replace(/^(?:#\s+)(.*?)$/gm, '<h3>$1</h3>');
-
-    html = html.replace(/^(?:##\s+)(.*?)$/gm, '<h4>$1</h4>');
-
-    html = html.replace(/^(?:###\s+)(.*?)$/gm, '<h4>$1</h4>');
-
-    html = html.replace(/^(?:####\s+)(.*?)$/gm, '<h4>$1</h4>');
-
-    html = html.replace(/^(?:【)(.*?)(】)/gm, '<h4>$1</h4>');
-
-    
-
-    // Replace bold (**text**)
-
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-    
-
-    // Replace bullet lists (- or *)
-
-    const lines = html.split('\n');
-
-    let inList = false;
-
-    const processedLines = [];
-
-    
-
-    lines.forEach(line => {
-
-        const trimmed = line.trim();
-
-        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-
-            const content = trimmed.substring(2);
-
-            if (!inList) {
-
-                processedLines.push('<ul>');
-
-                inList = true;
-
-            }
-
-            processedLines.push(`<li>${content}</li>`);
-
-        } else {
-
-            if (inList) {
-
-                processedLines.push('</ul>');
-
-                inList = false;
-
-            }
-
-            if (trimmed) {
-
-                // If it is a heading, don't wrap in p
-
-                if (trimmed.startsWith('<h3>') || trimmed.startsWith('<h4>') || trimmed.startsWith('</h4>') || trimmed.startsWith('<ul>') || trimmed.startsWith('</ul>')) {
-
-                    processedLines.push(trimmed);
-
-                } else {
-
-                    processedLines.push(`<p>${trimmed}</p>`);
-
-                }
-
-            }
-
-        }
-
+    // 1. Extract Mermaid diagrams before header replacements to prevent mangling
+    let mermaidBlocks = [];
+    html = html.replace(/```mermaid([\s\S]*?)```/gi, (match, code) => {
+        const index = mermaidBlocks.length;
+        mermaidBlocks.push(code.trim());
+        return `<!--MERMAID_BLOCK_${index}-->`;
     });
 
-    
+    // Replace headers (#, ##, ###, ####, etc.) and bold bullet headings
+    html = html.replace(/^(?:#\s+)(.*?)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^(?:##\s+)(.*?)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^(?:###\s+)(.*?)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^(?:####\s+)(.*?)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^(?:【)(.*?)(】)/gm, '<h4>$1</h4>');
+
+    // Replace bold (**text**)
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Replace bullet lists (- or *) and parse markdown tables
+    const lines = html.split('\n');
+    let inList = false;
+    let inTable = false;
+    let tableHeader = true;
+    const processedLines = [];
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+
+        // Parse markdown tables starting with "|"
+        if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+            if (inList) {
+                processedLines.push('</ul>');
+                inList = false;
+            }
+            if (!inTable) {
+                processedLines.push('<div class="table-container"><table class="markdown-table">');
+                inTable = true;
+                tableHeader = true;
+            }
+            
+            // Skip separator line | :--- | :--- |
+            if (trimmed.includes('---')) {
+                tableHeader = false;
+                return;
+            }
+            
+            const cells = trimmed.split('|').map(c => c.trim()).filter((c, i, arr) => i > 0 && i < arr.length - 1);
+            processedLines.push('<tr>');
+            cells.forEach(cell => {
+                const tag = tableHeader ? 'th' : 'td';
+                processedLines.push(`<${tag}>${cell}</${tag}>`);
+            });
+            processedLines.push('</tr>');
+            if (tableHeader) tableHeader = false; // first row is header
+            return;
+        } else {
+            if (inTable) {
+                processedLines.push('</table></div>');
+                inTable = false;
+            }
+        }
+
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+            const content = trimmed.substring(2);
+            if (!inList) {
+                processedLines.push('<ul>');
+                inList = true;
+            }
+            processedLines.push(`<li>${content}</li>`);
+        } else {
+            if (inList) {
+                processedLines.push('</ul>');
+                inList = false;
+            }
+            if (trimmed) {
+                // If it is a heading or MERMAID block, don't wrap in p
+                if (trimmed.startsWith('<h3>') || trimmed.startsWith('<h4>') || trimmed.startsWith('</h4>') || trimmed.startsWith('<ul>') || trimmed.startsWith('</ul>') || trimmed.startsWith('<!--MERMAID_BLOCK_')) {
+                    processedLines.push(trimmed);
+                } else {
+                    processedLines.push(`<p>${trimmed}</p>`);
+                }
+            }
+        }
+    });
 
     if (inList) {
-
         processedLines.push('</ul>');
-
+    }
+    if (inTable) {
+        processedLines.push('</table></div>');
     }
 
-    
+    let finalHtml = processedLines.join('\n');
 
-    return processedLines.join('\n');
+    // 2. Re-inject Mermaid blocks as renderable divs
+    mermaidBlocks.forEach((code, index) => {
+        finalHtml = finalHtml.replace(`<!--MERMAID_BLOCK_${index}-->`, `<div class="mermaid">${escapeHtml(code)}</div>`);
+    });
 
+    // 3. Match locus tags (cg\d{4} or Cgl\d{4}) outside HTML tags and wrap in clickable spans
+    finalHtml = finalHtml.replace(/(<[^>]+>)|(\b(cg\d{4}|cgl\d{4})\b)/gi, (match, tag, locus) => {
+        if (tag) return tag;
+        return `<span class="ai-locus-link" data-locus="${locus.toLowerCase()}" style="color: var(--color-primary-accent); cursor: pointer; text-decoration: underline; font-family: var(--font-primary); font-weight: 600;" title="Click to inspect ${locus} network"><i class="fa-solid fa-square-poll-horizontal" style="font-size: 10px; margin-right: 2px;"></i>${locus}</span>`;
+    });
+
+    return finalHtml;
 }
 
 
@@ -7821,7 +7837,7 @@ function initAiPathwayFeature() {
 
             resultCard.innerHTML = `
 
-                <div class="ai-pathway-summary">${result.summary || 'No summary available'}</div>
+                <div class="ai-pathway-summary">${parseMarkdownToHtml(result.summary || 'No summary available')}</div>
 
                 <div class="ai-pathway-genes-title"><i class="fa-solid fa-dna"></i> Associated genes (${genes.length})</div>
 
@@ -7840,6 +7856,8 @@ function initAiPathwayFeature() {
                 ` : ''}
 
             `;
+
+            triggerMermaidRender(resultCard);
 
 
 
@@ -7920,6 +7938,47 @@ function initAiPathwayFeature() {
     });
 
 }
+
+function triggerMermaidRender(container) {
+    if (window.mermaid && container) {
+        setTimeout(() => {
+            try {
+                window.mermaid.run({
+                    nodes: container.querySelectorAll('.mermaid')
+                });
+            } catch (e) {
+                console.warn("Failed to run mermaid:", e);
+            }
+        }, 50);
+    }
+}
+
+// Global click event delegation for AI locus links
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.ai-locus-link');
+    if (link) {
+        e.preventDefault();
+        const locus = link.getAttribute('data-locus');
+        if (locus) {
+            const resolvedLocus = (typeof geneIndex !== 'undefined' && geneIndex[locus.toLowerCase()]?.locusTag) || locus;
+            querySingleGene(resolvedLocus);
+            showNodeDetails(resolvedLocus);
+            
+            // Highlight it in Cytoscape if cy is active
+            if (typeof cy !== 'undefined' && cy) {
+                const node = cy.getElementById(resolvedLocus);
+                if (node && node.length > 0) {
+                    highlightSubnet(node);
+                    cy.animate({
+                        center: { eles: node },
+                        zoom: 1.5
+                    }, { duration: 400 });
+                }
+            }
+        }
+    }
+});
+
 
 
 
@@ -8079,7 +8138,7 @@ function initAiGeneFeature() {
 
             resultCard.innerHTML = `
 
-                <div class="ai-pathway-summary">${result.summary || 'No summary available'}</div>
+                <div class="ai-pathway-summary">${parseMarkdownToHtml(result.summary || 'No summary available')}</div>
 
                 <div class="ai-pathway-genes-title"><i class="fa-solid fa-dna"></i> Associated genes (${genes.length})</div>
 
@@ -8096,6 +8155,8 @@ function initAiGeneFeature() {
                 ` : ''}
 
             `;
+
+            triggerMermaidRender(resultCard);
 
 
 
