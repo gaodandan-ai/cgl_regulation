@@ -1,4 +1,4 @@
-# Cgl Regulation Explorer (v0.3.0)
+# Cgl Regulation Explorer (v0.4.0)
 
 Bilingual Version: [English](#english-version) | [中文版本](#中文版本)
 
@@ -85,7 +85,7 @@ Please cite the original databases and publications when utilizing derived platf
 
 ## 中文版本
 
-## 谷氨酸棒状杆菌调控-代谢整合探索平台 (Cgl Regulation Explorer v0.3.0)
+## 谷氨酸棒状杆菌调控-代谢整合探索平台 (Cgl Regulation Explorer v0.4.0)
 
 这是一个专门针对**谷氨酸棒状杆菌** (Corynebacterium glutamicum DSM 20300 / ATCC 13032) 研发的交互式、可复现的调控-代谢网路分析与仿真平台。
 
@@ -160,3 +160,25 @@ Please cite the original databases and publications when utilizing derived platf
    启动后，在浏览器访问：`http://localhost:8000/index.html` 即可进入控制台。
 3. **AI 密钥配置**：
    直接在系统右侧详情面板的 “AI Provider Settings” 中填入个人的 API Key（仅保存在浏览器本地），点击 Refresh 即可生成报告。
+
+---
+
+### 5. Version History & Changelog / 版本历史与更新日志
+
+#### v0.4.0 (July 2026 / 2026年7月)
+* **English**:
+  - Integrated **Abasy Atlas** systemic topology properties categorizing global hubs, modular regulators, and pathway genes.
+  - Upgraded **RAG-based AI Literature summary** to natively parse Markdown Tables and render **Mermaid.js** flowcharts.
+  - Added **Locus Link Anchoring** which turns raw tags in summaries into interactive links that center, zoom, and highlight Cytoscape nodes.
+  - Linked search queries dynamically to highlight inputs and upstream regulators in the Global Metabolic Impact table.
+  - Tightened dashboard layouts, sidebar spacing, and unified card typography/fonts.
+* **中文**:
+  - 深度整合 **Abasy Atlas** 拓扑角色分类，高亮展示全局枢纽、模块调节子及通路基因。
+  - 升级 **RAG AI 智能综述**，原生支持 Markdown 表格转译与 **Mermaid.js** 交互式调控流程图。
+  - 新增 **基因标签超级锚定**，AI 文本中的 locus tag 可一键点击联动 Cytoscape 画布缩放高亮及右侧详情页跳转。
+  - 全局检索联动高亮，在 Global Metabolic Impact 列表中实时突出搜索靶基因的直接/上游转录因子。
+  - 收紧侧边栏边距，移除冗余卡片并统一了全局学术字体排版。
+
+#### v0.3.0 (June 2026 / 2026年6月)
+* **English**: Upgraded simulator supporting DNA-binding energy curves (Chart.js), active ecFBA capacity bottleneck shadow price calculations, and interactive metabolic flow networks.
+* **中文**: 升级启动子 DNA 结合能扫描曲线、ecFBA 酶瓶颈阻碍诊断与代谢通量分析流向图。
