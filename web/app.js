@@ -2167,11 +2167,12 @@ function buildGeneIndex() {
 
 
         if (cgl && cg) {
-
-            cglToCg[cgl.toLowerCase()] = cg;
-
-            cgToCgl[cg.toLowerCase()] = cgl;
-
+            let normalizedCgl = cgl;
+            if (cgl.toLowerCase().startsWith('cgl')) {
+                normalizedCgl = 'cgl' + cgl.substring(3);
+            }
+            cglToCg[normalizedCgl.toLowerCase()] = cg;
+            cgToCgl[cg.toLowerCase()] = normalizedCgl;
         }
 
         if (name && name !== '--' && cg) {
@@ -3675,7 +3676,10 @@ function showNodeDetails(locusTag) {
     detailTypeBadge.className = `gene-badge ${meta.type.toLowerCase()}`;
     detailTypeBadge.textContent = meta.type === 'TF' ? 'Transcription factor (TF)' : meta.type === 'sRNA' ? 'sRNA' : 'Target gene';
     
-    const cgl = cgToCgl[resolvedLower] || (locusTag.toLowerCase().startsWith('cgl') ? locusTag : '');
+    let cgl = cgToCgl[resolvedLower] || (locusTag.toLowerCase().startsWith('cgl') ? locusTag : '');
+    if (cgl && cgl.toLowerCase().startsWith('cgl')) {
+        cgl = 'cgl' + cgl.substring(3);
+    }
 
     // Prioritize Cgl locus tag for header
 
@@ -4135,7 +4139,7 @@ function showNodeDetails(locusTag) {
 
         // Fallback guess if no direct mapping exists but is a coding gene
 
-        const predictedCgl = standardCgForLinks.replace('cg', 'Cgl');
+        const predictedCgl = standardCgForLinks.replace('cg', 'cgl');
 
         dbLinks.push(`<a href="https://www.kegg.jp/entry/cgl:${predictedCgl}" target="_blank" class="ext-link" title="View metabolic pathway in KEGG"><i class="fa-solid fa-diagram-project"></i> KEGG</a>`);
 
@@ -4317,7 +4321,7 @@ function showNodeDetails(locusTag) {
 
                 <td><a href="#" class="gene-link" data-locus="${rel.locusTag}">${rel.gene}</a></td>
 
-                <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? '? Upstream' : 'Downstream ?'}</span></td>
+                <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? 'Upstream' : 'Downstream'}</span></td>
 
                 <td><span class="badge-role ${roleClass}">${roleText}</span></td>
 
@@ -5419,7 +5423,7 @@ function showOperonDetails(operonMeta, initialMode = null) {
 
                 </td>
 
-                <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? '? Upstream' : 'Downstream ?'}</span></td>
+                <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? 'Upstream' : 'Downstream'}</span></td>
 
                 <td><span class="badge-role ${roleClass}">${roleText}</span></td>
 
