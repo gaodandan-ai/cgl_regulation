@@ -3645,8 +3645,9 @@ a.ai-pathway-gene-badge:hover {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 10px 12px;
-    font-family: monospace;
-    font-size: 11px;
+    font-family: var(--font-primary);
+    font-size: 11.5px;
+    line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-all;
     color: var(--text-primary);
