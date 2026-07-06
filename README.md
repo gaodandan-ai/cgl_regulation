@@ -6,7 +6,7 @@ Bilingual Version: [English](#english-version) | [中文版本](#中文版本)
 
 ## English Version
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21053092.svg)](https://doi.org/10.5281/zenodo.21053092)
+
 
 An interactive, reproducible regulatory-metabolic analysis platform for **Corynebacterium glutamicum** DSM 20300 / ATCC 13032.
 
