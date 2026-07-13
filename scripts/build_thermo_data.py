@@ -1,27 +1,34 @@
 """
-scripts/build_thermo_data.py  (v3 - comprehensive expansion)
-=============================================================
-Expanded curated ΔrG'° database covering ~350 reactions in iCW773.
-All IDs verified against the actual model. Organized by pathway.
+scripts/build_thermo_data.py  (v4 - eQuilibrator integration)
+==============================================================
+Expanded ΔrG'° database covering iCW773 reactions via two layers:
+
+  Layer 1 (Priority)  : Hand-curated CURATED_DGR0 (~215 entries)
+  Layer 2 (Auto)      : Component Contribution via equilibrator-api
 
 Conditions: pH 7.0, I=0.1 M, T=30°C (303.15 K)
 c_range: [1 µM, 50 mM]  → half_spread = RT·ln(50000) ≈ 27.3 kJ/mol
 
-Classification:
-  forward : ΔrG'_max = ΔrG'° + 27.3 < -1.0  → always exergonic forward
-  reverse : ΔrG'_min = ΔrG'° - 27.3 > +1.0  → always endergonic forward
-  none    : near-equilibrium or no data
+Classification (applied to both layers):
+  forward : ΔrG'_max = ΔrG'° + half_spread < -1.0
+  reverse : ΔrG'_min = ΔrG'° - half_spread > +1.0
+  none    : near-equilibrium, uncertain, or no data
 
 Sources:
   [N13]  Noor et al. 2013 PLoS Comput Biol (Component Contribution)
   [F12]  Flamholz et al. 2012 Nucleic Acids Res (eQuilibrator)
   [T77]  Thauer et al. 1977 Bacteriol Rev 41:100
   [A03]  Alberty 2003 MIT Press
-  [C14]  Chang et al. 2014 Bioinformatics (COBRA Toolbox)
   [K]    KEGG thermodynamic estimates
+  [EQ]   Component Contribution method (auto-computed via equilibrator-api)
 """
 
-import os, json, math, logging, warnings
+import os
+import re
+import json
+import math
+import logging
+import warnings
 warnings.filterwarnings('ignore')
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -39,6 +46,12 @@ C_MAX   = 0.05       # 50 mM
 EPSILON = 1.0        # kJ/mol threshold
 
 HALF_SPREAD = R * T_K * math.log(C_MAX / C_MIN)   # ≈ 27.27 kJ/mol
+
+# ─── eQuilibrator configuration ────────────────────────────────────────────────
+# Max uncertainty (std_dev, kJ/mol) to accept auto-computed values
+EQ_HIGH_THRESHOLD   = 5.0   # σ < 5  → EQ_H (high confidence)
+EQ_MEDIUM_THRESHOLD = 15.0  # σ < 15 → EQ_M (medium confidence)
+# σ ≥ 15 → reject (too uncertain)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Format: "ModelReactionID": (dgr_prime_0_kJ, confidence_H/M/L, source_note)
@@ -303,7 +316,6 @@ CURATED_DGR0 = {
     "3HAD161":       ( -5.0, "L", "[K] 3-HAD C16:1"),
     "3HAD180":       ( -5.0, "L", "[K] 3-HAD C18"),
     "3HAD181":       ( -5.0, "L", "[K] 3-HAD C18:1"),
-    # Enoyl-ACP reductases (NADH: x; NADPH: y) — strongly forward (FADH₂ or NAD(P)H)
     "EAR40x":        (-24.5, "M", "[K] Enoyl-ACP reductase NADH C4"),
     "EAR40y":        (-24.5, "M", "[K] Enoyl-ACP reductase NADPH C4"),
     "EAR60x":        (-24.5, "M", "[K] EAR C6 NADH"),
@@ -328,7 +340,6 @@ CURATED_DGR0 = {
     "EAR180y":       (-24.5, "M", "[K] EAR C18 NADPH"),
     "EAR181x":       (-24.5, "M", "[K] EAR C18:1 NADH"),
     "EAR181y":       (-24.5, "M", "[K] EAR C18:1 NADPH"),
-    # ACP hydrolases (irreversible)
     "FA80ACPHi":     (-30.5, "H", "[K] Fatty-acyl-ACP hydrolase C8"),
     "FA100ACPHi":    (-30.5, "H", "[K] FA-ACP hydrolase C10"),
     "FA120ACPHi":    (-30.5, "H", "[K] FA-ACP hydrolase C12"),
@@ -350,13 +361,19 @@ CURATED_DGR0 = {
     "ACOAD8f":       (-22.1, "M", "[K] ACD C18"),
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # AMINO ACID ACTIVATION (tRNA ligases) — all ATP-driven, highly exergonic
+    # AMINO ACID ACTIVATION (tRNA ligases)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     "ALATRS":        (-25.5, "H", "[K] Alanyl-tRNA synthetase (overall)"),
     "ARGTRS":        (-25.5, "H", "[K] Arginyl-tRNA synthetase"),
     "ASNTRS":        (-25.5, "H", "[K] Asparaginyl-tRNA synthetase"),
     "ASPTRS":        (-25.5, "H", "[K] Aspartyl-tRNA synthetase"),
     "CYSTRS":        (-25.5, "H", "[K] Cysteinyl-tRNA synthetase"),
+    "HISTRS":        (-25.5, "H", "[K] Histidyl-tRNA synthetase"),
+    "ILETRS":        (-25.5, "H", "[K] Isoleucyl-tRNA synthetase"),
+    "LEUTRS":        (-25.5, "H", "[K] Leucyl-tRNA synthetase"),
+    "LYSTRS":        (-25.5, "H", "[K] Lysyl-tRNA synthetase"),
+    "METTRS":        (-25.5, "H", "[K] Methionyl-tRNA synthetase"),
+    "FMETTRS":       (-25.5, "H", "[K] Met-tRNA formyltransferase"),
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # PHOSPHOLIPID SYNTHESIS
@@ -384,7 +401,6 @@ CURATED_DGR0 = {
     "FRUK":          (-18.5, "M", "[K] Fructose-1-phosphate kinase"),
     "CAT":           (-88.0, "H", "[T77] Catalase (2H₂O₂ → 2H₂O + O₂)"),
     "DHAPT":         (-22.5, "M", "[K] Dihydroxyacetone phosphotransferase"),
-    "FBP":           (-16.3, "H", "[F12] Fructose-1,6-bisphosphatase"),  # already listed
     "ABTA":          ( -0.5, "M", "[K] 4-aminobutyrate transaminase; near-eq"),
     "5FTHFC":        ( -8.5, "M", "[K] 5-formyl-THF cycloligase"),
     "2METS":         (-16.5, "M", "[K] 2-keto-4-methylthiobutyrate aminotransferase"),
@@ -393,86 +409,75 @@ CURATED_DGR0 = {
     "ADNUC":         (-18.5, "M", "[K] Adenosine nucleosidase"),
     "ACNML":         ( -8.5, "M", "[K] Aconitate migration; near-eq"),
     "ACODA":         (-14.5, "M", "[K] Acetyl-CoA:oxaloacetate acyltransferase"),
-    "PGL":           (-24.8, "H", "[F12] 6-phosphogluconolactonase"),  # duplicate OK
-    "PPCK":          ( -7.1, "M", "[F12] PEP carboxykinase"),          # duplicate OK
-
-    # ━━━━━━ v3 EXPANSION: Additional pathway blocks ━━━━━━
-    "HISTRS":         (-25.5, "H", "[K] Histidyl-tRNA synthetase"),
-    "ILETRS":         (-25.5, "H", "[K] Isoleucyl-tRNA synthetase"),
-    "LEUTRS":         (-25.5, "H", "[K] Leucyl-tRNA synthetase"),
-    "LYSTRS":         (-25.5, "H", "[K] Lysyl-tRNA synthetase"),
-    "METTRS":         (-25.5, "H", "[K] Methionyl-tRNA synthetase"),
-    "NADK":           (-18.5, "M", "[K] NAD kinase (ATP-driven)"),
-    "NADS1":          (-22.0, "M", "[K] NAD synthase (Gln-hydrolyzing)"),
-    "NADH5":          (-52.0, "H", "[T77] NADH dehydrogenase (ubiquinone-8)"),
-    "NADH9":          (-52.0, "H", "[T77] NADH dehydrogenase (demethylmenaquinone)"),
-    "NADPHQR2":       (-52.0, "H", "[T77] NADPH quinone reductase (ubiquinone)"),
-    "NADPHQR3":       (-52.0, "H", "[T77] NADPH quinone reductase (menaquinone)"),
-    "NADPHQR4":       (-52.0, "H", "[T77] NADPH quinone reductase (demethylmenaquinone)"),
-    "NDPK2":          (  0.0, "H", "[F12] NDP kinase (ATP:UDP); near-eq"),
-    "NDPK3":          (  0.0, "H", "[F12] NDP kinase (ATP:CDP)"),
-    "NDPK4":          (  0.0, "H", "[F12] NDP kinase (ATP:dTDP)"),
-    "NDPK5":          (  0.0, "H", "[F12] NDP kinase (ATP:dGDP)"),
-    "NDPK6":          (  0.0, "H", "[F12] NDP kinase (ATP:dUDP)"),
-    "IPMD":           (-12.0, "M", "[K] 3-isopropylmalate dehydrogenase"),
-    "IPPMIa":         ( -3.5, "M", "[K] 3-isopropylmalate dehydratase step a"),
-    "IPPMIb":         ( -3.5, "M", "[K] 3-isopropylmalate dehydratase step b"),
-    "IPPS":           (-16.0, "M", "[K] 2-isopropylmalate synthase"),
-    "MECDPS":         (-14.5, "M", "[K] 2C-methyl-D-erythritol-2,4-CDP synthase"),
-    "IPDDI":          (  2.5, "M", "[K] Isopentenyl-PP isomerase; near-eq"),
-    "IPDPS":          (-28.5, "M", "[K] HMBPP reductase"),
-    "MEPCT":          (-22.0, "M", "[K] MEP cytidylyltransferase"),
-    "IG3PS":          (-22.0, "M", "[K] Imidazole-glycerol-3-P synthase"),
-    "IGPDH":          (-14.5, "M", "[K] Imidazoleglycerol-P dehydratase"),
-    "IMPC":           (-18.5, "M", "[K] IMP cyclohydrolase"),
-    "IMPD":           (-22.0, "M", "[K] IMP dehydrogenase (NAD+)"),
-    "HSTP":           (-18.5, "M", "[K] Histidinol-phosphate transaminase"),
-    "HEX1":           (-16.7, "H", "[F12] Hexokinase (glucose + ATP)"),
-    "HEX7":           (-16.7, "H", "[F12] Hexokinase (fructose + ATP)"),
-    "MAN6PI":         (  1.8, "M", "[K] Mannose-6-P isomerase; near-eq"),
-    "M1PD":           (-14.5, "M", "[K] Mannitol-1-P dehydrogenase"),
-    "MAN2D":          (-14.5, "M", "[K] Mannitol-2-dehydrogenase"),
-    "METAT":          (-38.5, "H", "[K] Methionine adenosyltransferase"),
-    "MTHFR2":         (-22.0, "M", "[K] 5,10-methylene-THF reductase (NADH)"),
-    "HSK":            (-18.5, "M", "[K] Homoserine kinase (ATP-driven)"),
-    "HSST":           (-22.5, "M", "[K] Homoserine O-acetyltransferase"),
-    "HSST_2":         (-22.5, "M", "[K] HSST isoform 2"),
-    "CYSTL":          (-14.5, "M", "[K] Cystathionine beta-lyase"),
-    "CYSS":           (-22.0, "M", "[K] Cysteine synthase (serine + H2S)"),
-    "MMM2":           (  0.3, "M", "[K] Methylmalonyl-CoA mutase; near-eq"),
-    "MCITD":          ( -3.5, "M", "[K] 2-methylcitrate dehydratase"),
-    "MCITL2":         ( -5.0, "M", "[K] Methylisocitrate lyase"),
-    "MSDH":           (-28.5, "M", "[K] Methylmalonate-semialdehyde dehydrogenase"),
-    "MSDHD":          (-28.5, "M", "[K] Malonate-semialdehyde dehydrogenase"),
-    "MM_COA_ADD5":    (-22.5, "M", "[K] Propanoyl-CoA carboxylase (ATP-driven)"),
-    "LDH":            (-25.0, "M", "[K] L-Lactate dehydrogenase (NAD+)"),
-    "LDH_D":          (-25.0, "M", "[K] D-Lactate dehydrogenase"),
-    "LDH_D2":         (-25.0, "M", "[K] D-LDH isoform 2"),
-    "L_LACD2":        (-22.5, "M", "[K] L-Lactate dehydrogenase (ubiquinone)"),
-    "L_LACD3":        (-22.5, "M", "[K] L-Lactate dehydrogenase (menaquinone)"),
-    "HMBS":           (-22.5, "M", "[K] Hydroxymethylbilane synthase"),
-    "FCLT":           (-18.5, "M", "[K] Ferrochelatase (heme insertion)"),
-    "ICHOR":          ( -8.5, "M", "[K] Isochorismate synthase"),
-    "HPPK2":          (-18.5, "M", "[K] 6-Hydroxymethyl-dihydropterin pyrophosphokinase"),
-    "FMETTRS":        (-25.5, "H", "[K] Met-tRNA formyltransferase"),
-    "LIPOCT":         (-22.0, "M", "[K] Lipoyl(octanoyl) transferase"),
-    "LIPOS":          (-38.5, "H", "[K] Lipoate synthase (radical SAM)"),
-    "LIPAMPL":        (-22.5, "M", "[K] Lipoyl-adenylate protein ligase"),
-    "BTS4":           (-42.5, "H", "[K] Biotin synthase (radical SAM)"),
-    "BTNC":           (-22.0, "M", "[K] Biotin carboxylase (ACC subunit)"),
-    "HXPRT":          ( -5.5, "M", "[K] Hypoxanthine-PRPP phosphoribosyltransferase"),
-    "INSH":           (-15.0, "M", "[K] Inosine hydrolase"),
-    "ACACT1r":        (-12.5, "M", "[K] Acetyl-CoA acetyltransferase (thiolase)"),
-    "MCOATA":         (-22.5, "M", "[K] Malonyl-CoA:ACP acyltransferase"),
-    "MACPD":          (-18.5, "H", "[K] Malonyl-ACP decarboxylase (irreversible)"),
-    "KAS14":          (-30.5, "M", "[K] Beta-ketoacyl-ACP synthase (FabF)"),
-    "KAS15":          (-30.5, "M", "[K] Beta-ketoacyl-ACP synthase isoform 2"),
-    "HCO3E":          (  0.0, "H", "[F12] HCO3 equilibration; dG approx 0"),
-    "MALGT":          (-22.5, "M", "[K] Maltose glucosyltransferase"),
+    "NADK":          (-18.5, "M", "[K] NAD kinase (ATP-driven)"),
+    "NADS1":         (-22.0, "M", "[K] NAD synthase (Gln-hydrolyzing)"),
+    "NADH5":         (-52.0, "H", "[T77] NADH dehydrogenase (ubiquinone-8)"),
+    "NADH9":         (-52.0, "H", "[T77] NADH dehydrogenase (demethylmenaquinone)"),
+    "NADPHQR2":      (-52.0, "H", "[T77] NADPH quinone reductase (ubiquinone)"),
+    "NADPHQR3":      (-52.0, "H", "[T77] NADPH quinone reductase (menaquinone)"),
+    "NADPHQR4":      (-52.0, "H", "[T77] NADPH quinone reductase (demethylmenaquinone)"),
+    "NDPK2":         (  0.0, "H", "[F12] NDP kinase (ATP:UDP); near-eq"),
+    "NDPK3":         (  0.0, "H", "[F12] NDP kinase (ATP:CDP)"),
+    "NDPK4":         (  0.0, "H", "[F12] NDP kinase (ATP:dTDP)"),
+    "NDPK5":         (  0.0, "H", "[F12] NDP kinase (ATP:dGDP)"),
+    "NDPK6":         (  0.0, "H", "[F12] NDP kinase (ATP:dUDP)"),
+    "IPMD":          (-12.0, "M", "[K] 3-isopropylmalate dehydrogenase"),
+    "IPPMIa":        ( -3.5, "M", "[K] 3-isopropylmalate dehydratase step a"),
+    "IPPMIb":        ( -3.5, "M", "[K] 3-isopropylmalate dehydratase step b"),
+    "IPPS":          (-16.0, "M", "[K] 2-isopropylmalate synthase"),
+    "MECDPS":        (-14.5, "M", "[K] 2C-methyl-D-erythritol-2,4-CDP synthase"),
+    "IPDDI":         (  2.5, "M", "[K] Isopentenyl-PP isomerase; near-eq"),
+    "IPDPS":         (-28.5, "M", "[K] HMBPP reductase"),
+    "MEPCT":         (-22.0, "M", "[K] MEP cytidylyltransferase"),
+    "IG3PS":         (-22.0, "M", "[K] Imidazole-glycerol-3-P synthase"),
+    "IGPDH":         (-14.5, "M", "[K] Imidazoleglycerol-P dehydratase"),
+    "IMPC":          (-18.5, "M", "[K] IMP cyclohydrolase"),
+    "IMPD":          (-22.0, "M", "[K] IMP dehydrogenase (NAD+)"),
+    "HSTP":          (-18.5, "M", "[K] Histidinol-phosphate transaminase"),
+    "HEX1":          (-16.7, "H", "[F12] Hexokinase (glucose + ATP)"),
+    "HEX7":          (-16.7, "H", "[F12] Hexokinase (fructose + ATP)"),
+    "MAN6PI":        (  1.8, "M", "[K] Mannose-6-P isomerase; near-eq"),
+    "M1PD":          (-14.5, "M", "[K] Mannitol-1-P dehydrogenase"),
+    "MAN2D":         (-14.5, "M", "[K] Mannitol-2-dehydrogenase"),
+    "METAT":         (-38.5, "H", "[K] Methionine adenosyltransferase"),
+    "MTHFR2":        (-22.0, "M", "[K] 5,10-methylene-THF reductase (NADH)"),
+    "HSK":           (-18.5, "M", "[K] Homoserine kinase (ATP-driven)"),
+    "HSST":          (-22.5, "M", "[K] Homoserine O-acetyltransferase"),
+    "HSST_2":        (-22.5, "M", "[K] HSST isoform 2"),
+    "CYSTL":         (-14.5, "M", "[K] Cystathionine beta-lyase"),
+    "CYSS":          (-22.0, "M", "[K] Cysteine synthase (serine + H2S)"),
+    "MMM2":          (  0.3, "M", "[K] Methylmalonyl-CoA mutase; near-eq"),
+    "MCITD":         ( -3.5, "M", "[K] 2-methylcitrate dehydratase"),
+    "MCITL2":        ( -5.0, "M", "[K] Methylisocitrate lyase"),
+    "MSDH":          (-28.5, "M", "[K] Methylmalonate-semialdehyde dehydrogenase"),
+    "MSDHD":         (-28.5, "M", "[K] Malonate-semialdehyde dehydrogenase"),
+    "MM_COA_ADD5":   (-22.5, "M", "[K] Propanoyl-CoA carboxylase (ATP-driven)"),
+    "LDH":           (-25.0, "M", "[K] L-Lactate dehydrogenase (NAD+)"),
+    "LDH_D":         (-25.0, "M", "[K] D-Lactate dehydrogenase"),
+    "LDH_D2":        (-25.0, "M", "[K] D-LDH isoform 2"),
+    "L_LACD2":       (-22.5, "M", "[K] L-Lactate dehydrogenase (ubiquinone)"),
+    "L_LACD3":       (-22.5, "M", "[K] L-Lactate dehydrogenase (menaquinone)"),
+    "HMBS":          (-22.5, "M", "[K] Hydroxymethylbilane synthase"),
+    "FCLT":          (-18.5, "M", "[K] Ferrochelatase (heme insertion)"),
+    "ICHOR":         ( -8.5, "M", "[K] Isochorismate synthase"),
+    "HPPK2":         (-18.5, "M", "[K] 6-Hydroxymethyl-dihydropterin pyrophosphokinase"),
+    "LIPOCT":        (-22.0, "M", "[K] Lipoyl(octanoyl) transferase"),
+    "LIPOS":         (-38.5, "H", "[K] Lipoate synthase (radical SAM)"),
+    "LIPAMPL":       (-22.5, "M", "[K] Lipoyl-adenylate protein ligase"),
+    "BTS4":          (-42.5, "H", "[K] Biotin synthase (radical SAM)"),
+    "BTNC":          (-22.0, "M", "[K] Biotin carboxylase (ACC subunit)"),
+    "HXPRT":         ( -5.5, "M", "[K] Hypoxanthine-PRPP phosphoribosyltransferase"),
+    "INSH":          (-15.0, "M", "[K] Inosine hydrolase"),
+    "ACACT1r":       (-12.5, "M", "[K] Acetyl-CoA acetyltransferase (thiolase)"),
+    "MCOATA":        (-22.5, "M", "[K] Malonyl-CoA:ACP acyltransferase"),
+    "MACPD":         (-18.5, "H", "[K] Malonyl-ACP decarboxylase (irreversible)"),
+    "KAS14":         (-30.5, "M", "[K] Beta-ketoacyl-ACP synthase (FabF)"),
+    "KAS15":         (-30.5, "M", "[K] Beta-ketoacyl-ACP synthase isoform 2"),
+    "HCO3E":         (  0.0, "H", "[F12] HCO3 equilibration; dG approx 0"),
+    "MALGT":         (-22.5, "M", "[K] Maltose glucosyltransferase"),
 }
 
 # ── Deduplicate ────────────────────────────────────────────────────────────────
-# Keep first occurrence if any duplicates snuck in
 seen = {}
 for k, v in CURATED_DGR0.items():
     if k not in seen:
@@ -480,9 +485,136 @@ for k, v in CURATED_DGR0.items():
 CURATED_DGR0 = seen
 
 
-def build_thermo_data():
-    logger.info("Building comprehensive thermo_dgr_data.json (v3)...")
+# ═══════════════════════════════════════════════════════════════════════════════
+# eQuilibrator AUTO-COMPUTATION
+# ═══════════════════════════════════════════════════════════════════════════════
 
+def _strip_compartment(met_id: str) -> str:
+    """Strip trailing compartment suffix: 'atp_c' -> 'atp', 'pyr_e' -> 'pyr'."""
+    return re.sub(r'_[cepmt]$', '', met_id)
+
+
+
+
+
+
+def fetch_from_equilibrator(model, curated_ids: set) -> dict:
+    """
+    Use Component Contribution to compute ΔrG'° for reactions NOT in curated_ids.
+
+    Returns dict: reaction_id -> {'dgr_prime_0', 'uncertainty_kJ', 'confidence', 'source'}
+    """
+    try:
+        from equilibrator_api import ComponentContribution, Q_
+    except ImportError:
+        logger.warning("equilibrator-api not installed; skipping auto-computation.")
+        return {}
+
+    logger.info("Initializing Component Contribution (may use cached data)...")
+    try:
+        cc = ComponentContribution()
+        cc.p_h = Q_('7.0')
+        cc.ionic_strength = Q_('0.1 M')
+        cc.temperature = Q_('303.15 K')  # 30°C
+    except Exception as e:
+        logger.error(f"Failed to initialize ComponentContribution: {e}")
+        return {}
+
+    # Build compound cache: bigg_id -> CC Compound object
+    compound_cache: dict = {}   # bigg_id -> compound or None
+
+    def get_cc_compound(bigg_id: str):
+        """Look up a CC compound by BiGG ID (with caching)."""
+        if bigg_id in compound_cache:
+            return compound_cache[bigg_id]
+        try:
+            cpd = cc.get_compound(f'bigg.metabolite:{bigg_id}')
+            compound_cache[bigg_id] = cpd
+            return cpd
+        except Exception:
+            compound_cache[bigg_id] = None
+            return None
+
+    eq_results = {}
+    n_success = n_fail_lookup = n_fail_calc = n_uncertain = n_skip = 0
+
+    candidates = [r for r in model.reactions if r.id not in curated_ids]
+    logger.info(f"Attempting eQuilibrator lookup for {len(candidates)} reactions...")
+
+    for rxn in candidates:
+        # Skip exchange / demand / sink / pseudo reactions (no inner chemistry)
+        if (rxn.id.startswith(('EX_', 'DM_', 'SK_', 'sink_', 'ATPM'))
+                or len(rxn.metabolites) <= 1):
+            n_skip += 1
+            continue
+
+        # Look up every metabolite; build a bigg_id-keyed stoich dict
+        formula_parts_lhs, formula_parts_rhs = [], []
+        failed_any = False
+
+        for met, coef in rxn.metabolites.items():
+            bigg_id = _strip_compartment(met.id)
+            cpd = get_cc_compound(bigg_id)
+            if cpd is None:
+                failed_any = True
+                break
+            abs_coef = abs(coef)
+            term = (f"bigg.metabolite:{bigg_id}"
+                    if abs_coef == 1
+                    else f"{abs_coef} bigg.metabolite:{bigg_id}")
+            if coef < 0:
+                formula_parts_lhs.append(term)
+            else:
+                formula_parts_rhs.append(term)
+
+        if failed_any or not formula_parts_lhs or not formula_parts_rhs:
+            n_fail_lookup += 1
+            continue
+
+        formula = " + ".join(formula_parts_lhs) + " = " + " + ".join(formula_parts_rhs)
+
+        # Compute ΔrG'° via CC
+        try:
+            eq_rxn     = cc.parse_reaction_formula(formula)
+            measurement = cc.dg_prime(eq_rxn)
+            dgr0  = measurement.magnitude.nominal_value
+            sigma = measurement.magnitude.std_dev
+
+            # Filter by uncertainty
+            if sigma > EQ_MEDIUM_THRESHOLD:
+                n_uncertain += 1
+                continue
+            elif sigma < EQ_HIGH_THRESHOLD:
+                conf = "EQ_H"
+            else:
+                conf = "EQ_M"
+
+            eq_results[rxn.id] = {
+                "dgr_prime_0":    round(dgr0,  2),
+                "uncertainty_kJ": round(sigma, 2),
+                "confidence":     conf,
+                "source":         f"[EQ] Component Contribution (σ={sigma:.1f} kJ/mol)",
+            }
+            n_success += 1
+
+        except Exception:
+            n_fail_calc += 1
+
+    logger.info(
+        f"eQuilibrator: {n_success} computed, {n_fail_lookup} metabolite-not-found, "
+        f"{n_fail_calc} calc-error, {n_uncertain} too-uncertain, {n_skip} skipped"
+    )
+    return eq_results
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN BUILD FUNCTION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def build_thermo_data(use_equilibrator: bool = True):
+    logger.info("Building comprehensive thermo_dgr_data.json (v4 + eQuilibrator)...")
+
+    model = None
     try:
         import cobra
         model = cobra.io.read_sbml_model(MODEL_PATH)
@@ -492,15 +624,22 @@ def build_thermo_data():
         logger.warning(f"Cannot load model ({e}); using curated keys only.")
         all_rxn_ids = set(CURATED_DGR0.keys())
 
-    CONF_MAP = {"H": "HIGH", "M": "MED", "L": "LOW"}
-    results  = {}
+    # ── Layer 2: Auto-compute with eQuilibrator ─────────────────────────────
+    eq_data = {}
+    if use_equilibrator and model is not None:
+        eq_data = fetch_from_equilibrator(model, set(CURATED_DGR0.keys()))
+        logger.info(f"eQuilibrator added {len(eq_data)} new reactions")
+
+    CONF_MAP = {"H": "HIGH", "M": "MED", "L": "LOW",
+                "EQ_H": "EQ_HIGH", "EQ_M": "EQ_MED"}
+    results = {}
     n_fwd = n_rev = n_neq = n_nodata = 0
     n_id_miss = 0
+    n_eq_used = 0
 
-    for rxn_id, (dgr0, conf_short, note) in CURATED_DGR0.items():
-        in_model = rxn_id in all_rxn_ids
-        if not in_model:
-            n_id_miss += 1
+    def _classify_and_add(rxn_id, dgr0, conf, source, in_model,
+                          uncertainty_kJ=None, eq_used=False):
+        nonlocal n_fwd, n_rev, n_neq, n_nodata, n_eq_used
 
         dgr_min = round(dgr0 - HALF_SPREAD, 2)
         dgr_max = round(dgr0 + HALF_SPREAD, 2)
@@ -515,22 +654,50 @@ def build_thermo_data():
         else:
             direction = "none"
 
-        results[rxn_id] = {
+        if eq_used:
+            n_eq_used += 1
+
+        entry = {
             "dgr_prime_0":   round(dgr0, 2),
             "dgr_prime_min": dgr_min,
             "dgr_prime_max": dgr_max,
             "direction_locked": direction,
-            "confidence":    CONF_MAP.get(conf_short, "LOW"),
-            "source":        note,
+            "confidence":    CONF_MAP.get(conf, "LOW"),
+            "source":        source,
             "in_model":      in_model,
             "note": (
                 f"Forward-locked (ΔrG'max={dgr_max:.1f} < -{EPSILON})" if direction == "forward" else
                 f"Reverse-locked (ΔrG'min={dgr_min:.1f} > +{EPSILON})"  if direction == "reverse" else
                 "Near-equilibrium or unmatched; bounds unchanged"
-            )
+            ),
         }
+        if uncertainty_kJ is not None:
+            entry["equilibrator_uncertainty_kJ"] = uncertainty_kJ
+        results[rxn_id] = entry
 
-    # Fill remaining model reactions with no-data placeholders
+    # ── Layer 1: Hand-curated (priority) ───────────────────────────────────
+    for rxn_id, (dgr0, conf_short, note) in CURATED_DGR0.items():
+        in_model = rxn_id in all_rxn_ids
+        if not in_model:
+            n_id_miss += 1
+        _classify_and_add(rxn_id, dgr0, conf_short, note, in_model)
+
+    # ── Layer 2: eQuilibrator (fills gaps only) ─────────────────────────────
+    for rxn_id, eq_entry in eq_data.items():
+        if rxn_id in results:
+            continue  # curated data takes priority
+        in_model = rxn_id in all_rxn_ids
+        _classify_and_add(
+            rxn_id,
+            eq_entry["dgr_prime_0"],
+            eq_entry["confidence"],
+            eq_entry["source"],
+            in_model,
+            uncertainty_kJ=eq_entry["uncertainty_kJ"],
+            eq_used=True,
+        )
+
+    # ── Fill remaining model reactions with no-data placeholders ───────────
     for rxn_id in all_rxn_ids:
         if rxn_id not in results:
             n_nodata += 1
@@ -538,16 +705,23 @@ def build_thermo_data():
                 "dgr_prime_0": None, "dgr_prime_min": None, "dgr_prime_max": None,
                 "direction_locked": "none", "confidence": "NONE",
                 "source": "no_data", "in_model": True,
-                "note": "No thermodynamic data; bounds unchanged"
+                "note": "No thermodynamic data; bounds unchanged",
             }
 
     total    = len(all_rxn_ids)
-    n_in     = len(CURATED_DGR0) - n_id_miss
+    n_in     = len([r for r in results.values() if r["in_model"] and r["dgr_prime_0"] is not None])
     coverage = round(n_in / total * 100, 1) if total else 0.0
+
+    n_curated_in_model = len([
+        rxn_id for rxn_id, (_, _, _) in CURATED_DGR0.items()
+        if rxn_id in all_rxn_ids
+    ])
 
     logger.info("=" * 65)
     logger.info(f"Total model reactions    : {total}")
-    logger.info(f"Curated (in model)       : {n_in}  ({coverage}%)")
+    logger.info(f"Curated (in model)       : {n_curated_in_model}")
+    logger.info(f"eQuilibrator (new)       : {n_eq_used}")
+    logger.info(f"Combined coverage        : {n_in}  ({coverage}%)")
     logger.info(f"Curated (ID not in model): {n_id_miss}")
     logger.info(f"Forward-locked           : {n_fwd}")
     logger.info(f"Reverse-locked           : {n_rev}")
@@ -558,23 +732,30 @@ def build_thermo_data():
 
     output = {
         "_meta": {
-            "description": "Comprehensive curated ΔrG' data for iCW773 (v3)",
-            "conditions": "pH 7.0, I=0.1 M, T=30°C (303.15 K)",
+            "description": "Comprehensive ΔrG' data for iCW773 (v4: curated + eQuilibrator CC)",
+            "conditions":  "pH 7.0, I=0.1 M, T=30°C (303.15 K)",
             "c_min_M": C_MIN, "c_max_M": C_MAX, "epsilon_kJ": EPSILON, "units": "kJ/mol",
-            "total_reactions": total, "coverage_pct": coverage,
-            "n_forward_locked": n_fwd, "n_reverse_locked": n_rev,
-            "n_near_equilibrium": n_neq, "n_no_data": n_nodata,
-            "half_spread_kJ": round(HALF_SPREAD, 2),
+            "total_reactions":    total,
+            "coverage_pct":       coverage,
+            "n_curated":          n_curated_in_model,
+            "n_equilibrator":     n_eq_used,
+            "n_forward_locked":   n_fwd,
+            "n_reverse_locked":   n_rev,
+            "n_near_equilibrium": n_neq,
+            "n_no_data":          n_nodata,
+            "half_spread_kJ":     round(HALF_SPREAD, 2),
             "sources": [
                 "[N13] Noor et al. 2013 PLoS Comput Biol (Component Contribution)",
                 "[F12] Flamholz et al. 2012 Nucleic Acids Res (eQuilibrator)",
                 "[T77] Thauer et al. 1977 Bacteriol Rev 41(1):100",
                 "[A03] Alberty 2003 MIT Press",
-                "[K]   KEGG thermodynamic estimates"
+                "[K]   KEGG thermodynamic estimates",
+                "[EQ]  Component Contribution auto-computed (equilibrator-api 0.7.0)",
             ],
-            "generated": "2026-07-12", "version": "3.0"
+            "generated": "2026-07-13",
+            "version": "4.0",
         },
-        "reactions": results
+        "reactions": results,
     }
 
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
@@ -585,4 +766,9 @@ def build_thermo_data():
 
 
 if __name__ == "__main__":
-    build_thermo_data()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no-equilibrator", action="store_true",
+                        help="Skip eQuilibrator auto-computation (curated only)")
+    args = parser.parse_args()
+    build_thermo_data(use_equilibrator=not args.no_equilibrator)
