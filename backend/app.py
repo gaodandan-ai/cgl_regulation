@@ -1037,6 +1037,8 @@ def get_string_ppi(gene: str = "", min_score: int = 400, limit: int = 50):
     if not gene:
         raise HTTPException(status_code=400, detail="Missing gene parameter")
     gene_lower = gene.strip().lower()
+    if gene_lower == "_meta":
+        raise HTTPException(status_code=400, detail="Invalid gene identifier")
 
     # Try direct lookup
     partners = STRING_INTERACTIONS.get(gene_lower)
