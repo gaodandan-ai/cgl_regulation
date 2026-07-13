@@ -34,6 +34,12 @@ if PARENT_DIR not in sys.path:
 import run_server
 
 from model_loader import get_model_status, load_model_if_needed
+try:
+    from thermo_pruner import get_pruning_report as _get_thermo_pruning_report
+    _THERMO_PRUNER_AVAILABLE = True
+except ImportError:
+    _get_thermo_pruning_report = None
+    _THERMO_PRUNER_AVAILABLE = False
 from simulation import run_baseline_simulation, run_gene_knockout, run_gene_set_knockout, run_tf_perturbation, run_fva_analysis, run_dynamic_rfba, run_ecfba_simulation, run_mfa_comparison
 from schemas import (
     ModelStatusResponse,
@@ -960,15 +966,14 @@ def get_thermo_pruning_report():
     Return the thermodynamic directionality pruning report for the loaded model.
     Shows how many reactions had their bounds tightened based on ΔrG' feasibility analysis.
     """
-    try:
-        from thermo_pruner import get_pruning_report
-        report = get_pruning_report()
-        return report
-    except ImportError:
+    if not _THERMO_PRUNER_AVAILABLE or _get_thermo_pruning_report is None:
         return {
             "enabled": False,
             "message": "Thermodynamic pruning module not available."
         }
+    try:
+        report = _get_thermo_pruning_report()
+        return report
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve pruning report: {str(e)}")
 # ── Network Centrality Endpoints ───────────────────────────────────────────────
@@ -1020,28 +1025,67 @@ def get_centrality_for_gene(locus: str):
     return entry
 
 @app.get("/api/analysis/string_ppi")
-def get_string_ppi(gene: str = ""):
-    """Return STRING protein-protein interaction partners for a gene locus tag."""
+def get_string_ppi(gene: str = "", min_score: int = 400, limit: int = 50):
+    """Return STRING v12 protein-protein interaction partners for a gene locus tag.
+
+    Parameters
+    ----------
+    gene      : CG locus tag (e.g. 'cg0001') or gene name (e.g. 'dnaA')
+    min_score : minimum combined STRING score 0-1000 (default 400 = medium confidence)
+    limit     : max number of partners to return (default 50)
+    """
     if not gene:
         raise HTTPException(status_code=400, detail="Missing gene parameter")
     gene_lower = gene.strip().lower()
-    
+
     # Try direct lookup
     partners = STRING_INTERACTIONS.get(gene_lower)
-    
-    # If not found, try mapping aliases
+
+    # If not found, try mapping aliases (e.g. gene name → locus)
     if not partners:
-        aliases = run_server.expand_gene_aliases(gene_lower)
-        for alias in aliases:
-            a_lower = alias.lower()
-            if a_lower in STRING_INTERACTIONS:
-                partners = STRING_INTERACTIONS[a_lower]
-                break
-                
+        try:
+            aliases = run_server.expand_gene_aliases(gene_lower)
+            for alias in aliases:
+                a_lower = alias.lower()
+                if a_lower in STRING_INTERACTIONS:
+                    partners = STRING_INTERACTIONS[a_lower]
+                    gene_lower = a_lower
+                    break
+        except Exception:
+            pass
+
     if not partners:
-        return {"gene": gene, "partners": []}
-        
-    return {"gene": gene, "partners": partners}
+        return {
+            "gene":        gene,
+            "resolved_id": gene_lower,
+            "partners":    [],
+            "total":       0,
+            "filtered":    0,
+        }
+
+    # Apply score filter and limit
+    filtered = [p for p in partners if p.get("score", 0) >= min_score]
+    total    = len(filtered)
+    filtered = filtered[:limit]  # already sorted by score desc
+
+    # Attach STRING meta (gene count / edge count) from _meta block
+    meta = STRING_INTERACTIONS.get("_meta", {})
+
+    return {
+        "gene":          gene,
+        "resolved_id":   gene_lower,
+        "partners":      filtered,
+        "total":         total,
+        "filtered":      total,
+        "string_meta": {
+            "version":       meta.get("version", "12.0"),
+            "min_score":     min_score,
+            "n_genes":       meta.get("n_genes", 0),
+            "n_edges":       meta.get("n_edges", 0),
+            "n_high_conf":   meta.get("n_high_conf", 0),
+        },
+    }
+
 
 @app.get("/api/quality/icgb21fr")
 def quality_icgb21fr():
