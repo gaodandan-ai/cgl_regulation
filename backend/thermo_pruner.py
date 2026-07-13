@@ -151,6 +151,24 @@ def apply_thermodynamic_pruning(model, epsilon: float = 1.0):
         elif direction == "reverse":
             if rxn.upper_bound > 0:
                 rxn.upper_bound = 0.0
+                # ── Safety guard: revert if lock makes model infeasible ────
+                try:
+                    _test = model.slim_optimize()
+                    if _test is None or _test < 1e-6:
+                        rxn.upper_bound = old_ub
+                        logger.warning(
+                            "[SafeGuard] Reverted reverse lock on %s: "
+                            "locking makes model infeasible (dG=%.1f kJ/mol). "
+                            "Model may use this reaction in forward direction.",
+                            rxn.id, entry.get("dgr_prime_0", 0)
+                        )
+                        n_skipped_neq += 1
+                        continue
+                except Exception:
+                    rxn.upper_bound = old_ub
+                    n_skipped_neq += 1
+                    continue
+                # ─────────────────────────────────────────────────────────
                 n_reverse_locked += 1
                 pruned_details.append({
                     "reaction_id":  rxn.id,

@@ -4905,12 +4905,30 @@ async function initFbaSimulation(locusTag, nodeType) {
             
             // Show warnings if any
             if (res.warnings && res.warnings.length > 0) {
+                const heuristicWarns = res.warnings.filter(w => w.startsWith('[HEURISTIC MODE]'));
+                const normalWarns    = res.warnings.filter(w => !w.startsWith('[HEURISTIC MODE]'));
+
+                let warningHtml = '';
+
+                if (heuristicWarns.length > 0) {
+                    warningHtml += `<div style="background:#fff3e0;border:1.5px solid #f97316;border-radius:6px;padding:7px 10px;margin-bottom:6px;color:#b45309;">` +
+                        `<strong>⚠️ Heuristic Mode — Results are NOT real FBA</strong>` +
+                        `<ul style="margin:4px 0 0 0;padding-left:14px;">` +
+                        heuristicWarns.map(w => `<li>${w.replace('[HEURISTIC MODE] ', '')}</li>`).join('') +
+                        `</ul></div>`;
+                }
+
+                if (normalWarns.length > 0) {
+                    warningHtml += `<div><strong>Warnings:</strong><ul style="margin:4px 0 0 0;padding-left:14px;">` +
+                        normalWarns.map(w => `<li>${w}</li>`).join('') +
+                        `</ul></div>`;
+                }
+
                 fbaError.classList.remove('hidden');
                 fbaError.style.color = '#b45309';
                 fbaError.style.background = '#fffbeb';
                 fbaError.style.borderColor = '#fef3c7';
-                fbaError.innerHTML = '<strong>Warnings:</strong><ul style="margin: 4px 0 0 0; padding-left: 14px;">' + 
-                    res.warnings.map(w => `<li>${w}</li>`).join('') + '</ul>';
+                fbaError.innerHTML = warningHtml;
             }
         } else {
             fbaError.classList.remove('hidden');

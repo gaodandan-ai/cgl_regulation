@@ -80,7 +80,11 @@ def run_fba_optimization(model) -> Tuple[float, str, List[str]]:
     """
     warnings = []
     if not is_solver_available():
-        return 0.0825, "optimal", ["No swiglpk/GLPK solver found. Running in high-fidelity heuristic simulation mode."]
+        return 0.0825, "heuristic", [
+            "[HEURISTIC MODE] No LP solver (swiglpk/GLPK) available. "
+            "Results are pre-computed estimates, NOT real FBA solutions. "
+            "Install swiglpk for accurate simulations."
+        ]
     try:
         solution = model.optimize()
         if solution.status == 'optimal':
@@ -126,7 +130,11 @@ def run_fba_simulation_pipeline(
     if not is_solver_available():
         label, obj_warnings = apply_objective_to_model(model, objective_cfg)
         warnings.extend(obj_warnings)
-        warnings.append("No swiglpk/GLPK solver found. Running in high-fidelity heuristic simulation mode.")
+        warnings.append(
+            "[HEURISTIC MODE] No LP solver (swiglpk/GLPK) available. "
+            "All flux values below are pre-computed literature estimates, NOT real FBA results. "
+            "Install swiglpk for accurate simulations."
+        )
         
         is_glutarate = "glu" in label.lower() or "glutamate" in label.lower()
         is_lysine = "lys" in label.lower() or "lysine" in label.lower()
@@ -191,7 +199,7 @@ def run_fba_simulation_pipeline(
             "label": label
         }
         
-        return "optimal", obj_resp, base_obj, perturbed_obj, change, change_pct, tracked, warnings
+        return "heuristic", obj_resp, base_obj, perturbed_obj, change, change_pct, tracked, warnings
     tracked_fluxes = []
     
     # 1. Run baseline to get objective label and baseline values
