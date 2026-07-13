@@ -29,10 +29,26 @@ outputs/
 
 # Large downloaded model directories
 data/model/ecCGL1-main/
-data/reference/model/ecCGL1-main/
 data/reference/model/iCW773.omex
 data/reference/AllOrganismsFiles/
 data/AllOrganismsFiles/
+
+# ecCGL1-main: track only the critical model JSON files needed for ecFBA & MFA.
+# Exclude large kcat databases, cache files, analysis outputs, and raw data.
+data/reference/model/ecCGL1-main/ecCGL1-main/_cache/
+data/reference/model/ecCGL1-main/ecCGL1-main/data/
+data/reference/model/ecCGL1-main/ecCGL1-main/analysis/
+data/reference/model/ecCGL1-main/ecCGL1-main/script/__pycache__/
+data/reference/model/ecCGL1-main/ecCGL1-main/script/.ipynb_checkpoints/
+data/reference/model/ecCGL1-main/ecCGL1-main/iCW773_get_data/bigg_id_name_mapping.json
+data/reference/model/ecCGL1-main/ecCGL1-main/iCW773_get_data/kcat_database_brenda.json
+data/reference/model/ecCGL1-main/ecCGL1-main/iCW773_get_data/kcat_database_brenda_for_model.json
+data/reference/model/ecCGL1-main/ecCGL1-main/iCW773_get_data/kcat_database_combined.json
+data/reference/model/ecCGL1-main/ecCGL1-main/iCW773_get_data/kcat_database_sabio_rk.json
+data/reference/model/ecCGL1-main/ecCGL1-main/iCW773_get_data/.ipynb_checkpoints/
+data/reference/model/ecCGL1-main/ecCGL1-main/model/*.xml
+data/reference/model/ecCGL1-main/ecCGL1-main/model/*.mat
+data/reference/model/ecCGL1-main/ecCGL1-main/model/*.xlsx
 
 # ── Unpublished heat stress experimental data ──────────────────────────────────
 # These files exist locally and are used by the .bat launcher.
