@@ -6,7 +6,14 @@ import urllib.request
 import urllib.error
 import time
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+import sys
+
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # When running as a packaged app, write folders relative to the executable path
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 LITERATURE_DIR = os.path.join(BASE_DIR, "data", "literature")
 CACHE_FILE = os.path.join(BASE_DIR, "data", "literature_cache.json")
 

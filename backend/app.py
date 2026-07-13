@@ -22,12 +22,15 @@ if not hasattr(math, 'comb'):
         return numerator // denominator
     math.comb = math_comb
 
-# Add backend directory and parent directory to sys.path
-BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    BACKEND_DIR = os.path.join(sys._MEIPASS, "backend")
+    PARENT_DIR = sys._MEIPASS
+else:
+    BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+    PARENT_DIR = os.path.dirname(BACKEND_DIR)
+
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
-
-PARENT_DIR = os.path.dirname(BACKEND_DIR)
 if PARENT_DIR not in sys.path:
     sys.path.insert(0, PARENT_DIR)
 
@@ -1315,7 +1318,11 @@ async def mfa_comparison_endpoint():
 
 
 # Mount static files
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    ROOT_DIR = sys._MEIPASS
+else:
+    ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 web_dir = os.path.join(ROOT_DIR, "web")
 data_dir = os.path.join(ROOT_DIR, "data", "reference")
 

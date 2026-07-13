@@ -70,3 +70,8 @@ data_pipeline/scratch*
 .gemini/
 *.log
 
+# PyInstaller build directories and configs
+build/
+dist/
+*.spec
+

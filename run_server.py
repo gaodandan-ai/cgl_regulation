@@ -50,7 +50,10 @@ if not hasattr(math, 'comb'):
     math.comb = math_comb
 
 PORT    = int(os.environ.get("PORT", 8000))
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    ROOT_DIR = sys._MEIPASS
+else:
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ── Ensure backend/ is importable when run_server.py is executed directly ────
 _backend_dir = os.path.join(ROOT_DIR, "backend")
@@ -1446,7 +1449,8 @@ if __name__ == "__main__":
         
     print(f"Local Server successfully starting on port {PORT} using FastAPI & Uvicorn...")
     try:
-        uvicorn.run("backend.app:app", host="0.0.0.0", port=PORT, reload=False)
+        from backend.app import app
+        uvicorn.run(app, host="0.0.0.0", port=PORT, reload=False)
     except KeyboardInterrupt:
         print("\nStopping local server. Goodbye!")
         sys.exit(0)
