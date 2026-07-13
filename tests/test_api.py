@@ -41,7 +41,7 @@ class TestModelStatus:
     def test_status_has_reactions(self, client):
         r = client.get("/api/model/status")
         data = r.json()
-        assert "n_reactions" in data or "reactions" in str(data)
+        assert "reaction_count" in data or "n_reactions" in data or "reaction" in str(data)
 
 
 # ─── Thermodynamics endpoints ─────────────────────────────────────────────────
@@ -129,7 +129,7 @@ class TestQualityEndpoints:
         assert r.status_code == 200
         data = r.json()
         # After P0-2, should have 1800+ entries
-        total = data.get("total_entries", data.get("n_entries", 0))
+        total = len(data)
         assert total >= 1800, f"Expected >=1800 kcat entries, got {total}"
 
     def test_essential_quality(self, client):

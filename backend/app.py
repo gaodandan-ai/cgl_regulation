@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -68,6 +68,9 @@ logger = logging.getLogger("app")
 
 app = FastAPI(title="Cgl Regulation FBA Simulator API", version="0.3.0")
 
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+
 # Enable CORS for frontend integration across ports
 app.add_middleware(
     CORSMiddleware,
@@ -76,6 +79,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Enable Gzip compression to speed up transfer of large datasets (like 6MB metabolic mapping JSON)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 ESSENTIAL_GENES = {}
 PRODORIC_PWMS = {}
@@ -549,6 +555,8 @@ def summarize(
     x_ai_model: str = Header("", alias="X-AI-Model"),
     x_ai_base_url: str = Header("", alias="X-AI-Base-URL"),
 ):
+    if not gene or not gene.strip():
+        raise HTTPException(status_code=400, detail="Missing required query parameter: gene")
     api_key = x_ai_api_key or x_gemini_api_key or ""
     try:
         handler_instance = run_server.CustomHTTPRequestHandler.__new__(run_server.CustomHTTPRequestHandler)
@@ -886,10 +894,13 @@ def metabolic_impact(gene: str = "", query: str = ""):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/metabolic_pathways")
-def metabolic_pathways(pathway: str = "", query: str = ""):
+def metabolic_pathways(response: Response, pathway: str = "", query: str = ""):
     target = pathway or query
     try:
         result = run_server.handle_metabolic_pathways(target)
+        if not target:
+            # Cache default large pathways payload (6MB) for 1 hour to improve load speeds
+            response.headers["Cache-Control"] = "public, max-age=3600"
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -946,27 +957,31 @@ def engineering_simulation(tf: str = ""):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/quality/essential")
-def get_essential_genes():
+def get_essential_genes(response: Response):
     """Return the database of C. glutamicum essential genes."""
+    response.headers["Cache-Control"] = "public, max-age=3600"
     return ESSENTIAL_GENES
 
 @app.get("/api/quality/brenda")
-def get_brenda_mappings():
+def get_brenda_mappings(response: Response):
     """Return the database of C. glutamicum BRENDA kcat mappings."""
+    response.headers["Cache-Control"] = "public, max-age=3600"
     return BRENDA_KCAT_MAPPINGS
 
 @app.get("/api/quality/abasy")
-def get_abasy_roles():
+def get_abasy_roles(response: Response):
     """Return the database of C. glutamicum Abasy roles."""
+    response.headers["Cache-Control"] = "public, max-age=3600"
     return ABASY_ROLES
 
 @app.get("/api/thermo/pruning-report")
-def get_thermo_pruning_report():
+def get_thermo_pruning_report(response: Response):
     """
     Return the thermodynamic directionality pruning report for the loaded model.
     Shows how many reactions had their bounds tightened based on ΔrG' feasibility analysis.
     Triggers model loading if not already done (pruning runs at load time).
     """
+    response.headers["Cache-Control"] = "public, max-age=1800"
     if not _THERMO_PRUNER_AVAILABLE or _get_thermo_pruning_report is None:
         return {
             "enabled": False,
@@ -1037,8 +1052,9 @@ def _load_centrality():
     return _CENTRALITY_DATA
 
 @app.get("/api/network/centrality")
-def get_network_centrality(limit: int = 30, tfs_only: bool = True):
+def get_network_centrality(response: Response, limit: int = 30, tfs_only: bool = True):
     """Return network centrality metrics for TFs in the regulatory network."""
+    response.headers["Cache-Control"] = "public, max-age=1800"
     data = _load_centrality()
     if data is None:
         raise HTTPException(status_code=503, detail="Centrality data not available. Run scripts/network_centrality.py first.")
@@ -1053,8 +1069,9 @@ def get_network_centrality(limit: int = 30, tfs_only: bool = True):
     }
 
 @app.get("/api/network/centrality/{locus}")
-def get_centrality_for_gene(locus: str):
+def get_centrality_for_gene(response: Response, locus: str):
     """Return centrality metrics for a specific gene locus tag."""
+    response.headers["Cache-Control"] = "public, max-age=1800"
     data = _load_centrality()
     if data is None:
         raise HTTPException(status_code=503, detail="Centrality data not available.")

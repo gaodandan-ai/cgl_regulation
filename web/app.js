@@ -279,159 +279,129 @@ function updateStatus(message, type = 'loading') {
 
 
 async function loadNetworkData() {
-
     try {
-        updateStatus('Loading DLKcat enzyme predictions...', 'loading');
-        try {
-            const dlkcatResponse = await fetch('data/dlkcat_predicted_kcat.json');
-            if (dlkcatResponse.ok) {
-                dlkcatPredictions = await dlkcatResponse.json();
-                window.dlkcatPredictions = dlkcatPredictions;
-                console.log(`Loaded ${Object.keys(dlkcatPredictions).length} DLKcat predicted enzyme parameters.`);
-            }
-        } catch (e) {
-            console.warn('Failed to load DLKcat predictions database:', e);
-        }
+        updateStatus('Loading database assets in parallel...', 'loading');
 
-        try {
-            updateStatus('Loading essential genes database...', 'loading');
-            const essentialResponse = await fetch('/api/quality/essential');
-            if (essentialResponse.ok) {
-                essentialGenes = await essentialResponse.json();
-                window.essentialGenes = essentialGenes;
-                console.log(`Loaded ${Object.keys(essentialGenes).length} essential genes.`);
-            }
-        } catch (e) {
-            console.warn('Failed to load essential genes database:', e);
-        }
+        // Fetch all assets in parallel to optimize page load performance
+        const fetches = {
+            dlkcat: fetch('data/dlkcat_predicted_kcat.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+            essential: fetch('/api/quality/essential').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+            brenda: fetch('/api/quality/brenda').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+            abasy: fetch('/api/quality/abasy').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+            mapping: fetch(MAPPING_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
+            tf: fetch(REGULATIONS_URL).then(r => {
+                if (!r.ok) throw new Error('Unable to read regulations.csv. Please confirm the local server is running.');
+                return r.text();
+            }),
+            rna: fetch(RNA_REGULATIONS_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
+            operon: fetch(OPERONS_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
+            edgeConfidence: fetch(EDGE_CONFIDENCE_SCORES_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
+            tcs: fetch(TCS_SYSTEMS_URL).then(r => r.ok ? r.json() : []).catch(() => []),
+            sigma: fetch(SIGMA_ANNOTATIONS_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+            imodulonWeights: fetch(IMODULON_WEIGHTS_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+            imodulonByGene: fetch(IMODULON_BY_GENE_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+            imodulonMetadata: fetch(IMODULON_METADATA_URL).then(r => r.ok ? r.json() : []).catch(() => []),
+            metabolic: (window.metabolicModelAdapter && typeof window.metabolicModelAdapter.loadMetabolicPathways === 'function')
+                ? window.metabolicModelAdapter.loadMetabolicPathways().catch(() => null)
+                : Promise.resolve(null)
+        };
 
-        try {
-            updateStatus('Loading BRENDA kcat database...', 'loading');
-            const brendaResponse = await fetch('/api/quality/brenda');
-            if (brendaResponse.ok) {
-                brendaKcatMappings = await brendaResponse.json();
-                window.brendaKcatMappings = brendaKcatMappings;
-                console.log(`Loaded ${Object.keys(brendaKcatMappings).length} BRENDA kcat mappings.`);
-            }
-        } catch (e) {
-            console.warn('Failed to load BRENDA kcat database:', e);
-        }
+        const results = {};
+        const keys = Object.keys(fetches);
+        const resolved = await Promise.all(Object.values(fetches));
+        keys.forEach((key, i) => {
+            results[key] = resolved[i];
+        });
 
-        try {
-            updateStatus('Loading Abasy Atlas roles...', 'loading');
-            const abasyResponse = await fetch('/api/quality/abasy');
-            if (abasyResponse.ok) {
-                abasyRoles = await abasyResponse.json();
-                window.abasyRoles = abasyRoles;
-                console.log(`Loaded ${Object.keys(abasyRoles).length} Abasy roles.`);
-            }
-        } catch (e) {
-            console.warn('Failed to load Abasy roles database:', e);
-        }
+        // 1. DLKcat Predictions
+        dlkcatPredictions = results.dlkcat;
+        window.dlkcatPredictions = dlkcatPredictions;
+        console.log(`Loaded ${Object.keys(dlkcatPredictions).length} DLKcat predicted enzyme parameters.`);
 
-        updateStatus('Loading gene name mapping data...', 'loading');
+        // 2. Essential Genes
+        essentialGenes = results.essential;
+        window.essentialGenes = essentialGenes;
+        console.log(`Loaded ${Object.keys(essentialGenes).length} essential genes.`);
 
-        const mapResponse = await fetch(MAPPING_URL);
+        // 3. BRENDA mappings
+        brendaKcatMappings = results.brenda;
+        window.brendaKcatMappings = brendaKcatMappings;
+        console.log(`Loaded ${Object.keys(brendaKcatMappings).length} BRENDA kcat mappings.`);
 
-        if (mapResponse.ok) {
+        // 4. Abasy Roles
+        abasyRoles = results.abasy;
+        window.abasyRoles = abasyRoles;
+        console.log(`Loaded ${Object.keys(abasyRoles).length} Abasy roles.`);
 
-            const mapText = await mapResponse.text();
-
-            geneMapping = parseCSV(mapText);
-
+        // 5. Gene Mappings
+        if (results.mapping) {
+            geneMapping = parseCSV(results.mapping);
             console.log(`Loaded ${geneMapping.length} gene mapping records.`);
-
         } else {
-
             console.warn('plate_gene_mapping.csv file not found. Skipping mapping.');
-
         }
 
-
-
-        updateStatus('Loading TF-target regulatory data...', 'loading');
-
-        const tfResponse = await fetch(REGULATIONS_URL);
-
-        if (!tfResponse.ok) throw new Error('Unable to read regulations.csv. Please confirm the local server is running.');
-
-        const tfText = await tfResponse.text();
-
-        
-
-        regulations = parseCSV(tfText);
-
+        // 6. Regulations (TF-TG)
+        regulations = parseCSV(results.tf);
         console.log(`Loaded ${regulations.length} TF-TG regulations.`);
 
-
-
-        updateStatus('Loading sRNA-mRNA regulatory data...', 'loading');
-
-        const rnaResponse = await fetch(RNA_REGULATIONS_URL);
-
-        if (rnaResponse.ok) {
-
-            const rnaText = await rnaResponse.text();
-
-            rnaRegulations = parseCSV(rnaText);
-
+        // 7. sRNA Regulations
+        if (results.rna) {
+            rnaRegulations = parseCSV(results.rna);
             console.log(`Loaded ${rnaRegulations.length} sRNA-mRNA regulations.`);
-
             if (filterSrna.checked) {
                 srnaThresholdPanel.classList.remove('hidden');
             } else {
                 srnaThresholdPanel.classList.add('hidden');
             }
-
         } else {
-
             console.warn('sRNA-mRNA regulations.csv file not found. Skipping sRNA data.');
-
         }
 
-
-
-        updateStatus('Loading operon structure data...', 'loading');
-
-        const operonResponse = await fetch(OPERONS_URL);
-
-        if (operonResponse.ok) {
-
-            const operonText = await operonResponse.text();
-
-            parseOperons(operonText);
-
+        // 8. Operons
+        if (results.operon) {
+            parseOperons(results.operon);
             console.log(`Loaded operons mapping.`);
-
         } else {
-
             console.warn('Operons file not found. Skipping operons data.');
-
         }
 
-        updateStatus('Loading RF edge confidence scores...', 'loading');
-
-        await loadEdgeConfidenceScores();
-
-        // Load iModulon, TCS, and sigma factor data
-        updateStatus('Loading iModulon transcriptional modules...', 'loading');
-        await loadIModulonData();
-
-        updateStatus('Loading TCS signal systems...', 'loading');
-        await loadTcsData();
-
-        updateStatus('Loading sigma factor annotations...', 'loading');
-        await loadSigmaAnnotations();
-
-        updateStatus('Loading metabolic model mappings...', 'loading');
-        if (window.metabolicModelAdapter && typeof window.metabolicModelAdapter.loadMetabolicPathways === 'function') {
-            try {
-                await window.metabolicModelAdapter.loadMetabolicPathways();
-                console.log('Metabolic model pathways loaded successfully.');
-            } catch (e) {
-                console.warn('Failed to load metabolic model pathways:', e);
-            }
+        // 9. Edge Confidence
+        edgeConfidenceScores = [];
+        rfConfidenceByEdge = new Map();
+        if (results.edgeConfidence) {
+            edgeConfidenceScores = parseCSV(results.edgeConfidence);
+            indexRfConfidenceScores(edgeConfidenceScores);
+            console.log(`Loaded ${edgeConfidenceScores.length} RF edge confidence scores.`);
+        } else {
+            console.warn('RF edge confidence scores not found. Falling back to heuristic confidence scoring.');
         }
+
+        // 10. iModulon
+        iModulonWeights = results.imodulonWeights;
+        iModulonByGene = results.imodulonByGene;
+        iModulonMetadata = results.imodulonMetadata;
+        console.log(`Loaded ${Object.keys(iModulonWeights).length} iModulons.`);
+
+        // 11. TCS systems
+        tcsSystemsData = results.tcs;
+        tcsByHK = {};
+        tcsByRR = {};
+        tcsSystemsData.forEach(tcs => {
+            if (tcs.hk_locus) tcsByHK[tcs.hk_locus.toLowerCase()] = tcs;
+            if (tcs.rr_locus) tcsByRR[tcs.rr_locus.toLowerCase()] = tcs;
+        });
+        console.log(`Loaded ${tcsSystemsData.length} TCS systems.`);
+
+        // 12. Sigma factors
+        sigmaAnnotations = {};
+        sigmaByLocus = {};
+        Object.entries(results.sigma).forEach(([key, ann]) => {
+            sigmaAnnotations[key.toLowerCase()] = ann;
+            if (ann.locus) sigmaByLocus[ann.locus.toLowerCase()] = ann;
+            if (ann.gene_name) sigmaAnnotations[ann.gene_name.toLowerCase()] = ann;
+        });
+        console.log(`Loaded ${Object.keys(results.sigma).length} sigma factor annotations.`);
 
         buildGeneIndex();
         normalizeNetworkData();
@@ -445,15 +415,10 @@ async function loadNetworkData() {
         // loadDefaultExampleNetwork();
 
     } catch (err) {
-
         console.error(err);
-
         updateStatus('Data loading failed: ' + err.message, 'error');
-
-        alert('Error: unable to load CSV files. Please run python run_server.py so the browser can load local data.');
-
+        alert('Error: unable to load regulatory database files. Please ensure the local server is running.');
     }
-
 }
 
 
