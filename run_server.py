@@ -1385,6 +1385,75 @@ def handle_imodulon_simulation(imodulon_id):
         "warnings": warnings
     }
 
+def handle_tf_simulation(tf_id):
+    load_gene_mappings()
+    
+    tf_lower = tf_id.strip().lower()
+    resolved_cg = tf_id
+    if tf_lower in CGL_TO_CG:
+        resolved_cg = CGL_TO_CG[tf_lower]
+        
+    targets = []
+    path = get_absolute_path('data/reference/regulations.csv')
+    if os.path.exists(path):
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    tf_row = row.get('TF_locusTag', '').strip().lower()
+                    tf_name = row.get('TF_name', '').strip().lower()
+                    if tf_row == resolved_cg.lower() or (tf_name and tf_name == tf_lower):
+                        tg = row.get('TG_locusTag', '').strip()
+                        if tg and tg not in targets:
+                            targets.append(tg)
+        except Exception as e:
+            print("Error reading regulations for TF simulation:", e)
+            
+    if not targets:
+        return {"error": f"No target genes found for transcription factor {tf_id}"}
+        
+    fba_res = {}
+    ecfba_res = {}
+    warnings = []
+    
+    # 1. Run standard FBA gene-set knockout
+    try:
+        from backend.model_loader import load_model_if_needed
+        from backend.simulation import run_gene_set_knockout
+        model = load_model_if_needed()
+        fba_res = run_gene_set_knockout(model, targets, track_reaction_ids=["EX_lys_L_e", "EX_glu_L_e"])
+    except Exception as e:
+        warnings.append(f"Standard FBA failed: {str(e)}")
+        
+    # 2. Run ecFBA simulation
+    try:
+        from backend.simulation import run_ecfba_simulation
+        json_model_path = get_absolute_path(os.path.join("data", "reference", "model", "ecCGL1-main", "ecCGL1-main", "model", "iCW773_irr_enz_constraint.json"))
+        
+        enzyme_perturbations = {g: 0.0 for g in targets}
+        
+        ecfba_growth = run_ecfba_simulation(json_model_path, 0.2, enzyme_perturbations, "growth", 30.0)
+        ecfba_lysine = run_ecfba_simulation(json_model_path, 0.2, enzyme_perturbations, "lysine", 30.0)
+        ecfba_glutamate = run_ecfba_simulation(json_model_path, 0.2, enzyme_perturbations, "glutamate", 30.0)
+        
+        ecfba_res = {
+            "growth": ecfba_growth.get("flux") if ecfba_growth.get("status") == "success" else 0.0,
+            "lysine": ecfba_lysine.get("flux") if ecfba_lysine.get("status") == "success" else 0.0,
+            "glutamate": ecfba_glutamate.get("flux") if ecfba_glutamate.get("status") == "success" else 0.0,
+            "status": "success",
+            "warnings": ecfba_growth.get("warnings", [])
+        }
+    except Exception as e:
+        warnings.append(f"ecFBA failed: {str(e)}")
+        
+    return {
+        "tf_id": tf_id,
+        "targets_count": len(targets),
+        "fba": fba_res,
+        "ecfba": ecfba_res,
+        "warnings": warnings
+    }
+
 def evidence_weight(evidence):
     text = (evidence or "").lower()
     if "experimental" in text and "predicted" in text:
@@ -2019,6 +2088,21 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             
             try:
                 result = handle_regulon_enrichment(tf)
+                self.wfile.write(json.dumps(result).encode('utf-8'))
+            except Exception as e:
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        elif self.path.startswith('/api/engineering/simulation'):
+            query = urllib.parse.urlparse(self.path).query
+            params = urllib.parse.parse_qs(query)
+            tf = params.get('tf', [''])[0]
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            try:
+                result = handle_tf_simulation(tf)
                 self.wfile.write(json.dumps(result).encode('utf-8'))
             except Exception as e:
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))

@@ -733,6 +733,143 @@ def pathway_regulation(pathway: str = "", query: str = ""):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ── Thermodynamic Gene Context API ────────────────────────────────────────────
+_THERMO_DATA_CACHE = None
+
+def _load_thermo_gene_data():
+    """Load thermo data, cached after first call."""
+    global _THERMO_DATA_CACHE
+    if _THERMO_DATA_CACHE is not None:
+        return _THERMO_DATA_CACHE
+    path = os.path.join(os.path.dirname(BACKEND_DIR), "data", "reference", "thermo_dgr_data.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        _THERMO_DATA_CACHE = json.load(f)
+    return _THERMO_DATA_CACHE
+
+
+@app.get("/api/thermo/gene_context")
+def get_thermo_gene_context(gene: str = ""):
+    """
+    Return thermodynamic status for all reactions associated with a given gene.
+    Used to annotate ecFBA results with thermodynamic context.
+    
+    Returns:
+      - reactions: list of {id, name, direction_locked, dgr0, dgr_min, dgr_max, confidence}
+      - thermo_support_level: 'strong' | 'moderate' | 'weak' | 'none'
+      - n_locked: number of this gene's reactions that are direction-locked
+      - ko_thermo_confidence: 0.0-1.0 score
+    """
+    if not gene:
+        raise HTTPException(status_code=400, detail="Missing gene parameter")
+
+    thermo_data = _load_thermo_gene_data()
+    thermo_rxns = thermo_data.get("reactions", {})
+
+    # Get the loaded model to find gene→reaction associations
+    from model_loader import load_model_if_needed
+    model = load_model_if_needed()
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
+    # Expand aliases
+    gene_lower = gene.strip().lower()
+    aliases = set()
+    try:
+        aliases = run_server.expand_gene_aliases(gene_lower)
+    except Exception:
+        aliases = {gene_lower, gene.strip()}
+
+    # Find reactions associated with this gene
+    gene_reactions = []
+    for rxn in model.reactions:
+        rxn_gene_ids = {g.id.lower() for g in rxn.genes}
+        if aliases & rxn_gene_ids:
+            gene_reactions.append(rxn.id)
+
+    if not gene_reactions:
+        return {
+            "gene": gene,
+            "gene_reactions": [],
+            "thermo_annotated": [],
+            "thermo_support_level": "none",
+            "n_locked": 0,
+            "ko_thermo_confidence": 0.0,
+            "message": "No reactions found for this gene in the metabolic model"
+        }
+
+    # Annotate each reaction with thermo data
+    annotated = []
+    n_locked = 0
+    n_confirmed = 0
+    confidence_sum = 0.0
+    conf_weights = {"HIGH": 1.0, "MED": 0.6, "LOW": 0.3}
+
+    for rxn_id in gene_reactions:
+        rxn = model.reactions.get_by_id(rxn_id)
+        entry = thermo_rxns.get(rxn_id, {})
+
+        direction_locked = entry.get("direction_locked", "none")
+        dgr0 = entry.get("dgr_prime_0")
+        dgr_min = entry.get("dgr_prime_min")
+        dgr_max = entry.get("dgr_prime_max")
+        conf = entry.get("confidence", "NONE")
+        conf_weight = conf_weights.get(conf, 0.0)
+
+        is_locked = direction_locked in ("forward", "reverse")
+        if is_locked:
+            n_locked += 1
+            confidence_sum += conf_weight
+        elif dgr0 is not None:
+            n_confirmed += 1
+            confidence_sum += conf_weight * 0.5
+
+        annotated.append({
+            "reaction_id": rxn_id,
+            "reaction_name": rxn.name or rxn_id,
+            "direction_locked": direction_locked,
+            "current_lb": rxn.lower_bound,
+            "current_ub": rxn.upper_bound,
+            "has_thermo_data": dgr0 is not None,
+            "dgr_prime_0": dgr0,
+            "dgr_prime_min": dgr_min,
+            "dgr_prime_max": dgr_max,
+            "confidence": conf,
+            "thermo_label": (
+                f"ΔG'°={dgr0:.1f} kJ/mol" if dgr0 is not None else "No ΔG' data"
+            ),
+        })
+
+    # Compute overall thermo support level
+    n_rxns = len(gene_reactions)
+    lock_fraction = n_locked / n_rxns if n_rxns > 0 else 0
+    data_fraction = (n_locked + n_confirmed) / n_rxns if n_rxns > 0 else 0
+    ko_confidence = min(confidence_sum / max(n_rxns, 1), 1.0)
+
+    if lock_fraction >= 0.5:
+        support_level = "strong"
+    elif lock_fraction > 0 or data_fraction >= 0.5:
+        support_level = "moderate"
+    elif data_fraction > 0:
+        support_level = "weak"
+    else:
+        support_level = "none"
+
+    return {
+        "gene": gene,
+        "gene_reactions": gene_reactions,
+        "thermo_annotated": sorted(annotated, key=lambda x: x["direction_locked"] != "none", reverse=True),
+        "thermo_support_level": support_level,
+        "n_locked": n_locked,
+        "n_confirmed": n_confirmed,
+        "n_no_data": n_rxns - n_locked - n_confirmed,
+        "total_reactions": n_rxns,
+        "lock_fraction": round(lock_fraction, 3),
+        "ko_thermo_confidence": round(ko_confidence, 3),
+    }
+
 @app.get("/api/metabolic_impact")
 def metabolic_impact(gene: str = "", query: str = ""):
     target = gene or query
@@ -794,6 +931,14 @@ def imodulon_simulation(imodulon: str = ""):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/engineering/simulation")
+def engineering_simulation(tf: str = ""):
+    try:
+        result = run_server.handle_tf_simulation(tf)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/quality/essential")
 def get_essential_genes():
     """Return the database of C. glutamicum essential genes."""
@@ -808,6 +953,71 @@ def get_brenda_mappings():
 def get_abasy_roles():
     """Return the database of C. glutamicum Abasy roles."""
     return ABASY_ROLES
+
+@app.get("/api/thermo/pruning-report")
+def get_thermo_pruning_report():
+    """
+    Return the thermodynamic directionality pruning report for the loaded model.
+    Shows how many reactions had their bounds tightened based on ΔrG' feasibility analysis.
+    """
+    try:
+        from thermo_pruner import get_pruning_report
+        report = get_pruning_report()
+        return report
+    except ImportError:
+        return {
+            "enabled": False,
+            "message": "Thermodynamic pruning module not available."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve pruning report: {str(e)}")
+# ── Network Centrality Endpoints ───────────────────────────────────────────────
+_CENTRALITY_DATA = None
+
+def _load_centrality():
+    global _CENTRALITY_DATA
+    if _CENTRALITY_DATA is not None:
+        return _CENTRALITY_DATA
+    path = os.path.join(os.path.dirname(BACKEND_DIR), "data", "reference", "network_centrality.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        _CENTRALITY_DATA = json.load(f)
+    return _CENTRALITY_DATA
+
+@app.get("/api/network/centrality")
+def get_network_centrality(limit: int = 30, tfs_only: bool = True):
+    """Return network centrality metrics for TFs in the regulatory network."""
+    data = _load_centrality()
+    if data is None:
+        raise HTTPException(status_code=503, detail="Centrality data not available. Run scripts/network_centrality.py first.")
+    nodes = data.get("nodes", {})
+    result = [v for v in nodes.values() if (not tfs_only or v.get("is_tf"))]
+    result.sort(key=lambda x: x.get("importance", 0), reverse=True)
+    return {
+        "_meta": data.get("_meta", {}),
+        "top_tfs": result[:limit],
+        "total_tfs": sum(1 for v in nodes.values() if v.get("is_tf")),
+        "total_nodes": len(nodes),
+    }
+
+@app.get("/api/network/centrality/{locus}")
+def get_centrality_for_gene(locus: str):
+    """Return centrality metrics for a specific gene locus tag."""
+    data = _load_centrality()
+    if data is None:
+        raise HTTPException(status_code=503, detail="Centrality data not available.")
+    nodes = data.get("nodes", {})
+    locus_lower = locus.strip().lower()
+    entry = nodes.get(locus_lower) or nodes.get(locus)
+    if entry is None:
+        for k, v in nodes.items():
+            if k.lower() == locus_lower:
+                entry = v
+                break
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Gene not found in centrality data.")
+    return entry
 
 @app.get("/api/analysis/string_ppi")
 def get_string_ppi(gene: str = ""):

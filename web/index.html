@@ -84,7 +84,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css?v=1.7">
+    <link rel="stylesheet" href="style.css?v=1.8">
 </head>
 
 <body class="light-theme">
@@ -150,10 +150,6 @@
             </button>
             <!-- doc separator -->
             <div class="nav-doc-separator" aria-hidden="true"></div>
-            <button class="workflow-entry workflow-entry-doc" id="workflow-entry-examples" data-workflow="examples">
-                <i class="fa-solid fa-graduation-cap"></i>
-                <span>Quick Start</span>
-            </button>
             <button class="workflow-entry workflow-entry-doc" id="workflow-entry-release" data-workflow="release">
                 <i class="fa-solid fa-list-check"></i>
                 <span>Release Notes</span>
@@ -747,7 +743,7 @@
                             display: flex;
                             align-items: center;
                             gap: 8px;
-                            max-width: 500px;
+                            max-width: 750px;
                         }
 
                         #pathway-kegg-topbar select,
@@ -1003,10 +999,20 @@
                             <i class="fa-solid fa-diagram-project"></i>
                             Pathway Map
                         </div>
-                        <div class="pk-search-wrap">
-                            <select id="pathway-kegg-select">
+                        <div class="pk-search-wrap" style="display:flex; align-items:center; gap:8px;">
+                            <select id="pathway-kegg-select" style="flex:1;">
                                 <option value="">Loading pathways...</option>
                             </select>
+                            <select id="pathway-layout-select" style="width:145px !important; flex:0 0 145px !important; height:28px; padding:0 6px; font-size:11px; border:1px solid var(--border-color); border-radius:6px; background:white; color:var(--text-primary); cursor:pointer;">
+                                <option value="cose">Force-Directed (COSE)</option>
+                                <option value="breadthfirst" selected>Hierarchical (BFS)</option>
+                                <option value="grid">Grid Layout</option>
+                                <option value="circle">Circular Layout</option>
+                            </select>
+                            <label style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--text-primary); cursor:pointer; user-select:none; margin-left:8px; margin-bottom:0; white-space:nowrap !important;">
+                                <input type="checkbox" id="pathway-hide-cofactors" checked style="accent-color:#6366f1;">
+                                Simplify Hub Cofactors
+                            </label>
                         </div>
                         <div class="pk-legend">
                             <div class="pk-legend-item">
@@ -1311,186 +1317,173 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Card 6: Thermodynamic Directionality Pruning -->
+                        <div class="dashboard-card" id="thermo-pruning-card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-atom" style="color:#f59e0b;"></i> Thermodynamic Directionality Pruning</h3>
+                                <span class="card-badge" id="thermo-badge" style="background:rgba(245,158,11,0.12); color:#d97706; border:1px solid rgba(245,158,11,0.3); font-size:11px; padding:2px 10px; border-radius:12px; font-weight:600;">Loading…</span>
+                            </div>
+                            <div class="card-body">
+                                <!-- Main stat row -->
+                                <div class="stat-main-row">
+                                    <div class="stat-main-col">
+                                        <div class="large-stat" id="stat-thermo-pruned">–</div>
+                                        <div class="large-stat-label">Reactions Direction-Locked</div>
+                                    </div>
+                                    <div class="stat-main-col">
+                                        <div class="large-stat" id="stat-thermo-coverage" style="color:#6366f1;">–</div>
+                                        <div class="large-stat-label">Thermodynamic Data Coverage</div>
+                                    </div>
+                                </div>
+                                <!-- Progress bar -->
+                                <div class="progress-bar-container" style="margin-top:8px;" title="Fraction of reactions with ΔrG' data">
+                                    <div class="progress-bar-fill" id="thermo-coverage-bar" style="width:0%; background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div>
+                                </div>
+                                <!-- Sub-stats grid -->
+                                <div class="stats-subgrid" style="margin-top:12px;">
+                                    <div class="sub-stat-item"><span>🔒 Newly Locked Forward</span><strong id="stat-thermo-forward" style="color:#10b981;">–</strong></div>
+                                    <div class="sub-stat-item"><span>🔒 Newly Locked Reverse</span><strong id="stat-thermo-reverse" style="color:#ef4444;">–</strong></div>
+                                    <div class="sub-stat-item"><span>✓ Confirmed Forward</span><strong id="stat-thermo-conf-fwd" style="color:#34d399;">–</strong></div>
+                                    <div class="sub-stat-item"><span>✓ Confirmed Reverse</span><strong id="stat-thermo-conf-rev" style="color:#f87171;">–</strong></div>
+                                    <div class="sub-stat-item"><span>Near-Equilibrium</span><strong id="stat-thermo-neq" style="color:#6366f1;">–</strong></div>
+                                    <div class="sub-stat-item"><span>No Thermo Data</span><strong id="stat-thermo-nodata" style="color:#94a3b8;">–</strong></div>
+                                    <div class="sub-stat-item"><span>Total Reactions</span><strong id="stat-thermo-total">–</strong></div>
+                                    <div class="sub-stat-item"><span>ε Threshold (kJ/mol)</span><strong id="stat-thermo-eps">–</strong></div>
+                                </div>
+                                <hr class="card-divider">
+                                <!-- Newly-locked reactions table -->
+                                <div class="scroll-list-title">🔒 Newly Direction-Locked Reactions (<span id="stat-thermo-pruned-count">–</span>)
+                                    <span style="font-weight:400; color:var(--text-secondary); font-size:10px; margin-left:6px;">reversible reactions whose direction was tightened</span>
+                                </div>
+                                <div style="overflow-x:auto; margin-top:8px;">
+                                    <table style="width:100%; font-size:11px; border-collapse:collapse;">
+                                        <thead>
+                                            <tr style="background:rgba(99,102,241,0.07); text-align:left;">
+                                                <th style="padding:5px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Reaction</th>
+                                                <th style="padding:5px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Lock</th>
+                                                <th style="padding:5px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">ΔrG'° (kJ/mol)</th>
+                                                <th style="padding:5px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Range [min, max]</th>
+                                                <th style="padding:5px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Conf.</th>
+                                                <th style="padding:5px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Old Bounds [LB, UB]</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="thermo-pruned-tbody">
+                                            <tr><td colspan="6" style="padding:8px; color:var(--text-secondary); text-align:center;">Loading…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Confirmed-correct reactions table -->
+                                <div class="scroll-list-title" style="margin-top:14px;">✓ Thermodynamically Confirmed Reactions (<span id="stat-thermo-confirmed-count">–</span>)
+                                    <span style="font-weight:400; color:var(--text-secondary); font-size:10px; margin-left:6px;">already unidirectional, consistent with thermodynamics</span>
+                                </div>
+                                <div style="overflow-x:auto; margin-top:8px; max-height:200px; overflow-y:auto;">
+                                    <table style="width:100%; font-size:11px; border-collapse:collapse;">
+                                        <thead>
+                                            <tr style="background:rgba(16,185,129,0.06); text-align:left; position:sticky; top:0;">
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Reaction</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Direction</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">ΔrG'° (kJ/mol)</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Range [min, max]</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Conf.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="thermo-confirmed-tbody">
+                                            <tr><td colspan="5" style="padding:8px; color:var(--text-secondary); text-align:center;">Loading…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="margin-top:10px; font-size:10.5px; color:var(--text-secondary); font-style:italic; line-height:1.4;">
+                                    <i class="fa-solid fa-info-circle"></i>
+                                    Thermodynamic directionality pruning tightens reaction flux bounds at model load time using ΔrG' feasibility analysis
+                                    (pH 7.0, I=0.1 M, T=30°C, [metabolite] ∈ [1 µM, 50 mM]). Sources: Noor 2013, Flamholz 2012, Thauer 1977.
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Examples & Case Studies Dashboard Overlay -->
-                <div id="examples-dashboard-overlay" class="examples-dashboard-container hidden">
-                    <div class="dashboard-header">
+                <!-- Candidate Engineering Regulators Dashboard Overlay -->
+                <div id="engineering-dashboard-overlay" class="release-notes-container hidden" style="display: flex; flex-direction: column; gap: 16px; overflow: hidden; padding: 20px;">
+                    <style>
+                        #engineering-dashboard-overlay {
+                            background: #f8fafc !important;
+                            color: var(--text-primary) !important;
+                            border-left: 1px solid var(--border-color) !important;
+                        }
+                    </style>
+                    <div class="dashboard-header" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
                         <div class="dashboard-title-area">
-                            <h2><i class="fa-solid fa-graduation-cap"></i> Examples & Case Studies</h2>
-                            <p class="dashboard-subtitle">Reproducible example workflows demonstrating biological
-                                questions and strain engineering target analyses.</p>
+                            <h2 style="margin:0; font-size:18px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-bullseye" style="color:#6366f1;"></i> Candidate Engineering Regulators</h2>
+                            <p class="dashboard-subtitle" style="margin:4px 0 0 0; font-size:11.5px; color:var(--text-secondary);">Prioritize transcriptional regulators for metabolic engineering based on target coverage, network confidence, and pleiotropic risk constraints.</p>
+                        </div>
+                        
+                        <!-- Dashboard Filters -->
+                        <div class="dashboard-filters" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <input type="text" id="eng-dashboard-search" placeholder="Search TF..." style="height:30px; padding:0 10px; font-size:11px; border:1px solid var(--border-color); border-radius:15px; width:120px;" autocomplete="off">
+                            <input type="text" id="eng-dashboard-pathway" placeholder="Subsystem keyword..." style="height:30px; padding:0 10px; font-size:11px; border:1px solid var(--border-color); border-radius:15px; width:130px;" autocomplete="off">
+                            <select id="eng-dashboard-level" style="height:30px; padding:0 10px; font-size:11px; border:1px solid var(--border-color); border-radius:15px; background:white; color:var(--text-primary);">
+                                <option value="">All Priorities</option>
+                                <option value="high">High Priority</option>
+                                <option value="medium">Medium Priority</option>
+                                <option value="low">Low Priority</option>
+                            </select>
+                            <div style="display:flex; align-items:center; gap:6px; font-size:11px; border:1px solid var(--border-color); border-radius:15px; padding:0 12px; height:30px; background:white;">
+                                <span style="color:var(--text-secondary); white-space:nowrap;">Min Score:</span>
+                                <input type="range" id="eng-dashboard-min-score" min="0" max="1" value="0" step="0.05" style="width:70px; height:4px; accent-color:#6366f1;">
+                                <span id="eng-dashboard-min-score-val" style="font-weight:700; width:28px; text-align:right;">0.00</span>
+                            </div>
+                            <button id="eng-dashboard-refresh" class="secondary-btn" style="height:30px; padding:0 12px; border-radius:15px; font-size:11px; width:auto !important; display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" title="Refresh prioritization scores"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
                         </div>
                     </div>
 
-                    <div class="examples-grid">
-                        <!-- Card 1: Glutamate-associated Regulatory Analysis -->
-                        <div class="example-card" id="case-card-glutamate">
-                            <div class="example-card-header">
-                                <span class="case-badge mode-pathway">Pathway View</span>
-                                <h3>Glutamate-associated Regulatory Analysis</h3>
-                            </div>
-                            <div class="example-card-body">
-                                <p class="scientific-question"><strong>Question:</strong> Which transcription factors
-                                    may regulate glutamate-associated metabolic modules?</p>
-                                <p class="case-description">Focuses on highlighting regulatory networks surrounding
-                                    glutamate metabolism, mapping TF control over glutamate biosynthesis and transport.
-                                </p>
-
-                                <div class="workflow-steps">
-                                    <h4>Workflow Steps:</h4>
-                                    <ul>
-                                        <li>Identify all genes and reactions mapped to glutamate metabolism.</li>
-                                        <li>Retrieve upstream transcription factors targeting these genes.</li>
-                                        <li>Evaluate regulatory confidence scores and ecCGL1 constraint coverage.</li>
-                                    </ul>
-                                </div>
-
-                                <div class="case-meta-box">
-                                    <div class="meta-item"><strong>Expected Outputs:</strong> Upstream TFs, Regulated
-                                        Genes/Reactions, ecCGL1 Coverage.</div>
-                                    <div class="meta-item"><strong>Limitations:</strong> Predicted relationships; does
-                                        not simulate metabolic fluxes; requires validation.</div>
-                                </div>
-
-                                <div class="case-action-row">
-                                    <button class="primary-btn run-case-btn" data-case-id="glutamate-regulation"><i
-                                            class="fa-solid fa-play"></i> Run example</button>
-                                </div>
+                    <!-- Top row: Charts and Insights -->
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; flex-shrink: 0; min-height: 200px;">
+                        <!-- Priority bar chart card -->
+                        <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                            <div style="font-weight: 700; font-size: 11.5px; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-chart-simple" style="color:#6366f1;"></i> Top 5 Engineering Priority Scores</div>
+                            <div style="flex: 1; position: relative; min-height: 140px;">
+                                <canvas id="engineering-top-chart"></canvas>
                             </div>
                         </div>
 
-                        <!-- Card 2: TCA Cycle Upstream Regulator Discovery -->
-                        <div class="example-card" id="case-card-tca">
-                            <div class="example-card-header">
-                                <span class="case-badge mode-pathway">Pathway View</span>
-                                <h3>TCA Cycle Upstream Regulator Discovery</h3>
-                            </div>
-                            <div class="example-card-body">
-                                <p class="scientific-question"><strong>Question:</strong> Which regulators may influence
-                                    TCA cycle reactions?</p>
-                                <p class="case-description">Focuses on the tricarboxylic acid (TCA) cycle, discovering
-                                    transcription factors that target structural genes in citrate, succinate, or malate
-                                    reactions.</p>
-
-                                <div class="workflow-steps">
-                                    <h4>Workflow Steps:</h4>
-                                    <ul>
-                                        <li>Identify genes and reactions involved in the citric acid cycle (TCA cycle).
-                                        </li>
-                                        <li>Retrieve all transcription factors regulating these structural genes.</li>
-                                        <li>Sort regulators by target gene count and average link confidence.</li>
-                                    </ul>
-                                </div>
-
-                                <div class="case-meta-box">
-                                    <div class="meta-item"><strong>Expected Outputs:</strong> TCA Genes & Regulators,
-                                        Confidence Averages, RF vs Heuristic comparisons.</div>
-                                    <div class="meta-item"><strong>Limitations:</strong> Predicted links; physiological
-                                        significance varies; requires experimental validation.</div>
-                                </div>
-
-                                <div class="case-action-row">
-                                    <button class="primary-btn run-case-btn" data-case-id="tca-cycle-regulators"><i
-                                            class="fa-solid fa-play"></i> Run example</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 3: Amino Acid Biosynthesis Engineering Target Ranking -->
-                        <div class="example-card" id="case-card-amino-acid">
-                            <div class="example-card-header">
-                                <span class="case-badge mode-engineering">Engineering Targets</span>
-                                <h3>Amino Acid Biosynthesis Engineering Target Ranking</h3>
-                            </div>
-                            <div class="example-card-body">
-                                <p class="scientific-question"><strong>Question:</strong> Which TFs are prioritized as
-                                    candidate regulators for amino acid biosynthesis?</p>
-                                <p class="case-description">Ranks transcription factors based on their potential impact
-                                    on amino acid biosynthesis pathways, prioritizing candidates regulating multiple
-                                    reactions.</p>
-
-                                <div class="workflow-steps">
-                                    <h4>Workflow Steps:</h4>
-                                    <ul>
-                                        <li>Query candidates prioritized by global metabolic impact.</li>
-                                        <li>Filter candidates by regulation of amino acid pathways.</li>
-                                        <li>Check recommendation levels, kcat coverage, and regulatory mode.</li>
-                                    </ul>
-                                </div>
-
-                                <div class="case-meta-box">
-                                    <div class="meta-item"><strong>Expected Outputs:</strong> Target prioritization
-                                        tables, recommendation levels, reaction/pathway counts.</div>
-                                    <div class="meta-item"><strong>Limitations:</strong> Prioritization score represents
-                                        impact potential; requires validation.</div>
-                                </div>
-
-                                <div class="case-action-row">
-                                    <button class="primary-btn run-case-btn"
-                                        data-case-id="amino-acid-engineering-targets"><i class="fa-solid fa-play"></i>
-                                        Run example</button>
-                                </div>
+                        <!-- Pleiotropic Risk doughnut chart card -->
+                        <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                            <div style="font-weight: 700; font-size: 11.5px; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706;"></i> Pleiotropic Risk Distribution</div>
+                            <div style="flex: 1; position: relative; min-height: 140px;">
+                                <canvas id="engineering-risk-chart"></canvas>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Case Study Results Presentation Panel -->
-                    <div id="case-study-results-panel" class="case-results-panel hidden">
-                        <div class="results-panel-header">
-                            <h3><i class="fa-solid fa-square-poll-vertical"></i> Case Study Results: <span
-                                    id="results-case-title">-</span></h3>
-                            <button id="btn-export-case-report" class="secondary-btn"><i
-                                    class="fa-solid fa-file-invoice"></i> Export case report JSON</button>
+                    <!-- Main cards grid container -->
+                    <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
+                        <div id="engineering-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 16px; padding-bottom: 20px;">
+                            <!-- Candidate cards loaded dynamically -->
                         </div>
+                    </div>
+                </div>
 
-                        <div id="case-warning-banner" class="case-warning-banner hidden">
-                            <!-- Dynamic warning text -->
+                <!-- Simulation Results Overlay Popup (modal-like) -->
+                <div id="engineering-sim-overlay" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+                    <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px; width: 100%; max-width: 580px; max-height: 90%; overflow-y: auto; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 16px; box-sizing: border-box;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                            <h3 id="eng-sim-title" style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-square-poll-vertical" style="color:#4f46e5;"></i> Target Knockout Simulation</h3>
+                            <button onclick="closeEngineeringSimulationModal()" style="border: none; background: transparent; cursor: pointer; color: var(--text-secondary); font-size: 14px; padding: 4px;"><i class="fa-solid fa-xmark"></i></button>
                         </div>
-
-                        <div class="results-panel-content">
-                            <div class="results-narrative-box">
-                                <strong>Analysis Narrative:</strong>
-                                <p id="results-narrative-text">-</p>
-                            </div>
-
-                            <div class="results-details-columns">
-                                <div class="results-column">
-                                    <h4>Top Regulatory / Engineering Candidates</h4>
-                                    <div class="table-scroll-container">
-                                        <table class="case-results-table" id="case-results-table">
-                                            <thead>
-                                                <!-- Dynamic headers -->
-                                            </thead>
-                                            <tbody>
-                                                <!-- Dynamic rows -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="results-column">
-                                    <h4>Data Coverage & Quality Verification</h4>
-                                    <div class="case-quality-stats">
-                                        <div class="quality-stat-row">
-                                            <span>Regulatory Genes Mapped to iCW773:</span>
-                                            <strong id="results-qual-meta">-</strong>
-                                        </div>
-                                        <div class="quality-stat-row">
-                                            <span>Reactions Mapped / Mapped Pathways:</span>
-                                            <strong id="results-qual-reactions">-</strong>
-                                        </div>
-                                        <div class="quality-stat-row">
-                                            <span>Genes Mapped to ecCGL1:</span>
-                                            <strong id="results-qual-enz">-</strong>
-                                        </div>
-                                        <div class="quality-stat-row">
-                                            <span>Enzyme Constraint Reactions:</span>
-                                            <strong id="results-qual-enz-rxns">-</strong>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; background: #f8fafc; border-left: 3px solid #4f46e5; padding: 10px; border-radius: 4px;">
+                            <strong>Simulation Objective:</strong> Standard FBA gene-set deletion vs. ecFBA enzyme constraint bounds perturbation ($E_{perturbed} = 0$) for all structural target genes regulated by this transcription factor.
+                        </div>
+                        <div style="height: 240px; position: relative;">
+                            <canvas id="engineering-sim-chart"></canvas>
+                        </div>
+                        <div id="engineering-sim-summary-table" style="font-size: 11px; color: var(--text-primary); line-height: 1.4; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; background: #ffffff; display: flex; flex-direction: column; gap: 8px;">
+                        </div>
+                        <!-- Thermodynamic Confidence -->
+                        <div id="engineering-sim-thermo-confidence" style="font-size:11px;color:var(--text-secondary);"></div>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+                            <button onclick="closeEngineeringSimulationModal()" class="primary-btn" style="width: auto !important; height: 32px !important; padding: 0 16px !important; background: #4f46e5 !important; border-color: #4f46e5 !important; font-size: 11px !important; border-radius: 6px !important; display: inline-flex; align-items: center; justify-content: center; color: white !important; cursor: pointer;">Close Results</button>
                         </div>
                     </div>
                 </div>
@@ -1853,6 +1846,7 @@
                             
                             <div class="imodulon-tab-bar">
                                 <button class="imodulon-tab-btn active" data-tab="overview">Overview & Regulon</button>
+                                <button class="imodulon-tab-btn" data-tab="network">Module Network</button>
                                 <button class="imodulon-tab-btn" data-tab="pathway">Pathway Enrichment</button>
                                 <button class="imodulon-tab-btn" data-tab="membership">Gene Membership</button>
                                 <button class="imodulon-tab-btn" data-tab="reactions">Metabolic Reaction Map</button>
@@ -1862,44 +1856,82 @@
                             <div class="imodulon-tab-content">
                                 <!-- Overview Tab -->
                                 <div id="imodulon-tab-overview" class="imodulon-subtab-panel">
-                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                                        <div style="background:#f8fafc; border:1px solid var(--border-color); padding:10px; border-radius:6px;">
-                                            <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);">Variance & Stimulus</div>
-                                            <table style="width:100%; font-size:10.5px;">
-                                                <tr><td style="color:#64748b; padding:3px 0;">Explained Variance:</td><td id="imodulon-stat-variance" style="font-weight:600; text-align:right;">0%</td></tr>
-                                                <tr><td style="color:#64748b; padding:3px 0;">Gene Count:</td><td id="imodulon-stat-genes" style="font-weight:600; text-align:right;">0</td></tr>
-                                                <tr><td style="color:#64748b; padding:3px 0;">Locus Threshold:</td><td id="imodulon-stat-threshold" style="font-weight:600; text-align:right;">0</td></tr>
-                                            </table>
+                                    <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:12px; margin-bottom:12px; align-items: stretch;">
+                                        <div style="display:flex; flex-direction:column; gap:12px;">
+                                            <div style="background:#f8fafc; border:1px solid var(--border-color); padding:10px; border-radius:6px; flex:1;">
+                                                <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);">Variance & Stimulus</div>
+                                                <table style="width:100%; font-size:10.5px;">
+                                                    <tr><td style="color:#64748b; padding:3px 0;">Explained Variance:</td><td id="imodulon-stat-variance" style="font-weight:600; text-align:right;">0%</td></tr>
+                                                    <tr><td style="color:#64748b; padding:3px 0;">Gene Count:</td><td id="imodulon-stat-genes" style="font-weight:600; text-align:right;">0</td></tr>
+                                                    <tr><td style="color:#64748b; padding:3px 0;">Locus Threshold:</td><td id="imodulon-stat-threshold" style="font-weight:600; text-align:right;">0</td></tr>
+                                                </table>
+                                            </div>
+                                            <div style="background:#f8fafc; border:1px solid var(--border-color); padding:10px; border-radius:6px; flex:1;">
+                                                <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);">Regulon Association</div>
+                                                <table style="width:100%; font-size:10.5px;">
+                                                    <tr><td style="color:#64748b; padding:3px 0;">Linked Regulator:</td><td id="imodulon-stat-regulator" style="font-weight:600; text-align:right;">None</td></tr>
+                                                    <tr><td style="color:#64748b; padding:3px 0;">Overlap Precision:</td><td id="imodulon-stat-precision" style="font-weight:600; text-align:right;">-</td></tr>
+                                                    <tr><td style="color:#64748b; padding:3px 0;">Overlap Recall:</td><td id="imodulon-stat-recall" style="font-weight:600; text-align:right;">-</td></tr>
+                                                    <tr><td style="color:#64748b; padding:3px 0;">F1 Overlap Score:</td><td id="imodulon-stat-f1" style="font-weight:600; text-align:right;">-</td></tr>
+                                                </table>
+                                            </div>
                                         </div>
-                                        <div style="background:#f8fafc; border:1px solid var(--border-color); padding:10px; border-radius:6px;">
-                                            <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);">Regulon Association</div>
-                                            <table style="width:100%; font-size:10.5px;">
-                                                <tr><td style="color:#64748b; padding:3px 0;">Linked Regulator:</td><td id="imodulon-stat-regulator" style="font-weight:600; text-align:right;">None</td></tr>
-                                                <tr><td style="color:#64748b; padding:3px 0;">Overlap Precision:</td><td id="imodulon-stat-precision" style="font-weight:600; text-align:right;">-</td></tr>
-                                                <tr><td style="color:#64748b; padding:3px 0;">Overlap Recall:</td><td id="imodulon-stat-recall" style="font-weight:600; text-align:right;">-</td></tr>
-                                                <tr><td style="color:#64748b; padding:3px 0;">F1 Overlap Score:</td><td id="imodulon-stat-f1" style="font-weight:600; text-align:right;">-</td></tr>
-                                            </table>
+                                        <div style="background:#ffffff; border:1px solid var(--border-color); padding:10px; border-radius:6px; display:flex; flex-direction:column;">
+                                            <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);"><i class="fa-solid fa-chart-bar"></i> Top Gene ICA Weights</div>
+                                            <div style="flex:1; min-height:160px; position:relative;">
+                                                <canvas id="imodulon-weights-chart"></canvas>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:10px; margin-top:12px;">
+                                    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:10px;">
                                         <div style="font-weight:700; font-size:11px; color:#1e40af; margin-bottom:4px;"><i class="fa-solid fa-circle-info"></i> Candidate Engineering Priority Ranking</div>
                                         <p id="imodulon-engineering-rationale" style="margin:0; font-size:11px; color:#1e3a8a; line-height:1.4;">Ranking details...</p>
                                     </div>
                                 </div>
                                 
+                                <!-- Module Network Tab -->
+                                <div id="imodulon-tab-network" class="imodulon-subtab-panel hidden" style="height: 100%; min-height: 400px; display: flex; flex-direction: column; gap: 10px;">
+                                    <div style="font-size:11px; color:#64748b;">
+                                        Interactive regulatory subnetwork for this module. Shows the linked regulator (if any) and member genes. Node sizes reflect their weights in this iModulon (emerald green for positive weight, coral/red for negative weight). Edges are colored by role (Activation = green, Repression = red, Dual = purple).
+                                    </div>
+                                    <div id="imodulon-network-container" style="flex:1; min-height: 350px; position:relative; background:#ffffff; border:1px solid var(--border-color); border-radius:8px; overflow:hidden;">
+                                        <div id="imodulon-cy" style="width:100%; height:100%; min-height: 350px;"></div>
+                                        <div class="network-legend" style="position:absolute; bottom:10px; left:10px; background:rgba(255,255,255,0.9); padding:6px 10px; border:1px solid var(--border-color); border-radius:6px; font-size:9.5px; pointer-events:none; display:flex; flex-direction:column; gap:4px; z-index:10; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                            <div style="font-weight:700; color:var(--text-primary);">Nodes</div>
+                                            <div><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:#e0f2fe; border:1.5px solid #0284c7; vertical-align:middle; margin-right:4px;"></span>TF (Regulator)</div>
+                                            <div><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#34d399; border:1px solid #059669; vertical-align:middle; margin-right:4px;"></span>Gene Weight &gt; 0</div>
+                                            <div><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f87171; border:1px solid #dc2626; vertical-align:middle; margin-right:4px;"></span>Gene Weight &lt; 0</div>
+                                            <div style="font-weight:700; color:var(--text-primary); margin-top:4px;">Edges</div>
+                                            <div><span style="display:inline-block; width:15px; height:2px; background:#10b981; vertical-align:middle; margin-right:4px;"></span>Activation (+)</div>
+                                            <div><span style="display:inline-block; width:15px; height:2px; background:#ef4444; vertical-align:middle; margin-right:4px;"></span>Repression (-)</div>
+                                            <div><span style="display:inline-block; width:15px; height:2px; background:#a855f7; border-top:1px dashed #a855f7; vertical-align:middle; margin-right:4px;"></span>Dual / Sigma</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <!-- Pathway Tab -->
                                 <div id="imodulon-tab-pathway" class="imodulon-subtab-panel hidden">
-                                    <table style="width:100%; font-size:11px; border-collapse:collapse;">
-                                        <thead>
-                                            <tr style="border-bottom:2px solid var(--border-color); text-align:left;">
-                                                <th style="padding:4px 6px;">KEGG Pathway Name</th>
-                                                <th style="padding:4px 6px; text-align:right;">Fold Enrichment</th>
-                                                <th style="padding:4px 6px; text-align:right;">P-value</th>
-                                                <th style="padding:4px 6px; text-align:center;">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="imodulon-pathway-tbody"></tbody>
-                                    </table>
+                                    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:16px; align-items:start;">
+                                        <div style="max-height: 380px; overflow-y: auto;">
+                                            <table style="width:100%; font-size:11px; border-collapse:collapse;">
+                                                <thead>
+                                                    <tr style="border-bottom:2px solid var(--border-color); text-align:left;">
+                                                        <th style="padding:6px;">KEGG Pathway Name</th>
+                                                        <th style="padding:6px; text-align:right;">Fold Enrichment</th>
+                                                        <th style="padding:6px; text-align:right;">P-value</th>
+                                                        <th style="padding:6px; text-align:center;">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="imodulon-pathway-tbody"></tbody>
+                                            </table>
+                                        </div>
+                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:8px; padding:10px; display:flex; flex-direction:column;">
+                                            <div style="font-weight:700; font-size:11px; margin-bottom:8px; color:var(--text-primary);"><i class="fa-solid fa-chart-pie"></i> Pathway Enrichment Visualizer</div>
+                                            <div style="height:250px; position:relative;">
+                                                <canvas id="imodulon-pathway-chart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <!-- Membership Tab -->
@@ -1941,22 +1973,30 @@
                                         <p style="margin:0 0 10px 0; font-size:11px; color:var(--text-secondary); line-height:1.4;">Runs both a standard FBA gene-set deletion on the iCW773 model and an enzyme-constrained simulation (ecFBA) under temperature constraints. Tracks changes in growth, lysine excretion, and glutamate excretion.</p>
                                         <button class="primary-btn" id="btn-run-imodulon-sim" style="font-weight:600;"><i class="fa-solid fa-play"></i> Run Knockout Simulation</button>
                                     </div>
-                                    <div id="imodulon-sim-results" class="hidden" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
-                                            <div style="font-weight:700; font-size:11px; color:#0f766e; margin-bottom:6px;">Standard FBA (iCW773)</div>
-                                            <table style="width:100%; font-size:10.5px;">
-                                                <tr><td style="color:#64748b; padding:4px 0;">Growth rate change:</td><td id="imodulon-sim-fba-growth" style="font-weight:600; text-align:right;">0%</td></tr>
-                                                <tr><td style="color:#64748b; padding:4px 0;">Lysine flux change:</td><td id="imodulon-sim-fba-lysine" style="font-weight:600; text-align:right;">0%</td></tr>
-                                                <tr><td style="color:#64748b; padding:4px 0;">Glutamate flux change:</td><td id="imodulon-sim-fba-glutamate" style="font-weight:600; text-align:right;">0%</td></tr>
-                                            </table>
+                                    <div id="imodulon-sim-results" class="hidden">
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                                            <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
+                                                <div style="font-weight:700; font-size:11px; color:#0f766e; margin-bottom:6px;">Standard FBA (iCW773)</div>
+                                                <table style="width:100%; font-size:10.5px;">
+                                                    <tr><td style="color:#64748b; padding:4px 0;">Growth rate change:</td><td id="imodulon-sim-fba-growth" style="font-weight:600; text-align:right;">0%</td></tr>
+                                                    <tr><td style="color:#64748b; padding:4px 0;">Lysine flux change:</td><td id="imodulon-sim-fba-lysine" style="font-weight:600; text-align:right;">0%</td></tr>
+                                                    <tr><td style="color:#64748b; padding:4px 0;">Glutamate flux change:</td><td id="imodulon-sim-fba-glutamate" style="font-weight:600; text-align:right;">0%</td></tr>
+                                                </table>
+                                            </div>
+                                            <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
+                                                <div style="font-weight:700; font-size:11px; color:#4f46e5; margin-bottom:6px;">Enzyme-Constrained ecFBA</div>
+                                                <table style="width:100%; font-size:10.5px;">
+                                                    <tr><td style="color:#64748b; padding:4px 0;">Growth flux (Knockout):</td><td id="imodulon-sim-ec-growth" style="font-weight:600; text-align:right;">0.00</td></tr>
+                                                    <tr><td style="color:#64748b; padding:4px 0;">Lysine flux (Knockout):</td><td id="imodulon-sim-ec-lysine" style="font-weight:600; text-align:right;">0.00</td></tr>
+                                                    <tr><td style="color:#64748b; padding:4px 0;">Glutamate flux (Knockout):</td><td id="imodulon-sim-ec-glutamate" style="font-weight:600; text-align:right;">0.00</td></tr>
+                                                </table>
+                                            </div>
                                         </div>
-                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
-                                            <div style="font-weight:700; font-size:11px; color:#4f46e5; margin-bottom:6px;">Enzyme-Constrained ecFBA</div>
-                                            <table style="width:100%; font-size:10.5px;">
-                                                <tr><td style="color:#64748b; padding:4px 0;">Growth flux (Knockout):</td><td id="imodulon-sim-ec-growth" style="font-weight:600; text-align:right;">0.00</td></tr>
-                                                <tr><td style="color:#64748b; padding:4px 0;">Lysine flux (Knockout):</td><td id="imodulon-sim-ec-lysine" style="font-weight:600; text-align:right;">0.00</td></tr>
-                                                <tr><td style="color:#64748b; padding:4px 0;">Glutamate flux (Knockout):</td><td id="imodulon-sim-ec-glutamate" style="font-weight:600; text-align:right;">0.00</td></tr>
-                                            </table>
+                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:12px; display:flex; flex-direction:column;">
+                                            <div style="font-weight:700; font-size:11px; margin-bottom:8px; color:var(--text-primary);"><i class="fa-solid fa-chart-line"></i> Knockout Simulation Flux Changes (FBA %)</div>
+                                            <div style="height:180px; position:relative;">
+                                                <canvas id="imodulon-simulation-chart"></canvas>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2085,6 +2125,7 @@
                     <div id="topology-tabs-area" style="display:none;padding:0 28px 28px;">
                         <div class="imodulon-tabs" id="topology-tab-nav" style="margin-bottom:16px;">
                             <button class="imodulon-tab-btn active" data-topo-tab="hub">Hub TF Ranking</button>
+                            <button class="imodulon-tab-btn" data-topo-tab="centrality">📊 Centrality Analysis</button>
                             <button class="imodulon-tab-btn" data-topo-tab="ffl">Feed-forward Loops</button>
                             <button class="imodulon-tab-btn" data-topo-tab="auto">Autoregulation</button>
                             <button class="imodulon-tab-btn" data-topo-tab="mutual">Mutual Regulation</button>
@@ -2111,6 +2152,37 @@
                                         </tr>
                                     </thead>
                                     <tbody id="topo-hub-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Centrality Analysis (pre-computed) -->
+                        <div id="topo-tab-centrality" class="topo-tab-content" style="display:none;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                                <div style="font-size:12px;color:var(--text-secondary);max-width:520px;">
+                                    Pre-computed using <strong>NetworkX</strong> on the full regulatory graph (1640 edges). 
+                                    Importance = 0.30·OutDeg + 0.25·Betweenness + 0.20·PageRank + 0.15·Hub + 0.10·EvidenceQuality.
+                                </div>
+                                <button id="btn-reload-centrality" onclick="loadPrecomputedCentrality()" style="padding:5px 14px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;cursor:pointer;background:var(--surface-secondary);">
+                                    <i class="fa-solid fa-rotate-right"></i> Reload
+                                </button>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table style="width:100%;border-collapse:collapse;font-size:12px;" id="topo-centrality-table">
+                                    <thead>
+                                        <tr style="border-bottom:2px solid var(--border-color);background:rgba(99,102,241,0.07);">
+                                            <th style="padding:8px 8px;text-align:left;min-width:40px;">Rank</th>
+                                            <th style="padding:8px 8px;text-align:left;min-width:110px;">TF</th>
+                                            <th style="padding:8px 8px;text-align:center;" title="Out-degree (regulon size)">Regulon</th>
+                                            <th style="padding:8px 8px;text-align:center;" title="Betweenness centrality">Betw.</th>
+                                            <th style="padding:8px 8px;text-align:center;" title="PageRank">PageRank</th>
+                                            <th style="padding:8px 8px;text-align:center;" title="HITS Hub Score">Hub</th>
+                                            <th style="padding:8px 8px;text-align:center;" title="Activation ratio (1.0 = pure activator)">Act.%</th>
+                                            <th style="padding:8px 8px;text-align:center;" title="Composite importance score">Importance</th>
+                                            <th style="padding:8px 8px;min-width:90px;">Score Bar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="topo-centrality-tbody"><tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text-muted);">Click "Compute Analysis" to load data…</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -3260,7 +3332,7 @@
     <script src="lib/pathwayRegulatoryView.js?v=1.0"></script>
     <script src="lib/candidateEngineeringTargets.js?v=1.0"></script>
     <script src="lib/analysisQuality.js?v=1.0"></script>
-    <script src="lib/caseStudies.js?v=1.0"></script>
+
     <!-- Custom Application Logic -->
     <script src="lib/modelObjectives.js?v=1.0"></script>
     <script src="lib/objectiveInterpretation.js?v=1.0"></script>
@@ -3282,7 +3354,8 @@
             });
         }
     </script>
-    <script src="app.js?v=4.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js?v=4.7"></script>
 </body>
 
 </html>

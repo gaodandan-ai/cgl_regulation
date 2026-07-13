@@ -1194,6 +1194,12 @@ function bindPathwayKeggZoomControls() {
     });
 }
 
+const UNIVERSAL_COFACTORS = new Set([
+    'h2o_c', 'h2o_e', 'h_c', 'h_e', 'atp_c', 'adp_c', 'pi_c', 'nad_c', 'nadh_c',
+    'nadp_c', 'nadph_c', 'coa_c', 'amp_c', 'ppi_c', 'co2_c', 'co2_e', 'nh4_c',
+    'nh4_e', 'o2_c', 'o2_e'
+]);
+
 async function renderKeggPathwayMap(summary) {
     const subtitle = document.getElementById('pathway-kegg-subtitle');
     const loading = document.getElementById('pathway-kegg-loading');
@@ -1202,6 +1208,9 @@ async function renderKeggPathwayMap(summary) {
     const statsEl = document.getElementById('pathway-kegg-stats');
     const statNodes = document.getElementById('pk-stat-nodes');
     const statEdges = document.getElementById('pk-stat-edges');
+
+    const hideCofactors = document.getElementById('pathway-hide-cofactors')?.checked;
+    const layoutSelect = document.getElementById('pathway-layout-select')?.value || 'cose';
 
     bindPathwayKeggZoomControls();
 
@@ -1285,6 +1294,9 @@ async function renderKeggPathwayMap(summary) {
             });
 
             (rxn.reactants || []).forEach(metId => {
+                const metLower = metId.toLowerCase();
+                if (hideCofactors && UNIVERSAL_COFACTORS.has(metLower)) return;
+                
                 metCount[metId] = (metCount[metId] || 0) + 1;
                 if (!seenMetabolites.has(metId)) {
                     seenMetabolites.add(metId);
@@ -1299,6 +1311,9 @@ async function renderKeggPathwayMap(summary) {
             });
 
             (rxn.products || []).forEach(metId => {
+                const metLower = metId.toLowerCase();
+                if (hideCofactors && UNIVERSAL_COFACTORS.has(metLower)) return;
+                
                 metCount[metId] = (metCount[metId] || 0) + 1;
                 if (!seenMetabolites.has(metId)) {
                     seenMetabolites.add(metId);
@@ -1326,6 +1341,43 @@ async function renderKeggPathwayMap(summary) {
                     const h = Math.max(450, window.innerHeight - 160);
                     cyContainer.style.height = h + 'px';
                     cyContainer.style.minHeight = h + 'px';
+                }
+
+                let layoutConfig = {
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 400,
+                    fit: true,
+                    padding: 40,
+                    nodeOverlap: 20,
+                    componentSpacing: 60,
+                    nodeRepulsion: 400000,
+                    edgeElasticity: 100,
+                    idealEdgeLength: 50
+                };
+                if (layoutSelect === 'breadthfirst') {
+                    layoutConfig = {
+                        name: 'breadthfirst',
+                        directed: true,
+                        padding: 40,
+                        spacingFactor: 1.2,
+                        animate: true,
+                        animationDuration: 400
+                    };
+                } else if (layoutSelect === 'grid') {
+                    layoutConfig = {
+                        name: 'grid',
+                        padding: 40,
+                        animate: true,
+                        animationDuration: 400
+                    };
+                } else if (layoutSelect === 'circle') {
+                    layoutConfig = {
+                        name: 'circle',
+                        padding: 40,
+                        animate: true,
+                        animationDuration: 400
+                    };
                 }
 
                 pathwayKeggCy = cytoscape({
@@ -1426,23 +1478,48 @@ async function renderKeggPathwayMap(summary) {
                             style: { 'overlay-opacity': 0.1, 'overlay-color': '#000000' }
                         }
                     ],
-                    layout: {
-                        name: 'cose',
-                        animate: true,
-                        animationDuration: 400,
-                        fit: true,
-                        padding: 40,
-                        nodeOverlap: 20,
-                        componentSpacing: 60,
-                        nodeRepulsion: 400000,
-                        edgeElasticity: 100,
-                        idealEdgeLength: 50
-                    },
+                    layout: layoutConfig,
                     minZoom: 0.3,
                     maxZoom: 4
                 });
 
                 if (loading) loading.classList.add('hidden');
+
+                // ── Thermodynamic Coloring of Reaction Nodes ──────────────────
+                (async () => {
+                    try {
+                        const thermoResp = await fetch('/api/thermo/pruning-report');
+                        if (!thermoResp.ok) return;
+                        const thermoReport = await thermoResp.json();
+                        const pruned = thermoReport.pruned_reactions || [];
+                        const confirmed = thermoReport.confirmed_reactions || [];
+
+                        // Build quick lookup maps
+                        const fwdLocked = new Set(pruned.filter(r => r.direction === 'forward').map(r => r.reaction_id));
+                        const revLocked = new Set(pruned.filter(r => r.direction === 'reverse').map(r => r.reaction_id));
+                        const confirmedFwd = new Set(confirmed.filter(r => r.direction === 'forward').map(r => r.reaction_id));
+                        const confirmedRev = new Set(confirmed.filter(r => r.direction === 'reverse').map(r => r.reaction_id));
+
+                        // Apply colors to reaction nodes
+                        if (pathwayKeggCy) {
+                            pathwayKeggCy.nodes('[type="reaction"]').forEach(node => {
+                                const rxnId = node.data('label');
+                                if (fwdLocked.has(rxnId)) {
+                                    node.style({ 'background-color': '#dcfce7', 'border-color': '#16a34a', 'border-width': '2.5px' });
+                                    node.data('thermo', 'fwd-locked');
+                                } else if (revLocked.has(rxnId)) {
+                                    node.style({ 'background-color': '#fee2e2', 'border-color': '#dc2626', 'border-width': '2.5px' });
+                                    node.data('thermo', 'rev-locked');
+                                } else if (confirmedFwd.has(rxnId) || confirmedRev.has(rxnId)) {
+                                    node.style({ 'background-color': '#fef9c3', 'border-color': '#d97706', 'border-width': '1.5px' });
+                                    node.data('thermo', 'near-eq');
+                                }
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('Pathway thermo coloring failed:', e);
+                    }
+                })();
 
                 // Update stats
                 if (statsEl) {
@@ -1462,7 +1539,7 @@ async function renderKeggPathwayMap(summary) {
                 });
 
                 // Node click → detail panel
-                pathwayKeggCy.on('tap', 'node', function(evt) {
+                pathwayKeggCy.on('tap', 'node', async function(evt) {
                     const node = evt.target;
                     const data = node.data();
 
@@ -1474,6 +1551,26 @@ async function renderKeggPathwayMap(summary) {
                             // Find connected metabolites
                             const incoming = node.predecessors('node').map(n => n.data('label')).join(', ') || '—';
                             const outgoing = node.successors('node').map(n => n.data('label')).join(', ') || '—';
+                            // Fetch thermo info for this reaction
+                            const thermoInfo = await (async () => {
+                                try {
+                                    const r = await fetch('/api/thermo/pruning-report');
+                                    if (!r.ok) return null;
+                                    const rep = await r.json();
+                                    const allRxns = [...(rep.pruned_reactions || []), ...(rep.confirmed_reactions || [])];
+                                    return allRxns.find(rx => rx.reaction_id === data.label) || null;
+                                } catch { return null; }
+                            })();
+                            const thermoTag = thermoInfo ? (() => {
+                                const dir = thermoInfo.direction;
+                                const dg = thermoInfo.dgr_prime_0 != null ? `ΔG'°=${thermoInfo.dgr_prime_0.toFixed(1)} kJ/mol` : '';
+                                if (thermoInfo.status === 'newly_locked') {
+                                    return dir === 'forward'
+                                        ? `<div style="margin-top:8px;padding:6px 8px;background:#dcfce7;border:1px solid #16a34a;border-radius:6px;font-size:10px;">🔒 <strong>Forward-locked</strong> by thermodynamics${dg ? ' · ' + dg : ''}<br><span style="color:var(--text-muted)">ΔG'∈[${thermoInfo.dgr_prime_min?.toFixed(1)}, ${thermoInfo.dgr_prime_max?.toFixed(1)}] kJ/mol</span></div>`
+                                        : `<div style="margin-top:8px;padding:6px 8px;background:#fee2e2;border:1px solid #dc2626;border-radius:6px;font-size:10px;">🔒 <strong>Reverse-locked</strong> by thermodynamics${dg ? ' · ' + dg : ''}</div>`;
+                                }
+                                return `<div style="margin-top:8px;padding:6px 8px;background:#fef9c3;border:1px solid #d97706;border-radius:6px;font-size:10px;">⚖️ Near-equilibrium · ${dg}</div>`;
+                            })() : '';
                             detailContent.innerHTML = `
                                 <div style="margin-bottom:10px;">
                                     <div style="font-weight:700;color:var(--color-activation);font-size:12px;margin-bottom:4px;">${escapeHtml(data.label)}</div>
@@ -1484,7 +1581,8 @@ async function renderKeggPathwayMap(summary) {
                                     <div style="font-family:monospace;font-size:9.5px;color:#1b5e20;word-break:break-all;line-height:1.5;">${escapeHtml(data.equation || '—')}</div>
                                 </div>
                                 <div style="font-size:10px;margin-bottom:4px;"><span style="color:#4f46e5;font-weight:600;">↳ Substrates:</span> <span style="color:#312e81;">${escapeHtml(incoming)}</span></div>
-                                <div style="font-size:10px;"><span style="color:#ea580c;font-weight:600;">↳ Products:</span> <span style="color:#7c2d12;">${escapeHtml(outgoing)}</span></div>`;
+                                <div style="font-size:10px;"><span style="color:#ea580c;font-weight:600;">↳ Products:</span> <span style="color:#7c2d12;">${escapeHtml(outgoing)}</span></div>
+                                ${thermoTag}`;
                         } else if (data.type === 'metabolite') {
                             const suffix = data.fullName.endsWith('_c') ? 'Cytosol' : data.fullName.endsWith('_e') ? 'Extracellular' : 'Unknown';
                             const connectedRxns = node.neighborhood('node[type="reaction"]').map(n => n.data('label')).join(', ') || '—';
@@ -1678,6 +1776,19 @@ function initPathwayRegulatoryView() {
         runBtn.dataset.bound = '1';
         runBtn.addEventListener('click', runPathwayRegulatoryView);
     }
+    
+    // Bind layout and cofactors filters
+    const layoutSelect = document.getElementById('pathway-layout-select');
+    if (layoutSelect && !layoutSelect.dataset.bound) {
+        layoutSelect.dataset.bound = '1';
+        layoutSelect.addEventListener('change', runPathwayRegulatoryView);
+    }
+    const hideCofactorsCheck = document.getElementById('pathway-hide-cofactors');
+    if (hideCofactorsCheck && !hideCofactorsCheck.dataset.bound) {
+        hideCofactorsCheck.dataset.bound = '1';
+        hideCofactorsCheck.addEventListener('change', runPathwayRegulatoryView);
+    }
+
     document.querySelectorAll('[data-pathway-view-query]').forEach(btn => {
         if (btn.dataset.bound) return;
         btn.dataset.bound = '1';
@@ -1757,10 +1868,23 @@ function renderEngineeringTargetCandidates() {
             }
         }
 
+        // Thermodynamic context badge (from centrality data)
+        const thermoCtx = _thermoContextCache.get(locusLower) || _thermoContextCache.get(candidate.tfId);
+        let thermoBadge = '';
+        if (thermoCtx) {
+            const lvl = thermoCtx.thermo_support_level;
+            const nLocked = thermoCtx.n_locked || 0;
+            if (lvl === 'strong') {
+                thermoBadge = ` <span style="background:#dcfce7; color:#16a34a; font-size:8px; padding:1px 5px; border-radius:3px; font-weight:700; display:inline-block; vertical-align:middle; margin-left:4px;" title="Thermodynamically constrained: ${nLocked} of ${thermoCtx.total_reactions} reactions are direction-locked. Predictions are thermodynamically supported."><i class="fa-solid fa-fire"></i> Thermo-constrained</span>`;
+            } else if (lvl === 'moderate') {
+                thermoBadge = ` <span style="background:#fef9c3; color:#d97706; font-size:8px; padding:1px 5px; border-radius:3px; font-weight:600; display:inline-block; vertical-align:middle; margin-left:4px;" title="Partial thermodynamic coverage: ${nLocked} locked reactions"><i class="fa-solid fa-bolt"></i> Thermo-partial</span>`;
+            }
+        }
+
         return `
             <tr class="engineering-target-row" data-tf-id="${escapeHtml(candidate.tfId)}" data-genes="${encodeMetabolicList(candidate.regulatedKeyGenes || [])}" title="${escapeHtml(candidate.rationale || '')}" style="cursor:pointer;">
                 <td>${index + 1}</td>
-                <td><strong>${tfDisplay}</strong>${essentialBadge}${abasyBadge}</td>
+                <td><strong>${tfDisplay}</strong>${essentialBadge}${abasyBadge}${thermoBadge}</td>
                 <td><span class="engineering-target-score">${escapeHtml(Number(candidate.candidateScore || 0).toFixed(2))}</span></td>
                 <td><span class="engineering-target-level ${escapeHtml(candidate.recommendationLevel || 'low')}">${escapeHtml(candidate.recommendationLevel || 'low')}</span></td>
                 <td>${escapeHtml(candidate.mappedTargetGenes || 0)}</td>
@@ -1833,6 +1957,32 @@ function initEngineeringTargetFinder() {
         refreshBtn.dataset.bound = '1';
         refreshBtn.addEventListener('click', refreshEngineeringTargetCandidates);
     }
+    
+    // Bind dashboard controls
+    const dashControls = [
+        document.getElementById('eng-dashboard-search'),
+        document.getElementById('eng-dashboard-pathway'),
+        document.getElementById('eng-dashboard-level'),
+        document.getElementById('eng-dashboard-min-score')
+    ];
+    dashControls.forEach(control => {
+        if (!control || control.dataset.bound) return;
+        control.dataset.bound = '1';
+        control.addEventListener('input', renderEngineeringDashboardContent);
+        control.addEventListener('change', renderEngineeringDashboardContent);
+    });
+    const dashRefresh = document.getElementById('eng-dashboard-refresh');
+    if (dashRefresh && !dashRefresh.dataset.bound) {
+        dashRefresh.dataset.bound = '1';
+        dashRefresh.addEventListener('click', async () => {
+            const btn = document.getElementById('eng-dashboard-refresh');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Refreshing';
+            engineeringTargetCandidates = []; // clear cache to force refresh
+            await refreshEngineeringDashboard();
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Refresh';
+        });
+    }
+
     refreshEngineeringTargetCandidates();
 }
 
@@ -1879,16 +2029,6 @@ function setActiveWorkflowEntry(workflow) {
         }
     }
 
-    // Toggle examples dashboard container
-    const examplesDashboard = document.getElementById('examples-dashboard-overlay');
-    if (examplesDashboard) {
-        if (workflow === 'examples') {
-            examplesDashboard.classList.remove('hidden');
-            initExamplesDashboard();
-        } else {
-            examplesDashboard.classList.add('hidden');
-        }
-    }
 
     // Toggle release notes container
     const releaseDashboard = document.getElementById('release-notes-overlay');
@@ -1958,8 +2098,19 @@ function setActiveWorkflowEntry(workflow) {
         }
     }
 
+    // Toggle engineering dashboard container
+    const engineeringDashboard = document.getElementById('engineering-dashboard-overlay');
+    if (engineeringDashboard) {
+        if (workflow === 'engineering') {
+            engineeringDashboard.classList.remove('hidden');
+            refreshEngineeringDashboard();
+        } else {
+            engineeringDashboard.classList.add('hidden');
+        }
+    }
+
     // Toggle welcome overlay visibility based on fullscreen views
-    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway', 'imodulon', 'topology'];
+    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway', 'imodulon', 'topology', 'engineering'];
     const isFullscreen = fullscreenWorkflows.includes(workflow);
     
     if (canvasOverlay) {
@@ -2039,7 +2190,6 @@ function initWorkflowEntrypoints() {
     const pathwayEntry = document.getElementById('workflow-entry-pathway');
     const engineeringEntry = document.getElementById('workflow-entry-engineering');
     const qualityEntry = document.getElementById('workflow-entry-quality');
-    const examplesEntry = document.getElementById('workflow-entry-examples');
     const releaseEntry = document.getElementById('workflow-entry-release');
 
     if (geneEntry && !geneEntry.dataset.bound) {
@@ -2082,12 +2232,7 @@ function initWorkflowEntrypoints() {
             setActiveWorkflowEntry('quality');
         });
     }
-    if (examplesEntry && !examplesEntry.dataset.bound) {
-        examplesEntry.dataset.bound = '1';
-        examplesEntry.addEventListener('click', () => {
-            setActiveWorkflowEntry('examples');
-        });
-    }
+
     if (releaseEntry && !releaseEntry.dataset.bound) {
         releaseEntry.dataset.bound = '1';
         releaseEntry.addEventListener('click', () => {
@@ -7618,6 +7763,29 @@ function fetchMetabolicImpact(locusTag, nodeType) {
         .then(data => {
             if (detailLocusTag.textContent !== locusTag) return;
             renderMetabolicImpact(data, locusTag, nodeType);
+            // ── Thermodynamic Context Card ────────────────────────────────
+            // Append thermo card after metabolic impact renders
+            if (typeof fetchThermoContext === 'function') {
+                const section = document.getElementById('detail-metabolic-impact-section');
+                if (section) {
+                    // Create or reuse the thermo container
+                    let thermoDiv = document.getElementById('thermo-context-card');
+                    if (!thermoDiv) {
+                        thermoDiv = document.createElement('div');
+                        thermoDiv.id = 'thermo-context-card';
+                        thermoDiv.style.cssText = 'margin:0 0 8px;padding:0;';
+                        section.appendChild(thermoDiv);
+                    }
+                    thermoDiv.innerHTML = '<div style="padding:6px 0;color:var(--text-muted);font-size:10.5px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading thermodynamic context…</div>';
+                    fetchThermoContext(locusTag).then(ctx => {
+                        if (ctx && typeof renderThermoContextCard === 'function') {
+                            renderThermoContextCard(ctx, thermoDiv);
+                        } else if (thermoDiv) {
+                            thermoDiv.innerHTML = '';
+                        }
+                    });
+                }
+            }
         })
         .catch(err => {
             console.error('Error fetching metabolic impact:', err);
@@ -11836,6 +12004,96 @@ function updateQualityDashboard() {
                 console.warn('iCGB21FR quality fetch failed:', err.message);
             });
     }
+
+    // --- Thermodynamic Pruning Card (async fetch) ---
+    const thermoBadge = document.getElementById('thermo-badge');
+    if (thermoBadge) {
+        fetch('/api/thermo/pruning-report')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.enabled) {
+                    thermoBadge.textContent = 'Disabled';
+                    thermoBadge.style.background = 'rgba(148,163,184,0.12)';
+                    thermoBadge.style.color = '#64748b';
+                    document.getElementById('thermo-pruned-tbody').innerHTML =
+                        `<tr><td colspan="6" style="padding:8px;color:var(--text-secondary);text-align:center;">${data.message || 'Pruning not available.'}</td></tr>`;
+                    return;
+                }
+
+                // Badge — show total thermo-validated (pruned + confirmed)
+                const nTotal = (data.n_pruned || 0) + (data.n_thermo_consistent || 0);
+                thermoBadge.textContent = `${nTotal} reactions validated`;
+                thermoBadge.style.background = 'rgba(245,158,11,0.12)';
+                thermoBadge.style.color = '#d97706';
+
+                // Stats
+                document.getElementById('stat-thermo-pruned').textContent   = data.n_pruned ?? '–';
+                document.getElementById('stat-thermo-coverage').textContent = (data.data_coverage_pct ?? 0).toFixed(1) + '%';
+                document.getElementById('stat-thermo-forward').textContent  = data.n_forward_locked ?? '–';
+                document.getElementById('stat-thermo-reverse').textContent  = data.n_reverse_locked ?? '–';
+                document.getElementById('stat-thermo-conf-fwd').textContent = data.n_confirmed_forward ?? '–';
+                document.getElementById('stat-thermo-conf-rev').textContent = data.n_confirmed_reverse ?? '–';
+                document.getElementById('stat-thermo-neq').textContent      = data.n_near_equilibrium ?? '–';
+                document.getElementById('stat-thermo-nodata').textContent   = data.n_no_data ?? '–';
+                document.getElementById('stat-thermo-total').textContent    = data.total_reactions ?? '–';
+                document.getElementById('stat-thermo-eps').textContent      = data.epsilon_kJ ?? '–';
+                document.getElementById('stat-thermo-pruned-count').textContent = data.all_pruned_count ?? 0;
+                const nConf = (data.n_thermo_consistent || 0);
+                const confCountEl = document.getElementById('stat-thermo-confirmed-count');
+                if (confCountEl) confCountEl.textContent = nConf;
+
+                // Progress bar
+                const covPct = Math.min(100, data.data_coverage_pct || 0);
+                document.getElementById('thermo-coverage-bar').style.width = covPct + '%';
+
+                // Newly-locked detail table
+                const tbody = document.getElementById('thermo-pruned-tbody');
+                const rows  = data.top_pruned || [];
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="padding:8px;color:var(--text-secondary);text-align:center;">No reversible reactions needed direction locking (model bounds already consistent with thermodynamics).</td></tr>`;
+                } else {
+                    tbody.innerHTML = rows.map(r => {
+                        const dirColor  = r.direction === 'forward' ? '#10b981' : '#ef4444';
+                        const dirIcon   = r.direction === 'forward' ? '→' : '←';
+                        const confColor = r.confidence === 'HIGH' ? '#10b981' : r.confidence === 'MED' ? '#f59e0b' : '#94a3b8';
+                        return `<tr style="border-bottom:1px solid var(--border-color);">
+                            <td style="padding:5px 8px; font-family:monospace; font-size:10.5px; font-weight:600;">${r.reaction_id}</td>
+                            <td style="padding:5px 8px; color:${dirColor}; font-weight:700;">${dirIcon} ${r.direction}</td>
+                            <td style="padding:5px 8px; text-align:center;">${r.dgr_prime_0 !== null ? r.dgr_prime_0.toFixed(1) : '–'}</td>
+                            <td style="padding:5px 8px; text-align:center; font-size:10px;">[${r.dgr_prime_min?.toFixed(1)}, ${r.dgr_prime_max?.toFixed(1)}]</td>
+                            <td style="padding:5px 8px; color:${confColor}; font-weight:600; text-align:center;">${r.confidence}</td>
+                            <td style="padding:5px 8px; font-size:10px; color:var(--text-secondary);">[${r.old_lb}, ${r.old_ub}]</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                // Confirmed-correct reactions (already had right bounds)
+                const confTbody = document.getElementById('thermo-confirmed-tbody');
+                if (confTbody) {
+                    const confRows = data.confirmed_reactions || [];
+                    if (confRows.length === 0) {
+                        confTbody.innerHTML = `<tr><td colspan="5" style="padding:8px;color:var(--text-secondary);text-align:center;">None</td></tr>`;
+                    } else {
+                        confTbody.innerHTML = confRows.map(r => {
+                            const dirColor  = r.direction === 'forward' ? '#10b981' : '#ef4444';
+                            const dirIcon   = r.direction === 'forward' ? '✓→' : '←✓';
+                            const confColor = r.confidence === 'HIGH' ? '#10b981' : r.confidence === 'MED' ? '#f59e0b' : '#94a3b8';
+                            return `<tr style="border-bottom:1px solid var(--border-color);">
+                                <td style="padding:4px 8px; font-family:monospace; font-size:10px; font-weight:600;">${r.reaction_id}</td>
+                                <td style="padding:4px 8px; color:${dirColor}; font-weight:700; font-size:10px;">${dirIcon} ${r.direction}</td>
+                                <td style="padding:4px 8px; text-align:center; font-size:10px;">${r.dgr_prime_0 !== null ? r.dgr_prime_0.toFixed(1) : '–'}</td>
+                                <td style="padding:4px 8px; text-align:center; font-size:10px;">[${r.dgr_prime_min?.toFixed(1)}, ${r.dgr_prime_max?.toFixed(1)}]</td>
+                                <td style="padding:4px 8px; color:${confColor}; font-weight:600; text-align:center; font-size:10px;">${r.confidence}</td>
+                            </tr>`;
+                        }).join('');
+                    }
+                }
+            })
+            .catch(err => {
+                if (thermoBadge) { thermoBadge.textContent = 'Error'; thermoBadge.style.color = '#ef4444'; }
+                console.warn('Thermo pruning fetch failed:', err.message);
+            });
+    }
 }
 
 function exportQualityReportJSON() {
@@ -11912,249 +12170,6 @@ function exportQualityReportCSV() {
     URL.revokeObjectURL(url);
 }
 
-// ==========================================================================
-// 9. Examples & Case Studies Logic
-// ==========================================================================
-
-let activeCaseStudyResult = null;
-
-function initExamplesDashboard() {
-    const runButtons = document.querySelectorAll('.run-case-btn');
-    runButtons.forEach(btn => {
-        if (!btn.dataset.bound) {
-            btn.dataset.bound = '1';
-            btn.addEventListener('click', () => {
-                const caseId = btn.getAttribute('data-case-id');
-                runAndDisplayCaseStudy(caseId);
-            });
-        }
-    });
-
-    const exportBtn = document.getElementById('btn-export-case-report');
-    if (exportBtn && !exportBtn.dataset.bound) {
-        exportBtn.dataset.bound = '1';
-        exportBtn.addEventListener('click', () => {
-            if (activeCaseStudyResult) {
-                exportCaseReportJSON(activeCaseStudyResult);
-            }
-        });
-    }
-
-    const floatingExportBtn = document.getElementById('btn-floating-export-report');
-    if (floatingExportBtn && !floatingExportBtn.dataset.bound) {
-        floatingExportBtn.dataset.bound = '1';
-        floatingExportBtn.addEventListener('click', () => {
-            if (activeCaseStudyResult) {
-                exportCaseReportJSON(activeCaseStudyResult);
-            }
-        });
-    }
-
-    const closeFloatingBtn = document.getElementById('btn-close-floating-narrative');
-    if (closeFloatingBtn && !closeFloatingBtn.dataset.bound) {
-        closeFloatingBtn.dataset.bound = '1';
-        closeFloatingBtn.addEventListener('click', () => {
-            document.getElementById('case-floating-narrative').classList.add('hidden');
-        });
-    }
-}
-
-function runAndDisplayCaseStudy(caseId) {
-    if (!window.caseStudies) {
-        console.error("caseStudies library not loaded!");
-        return;
-    }
-
-    const graph = getGlobalPlatformGraph();
-    const result = window.caseStudies.runCaseStudy(caseId, graph);
-    activeCaseStudyResult = result;
-
-    const resultsPanel = document.getElementById('case-study-results-panel');
-    if (resultsPanel) {
-        resultsPanel.classList.remove('hidden');
-    }
-
-    document.getElementById('results-case-title').textContent = result.caseStudy.title;
-    document.getElementById('results-narrative-text').textContent = result.narrative;
-
-    const warningBanner = document.getElementById('case-warning-banner');
-    if (warningBanner) {
-        if (result.warnings && result.warnings.length > 0) {
-            warningBanner.innerHTML = result.warnings.join('<br>');
-            warningBanner.classList.remove('hidden');
-        } else {
-            warningBanner.classList.add('hidden');
-        }
-    }
-
-    const floatingCard = document.getElementById('case-floating-narrative');
-    const floatingText = document.getElementById('floating-narrative-text');
-    const floatingWarnings = document.getElementById('floating-case-warnings');
-    
-    if (floatingText) floatingText.textContent = result.narrative;
-    if (floatingWarnings) {
-        if (result.warnings && result.warnings.length > 0) {
-            floatingWarnings.innerHTML = result.warnings.join('<br>');
-            floatingWarnings.classList.remove('hidden');
-        } else {
-            floatingWarnings.classList.add('hidden');
-        }
-    }
-    if (floatingCard) {
-        floatingCard.classList.remove('hidden');
-    }
-
-    const table = document.getElementById('case-results-table');
-    if (table) {
-        const thead = table.querySelector('thead');
-        const tbody = table.querySelector('tbody');
-        tbody.innerHTML = '';
-
-        if (caseId === "glutamate-regulation" || caseId === "tca-cycle-regulators") {
-            thead.innerHTML = `
-                <tr>
-                    <th>Transcription Factor</th>
-                    <th>Target Genes count</th>
-                    <th>Avg Confidence</th>
-                    <th>Regulator Score</th>
-                    <th>Action</th>
-                </tr>
-            `;
-            const ranking = result.results.tfRanking || [];
-            if (ranking.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="metabolic-muted" style="text-align: center;">No upstream regulators found.</td></tr>';
-            } else {
-                tbody.innerHTML = ranking.slice(0, 10).map(tf => `
-                    <tr>
-                        <td><strong>${escapeHtml(tf.tfLabel || tf.tfId)}</strong></td>
-                        <td>${tf.regulatedGenes ? tf.regulatedGenes.length : 0} genes</td>
-                        <td>${tf.averageConfidence.toFixed(3)}</td>
-                        <td>${tf.regulatorScore.toFixed(3)}</td>
-                        <td><button class="secondary-btn search-tf-btn" data-tf="${escapeHtml(tf.tfId)}" style="height: 24px; font-size: 10px; padding: 0 8px;">Inspect TF</button></td>
-                    </tr>
-                `).join('');
-            }
-        } else if (caseId === "amino-acid-engineering-targets") {
-            thead.innerHTML = `
-                <tr>
-                    <th>Transcription Factor</th>
-                    <th>Candidate Score</th>
-                    <th>Recommendation</th>
-                    <th>Regulated Key Genes</th>
-                    <th>Avg Confidence</th>
-                    <th>Action</th>
-                </tr>
-            `;
-            const candidates = result.results.engineeringCandidates || [];
-            if (candidates.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="metabolic-muted" style="text-align: center;">No engineering candidates found.</td></tr>';
-            } else {
-                tbody.innerHTML = candidates.slice(0, 10).map(candidate => {
-                    const badgeClass = candidate.recommendationLevel === "high" ? "mode-engineering" : "mode-pathway";
-                    return `
-                        <tr>
-                            <td><strong>${escapeHtml(candidate.tfLabel || candidate.tfId)}</strong></td>
-                            <td><strong style="color: var(--color-primary-accent);">${candidate.candidateScore.toFixed(3)}</strong></td>
-                            <td><span class="case-badge ${badgeClass}">${candidate.recommendationLevel}</span></td>
-                            <td>${candidate.regulatedKeyGenes ? candidate.regulatedKeyGenes.length : 0} genes</td>
-                            <td>${candidate.averageConfidence.toFixed(3)}</td>
-                            <td><button class="secondary-btn search-tf-btn" data-tf="${escapeHtml(candidate.tfId)}" style="height: 24px; font-size: 10px; padding: 0 8px;">Inspect TF</button></td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-        }
-
-        tbody.querySelectorAll('.search-tf-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tfId = btn.getAttribute('data-tf');
-                setActiveWorkflowEntry('gene');
-                scrollLeftSidebarTo('.search-section');
-                const searchInput = geneInputsContainer?.querySelector('.gene-input');
-                if (searchInput) searchInput.value = tfId;
-                querySingleGene(tfId);
-            });
-        });
-    }
-
-    const qual = result.results.qualitySummary;
-    const enz = result.results.enzymeConstraintSummary;
-
-    document.getElementById('results-qual-meta').textContent = qual ? `${((qual.genesMappedToReactions / qual.regulatoryGeneCount) * 100).toFixed(1)}% (${qual.genesMappedToReactions}/${qual.regulatoryGeneCount})` : '-';
-    document.getElementById('results-qual-reactions').textContent = qual ? `${qual.mappedReactionCount} rxns / ${qual.mappedPathwayCount} pathways` : '-';
-    document.getElementById('results-qual-enz').textContent = qual && enz ? `${((enz.genesWithEnzymeMapping / qual.regulatoryGeneCount) * 100).toFixed(1)}% (${enz.genesWithEnzymeMapping}/${qual.regulatoryGeneCount})` : '-';
-    document.getElementById('results-qual-enz-rxns').textContent = enz ? `${enz.enzymeAssociatedReactionCount} reactions` : '-';
-
-    setTimeout(() => {
-        if (result.caseStudy.entryMode === "pathway") {
-            setActiveWorkflowEntry('pathway');
-            scrollLeftSidebarTo('.pathway-regulatory-view-section');
-            const pathInput = document.getElementById('pathway-view-input');
-            if (pathInput) {
-                const kw = result.caseStudy.pathwayKeyword;
-                pathInput.value = kw === 'glutamate' ? 'glutamate metabolism' : 'citric acid cycle (tca cycle)';
-                runPathwayRegulatoryView();
-            }
-        } else if (result.caseStudy.entryMode === "engineering-targets") {
-            setActiveWorkflowEntry('engineering');
-            scrollLeftSidebarTo('.engineering-targets-section');
-            const searchInput = document.getElementById('engineering-target-search');
-            const minScoreInput = document.getElementById('engineering-target-min-score');
-            const pathFilter = document.getElementById('engineering-target-pathway-filter');
-            
-            if (searchInput) searchInput.value = '';
-            if (minScoreInput) minScoreInput.value = '0';
-            if (pathFilter) {
-                pathFilter.value = result.caseStudy.pathwayKeyword || '';
-                refreshEngineeringTargetCandidates();
-            }
-        }
-    }, 1500);
-}
-
-function exportCaseReportJSON(caseResult) {
-    if (!caseResult) return;
-    
-    let topResults = [];
-    if (caseResult.caseStudy.id === "glutamate-regulation" || caseResult.caseStudy.id === "tca-cycle-regulators") {
-        topResults = (caseResult.results.tfRanking || []).slice(0, 10).map(tf => ({
-            tfId: tf.tfId,
-            tfLabel: tf.tfLabel,
-            regulatedGenesCount: tf.regulatedGenes ? tf.regulatedGenes.length : 0,
-            averageConfidence: tf.averageConfidence,
-            regulatorScore: tf.regulatorScore
-        }));
-    } else if (caseResult.caseStudy.id === "amino-acid-engineering-targets") {
-        topResults = (caseResult.results.engineeringCandidates || []).slice(0, 10).map(candidate => ({
-            tfId: candidate.tfId,
-            tfLabel: candidate.tfLabel,
-            candidateScore: candidate.candidateScore,
-            recommendationLevel: candidate.recommendationLevel,
-            regulatedKeyGenesCount: candidate.regulatedKeyGenes ? candidate.regulatedKeyGenes.length : 0,
-            averageConfidence: candidate.averageConfidence
-        }));
-    }
-
-    const report = {
-        reportType: "Case Study Analysis Report",
-        caseStudyId: caseResult.caseStudy.id,
-        caseStudyTitle: caseResult.caseStudy.title,
-        question: caseResult.caseStudy.question,
-        workflow: caseResult.caseStudy.workflow,
-        topResults: topResults,
-        qualityWarnings: caseResult.warnings,
-        limitations: caseResult.caseStudy.limitations,
-        generatedTimestamp: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cgl_case_report_${caseResult.caseStudy.id}_${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
 
 
 
@@ -13047,3 +13062,697 @@ function formatGeneName(locus, name) {
     }
     return escapeHtml(cgl);
 }
+
+// Candidate Engineering Regulators Dashboard State
+let engineeringTopChart = null;
+let engineeringRiskChart = null;
+let engineeringSimChart = null;
+
+async function refreshEngineeringDashboard() {
+    const finder = window.candidateEngineeringTargets;
+    if (!finder) return;
+    
+    const grid = document.getElementById('engineering-cards-grid');
+    if (!grid) return;
+    
+    if (!engineeringTargetCandidates || engineeringTargetCandidates.length === 0) {
+        try {
+            const graph = buildGlobalRegulatoryGraphForRanking();
+            engineeringTargetCandidates = await finder.findEngineeringTargetCandidatesAsync(graph, {
+                limit: 150,
+                minCandidateScore: 0,
+                includeLowConfidence: false,
+                batchSize: 8
+            });
+        } catch (e) {
+            console.error(e);
+            showToast('Engineering Targets', 'Failed to rank candidate regulators: ' + e.message, 'error');
+            return;
+        }
+    }
+    
+    renderEngineeringDashboardContent();
+}
+
+function formatTFProteinText(locus, name) {
+    const locusLower = locus.toLowerCase();
+    const cgl = cgToCgl[locusLower] || locus;
+    const hasName = name && name.toLowerCase() !== locusLower;
+    if (hasName) {
+        const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+        return `${capitalized} (${cgl})`;
+    }
+    return cgl;
+}
+
+function renderEngineeringDashboardContent() {
+    const search = String(document.getElementById('eng-dashboard-search')?.value || '').trim().toLowerCase();
+    const pathwayFilter = String(document.getElementById('eng-dashboard-pathway')?.value || '').trim().toLowerCase();
+    const level = String(document.getElementById('eng-dashboard-level')?.value || '').trim().toLowerCase();
+    const minScore = Number(document.getElementById('eng-dashboard-min-score')?.value || 0);
+    
+    const minScoreValSpan = document.getElementById('eng-dashboard-min-score-val');
+    if (minScoreValSpan) minScoreValSpan.textContent = minScore.toFixed(2);
+    
+    const filtered = engineeringTargetCandidates
+        .filter(c => {
+            if (!search) return true;
+            const locusLower = c.tfId.toLowerCase();
+            const cgl = (cgToCgl[locusLower] || '').toLowerCase();
+            const label = (c.tfLabel || '').toLowerCase();
+            return locusLower.includes(search) || label.includes(search) || cgl.includes(search);
+        })
+        .filter(c => !pathwayFilter || (c.keyPathways || []).some(path => String(path).toLowerCase().includes(pathwayFilter)))
+        .filter(c => !level || c.recommendationLevel === level)
+        .filter(c => Number(c.candidateScore || 0) >= minScore);
+        
+    const grid = document.getElementById('engineering-cards-grid');
+    if (grid) {
+        grid.innerHTML = '';
+        if (filtered.length === 0) {
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-secondary); font-style:italic;">No engineering candidates match the active filters.</div>`;
+        } else {
+            filtered.forEach(c => {
+                const locusLower = c.tfId.toLowerCase();
+                const tfIsEssential = essentialGenes[locusLower] || (cgToCgl[locusLower] && essentialGenes[cgToCgl[locusLower].toLowerCase()]);
+                const abasyRoleInfo = abasyRoles[locusLower] || (cgToCgl[locusLower] && abasyRoles[cgToCgl[locusLower].toLowerCase()]);
+                const isGlobalHub = abasyRoleInfo && (abasyRoleInfo.role === 'Global Regulator' || abasyRoleInfo.role === 'Basal Machinery');
+                
+                let riskScore = 15;
+                let riskLabel = 'Low Risk';
+                let riskColor = '#10b981';
+                
+                if (tfIsEssential) riskScore += 50;
+                if (isGlobalHub) riskScore += 30;
+                if (c.mappedTargetGenes > 25) riskScore += 15;
+                
+                if (riskScore >= 70) {
+                    riskLabel = 'Critical Risk';
+                    riskColor = '#ef4444';
+                } else if (riskScore >= 40) {
+                    riskLabel = 'Moderate Risk';
+                    riskColor = '#f59e0b';
+                }
+                
+                const tfLabelText = formatTFProteinText(c.tfId, c.tfLabel);
+                
+                const card = document.createElement('div');
+                card.className = 'eng-card';
+                card.style.cssText = `
+                    background: #ffffff;
+                    border: 1px solid var(--border-color);
+                    border-radius: 12px;
+                    padding: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+                    transition: all 0.2s ease;
+                `;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <h3 style="margin:0; font-size:13px; font-weight:700; color:var(--text-primary);">${escapeHtml(tfLabelText)}</h3>
+                            <div style="font-size:10px; color:var(--text-secondary); margin-top:2px;">${escapeHtml(c.tfId.toUpperCase())}</div>
+                        </div>
+                        <span class="badge" style="background:${c.candidateScore >= 0.75 ? 'rgba(239, 68, 68, 0.1)' : c.candidateScore >= 0.45 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(59, 130, 246, 0.1)'}; color:${c.candidateScore >= 0.75 ? '#dc2626' : c.candidateScore >= 0.45 ? '#d97706' : '#2563eb'}; border:1px solid currentColor; font-size:10px; padding:2px 8px; border-radius:12px; font-weight:700;">Score: ${c.candidateScore.toFixed(2)}</span>
+                    </div>
+                    
+                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                        ${tfIsEssential ? `<span style="background:#fee2e2; color:#dc2626; font-size:8px; padding:1px 5px; border-radius:4px; font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> Essential</span>` : ''}
+                        ${isGlobalHub ? `<span style="background:#fef3c7; color:#d97706; font-size:8px; padding:1px 5px; border-radius:4px; font-weight:600;"><i class="fa-solid fa-circle-nodes"></i> Global Hub</span>` : ''}
+                        ${!tfIsEssential && !isGlobalHub ? `<span style="background:#d1fae5; color:#059669; font-size:8px; padding:1px 5px; border-radius:4px; font-weight:600;"><i class="fa-solid fa-check"></i> High Specificity</span>` : ''}
+                    </div>
+                    
+                    <div style="font-size:11px; color:var(--text-secondary); line-height:1.4; display:grid; grid-template-columns:1fr 1fr; gap:6px; background:#f8fafc; padding:8px; border-radius:6px;">
+                        <div>Targets: <strong>${c.mappedTargetGenes} genes</strong></div>
+                        <div>Reactions: <strong>${c.totalReactions} rxns</strong></div>
+                        <div>Pathways: <strong>${c.totalPathways} paths</strong></div>
+                        <div>Avg Conf: <strong>${c.averageConfidence.toFixed(2)}</strong></div>
+                    </div>
+                    
+                    <div style="font-size:11px; flex:1; min-height:48px;">
+                        <span style="color:var(--text-muted); font-size:10px; display:block; margin-bottom:2px;">Key Subsystem Targets:</span>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; max-height:48px; overflow:hidden;">
+                            ${c.keyPathways.length > 0 
+                                ? c.keyPathways.slice(0, 3).map(p => `<span style="background:#e0e7ff; color:#4338ca; font-size:9px; padding:1px 6px; border-radius:4px;">${escapeHtml(p.length > 18 ? p.slice(0, 15) + '...' : p)}</span>`).join('')
+                                : '<span style="color:var(--text-secondary); font-style:italic; font-size:9.5px;">No engineering pathways flagged</span>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:10px;">
+                            <span style="color:var(--text-muted);">Pleiotropic Risk:</span>
+                            <span style="font-weight:700; color:${riskColor};">${riskLabel}</span>
+                        </div>
+                        <div style="height:5px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+                            <div style="width:${riskScore}%; height:100%; background:${riskColor}; border-radius:3px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; gap:8px; margin-top:8px; width:100%;">
+                        <button class="secondary-btn" style="flex:1; width:auto !important; height:32px !important; padding:0 8px !important; font-size:10.5px !important; font-weight:600 !important; border-radius:6px !important; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer;" onclick="inspectEngineeringTF('${escapeHtml(c.tfId)}', '${encodeMetabolicList(c.regulatedKeyGenes || [])}')">
+                            <i class="fa-solid fa-network-wired"></i> Inspect
+                        </button>
+                        <button class="primary-btn" id="btn-sim-${escapeHtml(c.tfId)}" style="flex:1; width:auto !important; height:32px !important; padding:0 8px !important; font-size:10.5px !important; font-weight:600 !important; background:#4f46e5 !important; border-color:#4f46e5 !important; border-radius:6px !important; display:inline-flex; align-items:center; justify-content:center; gap:4px; color:white !important; cursor:pointer;" onclick="simulateEngineeringTF('${escapeHtml(c.tfId)}')">
+                            <i class="fa-solid fa-play"></i> Simulate KO
+                        </button>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+    }
+    
+    drawEngineeringDashboardCharts(filtered);
+}
+
+function drawEngineeringDashboardCharts(data) {
+    if (engineeringTopChart) {
+        engineeringTopChart.destroy();
+        engineeringTopChart = null;
+    }
+    const topCanvas = document.getElementById('engineering-top-chart');
+    if (topCanvas) {
+        const ctxTop = topCanvas.getContext('2d');
+        const top5 = data.slice(0, 5);
+        const labels = top5.map(c => formatTFProteinText(c.tfId, c.tfLabel));
+        const scores = top5.map(c => c.candidateScore);
+        
+        engineeringTopChart = new Chart(ctxTop, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Priority Score',
+                    data: scores,
+                    backgroundColor: 'rgba(99, 102, 241, 0.75)',
+                    borderColor: 'rgb(99, 102, 241)',
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Score: ${context.parsed.y.toFixed(3)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 1.0,
+                        ticks: { font: { size: 9 } },
+                        title: { display: true, text: 'Engineering Score', font: { size: 9 } }
+                    },
+                    x: {
+                        ticks: { font: { size: 9 } }
+                    }
+                }
+            }
+        });
+    }
+
+    if (engineeringRiskChart) {
+        engineeringRiskChart.destroy();
+        engineeringRiskChart = null;
+    }
+    const riskCanvas = document.getElementById('engineering-risk-chart');
+    if (riskCanvas) {
+        const ctxRisk = riskCanvas.getContext('2d');
+        
+        let lowRiskCount = 0;
+        let moderateRiskCount = 0;
+        let criticalRiskCount = 0;
+        
+        data.forEach(c => {
+            const locusLower = c.tfId.toLowerCase();
+            const tfIsEssential = essentialGenes[locusLower] || (cgToCgl[locusLower] && essentialGenes[cgToCgl[locusLower].toLowerCase()]);
+            const abasyRoleInfo = abasyRoles[locusLower] || (cgToCgl[locusLower] && abasyRoles[cgToCgl[locusLower].toLowerCase()]);
+            const isGlobalHub = abasyRoleInfo && (abasyRoleInfo.role === 'Global Regulator' || abasyRoleInfo.role === 'Basal Machinery');
+            
+            let risk = 15;
+            if (tfIsEssential) risk += 50;
+            if (isGlobalHub) risk += 30;
+            if (c.mappedTargetGenes > 25) risk += 15;
+            
+            if (risk >= 70) criticalRiskCount++;
+            else if (risk >= 40) moderateRiskCount++;
+            else lowRiskCount++;
+        });
+
+        engineeringRiskChart = new Chart(ctxRisk, {
+            type: 'doughnut',
+            data: {
+                labels: ['Low Risk', 'Moderate Risk', 'Critical Risk'],
+                datasets: [{
+                    data: [lowRiskCount, moderateRiskCount, criticalRiskCount],
+                    backgroundColor: ['rgba(16, 185, 129, 0.75)', 'rgba(245, 158, 11, 0.75)', 'rgba(239, 68, 68, 0.75)'],
+                    borderColor: ['rgb(16, 185, 129)', 'rgb(245, 158, 11)', 'rgb(239, 68, 68)'],
+                    borderWidth: 1.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { font: { size: 8 } }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function inspectEngineeringTF(tfId, genesString) {
+    const overlay = document.getElementById('engineering-dashboard-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    
+    const genes = decodeMetabolicList(genesString);
+    setActiveWorkflowEntry('gene');
+    setTimeout(() => {
+        querySingleGene(tfId);
+        showNodeDetails(tfId);
+        highlightPathwayRegulator(tfId, genes);
+    }, 100);
+}
+
+async function simulateEngineeringTF(tfId) {
+    const resultsPanel = document.getElementById('engineering-sim-overlay');
+    const titleText = document.getElementById('eng-sim-title');
+    const runBtn = document.getElementById(`btn-sim-${tfId}`);
+    
+    if (!resultsPanel || !titleText) return;
+    
+    const oldText = runBtn ? runBtn.innerHTML : '';
+    if (runBtn) {
+        runBtn.disabled = true;
+        runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Simulating...';
+    }
+    
+    try {
+        titleText.textContent = `Simulation: Target Knockout of ${tfId.toUpperCase()}`;
+        
+        const resp = await fetch(`/api/engineering/simulation?tf=${encodeURIComponent(tfId)}`);
+        if (!resp.ok) {
+            throw new Error(`Simulation request failed: ${resp.status}`);
+        }
+        const data = await resp.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        resultsPanel.classList.remove('hidden');
+        
+        if (engineeringSimChart) {
+            engineeringSimChart.destroy();
+            engineeringSimChart = null;
+        }
+        
+        const ctxSim = document.getElementById('engineering-sim-chart').getContext('2d');
+        const fba = data.fba || {};
+        const ecfba = data.ecfba || {};
+        
+        const fbaGrowth = Number(fba.objectiveChangePercent !== undefined ? fba.objectiveChangePercent : 0);
+        const fbaLysine = Number(fba.trackedFluxes?.find(f => f.reactionId === 'EX_lys_L_e')?.fluxChangePercent ?? 0);
+        const fbaGlutamate = Number(fba.trackedFluxes?.find(f => f.reactionId === 'EX_glu_L_e')?.fluxChangePercent ?? 0);
+        
+        const ecGrowth = Number(ecfba.growth || 0);
+        const ecLysine = Number(ecfba.lysine || 0);
+        const ecGlutamate = Number(ecfba.glutamate || 0);
+        
+        // Render summary table contents
+        const summaryTable = document.getElementById('engineering-sim-summary-table');
+        if (summaryTable) {
+            const hasWarnings = data.warnings && data.warnings.length > 0;
+            const warningsList = hasWarnings ? data.warnings.map(w => `<li style="color:#f59e0b; margin-bottom:2px;">${escapeHtml(w)}</li>`).join('') : '';
+            
+            summaryTable.innerHTML = `
+                <div style="font-weight: 700; font-size: 11.5px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; color: var(--text-primary);">
+                    <i class="fa-solid fa-square-poll-horizontal" style="color:#4f46e5;"></i> Simulation Metrics Summary
+                </div>
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; font-size: 10.5px; text-align: left; align-items: center;">
+                    <div style="font-weight: 600; color: var(--text-muted);">Metric</div>
+                    <div style="font-weight: 600; color: var(--text-muted);">Standard FBA (% change)</div>
+                    <div style="font-weight: 600; color: var(--text-muted);">ecFBA (Flux mmol/gDCW/h)</div>
+                    
+                    <div>Growth Rate / Biomass</div>
+                    <div style="color:${fbaGrowth < 0 ? '#ef4444' : fbaGrowth > 0 ? '#10b981' : 'var(--text-primary)'}; font-weight:700;">${fbaGrowth.toFixed(1)}%</div>
+                    <div style="font-weight:700; color:#4f46e5;">${ecGrowth.toFixed(4)}</div>
+                    
+                    <div>Lysine Excretion</div>
+                    <div style="color:${fbaLysine < 0 ? '#ef4444' : fbaLysine > 0 ? '#10b981' : 'var(--text-primary)'}; font-weight:700;">${fbaLysine.toFixed(1)}%</div>
+                    <div style="font-weight:700; color:#4f46e5;">${ecLysine.toFixed(4)}</div>
+                    
+                    <div>Glutamate Excretion</div>
+                    <div style="color:${fbaGlutamate < 0 ? '#ef4444' : fbaGlutamate > 0 ? '#10b981' : 'var(--text-primary)'}; font-weight:700;">${fbaGlutamate.toFixed(1)}%</div>
+                    <div style="font-weight:700; color:#4f46e5;">${ecGlutamate.toFixed(4)}</div>
+                </div>
+                ${hasWarnings ? `
+                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-color); font-size: 9.5px; color: #d97706;">
+                    <strong>Simulation Warnings/Limitations:</strong>
+                    <ul style="margin: 4px 0 0 0; padding-left: 14px;">${warningsList}</ul>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // ── Thermodynamic Confidence Badge ──────────────────────────────────
+        const thermoConf = document.getElementById('engineering-sim-thermo-confidence');
+        if (thermoConf) {
+            thermoConf.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking thermodynamic context…';
+            fetchThermoContext(tfId).then(ctx => {
+                if (!ctx) {
+                    thermoConf.innerHTML = '<span style="color:var(--text-muted);font-size:10px;">No thermodynamic data available for this TF.</span>';
+                    return;
+                }
+                const lvl = ctx.thermo_support_level;
+                const conf = ctx.ko_thermo_confidence;
+                const n = ctx.n_locked;
+                const tot = ctx.total_reactions;
+                const confPct = Math.round(conf * 100);
+                const lvlConfig = {
+                    'strong':   { color: '#16a34a', bg: 'rgba(22,163,74,0.08)',  label: '🔒 Strong' },
+                    'moderate': { color: '#d97706', bg: 'rgba(217,119,6,0.08)',   label: '⚠️ Moderate' },
+                    'weak':     { color: '#9ca3af', bg: 'rgba(156,163,175,0.06)', label: '〰️ Weak' },
+                    'none':     { color: '#9ca3af', bg: 'rgba(156,163,175,0.04)', label: '❓ No data' },
+                };
+                const lc = lvlConfig[lvl] || lvlConfig['none'];
+                thermoConf.innerHTML = `
+                <div style="background:${lc.bg};border:1px solid ${lc.color}20;border-radius:8px;padding:8px 10px;margin-top:8px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                        <span style="font-size:11px;font-weight:700;color:${lc.color};">${lc.label} Thermodynamic Support</span>
+                        <span style="font-size:10px;color:var(--text-secondary);">${n}/${tot} reactions direction-locked</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;background:#e2e8f0;border-radius:4px;height:5px;overflow:hidden;">
+                            <div style="background:${lc.color};height:100%;width:${confPct}%;transition:width 0.5s;"></div>
+                        </div>
+                        <span style="font-size:11px;font-weight:700;color:${lc.color};">${confPct}%</span>
+                    </div>
+                    <div style="font-size:9.5px;color:var(--text-muted);margin-top:4px;">
+                        Prediction confidence based on thermodynamic direction constraints (Noor et al. 2013)
+                    </div>
+                </div>`;
+            });
+        }
+        
+        engineeringSimChart = new Chart(ctxSim, {
+            type: 'bar',
+            data: {
+                labels: ['Growth Rate', 'Lysine Excretion', 'Glutamate Excretion'],
+                datasets: [
+                    {
+                        label: 'Standard FBA (% change)',
+                        data: [fbaGrowth, fbaLysine, fbaGlutamate],
+                        backgroundColor: 'rgba(15, 118, 110, 0.75)',
+                        borderColor: 'rgb(15, 118, 110)',
+                        borderWidth: 1.5,
+                        yAxisID: 'yPct'
+                    },
+                    {
+                        label: 'ecFBA (Knockout Flux mmol/gDCW/h)',
+                        data: [ecGrowth, ecLysine, ecGlutamate],
+                        backgroundColor: 'rgba(79, 70, 229, 0.75)',
+                        borderColor: 'rgb(79, 70, 229)',
+                        borderWidth: 1.5,
+                        yAxisID: 'yFlux'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 9 } } }
+                },
+                scales: {
+                    x: { ticks: { font: { size: 9.5 } } },
+                    yPct: {
+                        type: 'linear',
+                        position: 'left',
+                        title: { display: true, text: 'Standard FBA Change %', font: { size: 9 } },
+                        ticks: { font: { size: 8 } }
+                    },
+                    yFlux: {
+                        type: 'linear',
+                        position: 'right',
+                        title: { display: true, text: 'ecFBA Knockout Flux (mmol/gDCW/h)', font: { size: 9 } },
+                        ticks: { font: { size: 8 } },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+        
+    } catch (e) {
+        console.error(e);
+        showToast('Engineering Target Simulation', 'Simulation failed: ' + e.message, 'error');
+    } finally {
+        if (runBtn) {
+            runBtn.disabled = false;
+            runBtn.innerHTML = oldText;
+        }
+    }
+}
+
+function closeEngineeringSimulationModal() {
+    const resultsPanel = document.getElementById('engineering-sim-overlay');
+    if (resultsPanel) {
+        resultsPanel.classList.add('hidden');
+    }
+    if (engineeringSimChart) {
+        engineeringSimChart.destroy();
+        engineeringSimChart = null;
+    }
+}
+
+// Export to window for inline onclick handlers
+window.inspectEngineeringTF = inspectEngineeringTF;
+window.simulateEngineeringTF = simulateEngineeringTF;
+window.closeEngineeringSimulationModal = closeEngineeringSimulationModal;
+
+// ── Network Centrality Analysis (pre-computed) ─────────────────────────────────
+let _centralityLoaded = false;
+
+async function loadPrecomputedCentrality() {
+    const tbody = document.getElementById('topo-centrality-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading centrality data…</td></tr>`;
+
+    try {
+        const resp = await fetch('/api/network/centrality?limit=50&tfs_only=true');
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        _centralityLoaded = true;
+
+        const tfs = data.top_tfs || [];
+        const maxScore = tfs.length > 0 ? tfs[0].importance : 1;
+
+        tbody.innerHTML = tfs.map((tf, i) => {
+            const pct = maxScore > 0 ? Math.round(tf.importance / maxScore * 100) : 0;
+            const actPct = Math.round((tf.activation_ratio || 0) * 100);
+            const actColor = actPct > 60 ? '#16a34a' : actPct < 40 ? '#dc2626' : '#d97706';
+            const goldColors = ['#f59e0b','#94a3b8','#cd7f32'];
+            const rankBadge = i < 3
+                ? `<span style="background:${goldColors[i]};color:#fff;border-radius:4px;padding:1px 5px;font-size:10px;font-weight:700;">#${i+1}</span>`
+                : `<span style="color:var(--text-muted);">${i+1}</span>`;
+            const sigmaTag = tf.is_sigma
+                ? `<span style="font-size:9px;background:rgba(139,92,246,0.15);color:#8b5cf6;border-radius:3px;padding:0 4px;margin-left:4px;">σ</span>`
+                : '';
+            const displayName = tf.name && tf.name !== tf.locus ? tf.name : tf.locus;
+            const bar = `<div style="background:#e2e8f0;border-radius:3px;height:6px;width:80px;overflow:hidden;display:inline-block;">
+                <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:100%;width:${pct}%;transition:width 0.4s;"></div></div>`;
+
+            return `<tr style="border-bottom:1px solid var(--border-color);cursor:pointer;"
+                onmouseover="this.style.background='rgba(99,102,241,0.04)'"
+                onmouseout="this.style.background=''">
+                <td style="padding:7px 8px;">${rankBadge}</td>
+                <td style="padding:7px 8px;">
+                    <a href="#" class="topo-gene-link" data-locus="${escapeHtml(tf.locus)}"
+                       style="font-weight:600;color:var(--color-primary-accent);text-decoration:none;"
+                    >${escapeHtml(displayName)}${sigmaTag}</a>
+                    <div style="font-size:10px;color:var(--text-muted);">${escapeHtml(tf.locus)}</div>
+                </td>
+                <td style="padding:7px 8px;text-align:center;font-weight:700;">${tf.out_degree}</td>
+                <td style="padding:7px 8px;text-align:center;font-family:monospace;font-size:11px;"
+                    title="Betweenness: ${tf.betweenness}">${(tf.betweenness * 1000).toFixed(2)}</td>
+                <td style="padding:7px 8px;text-align:center;font-family:monospace;font-size:11px;"
+                    title="PageRank: ${tf.pagerank}">${(tf.pagerank * 1000).toFixed(2)}</td>
+                <td style="padding:7px 8px;text-align:center;font-family:monospace;font-size:11px;"
+                    title="Hub score: ${tf.hub_score}">${(tf.hub_score * 1000).toFixed(2)}</td>
+                <td style="padding:7px 8px;text-align:center;font-weight:600;color:${actColor};">${actPct}%</td>
+                <td style="padding:7px 8px;text-align:center;font-weight:700;color:var(--color-primary-accent);"
+                    title="Composite importance score">${(tf.importance * 100).toFixed(1)}</td>
+                <td style="padding:7px 8px;">${bar}</td>
+            </tr>`;
+        }).join('');
+
+        // Bind gene links
+        tbody.querySelectorAll('.topo-gene-link').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                setActiveWorkflowEntry('gene');
+                setTimeout(() => queryGene(a.getAttribute('data-locus')), 100);
+            });
+        });
+
+        const meta = data._meta || {};
+        showToast(`Centrality loaded: ${meta.n_tfs || tfs.length} TFs over ${meta.n_edges || '?'} edges`, 'success');
+    } catch (err) {
+        console.error('Centrality load error:', err);
+        const tbody2 = document.getElementById('topo-centrality-tbody');
+        if (tbody2) tbody2.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:#dc2626;">Error: ${escapeHtml(err.message)}</td></tr>`;
+    }
+}
+
+// Auto-load when centrality tab is first clicked
+document.addEventListener('click', e => {
+    const btn = e.target.closest('[data-topo-tab="centrality"]');
+    if (btn && !_centralityLoaded) {
+        setTimeout(loadPrecomputedCentrality, 150);
+    }
+});
+
+window.loadPrecomputedCentrality = loadPrecomputedCentrality;
+
+
+// ── Thermodynamic Context UI ──────────────────────────────────────────────────
+// Cache for gene thermo context (avoid repeated fetches)
+const _thermoContextCache = new Map();
+
+async function fetchThermoContext(locus) {
+    if (!locus) return null;
+    if (_thermoContextCache.has(locus)) return _thermoContextCache.get(locus);
+    try {
+        const r = await fetch(`/api/thermo/gene_context?gene=${encodeURIComponent(locus)}`);
+        if (!r.ok) return null;
+        const data = await r.json();
+        _thermoContextCache.set(locus, data);
+        return data;
+    } catch (e) {
+        console.warn('Thermo context fetch failed:', e);
+        return null;
+    }
+}
+
+function renderThermoContextCard(ctx, containerEl) {
+    if (!ctx || !containerEl) return;
+
+    const level = ctx.thermo_support_level || 'none';
+    const n_locked = ctx.n_locked || 0;
+    const n_total = ctx.total_reactions || 0;
+    const confidence = ctx.ko_thermo_confidence || 0;
+    const annotated = ctx.thermo_annotated || [];
+
+    // Level styling
+    const levelConfig = {
+        'strong':   { color: '#16a34a', bg: 'rgba(22,163,74,0.08)',  icon: '🔒', label: 'Strong' },
+        'moderate': { color: '#d97706', bg: 'rgba(217,119,6,0.08)',   icon: '⚠️', label: 'Moderate' },
+        'weak':     { color: '#9ca3af', bg: 'rgba(156,163,175,0.08)', icon: '〰️', label: 'Weak' },
+        'none':     { color: '#9ca3af', bg: 'rgba(156,163,175,0.06)', icon: '❓', label: 'No data' },
+    };
+    const lc = levelConfig[level] || levelConfig['none'];
+
+    // Build reaction rows — show locked ones first, max 8
+    const rowsHtml = annotated.slice(0, 8).map(r => {
+        const dir = r.direction_locked;
+        let badge = '';
+        if (dir === 'forward') {
+            badge = `<span style="background:#dcfce7;color:#16a34a;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;">→ FWD LOCK</span>`;
+        } else if (dir === 'reverse') {
+            badge = `<span style="background:#fee2e2;color:#dc2626;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;">← REV LOCK</span>`;
+        } else if (r.has_thermo_data) {
+            badge = `<span style="background:#fef9c3;color:#92400e;border-radius:4px;padding:1px 5px;font-size:9px;">⇌ near-eq</span>`;
+        } else {
+            badge = `<span style="background:#f3f4f6;color:#9ca3af;border-radius:4px;padding:1px 5px;font-size:9px;">no data</span>`;
+        }
+        const dgr = r.dgr_prime_0 != null
+            ? `<span style="font-family:monospace;font-size:10px;color:var(--text-secondary);">ΔG'°=${r.dgr_prime_0.toFixed(1)}</span>`
+            : '';
+        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--border-color);">
+            <span style="font-weight:600;font-size:11px;min-width:80px;">${escapeHtml(r.reaction_id)}</span>
+            ${badge}
+            ${dgr}
+        </div>`;
+    }).join('');
+
+    // Confidence bar
+    const confPct = Math.round(confidence * 100);
+    const confColor = confidence > 0.6 ? '#16a34a' : confidence > 0.3 ? '#d97706' : '#9ca3af';
+
+    containerEl.innerHTML = `
+    <div style="margin-top:10px;border:1px solid var(--border-color);border-radius:10px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:${lc.bg};border-bottom:1px solid var(--border-color);">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:13px;">${lc.icon}</span>
+                <span style="font-weight:600;font-size:12px;">Thermodynamic Support</span>
+                <span style="font-size:11px;font-weight:700;color:${lc.color};">${lc.label}</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);">${n_locked}/${n_total} reactions locked</div>
+        </div>
+        <div style="padding:10px 12px;">
+            <div style="margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:3px;">
+                    <span>Prediction confidence</span>
+                    <span style="color:${confColor};font-weight:600;">${confPct}%</span>
+                </div>
+                <div style="background:#e2e8f0;border-radius:4px;height:5px;overflow:hidden;">
+                    <div style="background:${confColor};height:100%;width:${confPct}%;transition:width 0.5s;"></div>
+                </div>
+            </div>
+            ${rowsHtml || '<div style="font-size:11px;color:var(--text-muted);">No reactions in thermodynamic database.</div>'}
+            ${annotated.length > 8 ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">+${annotated.length - 8} more reactions…</div>` : ''}
+        </div>
+    </div>`;
+}
+
+// Inject into the existing fetchMetabolicImpact flow
+const _origFetchMetabolicImpact = typeof fetchMetabolicImpact === 'function' ? fetchMetabolicImpact : null;
+
+async function fetchMetabolicImpactWithThermo(locusTag, nodeType) {
+    if (_origFetchMetabolicImpact) _origFetchMetabolicImpact(locusTag, nodeType);
+
+    // Fetch thermo context in parallel
+    const ctx = await fetchThermoContext(locusTag);
+    if (!ctx) return;
+
+    // Find the container after the metabolic impact section renders
+    setTimeout(() => {
+        const container = document.getElementById('metabolic-impact-content');
+        if (!container) return;
+        // Add thermo card at the bottom of the metabolic impact panel
+        let thermoContainer = document.getElementById('thermo-context-card');
+        if (!thermoContainer) {
+            thermoContainer = document.createElement('div');
+            thermoContainer.id = 'thermo-context-card';
+            container.parentElement.appendChild(thermoContainer);
+        }
+        renderThermoContextCard(ctx, thermoContainer);
+    }, 500);
+}
+
+window.fetchThermoContext = fetchThermoContext;
+window.renderThermoContextCard = renderThermoContextCard;
+
+// Override fetchMetabolicImpact in the side panel fetching code
+// by hooking into the detail panel update sequence
+const _origDetailPanel = window._detailPanelThermoHooked;
+if (!_origDetailPanel) {
+    window._detailPanelThermoHooked = true;
+
+    // MutationObserver removed — thermo context now integrated in fetchMetabolicImpact
+}
+

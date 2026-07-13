@@ -1,0 +1,3743 @@
+{
+  "summary": {
+    "wt_growth_original": 0.434189,
+    "wt_growth_pruned": 0.425597,
+    "n_reactions_locked": 4,
+    "n_genes_tested": 200,
+    "n_genes_changed": 171,
+    "n_newly_essential": 0,
+    "n_rescued": 0
+  },
+  "locked_reactions": [
+    {
+      "id": "MDH",
+      "lock": "reverse->ub=0"
+    },
+    {
+      "id": "MDH2",
+      "lock": "reverse->ub=0"
+    },
+    {
+      "id": "MDH3",
+      "lock": "reverse->ub=0"
+    },
+    {
+      "id": "ATPS4rpp",
+      "lock": "forward->lb=0"
+    }
+  ],
+  "changed_genes": [
+    {
+      "gene": "cg0041",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0042",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0043",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0045",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0046",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0052",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0053",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0054",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0067",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0071",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0073",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0074",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0080",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0088",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0089",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0095",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0104",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0109",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0110",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0112",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0113",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0114",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0115",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0116",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0117",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0118",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0119",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0124",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0127",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0129",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0131",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0134",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0143",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0147",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0155",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0180",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0197",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0199",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0201",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0202",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0203",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0204",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0212",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0220",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0229",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0230",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0250",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0251",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0253",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0254",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0257",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0258",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0259",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0261",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0262",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0263",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0267",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0273",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0275",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0281",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0287",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0289",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0299",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0310",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0314",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0315",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0321",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0322",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0323",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0324",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0325",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0326",
+      "growth_orig": 0.377935,
+      "growth_pruned": 0.360997,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.039,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0334",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0346",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0355",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0356",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0358",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0360",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0375",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0382",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0387",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0391",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0394",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0396",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0397",
+      "growth_orig": 0.43365,
+      "growth_pruned": 0.424802,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0204,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0400",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0401",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0402",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0403",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0404",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0405",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0417",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0419",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0435",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0442",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0443",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0445",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0446",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0448",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0457",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0458",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0467",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0468",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0469",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0480",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0482",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0487",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0495",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0498",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0502",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0506",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0508",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0510",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0512",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0516",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0517",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0518",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0533",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0545",
+      "growth_orig": 0.433564,
+      "growth_pruned": 0.424926,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0199,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0548",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0552",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0555",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0556",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0559",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0566",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0567",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0590",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0591",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0592",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0593",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0616",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0618",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0622",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0623",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0627",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0637",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0642",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0645",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0648",
+      "growth_orig": 0.434176,
+      "growth_pruned": 0.425583,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0659",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0665",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0735",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0736",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0737",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0745",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0754",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0755",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0759",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0760",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0762",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0768",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0769",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0770",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0771",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0779",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0782",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0786",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0788",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0789",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0791",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.419951,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0328,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0796",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0797",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0798",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0803",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0811",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0817",
+      "growth_orig": 0.432597,
+      "growth_pruned": 0.42389,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0201,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0849",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0854",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0856",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0861",
+      "growth_orig": 0.434176,
+      "growth_pruned": 0.425583,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0870",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    }
+  ],
+  "all_results": [
+    {
+      "gene": "cg0041",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0042",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0043",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0045",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0046",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0052",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0053",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0054",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0067",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0071",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0073",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0074",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0080",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0088",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0089",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0095",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0104",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0109",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0110",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0112",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0113",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0114",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0115",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0116",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0117",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0118",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0119",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0124",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0127",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0129",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0131",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0134",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0143",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0147",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0148",
+      "growth_orig": -0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0149",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0155",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0172",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0180",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0197",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0199",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0201",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0202",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0203",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0204",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0212",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0220",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0229",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0230",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0250",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0251",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0253",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0254",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0257",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0258",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0259",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0261",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0262",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0263",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0267",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0273",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0275",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0279",
+      "growth_orig": -0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0281",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0287",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0289",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0294",
+      "growth_orig": -0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0299",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0303",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0306",
+      "growth_orig": -0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0307",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0310",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0314",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0315",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0321",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0322",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0323",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0324",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0325",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0326",
+      "growth_orig": 0.377935,
+      "growth_pruned": 0.360997,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.039,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0334",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0344",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0346",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0347",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0355",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0356",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0358",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0360",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0375",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0382",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0387",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0391",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0394",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0396",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0397",
+      "growth_orig": 0.43365,
+      "growth_pruned": 0.424802,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0204,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0400",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0401",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0402",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0403",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0404",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0405",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0417",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0419",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0422",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0423",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0435",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0442",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0443",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0445",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0446",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0448",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0457",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0458",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0464",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0467",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0468",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0469",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0476",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0480",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0482",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0487",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0490",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0495",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0498",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0502",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0503",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0504",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0506",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0508",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0510",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0512",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0516",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0517",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0518",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0533",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0545",
+      "growth_orig": 0.433564,
+      "growth_pruned": 0.424926,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0199,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0548",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0552",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0555",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0556",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0559",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0566",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0567",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0590",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0591",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0592",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0593",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0616",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0618",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0622",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0623",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0627",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0637",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0642",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0645",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0648",
+      "growth_orig": 0.434176,
+      "growth_pruned": 0.425583,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0659",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0665",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0675",
+      "growth_orig": -0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0681",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0699",
+      "growth_orig": -0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0700",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0703",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0723",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0735",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0736",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0737",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0745",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0750",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0754",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0755",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0759",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0760",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0762",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0766",
+      "growth_orig": 0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0768",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0769",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0770",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0771",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0779",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0782",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0786",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0788",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0789",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0791",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.419951,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0328,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0796",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0797",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0798",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0803",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0811",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0816",
+      "growth_orig": 0.0,
+      "growth_pruned": -0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0817",
+      "growth_orig": 0.432597,
+      "growth_pruned": 0.42389,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0201,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0820",
+      "growth_orig": -0.0,
+      "growth_pruned": 0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0825",
+      "growth_orig": 0.0,
+      "growth_pruned": -0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0849",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0852",
+      "growth_orig": -0.0,
+      "growth_pruned": -0.0,
+      "essential_orig": true,
+      "essential_pruned": true,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0,
+      "growth_changed": false
+    },
+    {
+      "gene": "cg0854",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0856",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0861",
+      "growth_orig": 0.434176,
+      "growth_pruned": 0.425583,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    },
+    {
+      "gene": "cg0870",
+      "growth_orig": 0.434189,
+      "growth_pruned": 0.425597,
+      "essential_orig": false,
+      "essential_pruned": false,
+      "essentiality_changed": false,
+      "growth_rel_change": 0.0198,
+      "growth_changed": true
+    }
+  ]
+}

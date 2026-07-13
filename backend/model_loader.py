@@ -6,6 +6,14 @@ import cobra
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("model_loader")
 
+# Thermodynamic pruning (applied once after model load)
+try:
+    from thermo_pruner import apply_thermodynamic_pruning, get_pruning_report
+    _THERMO_AVAILABLE = True
+except ImportError:
+    _THERMO_AVAILABLE = False
+    logger.warning("thermo_pruner not found – model loaded without thermodynamic pruning.")
+
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "iCW773.xml")
 
 # Cached model instance and status
@@ -94,6 +102,20 @@ def load_model_if_needed():
         logger.info(f"Loading SBML model from {MODEL_PATH}...")
         _cached_model = cobra.io.read_sbml_model(MODEL_PATH)
         logger.info("Model loaded successfully!")
+
+        # ── Apply thermodynamic directionality pruning ──────────────────────
+        if _THERMO_AVAILABLE:
+            logger.info("Applying thermodynamic directionality pruning...")
+            _cached_model, report = apply_thermodynamic_pruning(_cached_model)
+            logger.info(
+                f"Pruning: {report.get('n_pruned', 0)} reactions direction-locked "
+                f"(forward={report.get('n_forward_locked', 0)}, "
+                f"reverse={report.get('n_reverse_locked', 0)}), "
+                f"data coverage={report.get('data_coverage_pct', 0)}%"
+            )
+        else:
+            logger.info("Thermodynamic pruning skipped (thermo_pruner not available).")
+
         _load_error = None
         return _cached_model
     except Exception as e:
