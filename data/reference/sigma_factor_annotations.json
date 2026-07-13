@@ -289,5 +289,111 @@
       "21075931",
       "16385111"
     ]
+  },
+  "sigA": {
+    "locus": "cg0012",
+    "alt_locus": "Cgl0011",
+    "gene_name": "sigA",
+    "sigma_class": "Group_1_sigma",
+    "sigma_group": "σ^A (σ^70 family, housekeeping)",
+    "stimulus": [
+      "constitutive (all growth conditions)",
+      "exponential_phase_preferred"
+    ],
+    "anti_sigma": null,
+    "anti_sigma_locus": null,
+    "anti_sigma_mechanism": null,
+    "consensus_minus35": "TTGACA",
+    "consensus_minus10": "TATAAT",
+    "ecf_consensus": null,
+    "spacer_bp": 17,
+    "extended_minus10": "TGN",
+    "heat_stress_activation": false,
+    "tm_activation_degC": null,
+    "targets_count": 9,
+    "key_targets": [
+      { "locus": "cg0013", "name": "dnaN", "function": "DNA polymerase III clamp" },
+      { "locus": "cg1716", "name": "rpsA", "function": "30S ribosomal protein S1" },
+      { "locus": "cg2577", "name": "dnaK", "function": "Hsp70 chaperone (constitutive)" },
+      { "locus": "cg2495", "name": "gapA", "function": "glyceraldehyde-3-phosphate dehydrogenase" }
+    ],
+    "regulon_description": "SigA (σA) is the primary, essential housekeeping sigma factor of C. glutamicum, responsible for transcription of the majority of vegetative genes including ribosomal proteins, metabolic enzymes, and core cellular functions. It recognises the canonical −35 (TTGACA) and −10 (TATAAT) promoter elements. SigA is constitutively active throughout growth but is partially competed by alternative sigma factors (SigB, SigH, SigE, SigM) under stress.",
+    "overlap_with": ["sigB"],
+    "pmid": [
+      "16385111",
+      "23268787",
+      "10572952"
+    ]
+  },
+  "sigC": {
+    "locus": "cg0316",
+    "alt_locus": "Cgl0277",
+    "gene_name": "sigC",
+    "sigma_class": "Group_2_sigma",
+    "sigma_group": "σ^C (non-essential Group 2, nitrogen/starvation)",
+    "stimulus": [
+      "nitrogen_limitation",
+      "stationary_phase",
+      "carbon_starvation"
+    ],
+    "anti_sigma": null,
+    "anti_sigma_locus": null,
+    "anti_sigma_mechanism": null,
+    "consensus_minus35": "TTGACA",
+    "consensus_minus10": "TATAAT",
+    "ecf_consensus": null,
+    "spacer_bp": 17,
+    "extended_minus10": null,
+    "heat_stress_activation": false,
+    "tm_activation_degC": null,
+    "targets_count": 8,
+    "key_targets": [
+      { "locus": "cg0715", "name": "amtR", "function": "nitrogen-responsive global regulator" },
+      { "locus": "cg1792", "name": "glnA", "function": "glutamine synthetase" },
+      { "locus": "cg2999", "name": "gltBD", "function": "glutamate synthase" }
+    ],
+    "regulon_description": "SigC is a non-essential Group 2 sigma factor in C. glutamicum that contributes to adaptation during nitrogen limitation and late stationary phase. Its recognition of σ^70-type promoters partially overlaps with SigA and SigB, but its activity is elevated when nitrogen is scarce. Deletion of sigC shows mild growth defects under nitrogen limitation, indicating a role in nitrogen metabolism gene regulation that partially complements AmtR-mediated control.",
+    "overlap_with": ["sigA", "sigB"],
+    "pmid": [
+      "16385111",
+      "12949098"
+    ]
+  },
+  "sigD": {
+    "locus": "cg1692",
+    "alt_locus": "Cgl1546",
+    "gene_name": "sigD",
+    "sigma_class": "ECF_sigma",
+    "sigma_group": "σ^D (ECF, osmotic/salt stress)",
+    "stimulus": [
+      "salt_stress (NaCl)",
+      "osmotic_downshift",
+      "stationary_phase"
+    ],
+    "anti_sigma": null,
+    "anti_sigma_locus": null,
+    "anti_sigma_mechanism": null,
+    "consensus_minus35": null,
+    "consensus_minus10": null,
+    "ecf_consensus": "TAANN-N13-17-CGT",
+    "ecf_minus35_half": "TAAN",
+    "ecf_minus10_half": "CGT",
+    "spacer_bp": 15,
+    "extended_minus10": null,
+    "heat_stress_activation": false,
+    "tm_activation_degC": null,
+    "targets_count": 6,
+    "key_targets": [
+      { "locus": "cg1691", "name": "cg1691", "function": "ABC transporter (osmolyte)" },
+      { "locus": "cg1693", "name": "cg1693", "function": "stress-responsive gene" },
+      { "locus": "cg2900", "name": "ectA", "function": "ectoine biosynthesis" }
+    ],
+    "regulon_description": "SigD is an ECF-type sigma factor in C. glutamicum whose expression increases during osmotic stress, particularly NaCl upshift and stationary phase. While its regulon is not fully characterised, transcriptomic evidence suggests SigD controls a small set of genes related to osmolyte accumulation and membrane adaptation. Unlike SigH/SigE, SigD does not appear to be heat-activated but may contribute to secondary stress responses during heat-induced osmotic imbalance.",
+    "overlap_with": ["sigB"],
+    "pmid": [
+      "16385111",
+      "12949098",
+      "22492115"
+    ]
   }
 }

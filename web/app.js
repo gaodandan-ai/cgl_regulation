@@ -4106,6 +4106,9 @@ function showNodeDetails(locusTag) {
     // ── Sigma factor annotation card ───────────────────────────────────────
     renderSigmaCard(meta.locusTag, meta.name);
 
+    // ── STRING PPI interaction card ────────────────────────────────────────
+    renderStringPpiCard(meta.locusTag);
+
     // Operon Row Rendering
 
     const operonRow = document.getElementById('info-operon-row');
@@ -5188,6 +5191,116 @@ function renderSigmaCard(locusTag, geneName) {
 
     content.querySelectorAll('.gene-link').forEach(a => {
         if (a.dataset.locus) a.addEventListener('click', e => { e.preventDefault(); showNodeDetails(a.dataset.locus); });
+    });
+}
+
+
+// ──────────────────────────────────────────────────────────────────────────────
+// STRING PPI Interaction Card Rendering
+// ──────────────────────────────────────────────────────────────────────────────
+
+async function renderStringPpiCard(locusTag) {
+    const container = document.getElementById('info-string-row');
+    const content   = document.getElementById('info-string-content');
+    const badge     = document.getElementById('info-string-badge');
+    if (!container || !content) return;
+
+    // Hide while loading
+    container.style.display = 'none';
+    content.innerHTML = '';
+
+    const locus = (locusTag || '').toLowerCase().trim();
+    if (!locus) return;
+
+    let data;
+    try {
+        const resp = await fetch(`/api/analysis/string_ppi?gene=${encodeURIComponent(locus)}&min_score=400&limit=15`);
+        if (!resp.ok) return;
+        data = await resp.json();
+    } catch (e) {
+        console.warn('STRING PPI fetch failed:', e);
+        return;
+    }
+
+    const partners = data?.partners || [];
+    if (partners.length === 0) return;
+
+    const total = data?.total || partners.length;
+    if (badge) badge.textContent = `STRING v12 · ${total} interactions`;
+
+    // Channel color map
+    const CH_COLOR = {
+        experimental: '#22c55e',
+        database:     '#3b82f6',
+        coexpression: '#8b5cf6',
+        textmining:   '#f59e0b',
+        neighborhood: '#06b6d4',
+        cooccurrence: '#ec4899',
+        fusion:       '#f97316',
+    };
+
+    const scoreBar = (score) => {
+        const pct = Math.round(score / 10);
+        const color = score >= 700 ? '#22c55e' : score >= 400 ? '#f59e0b' : '#ef4444';
+        return `<div style="display:inline-block;width:50px;height:6px;background:var(--border);border-radius:3px;vertical-align:middle;margin-left:6px;margin-right:4px">
+            <div style="width:${pct}%;height:100%;background:${color};border-radius:3px"></div></div>`;
+    };
+
+    const channelBadges = (p) => {
+        const channels = ['experimental','database','coexpression','textmining','neighborhood','cooccurrence'];
+        return channels
+            .filter(ch => (p[ch] || 0) >= 150)
+            .map(ch => {
+                const col = CH_COLOR[ch] || '#6b7280';
+                return `<span style="font-size:9px;background:${col}20;color:${col};border:1px solid ${col}55;border-radius:8px;padding:0 5px;white-space:nowrap">${ch}</span>`;
+            }).join(' ');
+    };
+
+    const rows = partners.map(p => {
+        const pLocus = p.partner;
+        const gMeta  = geneIndex[pLocus.toLowerCase()] || {};
+        const gName  = gMeta.name && gMeta.name !== pLocus ? gMeta.name : '';
+        const label  = gName ? `<b>${gName}</b> <span style="color:var(--text-muted);font-size:10px">${pLocus}</span>`
+                             : `<b>${pLocus}</b>`;
+        const confLabel = p.score >= 700 ? 'High' : 'Medium';
+        const confColor = p.score >= 700 ? '#22c55e' : '#f59e0b';
+
+        return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border-faint,#f1f5f9);flex-wrap:wrap">
+            <a href="#" class="string-gene-link" data-locus="${pLocus}"
+               style="color:var(--primary);text-decoration:none;font-size:12px;min-width:100px">${label}</a>
+            ${scoreBar(p.score)}
+            <span style="font-size:10px;color:${confColor};font-weight:600">${p.score}</span>
+            <span style="font-size:9px;color:${confColor}">(${confLabel})</span>
+            <span style="display:flex;gap:3px;flex-wrap:wrap">${channelBadges(p)}</span>
+        </div>`;
+    }).join('');
+
+    const showMore = (data?.total || 0) > partners.length
+        ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;text-align:center">
+               Showing top ${partners.length} of ${data.total} interactions
+               <a href="https://string-db.org/cgi/network?identifiers=${encodeURIComponent(locus)}&species=196627"
+                  target="_blank" style="color:var(--primary);margin-left:6px">View in STRING ↗</a>
+           </div>` : '';
+
+    content.innerHTML = `
+        <div style="background:var(--surface-2,#f8fafc);border:1px solid var(--border);border-left:3px solid #06b6d4;border-radius:8px;padding:10px 12px;margin-top:6px">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap">
+                <span><i class="fa-solid fa-flask" style="color:#22c55e;margin-right:3px"></i>Green = Experimental</span>
+                <span><i class="fa-solid fa-book" style="color:#3b82f6;margin-right:3px"></i>Blue = Database</span>
+                <span><i class="fa-solid fa-chart-line" style="color:#8b5cf6;margin-right:3px"></i>Purple = Co-expression</span>
+            </div>
+            ${rows}
+            ${showMore}
+        </div>`;
+
+    container.style.display = '';
+
+    // Attach click handlers
+    content.querySelectorAll('.string-gene-link').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            if (a.dataset.locus) showNodeDetails(a.dataset.locus);
+        });
     });
 }
 
