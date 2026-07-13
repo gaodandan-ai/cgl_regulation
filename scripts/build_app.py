@@ -23,6 +23,7 @@ def main():
         "pyinstaller",
         "--onefile",
         "--name", "cgl_regulation",
+        "--icon", "icon.ico",
         # Add backend/ to paths during analysis
         "--paths", "backend",
         # Add static assets and data folders
