@@ -2233,32 +2233,6 @@ function initWorkflowEntrypoints() {
         });
     }
 
-    // Quality dashboard: close button + Esc key
-    const closeQualityBtn = document.getElementById('btn-close-quality-dashboard');
-    if (closeQualityBtn && !closeQualityBtn.dataset.bound) {
-        closeQualityBtn.dataset.bound = '1';
-        closeQualityBtn.addEventListener('click', () => {
-            const qd = document.getElementById('quality-dashboard-overlay');
-            if (qd) qd.classList.add('hidden');
-            // Deselect the quality workflow entry
-            const qEntry = document.getElementById('workflow-entry-quality');
-            if (qEntry) qEntry.classList.remove('active');
-        });
-    }
-    if (!window._qualityEscBound) {
-        window._qualityEscBound = true;
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const qd = document.getElementById('quality-dashboard-overlay');
-                if (qd && !qd.classList.contains('hidden')) {
-                    qd.classList.add('hidden');
-                    const qEntry = document.getElementById('workflow-entry-quality');
-                    if (qEntry) qEntry.classList.remove('active');
-                }
-            }
-        });
-    }
-
     if (releaseEntry && !releaseEntry.dataset.bound) {
         releaseEntry.dataset.bound = '1';
         releaseEntry.addEventListener('click', () => {

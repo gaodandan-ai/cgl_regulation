@@ -2876,17 +2876,17 @@ a.ai-pathway-gene-badge:hover {
    Data & Model Quality Dashboard Layout & Styles
    ========================================================================== */
 .quality-dashboard-container {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-card);
-    z-index: 120;
+    z-index: 10;
     overflow-y: auto;
-    padding: 28px 36px;
+    padding: 24px;
     box-sizing: border-box;
     font-family: var(--font-primary);
 }
@@ -2968,15 +2968,15 @@ a.ai-pathway-gene-badge:hover {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
 }
 
 .dashboard-card {
     background: #ffffff;
     border: 1px solid var(--border-color);
-    border-radius: 14px;
-    padding: 24px;
+    border-radius: 12px;
+    padding: 20px;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -2995,7 +2995,7 @@ a.ai-pathway-gene-badge:hover {
 
 .dashboard-card .card-header h3 {
     margin: 0;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
     display: flex;
@@ -3021,7 +3021,7 @@ a.ai-pathway-gene-badge:hover {
 
 .large-stat {
     font-family: var(--font-heading);
-    font-size: 42px;
+    font-size: 34px;
     font-weight: 700;
     color: var(--color-primary-accent);
     line-height: 1.2;
@@ -3049,8 +3049,8 @@ a.ai-pathway-gene-badge:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 13px;
-    padding-bottom: 5px;
+    font-size: 12px;
+    padding-bottom: 4px;
     border-bottom: 1px dashed rgba(15, 23, 42, 0.05);
 }
 
