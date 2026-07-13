@@ -1100,7 +1100,7 @@
                 <div id="quality-dashboard-overlay" class="quality-dashboard-container hidden">
                     <div class="dashboard-header">
                         <div class="dashboard-title-area">
-                            <h2><i class="fa-solid fa-chart-line"></i> Data & Model Quality Dashboard</h2>
+                            <h2><i class="fa-solid fa-chart-line"></i> Data &amp; Model Quality Dashboard</h2>
                             <p class="dashboard-subtitle">Platform-wide statistics, evidence reliability, metabolic
                                 mappings, and ecCGL1 enzyme constraint coverage.</p>
                         </div>
@@ -1109,6 +1109,12 @@
                                     class="fa-solid fa-download"></i> Export JSON</button>
                             <button id="btn-export-quality-csv" class="secondary-btn"><i
                                     class="fa-solid fa-file-csv"></i> Export CSV</button>
+                            <button id="btn-close-quality-dashboard" title="Close (Esc)"
+                                style="height:38px;padding:0 14px;font-size:18px;border:1px solid var(--border-color);background:transparent;border-radius:8px;cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:0.2s"
+                                onmouseover="this.style.background='rgba(239,68,68,0.08)';this.style.color='#ef4444'"
+                                onmouseout="this.style.background='transparent';this.style.color='var(--text-secondary)'">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
                         </div>
                     </div>
 
