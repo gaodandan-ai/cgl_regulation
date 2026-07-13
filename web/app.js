@@ -12090,7 +12090,20 @@ function updateQualityDashboard() {
     document.getElementById('stat-enz-progress').style.width = `${enzCoveragePercent}%`;
     document.getElementById('stat-enz-genes').textContent = enzMappedCount;
     document.getElementById('stat-enz-rxns').textContent = report.enzymeConstraintCoverage.enzymeAssociatedReactionCount;
-    document.getElementById('stat-enz-kcat').textContent = report.enzymeConstraintCoverage.reactionsWithKcat;
+
+    // Use real BRENDA+DLKcat kcat count (loaded from /api/quality/brenda which now has 1850 entries)
+    const brendaTotal   = Object.keys(window.brendaKcatMappings || {}).length;
+    const brendaHigh    = Object.values(window.brendaKcatMappings || {}).filter(e => e.source === 'BRENDA').length;
+    const brendaMedium  = brendaTotal - brendaHigh;
+    const kcatEl = document.getElementById('stat-enz-kcat');
+    if (kcatEl) {
+        if (brendaTotal > 0) {
+            kcatEl.innerHTML = `${brendaTotal} <span style="font-size:10px;color:var(--text-muted);">(${brendaHigh} BRENDA + ${brendaMedium} DLKcat)</span>`;
+        } else {
+            kcatEl.textContent = report.enzymeConstraintCoverage.reactionsWithKcat;
+        }
+    }
+
     document.getElementById('stat-enz-mw').textContent = report.enzymeConstraintCoverage.reactionsWithMolecularWeight;
     document.getElementById('stat-enz-kcat-mw').textContent = report.enzymeConstraintCoverage.reactionsWithKcatPerMW;
     document.getElementById('stat-enz-ec').textContent = report.enzymeConstraintCoverage.reactionsWithECNumber;

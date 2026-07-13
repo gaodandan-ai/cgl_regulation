@@ -965,6 +965,7 @@ def get_thermo_pruning_report():
     """
     Return the thermodynamic directionality pruning report for the loaded model.
     Shows how many reactions had their bounds tightened based on ΔrG' feasibility analysis.
+    Triggers model loading if not already done (pruning runs at load time).
     """
     if not _THERMO_PRUNER_AVAILABLE or _get_thermo_pruning_report is None:
         return {
@@ -972,10 +973,55 @@ def get_thermo_pruning_report():
             "message": "Thermodynamic pruning module not available."
         }
     try:
+        # Trigger model loading if not yet done (pruning runs during load)
+        try:
+            load_model_if_needed()
+        except Exception:
+            pass  # Model load may fail (missing file) — still return what we have
+
         report = _get_thermo_pruning_report()
+
+        # If pruning ran successfully, return the live report
+        if report.get("enabled"):
+            return report
+
+        # Fallback: model not yet loaded or pruning not run — read from pre-built JSON
+        thermo_path = os.path.join(os.path.dirname(BACKEND_DIR), "data", "reference", "thermo_dgr_data.json")
+        if os.path.exists(thermo_path):
+            with open(thermo_path, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+            meta = raw.get("_meta", {})
+            reactions = {k: v for k, v in raw.items() if not k.startswith("_") and isinstance(v, dict)}
+            n_fwd = meta.get("n_forward_locked", 0)
+            n_rev = meta.get("n_reverse_locked", 0)
+            n_near_eq = meta.get("n_near_equilibrium", 0)
+            n_no_data = meta.get("n_no_data", 0)
+            total = meta.get("total_reactions", len(reactions))
+            return {
+                "enabled": True,
+                "total_reactions": total,
+                "data_coverage_pct": meta.get("coverage_pct", 0.0),
+                "n_pruned": n_fwd + n_rev,
+                "n_forward_locked": n_fwd,
+                "n_reverse_locked": n_rev,
+                "n_confirmed_forward": 0,
+                "n_confirmed_reverse": 0,
+                "n_thermo_consistent": 0,
+                "n_near_equilibrium": n_near_eq,
+                "n_no_data": n_no_data,
+                "epsilon_kJ": meta.get("epsilon_kJ", 1.0),
+                "conditions": meta.get("conditions", "pH 7.0, I=0.1 M, T=30°C"),
+                "top_pruned": [],
+                "confirmed_reactions": [],
+                "all_pruned_count": n_fwd + n_rev,
+                "message": "Pre-built thermo data (model not yet loaded for live pruning)",
+            }
+
         return report
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve pruning report: {str(e)}")
+
 # ── Network Centrality Endpoints ───────────────────────────────────────────────
 _CENTRALITY_DATA = None
 
