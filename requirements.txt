@@ -17,3 +17,10 @@ fastapi>=0.95.0
 uvicorn>=0.20.0
 pydantic>=2.0
 
+# Thermodynamics data builder (run offline to regenerate thermo_dgr_data.json)
+equilibrator-api>=0.7.0
+
+# Testing
+pytest>=7.0
+pytest-asyncio>=0.21
+httpx>=0.24
