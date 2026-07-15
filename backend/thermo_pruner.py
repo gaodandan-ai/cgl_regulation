@@ -82,6 +82,7 @@ def apply_thermodynamic_pruning(model, epsilon: float = 1.0):
     n_no_data          = 0
     pruned_details     = []  # actual bound changes
     confirmed_details  = []  # already-consistent, no change needed
+    reverted_locks     = []  # locks reverted due to infeasibility
 
     for rxn in model.reactions:
         entry = thermo_data.get(rxn.id)
@@ -116,10 +117,28 @@ def apply_thermodynamic_pruning(model, epsilon: float = 1.0):
                             "Model may use this reaction reversibly.",
                             rxn.id, entry.get("dgr_prime_0", 0)
                         )
+                        reverted_locks.append({
+                            "reaction_id": rxn.id,
+                            "direction": "forward",
+                            "dgr_prime_0": entry.get("dgr_prime_0"),
+                            "dgr_prime_min": dgr_min,
+                            "dgr_prime_max": dgr_max,
+                            "confidence": entry.get("confidence", "?"),
+                            "reason": "makes model infeasible (biomass < 1e-6)"
+                        })
                         n_skipped_neq += 1
                         continue
-                except Exception:
+                except Exception as ex:
                     rxn.lower_bound = old_lb
+                    reverted_locks.append({
+                        "reaction_id": rxn.id,
+                        "direction": "forward",
+                        "dgr_prime_0": entry.get("dgr_prime_0"),
+                        "dgr_prime_min": dgr_min,
+                        "dgr_prime_max": dgr_max,
+                        "confidence": entry.get("confidence", "?"),
+                        "reason": f"optimisation exception: {str(ex)}"
+                    })
                     n_skipped_neq += 1
                     continue
                 # ─────────────────────────────────────────────────────────
@@ -162,10 +181,28 @@ def apply_thermodynamic_pruning(model, epsilon: float = 1.0):
                             "Model may use this reaction in forward direction.",
                             rxn.id, entry.get("dgr_prime_0", 0)
                         )
+                        reverted_locks.append({
+                            "reaction_id": rxn.id,
+                            "direction": "reverse",
+                            "dgr_prime_0": entry.get("dgr_prime_0"),
+                            "dgr_prime_min": dgr_min,
+                            "dgr_prime_max": dgr_max,
+                            "confidence": entry.get("confidence", "?"),
+                            "reason": "makes model infeasible (biomass < 1e-6)"
+                        })
                         n_skipped_neq += 1
                         continue
-                except Exception:
+                except Exception as ex:
                     rxn.upper_bound = old_ub
+                    reverted_locks.append({
+                        "reaction_id": rxn.id,
+                        "direction": "reverse",
+                        "dgr_prime_0": entry.get("dgr_prime_0"),
+                        "dgr_prime_min": dgr_min,
+                        "dgr_prime_max": dgr_max,
+                        "confidence": entry.get("confidence", "?"),
+                        "reason": f"optimisation exception: {str(ex)}"
+                    })
                     n_skipped_neq += 1
                     continue
                 # ─────────────────────────────────────────────────────────
@@ -225,6 +262,8 @@ def apply_thermodynamic_pruning(model, epsilon: float = 1.0):
         "top_pruned":          pruned_details[:50],
         "confirmed_reactions": confirmed_details[:100],
         "all_pruned_count":    len(pruned_details),
+        "reverted_locks":      reverted_locks,
+        "n_reverted_locks":    len(reverted_locks),
     }
 
     return model, _pruning_report
@@ -251,5 +290,7 @@ def _empty_report(model) -> Dict[str, Any]:
         "n_reverse_locked":  0,
         "n_near_equilibrium":0,
         "n_no_data":         len(model.reactions),
+        "reverted_locks":    [],
+        "n_reverted_locks":  0,
         "message":           "Thermo data file not found; pruning disabled."
     }

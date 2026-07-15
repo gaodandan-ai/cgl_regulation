@@ -213,8 +213,21 @@ class RAGService:
 
     def get_tfidf_similarity(self, query, chunk_text):
         def tokenize(text):
-            words = re.findall(r'\b\w+\b', text.lower())
-            return [w for w in words if len(w) > 1]
+            has_chinese = any('\u4e00' <= char <= '\u9fff' for char in text)
+            if has_chinese:
+                # English words within the Chinese/English text
+                english_words = re.findall(r'\b[a-zA-Z0-9_]{2,}\b', text.lower())
+                # Only keep Chinese characters
+                chinese_text = re.sub(r'[^\u4e00-\u9fff]', '', text)
+                chinese_chars = list(chinese_text)
+                # Overlapping character bigrams (2-grams)
+                bigrams = []
+                for i in range(len(chinese_text) - 1):
+                    bigrams.append(chinese_text[i:i+2])
+                return english_words + chinese_chars + bigrams
+            else:
+                words = re.findall(r'\b\w+\b', text.lower())
+                return [w for w in words if len(w) > 1]
         
         q_words = tokenize(query)
         c_words = tokenize(chunk_text)

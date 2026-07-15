@@ -1,4 +1,4 @@
-# Cgl Regulation Explorer (v0.4.0)
+# Cgl Regulation Explorer (v0.5.0)
 
 Bilingual Version: [English](#english-version) | [中文版本](#中文版本)
 
@@ -85,7 +85,7 @@ Please cite the original databases and publications when utilizing derived platf
 
 ## 中文版本
 
-## 谷氨酸棒状杆菌调控-代谢整合探索平台 (Cgl Regulation Explorer v0.4.0)
+## 谷氨酸棒状杆菌调控-代谢整合探索平台 (Cgl Regulation Explorer v0.5.0)
 
 这是一个专门针对**谷氨酸棒状杆菌** (Corynebacterium glutamicum DSM 20300 / ATCC 13032) 研发的交互式、可复现的调控-代谢网路分析与仿真平台。
 
@@ -164,6 +164,18 @@ Please cite the original databases and publications when utilizing derived platf
 ---
 
 ### 5. Version History & Changelog / 版本历史与更新日志
+
+#### v0.5.0 (July 2026 / 2026年7月)
+* **English**:
+  - Implemented formal GPR (Gene-Protein-Reaction) boolean rule evaluation (min/max operators) in dynamic rFBA simulations.
+  - Exposed formerly silent thermodynamic directionality Safety Guard rollbacks as "Thermo-Stoichiometric Conflicts" in the UI.
+  - Implemented mixed Chinese/English character and bigram tokenizer in RAG literature search.
+  - Re-nested FBA model context in rFBA solver calls, speeding up simulation loops by 10-20x.
+* **中文**:
+  - 动态 rFBA 仿真全面引入 GPR (基因-蛋白质-反应) 精准布尔解析（min/max 算子），真实模拟多亚基复合酶的木桶限速效应和同工酶代偿。
+  - 前端公开展示热力学单向约束冲突警告（被安全守护程序安全回滚的反应列表），辅助识别代谢模型结构缺陷。
+  - RAG 文献检索引入双语混合分词器，完美支持中文及中英混合文献的高精相似度召回。
+  - 重构 rFBA 通量计算引擎，实现单一上下文下的求解器复用，计算耗时缩短 10-20 倍。
 
 #### v0.4.0 (July 2026 / 2026年7月)
 * **English**:

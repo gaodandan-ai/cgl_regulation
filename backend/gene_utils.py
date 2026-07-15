@@ -176,3 +176,70 @@ def reaction_equation_from_metabolites(metabolites: dict) -> str:
     if not reactants and not products:
         return ""
     return f"{' + '.join(reactants) or '0'} -> {' + '.join(products) or '0'}"
+
+
+def evaluate_gpr_rule(rule_str: str, gene_values: dict, default_val: float = 1.0) -> float:
+    """
+    Evaluates a COBRApy gene_reaction_rule string under min/max semantics:
+      - 'and' -> min
+      - 'or' -> max
+    """
+    if not rule_str or not rule_str.strip():
+        return default_val
+
+    # Tokenize: find parenthesis, words, operators
+    tokens = re.findall(r"\(|\)|\w+", rule_str)
+    index = 0
+
+    def parse_expression() -> float:
+        nonlocal index
+        val = parse_term()
+        while index < len(tokens) and tokens[index].lower() == 'or':
+            index += 1
+            right = parse_term()
+            val = max(val, right)
+        return val
+
+    def parse_term() -> float:
+        nonlocal index
+        val = parse_factor()
+        while index < len(tokens) and tokens[index].lower() == 'and':
+            index += 1
+            right = parse_factor()
+            val = min(val, right)
+        return val
+
+    def parse_factor() -> float:
+        nonlocal index
+        if index >= len(tokens):
+            return default_val
+
+        token = tokens[index]
+        if token == '(':
+            index += 1
+            val = parse_expression()
+            if index < len(tokens) and tokens[index] == ')':
+                index += 1
+            return val
+        else:
+            index += 1
+            norm_token = normalize_gene_locus(token)
+            
+            val = None
+            if token in gene_values:
+                val = gene_values[token]
+            elif norm_token in gene_values:
+                val = gene_values[norm_token]
+            else:
+                for k, v in gene_values.items():
+                    if normalize_gene_locus(k) == norm_token:
+                        val = v
+                        break
+            if val is None:
+                return default_val
+            return val
+
+    try:
+        return parse_expression()
+    except Exception:
+        return default_val

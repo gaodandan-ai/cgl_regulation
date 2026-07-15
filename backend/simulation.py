@@ -626,6 +626,7 @@ def run_dynamic_rfba(
     import json
     import csv
     import numpy as np
+    from gene_utils import evaluate_gpr_rule
 
     warnings = []
     if not is_solver_available():
@@ -832,17 +833,17 @@ def run_dynamic_rfba(
     volume = 1.0  # L
     dt = 1.0  # hour
     
-    for t in range(time_steps):
-        time_history.append(float(t))
-        
-        # Calculate glucose maximum uptake rate based on Michaelis-Menten
-        if glucose <= 1e-5:
-            v_uptake_max = 0.0
-        else:
-            S = glucose / volume
-            v_uptake_max = V_max_glc * (S / (K_m_glc + S))
+    with model:
+        for t in range(time_steps):
+            time_history.append(float(t))
             
-        with model:
+            # Calculate glucose maximum uptake rate based on Michaelis-Menten
+            if glucose <= 1e-5:
+                v_uptake_max = 0.0
+            else:
+                S = glucose / volume
+                v_uptake_max = V_max_glc * (S / (K_m_glc + S))
+                
             if glc_ex_rxn:
                 glc_ex_rxn.lower_bound = - v_uptake_max
                 glc_ex_rxn.upper_bound = 1000.0
@@ -855,17 +856,29 @@ def run_dynamic_rfba(
                 if not rxn_genes:
                     continue
                     
-                ratios = [gene_ts[g][min(t, 24)] for g in rxn_genes if g in gene_ts]
-                if ratios:
-                    ratio = np.mean(ratios)
-                    ratio = np.clip(ratio, 0.0, 10.0)
-                    
-                    lower_orig, upper_orig = orig_bounds[rxn.id]
-                    if upper_orig > 0:
-                        rxn.upper_bound = upper_orig * ratio
-                    if lower_orig < 0:
-                        rxn.lower_bound = lower_orig * ratio
-            
+                # Evaluate using dynamic GPR logic
+                rule = getattr(rxn, "gene_reaction_rule", "")
+                if rule:
+                    gene_vals = {}
+                    for g in rxn.genes:
+                        g_clean = g.id.replace("g_", "").replace("gene_", "")
+                        if g_clean in gene_ts:
+                            gene_vals[g_clean] = gene_ts[g_clean][min(t, 24)]
+                        elif g.id in gene_ts:
+                            gene_vals[g.id] = gene_ts[g.id][min(t, 24)]
+                    ratio = evaluate_gpr_rule(rule, gene_vals, default_val=1.0)
+                else:
+                    ratios = [gene_ts[g][min(t, 24)] for g in rxn_genes if g in gene_ts]
+                    ratio = np.mean(ratios) if ratios else 1.0
+
+                ratio = np.clip(ratio, 0.0, 10.0)
+                
+                lower_orig, upper_orig = orig_bounds[rxn.id]
+                if upper_orig > 0:
+                    rxn.upper_bound = upper_orig * ratio
+                if lower_orig < 0:
+                    rxn.lower_bound = lower_orig * ratio
+                
             sol = model.optimize()
             
             if sol.status == "optimal":
@@ -877,21 +890,21 @@ def run_dynamic_rfba(
                 v_glu = 0.0
                 v_glc = 0.0
                 
-        delta_biomass = mu * biomass * dt
-        biomass_next = biomass + delta_biomass
-        X_avg = 0.5 * (biomass + biomass_next)
-        
-        delta_glucose = - v_glc * X_avg * dt
-        glucose_next = max(0.0, glucose + delta_glucose)
-        
-        biomass = biomass_next
-        glucose = glucose_next
-        
-        growth_rate_history.append(mu)
-        glutamate_export_history.append(v_glu)
-        glucose_uptake_history.append(v_glc)
-        glucose_history.append(glucose)
-        biomass_history.append(biomass)
+            delta_biomass = mu * biomass * dt
+            biomass_next = biomass + delta_biomass
+            X_avg = 0.5 * (biomass + biomass_next)
+            
+            delta_glucose = - v_glc * X_avg * dt
+            glucose_next = max(0.0, glucose + delta_glucose)
+            
+            biomass = biomass_next
+            glucose = glucose_next
+            
+            growth_rate_history.append(mu)
+            glutamate_export_history.append(v_glu)
+            glucose_uptake_history.append(v_glc)
+            glucose_history.append(glucose)
+            biomass_history.append(biomass)
 
     time_history.append(float(time_steps))
     

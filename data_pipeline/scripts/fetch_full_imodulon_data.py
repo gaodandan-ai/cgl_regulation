@@ -182,7 +182,20 @@ def main():
         im_id = f"iM_{k}_{sanitize_id(raw_name)}"
         category = im.get('category', 'Uncharacterized')
         var_explained = float(im.get('explained_variance') or im.get('exp_var') or 0.0)
-        linked_regulator = im.get('regulator')
+        raw_regulator = im.get('regulator')
+        if raw_regulator:
+            parts = []
+            for p in raw_regulator.split('/'):
+                p_clean = p.strip()
+                mapped = gene_to_cg.get(p_clean)
+                if mapped:
+                    gene_name = run_server.GENE_NAMES.get(mapped)
+                    parts.append(gene_name if (gene_name and gene_name != mapped) else mapped)
+                else:
+                    parts.append(p_clean)
+            linked_regulator = "/".join(parts)
+        else:
+            linked_regulator = None
         description = im.get('function_description') or ""
         
         # Check active threshold
@@ -229,10 +242,12 @@ def main():
         regulon_overlap = None
         if linked_regulator:
             reg_key = linked_regulator.strip().lower()
-            reg_targets = tf_regulons.get(reg_key)
-            if not reg_targets and reg_key.endswith("r"):
-                # Try prefix (e.g. GlxR -> glxR)
-                reg_targets = tf_regulons.get(reg_key)
+            reg_targets = set()
+            for k in reg_key.split('/'):
+                k_clean = k.strip()
+                targets = tf_regulons.get(k_clean)
+                if targets:
+                    reg_targets.update(targets)
             
             if reg_targets:
                 member_set = {g.lower() for g in member_genes.keys()}

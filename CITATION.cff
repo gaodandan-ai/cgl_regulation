@@ -3,9 +3,9 @@ message: "If you use Cgl Regulation Explorer in your research, please cite it as
 authors:
   - name: "Cgl Regulation Explorer Contributors"
 title: "Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for Corynebacterium glutamicum"
-version: 0.3.0
+version: 0.5.0
 doi: "10.5281/zenodo.21053092"
-date-released: 2026-06-27
+date-released: 2026-07-15
 url: "https://cgl-regulation.vercel.app/"
 repository-code: "https://github.com/gaodandan-ai/cgl_regulation"
 abstract: >-

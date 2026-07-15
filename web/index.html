@@ -109,7 +109,7 @@
         <header id="app-header">
             <div class="logo">
                 <i class="fa-solid fa-network-wired"></i>
-                <h1>Cgl Regulation Explorer <span class="badge-v">v0.4.0</span></h1>
+                <h1>Cgl Regulation Explorer <span class="badge-v">v0.5.0</span></h1>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
                 <a href="https://github.com/gaodandan-ai" target="_blank" rel="noopener noreferrer" class="header-contact-link"
@@ -136,6 +136,10 @@
                 <i class="fa-solid fa-circle-nodes"></i>
                 <span>iModulon Explorer</span>
             </button>
+            <button class="workflow-entry" id="workflow-entry-ppi" data-workflow="ppi">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>PPI Explorer</span>
+            </button>
             <button class="workflow-entry" id="workflow-entry-pathway" data-workflow="pathway">
                 <i class="fa-solid fa-diagram-project"></i>
                 <span>Pathway View</span>
@@ -144,12 +148,16 @@
                 <i class="fa-solid fa-bullseye"></i>
                 <span>Engineering Targets</span>
             </button>
+            <button class="workflow-entry" id="workflow-entry-advanced" data-workflow="advanced">
+                <i class="fa-solid fa-brain" style="color:var(--color-primary-accent, #0f766e);"></i>
+                <span>Advanced Analytics</span>
+            </button>
+            <!-- doc separator -->
+            <div class="nav-doc-separator" aria-hidden="true"></div>
             <button class="workflow-entry" id="workflow-entry-quality" data-workflow="quality">
                 <i class="fa-solid fa-chart-line"></i>
                 <span>Data &amp; Model Quality</span>
             </button>
-            <!-- doc separator -->
-            <div class="nav-doc-separator" aria-hidden="true"></div>
             <button class="workflow-entry workflow-entry-doc" id="workflow-entry-release" data-workflow="release">
                 <i class="fa-solid fa-list-check"></i>
                 <span>Release Notes</span>
@@ -164,6 +172,7 @@
         <div id="main-layout">
             <!-- Left control panel -->
             <aside id="left-sidebar" class="sidebar">
+                <div id="left-sidebar-resizer" class="left-sidebar-resizer" title="Drag to resize the control panel" aria-label="Drag to resize control panel"></div>
                 <div class="sidebar-section organism-section"
                     style="border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 0;">
                     <h2
@@ -247,7 +256,7 @@
                             <span class="checkmark chk-srna"></span>
                             <span class="label-text">Predicted sRNA regulation</span>
                         </label>
-                        <label class="custom-checkbox" style="margin-top: 6px;">
+                        <label class="custom-checkbox">
                             <input type="checkbox" id="filter-ppi">
                             <span class="checkmark chk-ppi"></span>
                             <span class="label-text">Show STRING PPI Links</span>
@@ -270,35 +279,53 @@
                                 <i class="fa-solid fa-wand-magic-sparkles" style="color: #6366f1;"></i>
                                 Advanced Filters
                             </div>
-                            <div class="advanced-filters-group">
-                                <label class="custom-checkbox" style="margin-bottom: 6px;">
+                            <div class="advanced-filters-group" style="display:flex;flex-direction:column;gap:8px;">
+                                <label class="custom-checkbox">
                                     <input type="checkbox" id="filter-coregulated">
                                     <span class="checkmark chk-coregulated"></span>
                                     <span class="label-text" style="font-size: 11px;">Show co-regulated targets only</span>
                                 </label>
-                                <label class="custom-checkbox" style="margin-bottom: 0;">
+                                <label class="custom-checkbox">
                                     <input type="checkbox" id="filter-only-tf-targets">
                                     <span class="checkmark chk-only-tf-targets"></span>
                                     <span class="label-text" style="font-size: 11px;">Show TF targets only</span>
                                 </label>
                             </div>
-                        </div>
-                        <div class="edge-schema-legend"
-                            style="margin-top: 10px; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: #fff; font-size: 10px; color: var(--text-secondary); line-height: 1.5;">
-                            <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Unified Edge
-                                Schema</div>
-                            <div><span
-                                    style="display:inline-block; width:18px; height:3px; background:#2e7d32; vertical-align:middle; margin-right:5px;"></span>Activation
+                        <div class="edge-schema-legend" style="margin-top:10px;padding:8px 10px;border:1px solid var(--border-color);border-radius:6px;background:#fff;font-size:10px;color:var(--text-secondary);line-height:1.6;">
+                            <div style="font-weight:700;color:var(--text-primary);margin-bottom:5px;font-size:10.5px;">Edge Schema</div>
+                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="18" y2="5" stroke="#2e7d32" stroke-width="2.5"/><polygon points="18,2 26,5 18,8" fill="#2e7d32"/></svg>
+                                <span>Activation</span>
                             </div>
-                            <div><span
-                                    style="display:inline-block; width:18px; height:3px; background:#d32f2f; vertical-align:middle; margin-right:5px;"></span>Repression
+                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="20" y2="5" stroke="#d32f2f" stroke-width="2.5"/><line x1="20" y1="2" x2="20" y2="8" stroke="#d32f2f" stroke-width="2.5"/></svg>
+                                <span>Repression</span>
                             </div>
-                            <div><span
-                                    style="display:inline-block; width:18px; height:3px; background:#7b1fa2; border-top:1px dashed #7b1fa2; vertical-align:middle; margin-right:5px;"></span>sRNA
-                                / post-transcriptional</div>
-                            <div style="margin-top:4px;">Thicker, darker edges indicate higher confidence from motif,
-                                ChIP, expression, and database evidence.</div>
+                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="18" y2="5" stroke="#e65100" stroke-width="2.5"/><polygon points="18,2 26,5 18,8" fill="#e65100"/></svg>
+                                <span>Dual / Unknown</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="17" y2="5" stroke="#7b1fa2" stroke-width="2" stroke-dasharray="3,2"/><polygon points="17,2 23,5 17,8" fill="none" stroke="#7b1fa2" stroke-width="1.5"/><line x1="23" y1="2" x2="23" y2="8" stroke="#7b1fa2" stroke-width="1.5"/></svg>
+                                <span>sRNA / post-transcriptional</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="24" y2="5" stroke="#10b981" stroke-width="2.5" stroke-dasharray="7,3"/></svg>
+                                <span>PPI (STRING)</span>
+                            </div>
+                            <div style="border-top:1px dashed var(--border-color);padding-top:4px;display:flex;flex-direction:column;gap:2px;">
+                                <div style="display:flex;align-items:center;gap:5px;">
+                                    <svg width="26" height="6" style="flex-shrink:0"><line x1="2" y1="3" x2="24" y2="3" stroke="#555" stroke-width="2.5"/></svg>
+                                    <span>High / Medium confidence</span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:5px;">
+                                    <svg width="26" height="6" style="flex-shrink:0"><line x1="2" y1="3" x2="24" y2="3" stroke="#aaa" stroke-width="1.5" stroke-dasharray="2,2"/></svg>
+                                    <span>Low confidence</span>
+                                </div>
+                                <div style="margin-top:2px;color:var(--text-muted,#94a3b8)">Edge thickness ∝ confidence score</div>
+                            </div>
                         </div>
+
                     </div>
 
                 </div>
@@ -574,6 +601,24 @@
                     <span>Controls</span>
                 </button>
                 <div id="cy"></div>
+                <!-- Export Network Dropdown -->
+                <div id="export-dropdown-wrapper" style="position: absolute; top: 12px; right: 12px; z-index: 15; display: none;">
+                    <button id="btn-export-network" class="secondary-btn" style="padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; background: rgba(255,255,255,0.9); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="Export Network">
+                        <i class="fa-solid fa-download"></i> Export Network <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                    </button>
+                    <div id="export-menu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex-direction: column; width: 140px; overflow: hidden; z-index: 20;">
+                        <button id="btn-export-png" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'" style="padding: 8px 12px; font-size: 11.5px; border: none; background: none; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-primary); transition: background 0.15s; width: 100%;">
+                            <i class="fa-solid fa-file-image" style="color: #e65100; width: 14px;"></i> Export PNG
+                        </button>
+                        <button id="btn-export-csv" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'" style="padding: 8px 12px; font-size: 11.5px; border: none; background: none; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-primary); transition: background 0.15s; width: 100%;">
+                            <i class="fa-solid fa-file-csv" style="color: #2e7d32; width: 14px;"></i> Export CSV
+                        </button>
+                        <button id="btn-export-json" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'" style="padding: 8px 12px; font-size: 11.5px; border: none; background: none; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-primary); transition: background 0.15s; width: 100%;">
+                            <i class="fa-solid fa-file-code" style="color: #1976d2; width: 14px;"></i> Export JSON
+                        </button>
+                    </div>
+                </div>
+
                 <div id="canvas-overlay" class="empty-state">
                     <div class="overlay-content scrollable-overlay">
                         <!-- Hero Section -->
@@ -1119,7 +1164,25 @@
                             low!</span>
                     </div>
 
-                    <div class="dashboard-grid">
+                    <!-- Tabs Switcher -->
+                    <div class="quality-tabs-container">
+                        <button class="quality-tab-btn active" data-quality-tab="regulatory">
+                            <i class="fa-solid fa-network-wired"></i> Regulatory Quality
+                        </button>
+                        <button class="quality-tab-btn" data-quality-tab="metabolic">
+                            <i class="fa-solid fa-route"></i> Metabolic Model (GEM) Quality
+                        </button>
+                        <button class="quality-tab-btn" data-quality-tab="ppi">
+                            <i class="fa-solid fa-atom"></i> PPI Network Quality
+                        </button>
+                        <button class="quality-tab-btn" data-quality-tab="thermo">
+                            <i class="fa-solid fa-fire"></i> Thermodynamic Quality
+                        </button>
+                    </div>
+
+                    <!-- Module 1: Regulatory Network Quality -->
+                    <div id="quality-section-regulatory" class="quality-tab-content">
+                        <div class="dashboard-grid">
                         <!-- Card 1: Regulatory Network -->
                         <div class="dashboard-card">
                             <div class="card-header">
@@ -1203,6 +1266,12 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Module 2: Metabolic Model (GEM) Quality -->
+                    <div id="quality-section-metabolic" class="quality-tab-content hidden">
+                        <div class="dashboard-grid">
 
                         <!-- Card 3: Metabolic Model Mapping -->
                         <div class="dashboard-card">
@@ -1317,8 +1386,67 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Card 6: Thermodynamic Directionality Pruning -->
+                <!-- Module 3: STRING PPI Network Quality -->
+                    <div id="quality-section-ppi" class="quality-tab-content hidden">
+                        <div class="dashboard-grid">
+
+                        <!-- Card 6: STRING PPI Network Quality -->
+                        <div class="dashboard-card" id="ppi-quality-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-atom" style="color:var(--color-primary-accent);"></i> STRING PPI Physical Interactions</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="stat-main-row">
+                                    <div class="stat-main-col">
+                                        <div class="large-stat" id="stat-ppi-nodes">0</div>
+                                        <div class="large-stat-label">Mapped Proteins</div>
+                                    </div>
+                                    <div class="stat-main-col">
+                                        <div class="large-stat" id="stat-ppi-edges">0</div>
+                                        <div class="large-stat-label">Total Interactions</div>
+                                    </div>
+                                </div>
+                                <hr class="card-divider">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; font-size: 11.5px;">
+                                    <span style="color: var(--text-secondary); font-weight: 600;">Avg Partners / Protein:</span>
+                                    <strong id="stat-ppi-avg-partners" style="color: var(--text-primary);">0.0</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; font-size: 11.5px;">
+                                    <span style="color: var(--text-secondary); font-weight: 600;">Average Confidence Score:</span>
+                                    <strong id="stat-ppi-avg-score" style="color: var(--color-primary-accent);">0.0</strong>
+                                </div>
+                                
+                                <div class="scroll-list-title" style="margin-top: 14px; margin-bottom: 6px;">Confidence Distribution</div>
+                                <div class="stats-subgrid" style="margin-bottom: 14px;">
+                                    <div class="sub-stat-item"><span>Very High (&ge;900)</span><strong id="stat-ppi-conf-veryhigh">0</strong></div>
+                                    <div class="sub-stat-item"><span>High (700-900)</span><strong id="stat-ppi-conf-high">0</strong></div>
+                                    <div class="sub-stat-item"><span>Medium (400-700)</span><strong id="stat-ppi-conf-medium">0</strong></div>
+                                    <div class="sub-stat-item"><span>Low (&lt;400)</span><strong id="stat-ppi-conf-low">0</strong></div>
+                                </div>
+
+                                <div class="scroll-list-title" style="margin-top: 8px; margin-bottom: 6px;">Evidence Channel Mappings</div>
+                                <div class="stats-subgrid">
+                                    <div class="sub-stat-item"><span>Experimental (Exp)</span><strong id="stat-ppi-ch-exp">0</strong></div>
+                                    <div class="sub-stat-item"><span>Database (DB)</span><strong id="stat-ppi-ch-db">0</strong></div>
+                                    <div class="sub-stat-item"><span>Coexpression</span><strong id="stat-ppi-ch-coexp">0</strong></div>
+                                    <div class="sub-stat-item"><span>Textmining</span><strong id="stat-ppi-ch-text">0</strong></div>
+                                    <div class="sub-stat-item"><span>Neighborhood</span><strong id="stat-ppi-ch-nbhd">0</strong></div>
+                                    <div class="sub-stat-item"><span>Cooccurrence</span><strong id="stat-ppi-ch-coocc">0</strong></div>
+                                    <div class="sub-stat-item"><span>Fusion</span><strong id="stat-ppi-ch-fuse">0</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module 4: Thermodynamic Quality -->
+                    <div id="quality-section-thermo" class="quality-tab-content hidden">
+                        <div class="dashboard-grid">
+
+                        <!-- Card 7: Thermodynamic Directionality Pruning -->
                         <div class="dashboard-card" id="thermo-pruning-card" style="grid-column: 1 / -1;">
                             <div class="card-header">
                                 <h3><i class="fa-solid fa-atom" style="color:#f59e0b;"></i> Thermodynamic Directionality Pruning</h3>
@@ -1393,6 +1521,28 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                <!-- Reverted locks (Thermo-Stoichiometric Conflicts) table -->
+                                <div class="scroll-list-title" style="margin-top:14px; color:#ef4444; font-weight:700;">
+                                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right:4px;"></i> Thermo-Stoichiometric Conflicts (<span id="stat-thermo-reverted-count">–</span>)
+                                    <span style="font-weight:400; color:var(--text-secondary); font-size:10px; margin-left:6px;">locks reverted by Safety Guard to preserve growth viability</span>
+                                </div>
+                                <div style="overflow-x:auto; margin-top:8px; max-height:150px; overflow-y:auto; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px;">
+                                    <table style="width:100%; font-size:11px; border-collapse:collapse;">
+                                        <thead>
+                                            <tr style="background:rgba(239,68,68,0.06); text-align:left; position:sticky; top:0;">
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Reaction</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Proposed Lock</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">ΔrG'° (kJ/mol)</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Range [min, max]</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Conf.</th>
+                                                <th style="padding:4px 8px; border-bottom:1px solid var(--border-color); font-weight:600;">Reversion Reason</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="thermo-reverted-tbody">
+                                            <tr><td colspan="6" style="padding:8px; color:var(--text-secondary); text-align:center;">Loading…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                                 <div style="margin-top:10px; font-size:10.5px; color:var(--text-secondary); font-style:italic; line-height:1.4;">
                                     <i class="fa-solid fa-info-circle"></i>
                                     Thermodynamic directionality pruning tightens reaction flux bounds at model load time using ΔrG' feasibility analysis
@@ -1400,9 +1550,9 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
+            </div>
 
                 <!-- Candidate Engineering Regulators Dashboard Overlay -->
                 <div id="engineering-dashboard-overlay" class="release-notes-container hidden" style="display: flex; flex-direction: column; gap: 16px; overflow: hidden; padding: 20px;">
@@ -1498,7 +1648,52 @@
                         </div>
                     </div>
 
-                    <!-- Release Card v0.4.0 (Latest) -->
+                    <!-- Release Card v0.5.0 (Latest) -->
+                    <div class="release-card" style="margin-bottom: 24px;">
+                        <div class="release-card-header"
+                            style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);">
+                            <span class="version-badge-lg" style="background: #10b981;">v0.5.0</span>
+                            <h3>Version v0.5.0 - GPR Evaluator & Thermodynamic Reversion Reports</h3>
+                            <span class="release-date">July 2026</span>
+                        </div>
+                        <div class="release-card-body">
+                            <p class="release-intro">
+                                Version v0.5.0 introduces formal GPR (Gene-Protein-Reaction) boolean logic to dynamic rFBA simulations, exposes thermodynamic Safety Guard rollbacks directly in the UI quality cards, implements mixed-language TF-IDF tokenization, and re-nests solver contexts to boost FBA calculation performance by 10-20x.
+                            </p>
+
+                            <div class="release-section">
+                                <h4>Simulation Speedups & Biological Fidelity Mappings</h4>
+                                <div class="features-checklist-grid">
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i>
+                                        <span>GPR parser evaluating boolean AND (min) and OR (max) rules, representing true rate-limiting complex subunits and isozyme compensation.</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Thermodynamic Safety Guard warnings exposing reverted locked bounds on the Quality/Pruning UI panel.</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>Mixed-language Chinese/English tokenization (character and character bigram extraction) in local RAG search.</span></div>
+                                    <div class="checklist-item"><i class="fa-solid fa-circle-check"></i> <span>rFBA context manager re-nesting to reuse solver instances, skipping 23 deep-copy operations per dynamic simulation run.</span></div>
+                                </div>
+                            </div>
+
+                            <hr class="card-divider">
+
+                            <div class="release-grid-columns">
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-quote-left"></i> How to Cite</h4>
+                                    <p>If you use Cgl Regulation Explorer in your research, please cite:</p>
+                                    <div class="release-citation">Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for <em>Corynebacterium glutamicum</em>. Version 0.5.0. Available at: https://cgl-regulation.vercel.app/</div>
+
+                                </div>
+                                <div class="release-column">
+                                    <h4><i class="fa-solid fa-circle-exclamation"></i> Analytical Boundaries</h4>
+                                    <ul class="release-limitations-list">
+                                        <li><strong>GPR Semantics:</strong> Boolean rules utilize standard min/max operators for subunit rate-limiting and isozyme compensation.</li>
+                                        <li><strong>Reverted Locks:</strong> Reverted bounds indicate stoichiometric/thermodynamic conflicts in the underlying model that need further curation.</li>
+                                        <li><strong>Performance:</strong> The solver executes locally or falls back to high-fidelity heuristics when client-side solvers are missing.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Release Card v0.4.0 -->
                     <div class="release-card" style="margin-bottom: 24px;">
                         <div class="release-card-header"
                             style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);">
@@ -2002,14 +2197,372 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="imodulon-content" id="imodulon-empty-container" style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-style: italic; border: 1px dashed var(--border-color); border-radius: 8px;">
-                            Select an iModulon from the list to view its parameters.
+                        <div class="imodulon-content" id="imodulon-empty-container" style="flex: 1; display: flex; flex-direction: column; gap: 20px; padding: 24px; overflow-y: auto; background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px;">
+                            <!-- Welcome Area -->
+                            <div style="text-align: center; max-width: 600px; margin: 0 auto; padding-top: 10px;">
+                                <div style="width: 56px; height: 56px; background: rgba(99, 102, 241, 0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                    <i class="fa-solid fa-circle-nodes" style="font-size: 28px; color: #6366f1;"></i>
+                                </div>
+                                <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0 0 8px 0;">iModulon Explorer</h3>
+                                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                                    iModulons are transcriptionally co-regulated gene modules derived mathematically from big-data RNA-seq matrices using Independent Component Analysis (ICA). They represent biologically coherent signals responsive to environment and genetic perturbations.
+                                </p>
+                            </div>
+
+                            <!-- Metrics Summary Grid -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 10px 0;">
+                                <div class="dashboard-card" style="padding: 16px; text-align: center; display: flex; flex-direction: column; gap: 4px;">
+                                    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Robust Modules</span>
+                                    <strong style="font-size: 24px; color: #6366f1;">87</strong>
+                                    <span style="font-size: 10px; color: var(--text-secondary);">Independently co-regulated</span>
+                                </div>
+                                <div class="dashboard-card" style="padding: 16px; text-align: center; display: flex; flex-direction: column; gap: 4px;">
+                                    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Explained Variance</span>
+                                    <strong style="font-size: 24px; color: #10b981;">76.7%</strong>
+                                    <span style="font-size: 10px; color: var(--text-secondary);">Of total transcriptomic data</span>
+                                </div>
+                                <div class="dashboard-card" style="padding: 16px; text-align: center; display: flex; flex-direction: column; gap: 4px;">
+                                    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Experimental Conditions</span>
+                                    <strong style="font-size: 24px; color: #f59e0b;">200+</strong>
+                                    <span style="font-size: 10px; color: var(--text-secondary);">Under diverse stress states</span>
+                                </div>
+                            </div>
+
+                            <!-- Categories Section -->
+                            <div class="dashboard-card" style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+                                <h4 style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-tags" style="color: #6366f1;"></i> iModulon Functional Categories
+                                </h4>
+                                <p style="font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; margin: 0;">
+                                    The 87 modules capture different regulatory layers of <em>Corynebacterium glutamicum</em>:
+                                </p>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
+                                    <div>
+                                        <span style="background: rgba(46, 125, 50, 0.08); color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-block; margin-bottom: 4px;">Metabolism</span>
+                                        <div>Core carbon pathways, nitrogen assimilation, iron uptake, and sulfur transport.</div>
+                                    </div>
+                                    <div>
+                                        <span style="background: rgba(220, 38, 38, 0.08); color: #dc2626; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-block; margin-bottom: 4px;">Stress Response</span>
+                                        <div>Acid/oxidative shock, envelope stress response, heat shock chaperones.</div>
+                                    </div>
+                                    <div>
+                                        <span style="background: rgba(123, 31, 162, 0.08); color: #7b1fa2; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-block; margin-bottom: 4px;">Regulatory / TFs</span>
+                                        <div>Sigma factor cascades, two-component signaling, direct TF-DNA regulons.</div>
+                                    </div>
+                                    <div>
+                                        <span style="background: rgba(100, 116, 139, 0.08); color: #64748b; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-block; margin-bottom: 4px;">Uncharacterized</span>
+                                        <div>Novel co-regulation patterns of orphan genes waiting for functional validation.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Guide -->
+                            <div class="dashboard-card" style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+                                <h4 style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-circle-question" style="color: #10b981;"></i> How to Explore
+                                </h4>
+                                <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 20px; line-height: 1.6; margin: 0; display: flex; flex-direction: column; gap: 6px;">
+                                    <li><strong>Select:</strong> Choose any module from the left list. Use the search input to filter by TF or functional category.</li>
+                                    <li><strong>Overview & regulon:</strong> Inspect mathematical stats and direct overlap metrics against traditional databases (F1-score, Precision, Recall).</li>
+                                    <li><strong>Simulations:</strong> Predict metabolic flux adjustments under iModulon knockout configurations inside FBA / ecFBA models.</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Network Topology & Motif Analysis Overlay -->
-                <div id="topology-overlay" class="release-notes-container hidden" style="background:#f8fafc;color:var(--text-primary);border-left:1px solid var(--border-color);overflow-y:auto;padding:0;">
+                <!-- ═══════════════════════════════════════════════════ PPI Explorer Overlay -->
+                <div id="ppi-explorer-overlay" class="release-notes-container hidden" style="background:#f8fafc;color:var(--text-primary);border-left:1px solid var(--border-color);overflow:hidden;padding:0;display:flex;flex-direction:row;">
+
+                    <!-- PPI Left Sidebar -->
+                    <aside id="ppi-left-sidebar" class="sidebar scrollable-sidebar" style="width: 260px; flex-shrink: 0; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 16px; gap: 16px; overflow-y: auto; z-index: 10; height: 100%; box-sizing: border-box;">
+                        <div class="sidebar-section">
+                            <h2 style="font-size: 13.5px; font-weight: 700; margin: 0 0 4px; display: flex; align-items: center; gap: 6px; color: var(--text-primary);"><i class="fa-solid fa-atom"></i> PPI Explorer</h2>
+                            <p style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+                                Analyze protein-protein physical interactions in <em>C. glutamicum</em> using STRING v12.
+                            </p>
+                        </div>
+
+                        <!-- Explorer Mode Selection -->
+                        <div class="sidebar-section" style="border-top: 1px dashed var(--border-color); padding-top: 14px;">
+                            <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Explorer Mode</label>
+                            <div style="display:flex; flex-direction:column; gap: 6px;">
+                                <button class="ppi-mode-tab active" data-mode="network" style="padding: 8px 12px; font-size: 12px; font-weight: 600; border: 1px solid var(--border-color); border-radius: 8px; text-align: left; background: #fff; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; display: flex; align-items: center; gap: 6px; width: 100%;">
+                                    <i class="fa-solid fa-share-nodes"></i> Network Explorer
+                                </button>
+                                <button class="ppi-mode-tab" data-mode="path" style="padding: 8px 12px; font-size: 12px; font-weight: 600; border: 1px solid var(--border-color); border-radius: 8px; text-align: left; background: #fff; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; display: flex; align-items: center; gap: 6px; width: 100%;">
+                                    <i class="fa-solid fa-route"></i> Shortest Path BFS
+                                </button>
+                                <button class="ppi-mode-tab" data-mode="hub" style="padding: 8px 12px; font-size: 12px; font-weight: 600; border: 1px solid var(--border-color); border-radius: 8px; text-align: left; background: #fff; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; display: flex; align-items: center; gap: 6px; width: 100%;">
+                                    <i class="fa-solid fa-crown"></i> Hub Protein Ranking
+                                </button>
+                                <button class="ppi-mode-tab" data-mode="motif" style="padding: 8px 12px; font-size: 12px; font-weight: 600; border: 1px solid var(--border-color); border-radius: 8px; text-align: left; background: #fff; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; display: flex; align-items: center; gap: 6px; width: 100%;">
+                                    <i class="fa-solid fa-shapes"></i> Mixed Motif Search
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Panel: Network Mode Controls -->
+                        <div id="ppi-sidebar-panel-network" class="ppi-sidebar-panel">
+                            <div class="sidebar-section" style="border-top: 1px dashed var(--border-color); padding-top: 14px;">
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Search Proteins</label>
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    <input id="ppi-search-input" type="text" placeholder="e.g. sigH or cg0350, dnaA" autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; background: #f8fafc; outline: none;">
+                                    <button id="ppi-search-btn" class="primary-btn" style="width: 100%; padding: 7px; justify-content: center; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-magnifying-glass"></i> Search Network
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="sidebar-section" style="margin-top: 14px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                                    <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Minimum Score</label>
+                                    <span id="ppi-score-val" style="font-size: 11.5px; font-weight: 700; color: var(--color-primary-accent); margin-left: auto;">400</span>
+                                </div>
+                                <input id="ppi-score-slider" type="range" min="150" max="990" value="400" step="50" style="width: 100%; accent-color: var(--color-primary-accent); cursor: pointer;">
+                            </div>
+
+                            <div class="sidebar-section" style="margin-top: 14px;">
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Interaction Channels</label>
+                                <div id="ppi-channel-filters" style="display: flex; flex-direction: column; gap: 6px;">
+                                    <button class="ppi-ch-pill active" data-channel="experimental" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 11.5px; text-align: left; background:#e8f5e9; color:#2e7d32; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: none; font-weight: 600;">Exp <span>✓</span></button>
+                                    <button class="ppi-ch-pill active" data-channel="database"     style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 11.5px; text-align: left; background:#e3f2fd; color:#1976d2; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: none; font-weight: 600;">DB <span>✓</span></button>
+                                    <button class="ppi-ch-pill active" data-channel="coexpression" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 11.5px; text-align: left; background:#f3e5f5; color:#6a1b9a; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: none; font-weight: 600;">CoExp <span>✓</span></button>
+                                    <button class="ppi-ch-pill active" data-channel="textmining"   style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 11.5px; text-align: left; background:#fff3e0; color:#e65100; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: none; font-weight: 600;">Text <span>✓</span></button>
+                                    <button class="ppi-ch-pill active" data-channel="neighborhood" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 11.5px; text-align: left; background:#e0f2f1; color:#00838f; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: none; font-weight: 600;">Nbhd <span>✓</span></button>
+                                    <button class="ppi-ch-pill active" data-channel="cooccurrence" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 11.5px; text-align: left; background:#fce4ec; color:#ad1457; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: none; font-weight: 600;">CoOcc <span>✓</span></button>
+                                    <button class="ppi-ch-pill active" data-channel="fusion"       style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 11.5px; text-align: left; background:#fbe9e7; color:#bf360c; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: none; font-weight: 600;">Fuse <span>✓</span></button>
+                            </div>
+
+                            <div class="sidebar-section" style="border-top: 1px dashed var(--border-color); padding-top: 14px; margin-top: 14px;">
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Layer Overlays &amp; Scope</label>
+                                <label for="ppi-show-trn-checkbox" style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-primary); cursor: pointer; font-weight: 500; margin-bottom: 8px;">
+                                    <input type="checkbox" id="ppi-show-trn-checkbox" checked style="accent-color: var(--color-primary-accent); cursor: pointer;">
+                                    Show TRN Regulation Links
+                                </label>
+                                <label for="ppi-show-partners-checkbox" style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-primary); cursor: pointer; font-weight: 500;">
+                                    <input type="checkbox" id="ppi-show-partners-checkbox" checked style="accent-color: var(--color-primary-accent); cursor: pointer;">
+                                    Show Partner-to-Partner Links
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Panel: Shortest Path Mode Controls -->
+                        <div id="ppi-sidebar-panel-path" class="ppi-sidebar-panel hidden">
+                            <div class="sidebar-section" style="border-top: 1px dashed var(--border-color); padding-top: 14px;">
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">From Gene / Locus</label>
+                                <input id="ppi-path-source" type="text" placeholder="e.g. sigA" autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; background: #f8fafc; outline: none; margin-bottom: 10px;">
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">To Gene / Locus</label>
+                                <input id="ppi-path-target" type="text" placeholder="e.g. sigH" autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; background: #f8fafc; outline: none; margin-bottom: 12px;">
+                                
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                                    <label style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Min Score</label>
+                                    <span id="ppi-path-score-val" style="font-size: 11.5px; font-weight: 700; color: #1976d2; margin-left: auto;">400</span>
+                                </div>
+                                <input id="ppi-path-score" type="range" min="150" max="900" value="400" step="50" style="width:100%; accent-color:#1976d2; margin-bottom: 16px; cursor: pointer;">
+                                
+                                <button id="ppi-path-btn" class="primary-btn" style="width: 100%; padding: 8px; justify-content: center; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-route"></i> Find Shortest Path
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Panel: Hub Ranking Mode Controls -->
+                        <div id="ppi-sidebar-panel-hub" class="ppi-sidebar-panel hidden">
+                            <div class="sidebar-section" style="border-top: 1px dashed var(--border-color); padding-top: 14px;">
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Min score threshold</label>
+                                <select id="ppi-hub-score-select" style="width:100%; padding:6px 10px; border:1px solid var(--border-color); border-radius:8px; font-size:12px; background:#f8fafc; cursor:pointer; outline:none; margin-bottom:12px;">
+                                    <option value="900">900 (Very High)</option>
+                                    <option value="700" selected>700 (High)</option>
+                                    <option value="500">500 (Medium-High)</option>
+                                    <option value="400">400 (Medium)</option>
+                                </select>
+                                
+                                <button id="ppi-hub-load-btn" class="primary-btn" style="width: 100%; padding: 8px; justify-content: center; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; background:#f59e0b; border-color:#d97706; margin-bottom:16px;">
+                                    <i class="fa-solid fa-rotate"></i> Load Hubs
+                                </button>
+                                
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Filter Results</label>
+                                <input id="ppi-hub-search" type="text" placeholder="Filter by name…" style="width: 100%; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; background: #f8fafc; outline: none;">
+                        </div>
+
+                        <!-- Panel: Mixed Motif Search Controls -->
+                        <div id="ppi-sidebar-panel-motif" class="ppi-sidebar-panel hidden">
+                            <div class="sidebar-section" style="border-top: 1px dashed var(--border-color); padding-top: 14px;">
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Motif Type</label>
+                                <select id="motif-type-select" style="width:100%; padding:6px 10px; border:1px solid var(--border-color); border-radius:8px; font-size:12px; background:#f8fafc; cursor:pointer; outline:none; margin-bottom:12px;">
+                                    <option value="co_complex">Co-regulated Complex (TF ➔ B, C &amp; B-C interacts)</option>
+                                    <option value="co_tf">Cooperative TFs (TF_A - TF_B interact ➔ regulate C)</option>
+                                    <option value="feedback">Regulatory Feedback (TF_A ➔ B &amp; TF_A-B interact)</option>
+                                </select>
+                                
+                                <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Min STRING Score</label>
+                                <select id="motif-score-select" style="width:100%; padding:6px 10px; border:1px solid var(--border-color); border-radius:8px; font-size:12px; background:#f8fafc; cursor:pointer; outline:none; margin-bottom:16px;">
+                                    <option value="900">900 (Very High)</option>
+                                    <option value="700" selected>700 (High)</option>
+                                    <option value="400">400 (Medium)</option>
+                                </select>
+
+                                <button id="btn-run-motif-search" class="primary-btn" style="width: 100%; padding: 8px; justify-content: center; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; background:#4f46e5; border-color:#4338ca; cursor:pointer;">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Search Motifs
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Edge Schema Legend (Bottom) -->
+                        <div class="sidebar-section" style="border-top: 1px dashed var(--border-color); padding-top: 14px; margin-top: auto;">
+                            <div style="font-size: 10px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Edge Channels</div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:10px;">
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#2e7d32; display:inline-block;"></span> Exp</div>
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#1976d2; display:inline-block;"></span> DB</div>
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#6a1b9a; display:inline-block;"></span> CoExp</div>
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#e65100; display:inline-block;"></span> Text</div>
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#00838f; display:inline-block;"></span> Nbhd</div>
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#ad1457; display:inline-block;"></span> CoOcc</div>
+                            </div>
+
+                            <div style="font-size: 10px; font-weight: 700; color: var(--text-secondary); margin-top: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px dashed var(--border-color); padding-top: 10px;">TRN Regulations</div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:10px;">
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:12px; height:2px; background:#2e7d32;"></span> Activation</div>
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:12px; height:2px; background:#d32f2f;"></span> Repression</div>
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:12px; height:2px; background:#e65100;"></span> Dual/Sigma</div>
+                                <div style="display:flex; align-items:center; gap:4px;"><span style="display:inline-block; width:12px; height:2px; border-top:2px dashed #7b1fa2;"></span> sRNA</div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- PPI Main Content Container -->
+                    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative;">
+                        <!-- Mode Stats/Layout Header -->
+                        <div style="flex-shrink:0; display:flex; align-items:center; border-bottom:1px solid var(--border-color); background:#fff; padding:10px 18px; min-height:48px; box-sizing: border-box;">
+                            <span id="ppi-mode-header-label" style="font-size:12.5px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-share-nodes"></i> PPI Network
+                            </span>
+                            <span id="ppi-hub-meta-label" style="font-size:11px;color:var(--text-secondary);margin-left:12px;"></span>
+                            <span id="ppi-stats-label" style="font-size:11px;color:var(--text-secondary);margin-left:12px;display:inline-block;padding:2px 8px;background:#f1f5f9;border-radius:12px;"></span>
+                            <div style="margin-left:auto; display:flex; gap:6px;">
+                                <button id="ppi-layout-btn" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border-color);background:#fff;font-size:11px;cursor:pointer;color:var(--text-secondary);"><i class="fa-solid fa-rotate"></i> Layout</button>
+                                <button id="ppi-fit-btn" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border-color);background:#fff;font-size:11px;cursor:pointer;color:var(--text-secondary);"><i class="fa-solid fa-expand"></i> Fit</button>
+                            </div>
+                        </div>
+
+                        <!-- Canvas and Right Detail Split Body -->
+                        <div style="flex:1; display:flex; min-height:0; position:relative;">
+                            
+                            <!-- Cytoscape canvas (Network + Path modes) -->
+                            <div id="ppi-cy-container" style="flex:1;min-width:0;position:relative;background-color:var(--bg-app);background-image:radial-gradient(rgba(15,23,42,0.035) 1px, transparent 1px);background-size:24px 24px;">
+                                <!-- PPI export toolbar -->
+                                <div id="ppi-export-dropdown-wrapper" style="position: absolute; top: 12px; right: 12px; z-index: 15; display: none;">
+                                    <button id="ppi-btn-export-network" class="secondary-btn" style="padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; background: rgba(255,255,255,0.9); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="Export Network">
+                                        <i class="fa-solid fa-download"></i> Export Network <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                                    </button>
+                                    <div id="ppi-export-menu" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex-direction: column; width: 140px; overflow: hidden; z-index: 20;">
+                                        <button id="ppi-btn-export-png" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'" style="padding: 8px 12px; font-size: 11.5px; border: none; background: none; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-primary); transition: background 0.15s; width: 100%;">
+                                            <i class="fa-solid fa-file-image" style="color: #e65100; width: 14px;"></i> Export PNG
+                                        </button>
+                                        <button id="ppi-btn-export-csv" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'" style="padding: 8px 12px; font-size: 11.5px; border: none; background: none; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-primary); transition: background 0.15s; width: 100%;">
+                                            <i class="fa-solid fa-file-csv" style="color: #2e7d32; width: 14px;"></i> Export CSV
+                                        </button>
+                                        <button id="ppi-btn-export-json" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'" style="padding: 8px 12px; font-size: 11.5px; border: none; background: none; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-primary); transition: background 0.15s; width: 100%;">
+                                            <i class="fa-solid fa-file-code" style="color: #1976d2; width: 14px;"></i> Export JSON
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Empty state -->
+                                <div id="ppi-empty-state" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--text-secondary);">
+                                    <i class="fa-solid fa-share-nodes" style="font-size:52px;color:#c7d2fe;"></i>
+                                    <div style="text-align:center;">
+                                        <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">PPI Explorer</div>
+                                        <div style="font-size:12.5px;max-width:320px;line-height:1.6;">Search for a gene to visualise its <strong>STRING v12</strong> network, find shortest paths, or explore hub proteins.</div>
+                                    </div>
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                                        <button class="ppi-example-btn" data-gene="cg0350" style="padding:5px 14px;border-radius:20px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;font-size:11.5px;cursor:pointer;">cg0350</button>
+                                        <button class="ppi-example-btn" data-gene="sigH"   style="padding:5px 14px;border-radius:20px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;font-size:11.5px;cursor:pointer;">sigH</button>
+                                        <button class="ppi-example-btn" data-gene="whiB4"  style="padding:5px 14px;border-radius:20px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;font-size:11.5px;cursor:pointer;">whiB4</button>
+                                        <button class="ppi-example-btn" data-gene="sigA,sigH,dnaA" style="padding:5px 14px;border-radius:20px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;font-size:11.5px;cursor:pointer;">sigA,sigH,dnaA</button>
+                                    </div>
+                                </div>
+                                <!-- Loading -->
+                                <div id="ppi-loading" class="hidden" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,0.85);z-index:10;">
+                                    <div style="text-align:center;">
+                                        <i class="fa-solid fa-spinner fa-spin" style="font-size:28px;color:var(--color-primary-accent);"></i>
+                                        <div style="margin-top:10px;font-size:12px;color:var(--text-secondary);">Fetching PPI data…</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hub Ranking Table (hidden by default) -->
+                            <div id="ppi-hub-table-container" class="hidden" style="flex:1;min-width:0;overflow-y:auto;background:#f8fafc;padding:0;">
+                                <table id="ppi-hub-table" style="width:100%;border-collapse:collapse;font-size:12px;">
+                                    <thead style="position:sticky;top:0;z-index:5;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                                        <tr>
+                                            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-secondary);font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">Rank</th>
+                                            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-secondary);font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">Gene</th>
+                                            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-secondary);font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">Locus</th>
+                                            <th style="padding:10px 14px;text-align:center;font-weight:700;color:#6366f1;font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">Degree</th>
+                                            <th style="padding:10px 14px;text-align:center;font-weight:700;color:var(--text-secondary);font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">Avg Score</th>
+                                            <th style="padding:10px 14px;text-align:center;font-weight:700;color:#16a34a;font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">Exp</th>
+                                            <th style="padding:10px 14px;text-align:center;font-weight:700;color:#2563eb;font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">DB</th>
+                                            <th style="padding:10px 14px;text-align:center;font-weight:700;color:#7c3aed;font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">CoExp</th>
+                                            <th style="padding:10px 14px;text-align:center;font-weight:700;color:#d97706;font-size:11px;white-space:nowrap;border-bottom:2px solid var(--border-color);">Text</th>
+                                            <th style="padding:10px 14px;text-align:left;font-weight:700;color:var(--text-secondary);font-size:11px;border-bottom:2px solid var(--border-color);">Top Partners</th>
+                                            <th style="padding:10px 14px;text-align:center;font-weight:700;color:var(--text-secondary);font-size:11px;border-bottom:2px solid var(--border-color);">View</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ppi-hub-tbody"></tbody>
+                                </table>
+                            </div>
+
+                            <!-- Motif Search Table Container (hidden by default) -->
+                            <div id="ppi-motif-container" class="hidden" style="flex:1;min-width:0;overflow-y:auto;background:#f8fafc;padding:0; box-sizing: border-box; display: flex; flex-direction: column;">
+                                <div style="padding: 10px 14px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                                    <span>Detected Motif Instances (<span id="motif-results-count">0</span>)</span>
+                                    <span style="font-size: 11px; font-weight: 400; color: var(--text-secondary);">Click any instance row to load and highlight it in the network canvas.</span>
+                                </div>
+                                <div style="flex: 1; overflow-y: auto;">
+                                    <table style="width: 100%; font-size: 12px; border-collapse: collapse; text-align: left; background: #ffffff;">
+                                        <thead style="background: var(--bg-sidebar); position: sticky; top: 0; z-index: 5; box-shadow: 0 1px 0 var(--border-color);">
+                                            <tr id="motif-table-header">
+                                                <!-- Dynamic headers -->
+                                            </tr>
+                                        </thead>
+                                        <tbody id="motif-table-body">
+                                            <tr>
+                                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                                    <i class="fa-solid fa-shapes" style="font-size: 28px; margin-bottom: 10px; color: #cbd5e1; display: block;"></i>
+                                                    Select motif parameters and click Search to run analysis.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Right detail panel -->
+                            <div id="ppi-detail-panel" style="width:300px;flex-shrink:0;border-left:1px solid var(--border-color);background:#fff;overflow-y:auto;display:flex;flex-direction:column;">
+                                <div id="ppi-detail-header" style="padding:12px 14px 8px;border-bottom:1px solid var(--border-color);display:none;">
+                                    <div style="font-weight:700;font-size:14px;color:var(--text-primary);" id="ppi-detail-gene-name">—</div>
+                                    <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;" id="ppi-detail-gene-locus"></div>
+                                </div>
+                                <div id="ppi-detail-content" style="padding:12px 14px;flex:1;">
+                                    <div style="text-align:center;color:#94a3b8;padding:40px 0;font-size:12px;">
+                                        <i class="fa-solid fa-hand-pointer" style="font-size:24px;margin-bottom:8px;display:block;color:#c7d2fe;"></i>
+                                        Click a node to see its interactions
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+                <!-- ═══════════════════════════════════════════════════ end PPI Explorer -->
+
+
+                <div id="topology-overlay" class="release-notes-container hidden" style="background:#f8fafc;color:var(--text-primary);border-left:1px solid var(--border-color);overflow-y:auto;padding:20px;">
                     <style>
                         #topology-overlay .imodulon-tabs {
                             display: flex;
@@ -2131,7 +2684,9 @@
                             <button class="imodulon-tab-btn" data-topo-tab="mutual">Mutual Regulation</button>
                             <button class="imodulon-tab-btn" data-topo-tab="multi">Multi-input Motifs</button>
                             <button class="imodulon-tab-btn" data-topo-tab="bifan">Bi-fan Patterns</button>
+                            <button class="imodulon-tab-btn" data-topo-tab="coregulation"><i class="fa-solid fa-handshake"></i> Co-regulation</button>
                         </div>
+
 
                         <!-- Tab: Hub TF Ranking -->
                         <div id="topo-tab-hub" class="topo-tab-content">
@@ -2248,6 +2803,38 @@
                             <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">Pairs of TFs that share two or more common target genes. Indicates co-regulated gene modules.</div>
                             <div id="topo-bifan-list" style="display:flex;flex-direction:column;gap:6px;"></div>
                         </div>
+
+                        <!-- Tab: Co-regulation -->
+                        <div id="topo-tab-coregulation" class="topo-tab-content" style="display:none;">
+                            <div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+                                <span>Pairwise TF regulon Jaccard similarity heatmap. Muted blue cells show shared regulatory target genes. Click cell to compare TFs in the main explorer.</span>
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <label style="font-size:11.5px;font-weight:600;">Min regulon targets:</label>
+                                    <select id="topo-coreg-min-targets" style="padding:4px 8px;border:1px solid var(--border-color);border-radius:6px;font-size:11.5px;background:#fff;cursor:pointer;">
+                                        <option value="1">1</option>
+                                        <option value="3" selected>3</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+                                <div style="position:relative;background:#fff;border:1px solid var(--border-color);border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.02);overflow:auto;max-width:100%;">
+                                    <!-- Canvas Heatmap -->
+                                    <canvas id="topo-coreg-canvas" width="600" height="600" style="cursor:crosshair;display:block;background:#fff;"></canvas>
+                                    <!-- Tooltip -->
+                                    <div id="topo-coreg-tooltip" style="display:none;position:absolute;background:rgba(15,23,42,0.95);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,0.15);pointer-events:none;z-index:100;max-width:240px;line-height:1.4;"></div>
+                                </div>
+                                
+                                <div style="flex:1;min-width:280px;background:#fff;border:1px solid var(--border-color);border-radius:8px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.02);min-height:300px;display:flex;flex-direction:column;">
+                                    <h3 style="font-size:13px;font-weight:700;margin:0 0 10px;color:var(--text-primary);border-bottom:1px solid var(--border-color);padding-bottom:6px;"><i class="fa-solid fa-code-merge" style="color:#1976d2;"></i> Shared Targets Details</h3>
+                                    <div id="topo-coreg-detail" style="font-size:12px;color:var(--text-secondary);flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+                                        Hover or click a cell on the heatmap to view overlapping target genes between two TFs.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <!-- Placeholder when not yet computed -->
@@ -2361,7 +2948,7 @@
                                     <h4><i class="fa-solid fa-quote-left"></i> How to Cite This Platform</h4>
                                     <p>If you use Cgl Regulation Explorer in your research, please cite:</p>
                                     <div class="release-citation"
-                                        style="margin-bottom: 8px;">Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for <em>Corynebacterium glutamicum</em>. Version 0.4.0. Available at: https://cgl-regulation.vercel.app/</div>
+                                        style="margin-bottom: 8px;">Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for <em>Corynebacterium glutamicum</em>. Version 0.5.0. Available at: https://cgl-regulation.vercel.app/</div>
 
                                 </div>
                                 <div class="release-column">
@@ -2375,6 +2962,116 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Analytics Overlay -->
+                <div id="advanced-analytics-overlay" class="release-notes-container hidden" style="background:#f8fafc; color:var(--text-primary); border-left:1px solid var(--border-color); overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px;">
+                    <!-- Title Header -->
+                    <div class="dashboard-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 10px;">
+                        <div class="dashboard-title-area">
+                            <h2><i class="fa-solid fa-brain" style="color:var(--color-primary-accent, #0f766e);"></i> Advanced Analytics &amp; GNN Simulator</h2>
+                            <p class="dashboard-subtitle" style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-secondary);">
+                                Perform network embedding similarity calculations, predict novel protein-protein interactions via a GNN-inspired message passing heuristic, correlate network topology with growth essentiality, and mine multi-layer transcriptional-physical composite motifs.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Main Three-Column Dashboard Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 20px; flex: 1; min-height: 0;">
+                        
+                        <!-- Column 1: GNN Link Predictor -->
+                        <div class="dashboard-card" style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="card-header" style="border-bottom: 1px dashed var(--border-color); padding-bottom:8px; margin-bottom:4px;">
+                                <h3 style="font-size:13.5px; font-weight:700; margin:0; display:flex; align-items:center; gap:6px; color: var(--text-primary);"><i class="fa-solid fa-wand-magic-sparkles" style="color:#8b5cf6;"></i> GNN Link Predictor</h3>
+                            </div>
+                            <p style="font-size:11px; color:var(--text-secondary); line-height:1.4; margin:0;">
+                                Evaluate the likelihood of a physical interaction. Real GNNs use Message Passing to compile neighbors' features into dense vector embeddings.
+                            </p>
+                            
+                            <!-- Input Forms -->
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                                <div>
+                                    <label style="font-size:10px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px;">Source Gene (A)</label>
+                                    <input id="adv-gnn-source" class="dashboard-input" type="text" placeholder="e.g. sigH or cg3071">
+                                </div>
+                                <div>
+                                    <label style="font-size:10px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px;">Target Gene (B)</label>
+                                    <input id="adv-gnn-target" class="dashboard-input" type="text" placeholder="e.g. whiB3 or cg1809">
+                                </div>
+                            </div>
+                            
+                            <button id="btn-adv-gnn-predict" class="primary-btn" style="width:100%; justify-content:center; gap:6px; margin-top:4px; height: 36px; font-size:12.5px; font-weight:600; cursor: pointer; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); border: none; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);">
+                                <i class="fa-solid fa-play"></i> Predict Interaction
+                            </button>
+                            
+                            <!-- Output Result Card -->
+                            <div id="adv-gnn-result-wrapper" class="gnn-result-wrapper" style="display:none;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                    <span style="font-size:11px; font-weight:600; color: var(--text-primary);">Predicted Probability</span>
+                                    <strong id="adv-gnn-prob" style="font-size:14px; color:#8b5cf6;">0%</strong>
+                                </div>
+                                <div style="width:100%; height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; margin-bottom:8px;">
+                                    <div id="adv-gnn-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #a78bfa, #8b5cf6); border-radius:3px; transition:width 0.5s ease;"></div>
+                                </div>
+                                <div id="adv-gnn-explanation" style="font-size:10.5px; color:var(--text-secondary); line-height:1.4;"></div>
+                            </div>
+
+                            <!-- Novel Discovery Finder -->
+                            <div style="border-top:1px dashed var(--border-color); padding-top:12px; margin-top:auto;">
+                                <h4 style="font-size:11.5px; font-weight:600; margin:0 0 6px; color: var(--text-primary);">Discover Novel Connections</h4>
+                                <button id="btn-adv-gnn-discover" class="secondary-btn" style="width:100%; justify-content:center; gap:6px; font-size:11px; padding:6px 10px; cursor: pointer; border-radius: 8px;">
+                                    <i class="fa-solid fa-compass"></i> Find Top Novel Partners
+                                </button>
+                                <div id="adv-gnn-discover-results" style="margin-top:6px; display:flex; flex-direction:column; gap:4px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Centrality vs Essentiality Scatter Plot -->
+                        <div class="dashboard-card" style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="card-header" style="border-bottom: 1px dashed var(--border-color); padding-bottom:8px; margin-bottom:4px;">
+                                <h3 style="font-size:13.5px; font-weight:700; margin:0; display:flex; align-items:center; gap:6px; color: var(--text-primary);"><i class="fa-solid fa-chart-scatter" style="color:#3b82f6;"></i> Topology &amp; Essentiality Correlation</h3>
+                            </div>
+                            <p style="font-size:11px; color:var(--text-secondary); line-height:1.4; margin:0;">
+                                Correlates Degree Centrality (X-axis) with Betweenness Centrality (Y-axis). Coral/red dots represent experimental <strong>Essential Genes</strong> (growth-lethal when knocked out), while blue dots are non-essential.
+                            </p>
+                            <!-- Chart Canvas Container -->
+                            <div style="flex:1; position:relative; min-height:220px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:10px;">
+                                <canvas id="adv-centrality-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Multi-Layer Motif Explorer -->
+                        <div class="dashboard-card" style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="card-header" style="border-bottom: 1px dashed var(--border-color); padding-bottom:8px; margin-bottom:4px;">
+                                <h3 style="font-size:13.5px; font-weight:700; margin:0; display:flex; align-items:center; gap:6px; color: var(--text-primary);"><i class="fa-solid fa-diagram-nested" style="color:#10b981;"></i> Multi-Layer Motif Explorer</h3>
+                            </div>
+                            <p style="font-size:11px; color:var(--text-secondary); line-height:1.4; margin:0;">
+                                Extract complex motifs combining transcriptional regulations (TRN) and physical interactions (PPI).
+                            </p>
+                            
+                            <!-- Selector -->
+                            <div>
+                                <label style="font-size:10px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px;">Select Motif Pattern</label>
+                                <select id="adv-motif-select" class="dashboard-select">
+                                    <option value="co-regulation-ppi">TF Co-regulation with Physical PPI Interaction</option>
+                                    <option value="dimer-feedback">TF-Target Co-Dimerization Loop</option>
+                                    <option value="ffl-dimer">Feed-Forward Regulatory Dimer Loop</option>
+                                </select>
+                            </div>
+                            
+                            <button id="btn-adv-find-motifs" class="primary-btn" style="width:100%; justify-content:center; gap:6px; margin-top:4px; height: 36px; font-size:12.5px; font-weight:600; cursor: pointer; background: linear-gradient(135deg, #059669 0%, #0d9488 100%); border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
+                                <i class="fa-solid fa-search"></i> Mine Motif Patterns
+                            </button>
+                            
+                            <!-- Motif results list -->
+                            <div style="flex:1; overflow-y:auto; margin-top:8px; max-height: 280px; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; background: var(--bg-sidebar);">
+                                <div id="adv-motif-results-container" style="display:flex; flex-direction:column; gap:6px;">
+                                    <span style="font-size:11px; color:var(--text-secondary); text-align:center; display:block; padding-top:20px;">Click 'Mine Motif Patterns' to search the network.</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -2565,6 +3262,12 @@
                     <div class="detail-section" id="info-sigma-row" style="display:none;">
                         <h3><i class="fa-solid fa-sigma" style="color:#8b5cf6;"></i> Sigma Factor Context</h3>
                         <div id="info-sigma-content"></div>
+                    </div>
+
+                    <!-- Cross-Network Section -->
+                    <div class="detail-section" id="info-crossnetwork-row" style="display:none; border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 12px;">
+                        <h3><i class="fa-solid fa-code-merge" style="color:#f57c00;"></i> Regulatory + PPI Cross-links</h3>
+                        <div id="info-crossnetwork-content" style="font-size:11.5px; color:var(--text-secondary); line-height:1.5;"></div>
                     </div>
 
                     <!-- STRING PPI interaction card -->
@@ -3361,7 +4064,7 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js?v=4.7"></script>
+    <script src="app.js?v=4.13"></script>
 </body>
 
 </html>
