@@ -15119,8 +15119,8 @@ if (!_origDetailPanel) {
             const srcUpper = e.source.toUpperCase();
             const tgtUpper = e.target.toUpperCase();
             if (nodeIds.has(srcUpper) && nodeIds.has(tgtUpper)) {
-                const matchSrc = _ppiCy.getElementById(e.source).length ? e.source : _ppiCy.nodes().find(n => n.id().toUpperCase() === srcUpper)?.id();
-                const matchTgt = _ppiCy.getElementById(e.target).length ? e.target : _ppiCy.nodes().find(n => n.id().toUpperCase() === tgtUpper)?.id();
+                const matchSrc = _ppiCy.getElementById(e.source).length ? e.source : _ppiCy.nodes().toArray().find(n => n.id().toUpperCase() === srcUpper)?.id();
+                const matchTgt = _ppiCy.getElementById(e.target).length ? e.target : _ppiCy.nodes().toArray().find(n => n.id().toUpperCase() === tgtUpper)?.id();
                 
                 if (matchSrc && matchTgt) {
                     const edgeId = `trn-edge-${matchSrc}-${matchTgt}-${e.regulationType}`;
