@@ -39,7 +39,7 @@ try:
 except ImportError:
     _get_thermo_pruning_report = None
     _THERMO_PRUNER_AVAILABLE = False
-from simulation import run_baseline_simulation, run_gene_knockout, run_gene_set_knockout, run_tf_perturbation, run_fva_analysis, run_dynamic_rfba, run_ecfba_simulation, run_mfa_comparison
+from simulation import run_baseline_simulation, run_gene_knockout, run_gene_set_knockout, run_tf_perturbation, run_fva_analysis, run_dynamic_rfba, run_dynamic_recfba, run_ecfba_simulation, run_mfa_comparison
 from schemas import (
     ModelStatusResponse,
     ReactionSearchResponse,
@@ -56,6 +56,8 @@ from schemas import (
     FVAResponse,
     RFBARequest,
     RFBAResponse,
+    RECFBARequest,
+    RECFBAResponse,
     ECFBARequest,
     ECFBAResponse,
     MFAComparisonResponse,
@@ -72,6 +74,9 @@ PRODORIC_PWMS = {}
 BRENDA_KCAT_MAPPINGS = {}
 STRING_INTERACTIONS = {}
 ABASY_ROLES = {}
+RHEA_MAPPINGS = {}
+CHEBI_MAPPINGS = {}
+COG_ANNOTATIONS = {}
 
 def check_essentiality(gene_id: str):
     """
@@ -116,7 +121,7 @@ def check_abasy_role(gene_id: str):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global ESSENTIAL_GENES, PRODORIC_PWMS, BRENDA_KCAT_MAPPINGS, STRING_INTERACTIONS, ABASY_ROLES
+    global ESSENTIAL_GENES, PRODORIC_PWMS, BRENDA_KCAT_MAPPINGS, STRING_INTERACTIONS, ABASY_ROLES, RHEA_MAPPINGS, CHEBI_MAPPINGS, COG_ANNOTATIONS
     logger.info("Initializing FBA simulator service...")
     try:
         load_model_if_needed()
@@ -195,6 +200,46 @@ async def lifespan(app: FastAPI):
             logger.warning(f"abasy_roles.json not found at {ab_path}")
     except Exception as e:
         logger.error(f"Error loading abasy_roles.json: {e}")
+
+    # Load Rhea mappings
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        rhea_path = os.path.join(root_dir, "data", "reference", "rhea_mappings.json")
+        if os.path.exists(rhea_path):
+            with open(rhea_path, "r", encoding="utf-8") as f:
+                RHEA_MAPPINGS = json.load(f)
+            logger.info(f"Loaded {len(RHEA_MAPPINGS)} Rhea mappings.")
+        else:
+            logger.warning(f"rhea_mappings.json not found at {rhea_path}")
+    except Exception as e:
+        logger.error(f"Error loading rhea_mappings.json: {e}")
+
+    # Load ChEBI mappings
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        chebi_path = os.path.join(root_dir, "data", "reference", "chebi_mappings.json")
+        if os.path.exists(chebi_path):
+            with open(chebi_path, "r", encoding="utf-8") as f:
+                CHEBI_MAPPINGS = json.load(f)
+            logger.info(f"Loaded {len(CHEBI_MAPPINGS)} ChEBI mappings.")
+        else:
+            logger.warning(f"chebi_mappings.json not found at {chebi_path}")
+    except Exception as e:
+        logger.error(f"Error loading chebi_mappings.json: {e}")
+
+    # Load COG annotations
+    try:
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        cog_path = os.path.join(root_dir, "data", "reference", "cog_annotations.json")
+        if os.path.exists(cog_path):
+            with open(cog_path, "r", encoding="utf-8") as f:
+                COG_ANNOTATIONS = json.load(f)
+            logger.info(f"Loaded {len(COG_ANNOTATIONS)} COG annotations.")
+        else:
+            logger.warning(f"cog_annotations.json not found at {cog_path}")
+    except Exception as e:
+        logger.error(f"Error loading cog_annotations.json: {e}")
+
     yield
 
 app = FastAPI(title="Cgl Regulation FBA Simulator API", version="0.5.0", lifespan=lifespan)
@@ -352,13 +397,22 @@ def search_reactions(q: str = ""):
                     break
                     
         if matches_rxn:
+            db_links = RHEA_MAPPINGS.get(rxn.id) or RHEA_MAPPINGS.get("R_" + rxn.id)
+            met_links = {}
+            for met in rxn.metabolites:
+                m_details = CHEBI_MAPPINGS.get(met.id) or CHEBI_MAPPINGS.get("M_" + met.id)
+                if m_details:
+                    met_links[met.id] = m_details
+                    
             matches.append({
                 "reactionId": rxn.id,
                 "name": rxn.name,
                 "equation": rxn.reaction,
                 "lowerBound": float(rxn.lower_bound),
                 "upperBound": float(rxn.upper_bound),
-                "metabolites": [met.id for met in rxn.metabolites]
+                "metabolites": [met.id for met in rxn.metabolites],
+                "databaseLinks": db_links,
+                "metaboliteLinks": met_links
             })
             if len(matches) >= 100:  # Cap matches
                 break
@@ -479,6 +533,26 @@ def dynamic_rfba(req: RFBARequest):
         return result
     except Exception as e:
         logger.error(f"Dynamic rFBA simulation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/simulation/recfba", response_model=RECFBAResponse)
+def dynamic_recfba(req: RECFBARequest):
+    try:
+        root_dir = os.path.dirname(os.path.dirname(__file__))
+        json_model_path = os.path.join(root_dir, "data", "reference", "model", "ecCGL1-main", "ecCGL1-main", "model", "iCW773_irr_enz_constraint.json")
+        result = run_dynamic_recfba(
+            json_model_path,
+            req.tfPerturbations,
+            req.proteinPoolLimit,
+            req.temperature,
+            req.initialGlucose,
+            req.initialBiomass,
+            req.timeSteps,
+            brenda_kcat_mappings=BRENDA_KCAT_MAPPINGS
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Dynamic recFBA simulation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/simulation/ecfba", response_model=ECFBAResponse)
@@ -726,6 +800,43 @@ def predict_binding_affinity(tf: str = "", sequence: str = "", temperature: floa
 def kegg_pathways(cg: str = "", cgl: str = ""):
     try:
         result = run_server.get_gene_pathways_and_go(cg, cgl)
+        
+        # Enrich result with uniprot_id, cog_id, ec_numbers
+        result["uniprot_id"] = ""
+        result["cog_id"] = ""
+        result["ec_numbers"] = []
+        
+        # 1. UniProt ID lookup
+        from gene_utils import GENE_TO_UNIPROT
+        for tag in [cg, cgl]:
+            if tag and tag.lower() in GENE_TO_UNIPROT:
+                result["uniprot_id"] = GENE_TO_UNIPROT[tag.lower()]
+                break
+                
+        # 2. COG ID lookup
+        for tag in [cg, cgl]:
+            if tag and tag.lower() in COG_ANNOTATIONS:
+                result["cog_id"] = COG_ANNOTATIONS[tag.lower()].get("cog_id", "")
+                break
+                
+        # 3. EC numbers lookup from metabolic model mapping
+        try:
+            from metabolic_mapper import load_metabolic_model_mappings
+            mapping = load_metabolic_model_mappings()
+            ec_set = set()
+            from gene_utils import expand_gene_aliases
+            for tag in [cg, cgl]:
+                if tag:
+                    for alias in expand_gene_aliases(tag):
+                        reactions = mapping.get("gene_to_reactions", {}).get(alias, [])
+                        for r in reactions:
+                            ec = r.get("ec_number")
+                            if ec:
+                                ec_set.add(ec)
+            result["ec_numbers"] = sorted(list(ec_set))
+        except Exception as ex:
+            logger.warning(f"Error lookup EC numbers: {ex}")
+            
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -802,6 +913,10 @@ def get_thermo_gene_context(gene: str = ""):
             "thermo_annotated": [],
             "thermo_support_level": "none",
             "n_locked": 0,
+            "n_confirmed": 0,
+            "n_no_data": 0,
+            "total_reactions": 0,
+            "lock_fraction": 0.0,
             "ko_thermo_confidence": 0.0,
             "message": "No reactions found for this gene in the metabolic model"
         }
@@ -923,6 +1038,22 @@ def regulon_enrichment(tf: str = ""):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/go_enrichment")
+def go_enrichment(tf: str = ""):
+    """
+    GO term enrichment analysis for a TF's target regulon.
+    Fetches per-gene GO annotations from UniProt (cached), aggregates
+    term frequencies, and applies hypergeometric test + BH FDR correction.
+    Results are partitioned by GO namespace: BP / MF / CC.
+    """
+    try:
+        result = run_server.handle_go_enrichment(tf)
+        return result
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/imodulon/reactions")
 def imodulon_reactions(imodulon: str = ""):
     try:
@@ -964,6 +1095,12 @@ def get_abasy_roles(response: Response):
     """Return the database of C. glutamicum Abasy roles."""
     response.headers["Cache-Control"] = "public, max-age=3600"
     return ABASY_ROLES
+
+@app.get("/api/quality/cog")
+def get_cog_annotations(response: Response):
+    """Return the database of C. glutamicum COG functional annotations."""
+    response.headers["Cache-Control"] = "public, max-age=3600"
+    return COG_ANNOTATIONS
 
 @app.get("/api/thermo/pruning-report")
 def get_thermo_pruning_report(response: Response):

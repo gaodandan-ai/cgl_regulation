@@ -152,6 +152,29 @@
         }
     }
 
+    async function runDynamicRECFBA(tfPerturbations, proteinPoolLimit = 0.129, temperature = 30.0, initialGlucose = 100.0, initialBiomass = 0.1, timeSteps = 24) {
+        try {
+            const res = await fetch(`${BASE_URL}/api/simulation/recfba`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tfPerturbations, proteinPoolLimit, temperature, initialGlucose, initialBiomass, timeSteps })
+            });
+            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            return {
+                status: "error",
+                time: [],
+                growth_rate: [],
+                glutamate_export: [],
+                glucose_uptake: [],
+                glucose_concentration: [],
+                biomass_concentration: [],
+                error: err.message || "FastAPI backend offline"
+            };
+        }
+    }
+
     async function runECFBA(proteinPoolLimit, enzymePerturbations, targetProduct, temperature = 30.0, calibrateTimepoint = null) {
         try {
             const res = await fetch(`${BASE_URL}/api/simulation/ecfba`, {
@@ -181,6 +204,7 @@
         runTFPerturbation,
         runFluxVariabilityAnalysis,
         runDynamicRFBA,
+        runDynamicRECFBA,
         runECFBA,
         runMFAComparison
     };

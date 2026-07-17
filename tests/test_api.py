@@ -152,3 +152,91 @@ class TestGeneSummary:
         r = client.get("/api/summarize?gene=cg0350&name=cg0350")
         # May return 200 with cached summary or 503 if AI not configured
         assert r.status_code in (200, 503, 500)
+
+
+# ─── Rhea & ChEBI Search API ──────────────────────────────────────────────────
+
+class TestRheaChebiSearchAPI:
+    def test_search_returns_mappings(self, client):
+        # Search for GAPD (which is mapped to Rhea)
+        r = client.get("/api/model/reactions/search?q=GAPD")
+        assert r.status_code == 200
+        data = r.json()
+        assert "matches" in data
+        assert len(data["matches"]) > 0
+        
+        # Check databaseLinks and metaboliteLinks exist in match
+        match = data["matches"][0]
+        assert "databaseLinks" in match
+        assert "metaboliteLinks" in match
+        
+        # If GAPD is the first match, verify databaseLinks
+        if "GAPD" in match["reactionId"]:
+            assert match["databaseLinks"] is not None
+            assert "rhea" in match["databaseLinks"] or "kegg" in match["databaseLinks"]
+            
+            # Check metaboliteLinks maps ATP or other metabolites
+            assert len(match["metaboliteLinks"]) > 0
+
+
+# ─── COG Quality API ──────────────────────────────────────────────────────────
+
+class TestCogAPI:
+    def test_cog_endpoint_returns_data(self, client):
+        r = client.get("/api/quality/cog")
+        assert r.status_code == 200
+        data = r.json()
+        assert "cg0350" in data
+        assert data["cg0350"]["cog_id"] == "COG0664"
+        assert data["cg0350"]["category"] == "T"
+
+
+# ─── Dynamic recFBA (PROM-ecFBA) Simulation API ──────────────────────────────
+
+class TestDynamicRECFBA:
+    def test_dynamic_recfba_success(self, client):
+        payload = {
+            "tfPerturbations": {"cg0350": "knockout"},
+            "proteinPoolLimit": 0.129,
+            "temperature": 30.0,
+            "initialGlucose": 100.0,
+            "initialBiomass": 0.1,
+            "timeSteps": 5
+        }
+        r = client.post("/api/simulation/recfba", json=payload)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["status"] == "success"
+        assert len(data["time"]) == 6  # time_steps + 1 points (0 to 5)
+        assert len(data["growth_rate"]) == 5
+        assert len(data["biomass_concentration"]) == 6
+        assert data["biomass_concentration"][0] == 0.1
+        assert all(isinstance(x, float) for x in data["growth_rate"])
+        assert "tracked_fluxes" in data
+        assert "PGI" in data["tracked_fluxes"]
+        assert len(data["tracked_fluxes"]["PGI"]) == 5
+
+
+# ─── Dynamic rFBA Simulation API ─────────────────────────────────────────────
+
+class TestDynamicRFBA:
+    def test_dynamic_rfba_success(self, client):
+        payload = {
+            "tfPerturbations": {"cg0350": "knockout"},
+            "initialGlucose": 100.0,
+            "initialBiomass": 0.1,
+            "timeSteps": 5
+        }
+        r = client.post("/api/simulation/rfba", json=payload)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["status"] == "success"
+        assert len(data["time"]) == 6
+        assert len(data["growth_rate"]) == 5
+        assert len(data["biomass_concentration"]) == 6
+        assert data["biomass_concentration"][0] == 0.1
+        assert all(isinstance(x, float) for x in data["growth_rate"])
+        assert "tracked_fluxes" in data
+        assert "PGI" in data["tracked_fluxes"]
+        assert len(data["tracked_fluxes"]["PGI"]) == 5
+

@@ -30,8 +30,14 @@ if not hasattr(math, 'comb'):
 # Add the parent directory to Python path so we can import backend.app
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(BASE_DIR)
-if PARENT_DIR not in sys.path:
-    sys.path.insert(0, PARENT_DIR)
+BACKEND_DIR = os.path.join(PARENT_DIR, "backend")
+
+# backend/ must be in sys.path BEFORE importing backend.app, because
+# backend/app.py uses bare imports like `from ai_handlers import ...`
+# which require backend/ to already be on the path at import time.
+for _dir in (PARENT_DIR, BACKEND_DIR):
+    if _dir not in sys.path:
+        sys.path.insert(0, _dir)
 
 app = FastAPI()
 

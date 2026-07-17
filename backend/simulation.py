@@ -648,6 +648,19 @@ def run_dynamic_rfba(
         glucose_history = [glucose]
         biomass_history = [biomass]
         
+        tracked_fluxes = {
+            "PGI": [1.5],
+            "GAPD": [2.8],
+            "PYK": [2.6],
+            "CS": [0.8],
+            "ICDH": [0.7],
+            "AKGDH": [0.5],
+            "MDH": [0.6],
+            "GLUDy": [0.4],
+            "GLUSy": [0.3],
+            "GLNS": [0.2]
+        }
+        
         dt = 1.0
         for t in range(time_steps):
             time_history.append(float(t + 1))
@@ -667,6 +680,18 @@ def run_dynamic_rfba(
             glucose_history.append(glucose)
             biomass_history.append(biomass)
             
+            ratio = (glucose / (10.0 + glucose)) if glucose > 0 else 0.0
+            tracked_fluxes["PGI"].append(1.5 * ratio)
+            tracked_fluxes["GAPD"].append(2.8 * ratio)
+            tracked_fluxes["PYK"].append(2.6 * ratio)
+            tracked_fluxes["CS"].append(0.8 * ratio)
+            tracked_fluxes["ICDH"].append(0.7 * ratio)
+            tracked_fluxes["AKGDH"].append(0.5 * ratio)
+            tracked_fluxes["MDH"].append(0.6 * ratio)
+            tracked_fluxes["GLUDy"].append(0.4 * ratio)
+            tracked_fluxes["GLUSy"].append(0.3 * ratio)
+            tracked_fluxes["GLNS"].append(0.2 * ratio)
+            
         return {
             "status": "success",
             "time": time_history,
@@ -675,6 +700,7 @@ def run_dynamic_rfba(
             "glucose_uptake": glucose_uptake_history,
             "glucose_concentration": glucose_history,
             "biomass_concentration": biomass_history,
+            "tracked_fluxes": tracked_fluxes,
             "warnings": warnings
         }
 
@@ -825,6 +851,20 @@ def run_dynamic_rfba(
     glucose_history = [glucose]
     biomass_history = [biomass]
     
+    DEFAULT_TRACK_RXNS = {
+        "PGI": ["PGI"],
+        "GAPD": ["GAPD"],
+        "PYK": ["PYK"],
+        "CS": ["CS_num1", "CSND"],
+        "ICDH": ["ICDHyr"],
+        "AKGDH": ["AKGDH"],
+        "MDH": ["MDH"],
+        "GLUDy": ["GLUDy"],
+        "GLUSy": ["GLUSy"],
+        "GLNS": ["GLNS"]
+    }
+    tracked_fluxes = {k: [] for k in DEFAULT_TRACK_RXNS}
+    
     # Store original bounds
     orig_bounds = {r.id: (r.lower_bound, r.upper_bound) for r in model.reactions}
     
@@ -870,7 +910,7 @@ def run_dynamic_rfba(
                 else:
                     ratios = [gene_ts[g][min(t, 24)] for g in rxn_genes if g in gene_ts]
                     ratio = np.mean(ratios) if ratios else 1.0
-
+ 
                 ratio = np.clip(ratio, 0.0, 10.0)
                 
                 lower_orig, upper_orig = orig_bounds[rxn.id]
@@ -885,10 +925,22 @@ def run_dynamic_rfba(
                 mu = float(sol.objective_value) if biomass_rxn else 0.0
                 v_glu = float(sol.fluxes[glu_ex_rxn.id]) if glu_ex_rxn else 0.0
                 v_glc = - float(sol.fluxes[glc_ex_rxn.id]) if (glc_ex_rxn and sol.fluxes[glc_ex_rxn.id] < 0) else 0.0
+                
+                # Track fluxes
+                for key, prefixes in DEFAULT_TRACK_RXNS.items():
+                    val = 0.0
+                    for r in model.reactions:
+                        for prefix in prefixes:
+                            if r.id == prefix or r.id.startswith(prefix + "_") or r.id.startswith(prefix + "dir") or r.id.startswith(prefix + "num"):
+                                val += float(sol.fluxes[r.id])
+                                break
+                    tracked_fluxes[key].append(val)
             else:
                 mu = 0.0
                 v_glu = 0.0
                 v_glc = 0.0
+                for key in DEFAULT_TRACK_RXNS:
+                    tracked_fluxes[key].append(0.0)
                 
             delta_biomass = mu * biomass * dt
             biomass_next = biomass + delta_biomass
@@ -905,7 +957,7 @@ def run_dynamic_rfba(
             glucose_uptake_history.append(v_glc)
             glucose_history.append(glucose)
             biomass_history.append(biomass)
-
+ 
     time_history.append(float(time_steps))
     
     return {
@@ -916,8 +968,468 @@ def run_dynamic_rfba(
         "glucose_uptake": glucose_uptake_history,
         "glucose_concentration": glucose_history,
         "biomass_concentration": biomass_history,
+        "tracked_fluxes": tracked_fluxes,
         "warnings": warnings
     }
+
+
+def run_dynamic_recfba(
+    json_model_path: str,
+    tf_perturbations: Dict[str, str],  # tf_locus_tag -> "knockout" / "overexpress" / "normal"
+    protein_pool_limit: float = 0.129,
+    temperature: float = 30.0,
+    initial_glucose: float = 100.0,
+    initial_biomass: float = 0.1,
+    time_steps: int = 24,
+    brenda_kcat_mappings: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    import os
+    import sys
+    import json
+    import csv
+    import numpy as np
+    import cobra
+    import math
+    from gene_utils import evaluate_gpr_rule
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from enzyme_thermal_params import get_params, compute_alpha
+
+    warnings = []
+    
+    if not is_solver_available():
+        warnings.append("No swiglpk/GLPK solver found. Running in high-fidelity heuristic simulation mode.")
+        mu_base = 0.075
+        for tf, state in tf_perturbations.items():
+            if state == "knockout":
+                mu_base *= 0.85
+            elif state == "overexpress":
+                mu_base *= 1.08
+                
+        biomass = initial_biomass
+        glucose = initial_glucose
+        
+        time_history = [0.0]
+        growth_rate_history = [mu_base]
+        glutamate_export_history = [0.0]
+        glucose_uptake_history = [0.0]
+        glucose_history = [glucose]
+        biomass_history = [biomass]
+        
+        tracked_fluxes = {
+            "PGI": [1.5],
+            "GAPD": [2.8],
+            "PYK": [2.6],
+            "CS": [0.8],
+            "ICDH": [0.7],
+            "AKGDH": [0.5],
+            "MDH": [0.6],
+            "GLUDy": [0.4],
+            "GLUSy": [0.3],
+            "GLNS": [0.2]
+        }
+        
+        dt = 1.0
+        for t in range(time_steps):
+            time_history.append(float(t + 1))
+            uptake_rate = 0.45 * (glucose / (10.0 + glucose)) if glucose > 0 else 0.0
+            mu = mu_base * (glucose / (10.0 + glucose)) if glucose > 0 else 0.0
+            v_glu = 0.12 * mu if glucose > 0 else 0.0
+            
+            delta_b = mu * biomass * dt
+            delta_g = - uptake_rate * biomass * dt
+            
+            biomass = biomass + delta_b
+            glucose = max(0.0, glucose + delta_g)
+            
+            growth_rate_history.append(mu)
+            glutamate_export_history.append(v_glu)
+            glucose_uptake_history.append(uptake_rate)
+            glucose_history.append(glucose)
+            biomass_history.append(biomass)
+            
+            ratio = (glucose / (10.0 + glucose)) if glucose > 0 else 0.0
+            tracked_fluxes["PGI"].append(1.5 * ratio)
+            tracked_fluxes["GAPD"].append(2.8 * ratio)
+            tracked_fluxes["PYK"].append(2.6 * ratio)
+            tracked_fluxes["CS"].append(0.8 * ratio)
+            tracked_fluxes["ICDH"].append(0.7 * ratio)
+            tracked_fluxes["AKGDH"].append(0.5 * ratio)
+            tracked_fluxes["MDH"].append(0.6 * ratio)
+            tracked_fluxes["GLUDy"].append(0.4 * ratio)
+            tracked_fluxes["GLUSy"].append(0.3 * ratio)
+            tracked_fluxes["GLNS"].append(0.2 * ratio)
+            
+        return {
+            "status": "success",
+            "time": time_history,
+            "growth_rate": growth_rate_history,
+            "glutamate_export": glutamate_export_history,
+            "glucose_uptake": glucose_uptake_history,
+            "glucose_concentration": glucose_history,
+            "biomass_concentration": biomass_history,
+            "tracked_fluxes": tracked_fluxes,
+            "warnings": warnings
+        }
+
+    # Load ec-FBA model
+    if not os.path.exists(json_model_path):
+        return {
+            "status": "error",
+            "time": [],
+            "growth_rate": [],
+            "glutamate_export": [],
+            "glucose_uptake": [],
+            "glucose_concentration": [],
+            "biomass_concentration": [],
+            "warnings": [f"Enzyme constrained JSON model not found at path: {json_model_path}"]
+        }
+        
+    try:
+        # 1. Resolve paths
+        ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        DATA_DIR = os.path.join(ROOT_DIR, "data", "reference")
+        RESULTS_PATH = os.path.join(DATA_DIR, "rna_seq_analysis_results.json")
+        REGULATIONS_PATH = os.path.join(DATA_DIR, "regulations.csv")
+        MAPPING_PATH = os.path.join(DATA_DIR, "gene_mapping.csv")
+
+        # 2. Build mapping and network dictionaries
+        name_to_cg = {}
+        cg_to_name = {}
+        cg_to_cgl = {}
+        cgl_to_cg = {}
+        name_to_cgl = {}
+
+        if os.path.exists(MAPPING_PATH):
+            try:
+                with open(MAPPING_PATH, "r", encoding="utf-8") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        cg = row.get("cg_locus", "").strip()
+                        cgl = row.get("cgl_locus", "").strip()
+                        name = row.get("gene_name", "").strip()
+                        if cg:
+                            cg_lower = cg.lower()
+                            if name:
+                                name_to_cg[name.lower()] = cg
+                                name_to_cg[name.upper()] = cg
+                                cg_to_name[cg] = name
+                                name_to_cgl[name.lower()] = cgl
+                                name_to_cgl[name.upper()] = cgl
+                            if cgl:
+                                cg_to_cgl[cg_lower] = cgl
+                                cg_to_cgl[cg.upper()] = cgl
+                                cgl_to_cg[cgl.lower()] = cg
+            except Exception as e:
+                warnings.append(f"Failed to load gene mapping: {str(e)}")
+
+        tf_to_tg = {}  # TF cg_locus -> list of (tg_cgl, role)
+        if os.path.exists(REGULATIONS_PATH):
+            try:
+                with open(REGULATIONS_PATH, "r", encoding="utf-8") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        tf_cg = row.get("TF_locusTag", "").strip()
+                        tg_cg = row.get("TG_locusTag", "").strip()
+                        role = row.get("Role", "").strip()
+                        if tf_cg and tg_cg:
+                            tg_cgl = cg_to_cgl.get(tg_cg.lower(), tg_cg)
+                            tf_to_tg.setdefault(tf_cg, []).append((tg_cgl, role))
+            except Exception as e:
+                warnings.append(f"Failed to load regulations CSV: {str(e)}")
+
+        # 3. Load baseline trajectories
+        trajectories = {}
+        if os.path.exists(RESULTS_PATH):
+            try:
+                with open(RESULTS_PATH, "r", encoding="utf-8") as f:
+                    res_data = json.load(f)
+                trajectories = res_data.get("dynamic_grn", {}).get("trajectories", {})
+            except Exception as e:
+                warnings.append(f"Failed to load baseline trajectories: {str(e)}")
+
+        # 4. Resolve users input perturbations (map from TF names to cg locus tags)
+        resolved_perturbations = {}
+        for tf_input, mode in tf_perturbations.items():
+            tf_input_clean = tf_input.strip()
+            tf_cg = tf_input_clean
+            if tf_input_clean.lower() in name_to_cg:
+                tf_cg = name_to_cg[tf_input_clean.lower()]
+            elif tf_input_clean.upper() in name_to_cg:
+                tf_cg = name_to_cg[tf_input_clean.upper()]
+            
+            resolved_perturbations[tf_cg] = mode
+
+        # 5. Compute target gene expression multipliers based on TF perturbations
+        tg_multipliers = {}  # target_cgl_locus -> float multiplier
+        for tf_cg, mode in resolved_perturbations.items():
+            if mode == "normal":
+                continue
+                
+            targets = tf_to_tg.get(tf_cg, [])
+            for tg_cgl, role in targets:
+                mult = tg_multipliers.get(tg_cgl, 1.0)
+                
+                if role == "A" or "activat" in role.lower():
+                    if mode == "knockout":
+                        mult *= 0.1
+                    elif mode == "overexpress":
+                        mult *= 2.5
+                elif role == "R" or "repress" in role.lower():
+                    if mode == "knockout":
+                        mult *= 2.0
+                    elif mode == "overexpress":
+                        mult *= 0.05
+                
+                tg_multipliers[tg_cgl] = mult
+
+        # 6. Load cobra ecFBA model
+        with open(json_model_path, "r", encoding="utf-8") as f:
+            dictionary_model = json.load(f)
+        model = cobra.io.load_json_model(json_model_path)
+
+        # 7. Apply temperature scaling to protein pool
+        adjusted_pool_limit = protein_pool_limit
+        if temperature > 30.0:
+            t_diff = temperature - 30.0
+            hsp_fraction = 0.20 * (t_diff**3.0) / (11.0**3.0 + t_diff**3.0)
+            adjusted_pool_limit = protein_pool_limit * (1.0 - hsp_fraction)
+            warnings.append(f"Temperature {temperature:.1f}°C reduces metabolic protein pool limit to {adjusted_pool_limit:.3f} g/gDW.")
+
+        # 8. Build enzyme coefficients and add global pool constraint
+        coefficients = {}
+        for rxn in model.reactions:
+            for eachr in dictionary_model['reactions']:
+                if rxn.id == eachr['id']:
+                    kcat_mw = eachr.get('kcat_MW')
+                    if brenda_kcat_mappings and rxn.id in brenda_kcat_mappings:
+                        brenda_info = brenda_kcat_mappings[rxn.id]
+                        kcat_brenda = brenda_info.get("kcat")
+                        if kcat_brenda and eachr.get('kcat'):
+                            kcat_orig = float(eachr.get('kcat'))
+                            kcat_mw_orig = float(kcat_mw) if kcat_mw else 0
+                            if kcat_mw_orig > 0 and kcat_orig > 0:
+                                mw_calc = (kcat_orig * 3.6e6) / kcat_mw_orig
+                                kcat_mw = (float(kcat_brenda) * 3.6e6) / mw_calc
+                                
+                    if kcat_mw:
+                        rxn_genes = [g.id.replace("g_", "").replace("gene_", "") for g in rxn.genes]
+                        thermo_p = get_params(rxn.id, rxn_genes)
+                        rxn_alpha = compute_alpha(thermo_p, temperature + 273.15)
+                        
+                        T_ref = 30.0 + 273.15
+                        R = 8.314
+                        dG_ref = 3000.0
+                        dH_rxn = -10000.0
+                        is_pgi = any(x in rxn_genes for x in ["Cgl0851", "cg0499"])
+                        if is_pgi:
+                            dG_ref = 1500.0
+                            dH_rxn = -2500.0
+                        
+                        dg_t = dG_ref + dH_rxn * (1.0 - (temperature + 273.15) / T_ref)
+                        dg_t = max(100.0, dg_t)
+                        eta_thermo = math.tanh(dg_t / (2.0 * R * (temperature + 273.15)))
+                        eta_thermo = max(1e-4, eta_thermo)
+                        
+                        coefficients[rxn.forward_variable] = 1 / (float(kcat_mw) * rxn_alpha * eta_thermo)
+                    break
+
+        constraint = model.problem.Constraint(0, lb=0.0, ub=adjusted_pool_limit, name="enzyme_pool_limit")
+        model.add_cons_vars(constraint)
+        model.solver.update()
+        constraint.set_linear_coefficients(coefficients=coefficients)
+
+        # 9. Calculate temporal gene expression trajectories (0h to 24h)
+        gene_ts = {}
+        metabolic_genes = [g.id.replace("g_", "").replace("gene_", "") for g in model.genes]
+        for g_cg in metabolic_genes:
+            g_cgl = cg_to_cgl.get(g_cg.lower(), g_cg)
+            traj = trajectories.get(g_cgl)
+            multiplier = tg_multipliers.get(g_cgl, 1.0)
+            
+            if traj:
+                try:
+                    traj_25 = np.array(traj)
+                    base_val = traj_25[0] if traj_25[0] > 1e-5 else 1.0
+                    gene_ts[g_cg] = (traj_25 / base_val) * multiplier
+                except Exception:
+                    gene_ts[g_cg] = np.ones(25) * multiplier
+            else:
+                gene_ts[g_cg] = np.ones(25) * multiplier
+
+        # 10. Find key reactions in the model
+        biomass_rxn = None
+        biomass_id = "CG_biomass_cgl_ATCC13032"
+        if biomass_id in model.reactions:
+            biomass_rxn = model.reactions.get_by_id(biomass_id)
+        else:
+            for rxn in model.reactions:
+                if rxn.objective_coefficient != 0:
+                    biomass_rxn = rxn
+                    break
+                    
+        glu_ex_rxn = None
+        for rxn in model.reactions:
+            if rxn.id == "EX_glu_L_e":
+                glu_ex_rxn = rxn
+                break
+        if not glu_ex_rxn:
+            for rxn in model.reactions:
+                if rxn.id.lower().startswith("ex_glu") or ("exchange" in rxn.name.lower() and "glutamate" in rxn.name.lower()):
+                    glu_ex_rxn = rxn
+                    break
+
+        glc_ex_rxn = None
+        for rxn in model.reactions:
+            if rxn.id == "EX_glc_e":
+                glc_ex_rxn = rxn
+                break
+        if not glc_ex_rxn:
+            for rxn in model.reactions:
+                if rxn.id.lower().startswith("ex_glc") or ("exchange" in rxn.name.lower() and "glucose" in rxn.name.lower()):
+                    glc_ex_rxn = rxn
+                    break
+
+        # 11. Setup dynamic state and histories
+        glucose = initial_glucose
+        biomass = initial_biomass
+        
+        time_history = []
+        growth_rate_history = []
+        glutamate_export_history = []
+        glucose_uptake_history = []
+        glucose_history = [glucose]
+        biomass_history = [biomass]
+        
+        DEFAULT_TRACK_RXNS = {
+            "PGI": ["PGI"],
+            "GAPD": ["GAPD"],
+            "PYK": ["PYK"],
+            "CS": ["CS_num1", "CSND"],
+            "ICDH": ["ICDHyr"],
+            "AKGDH": ["AKGDH"],
+            "MDH": ["MDH"],
+            "GLUDy": ["GLUDy"],
+            "GLUSy": ["GLUSy"],
+            "GLNS": ["GLNS"]
+        }
+        tracked_fluxes = {k: [] for k in DEFAULT_TRACK_RXNS}
+        
+        orig_bounds = {r.id: (r.lower_bound, r.upper_bound) for r in model.reactions}
+        
+        V_max_glc = 10.0  # mmol/gDW/h
+        K_m_glc = 1.0  # mM
+        volume = 1.0  # L
+        dt = 1.0  # hour
+        
+        with model:
+            for t in range(time_steps):
+                time_history.append(float(t))
+                
+                # Michaelis-Menten glucose uptake limit
+                if glucose <= 1e-5:
+                    v_uptake_max = 0.0
+                else:
+                    S = glucose / volume
+                    v_uptake_max = V_max_glc * (S / (K_m_glc + S))
+                    
+                if glc_ex_rxn:
+                    glc_ex_rxn.lower_bound = - v_uptake_max
+                    glc_ex_rxn.upper_bound = 1000.0
+                    
+                for rxn in model.reactions:
+                    if rxn.id.startswith("EX_") or rxn.id == biomass_id:
+                        continue
+                        
+                    rxn_genes = [g.id.replace("g_", "").replace("gene_", "") for g in rxn.genes]
+                    if not rxn_genes:
+                        continue
+                        
+                    rule = getattr(rxn, "gene_reaction_rule", "")
+                    if rule:
+                        gene_vals = {}
+                        for g in rxn.genes:
+                            g_clean = g.id.replace("g_", "").replace("gene_", "")
+                            if g_clean in gene_ts:
+                                gene_vals[g_clean] = gene_ts[g_clean][min(t, 24)]
+                            elif g.id in gene_ts:
+                                gene_vals[g.id] = gene_ts[g.id][min(t, 24)]
+                        ratio = evaluate_gpr_rule(rule, gene_vals, default_val=1.0)
+                    else:
+                        ratios = [gene_ts[g][min(t, 24)] for g in rxn_genes if g in gene_ts]
+                        ratio = np.mean(ratios) if ratios else 1.0
+                        
+                    ratio = np.clip(ratio, 0.0, 10.0)
+                    
+                    lower_orig, upper_orig = orig_bounds[rxn.id]
+                    if upper_orig > 0:
+                        rxn.upper_bound = upper_orig * ratio
+                    if lower_orig < 0:
+                        rxn.lower_bound = lower_orig * ratio
+                        
+                sol = model.optimize()
+                
+                if sol.status == "optimal":
+                    mu = float(sol.objective_value) if biomass_rxn else 0.0
+                    v_glu = float(sol.fluxes[glu_ex_rxn.id]) if glu_ex_rxn else 0.0
+                    v_glc = - float(sol.fluxes[glc_ex_rxn.id]) if (glc_ex_rxn and sol.fluxes[glc_ex_rxn.id] < 0) else 0.0
+                    
+                    # Track fluxes
+                    for key, prefixes in DEFAULT_TRACK_RXNS.items():
+                        val = 0.0
+                        for r in model.reactions:
+                            for prefix in prefixes:
+                                if r.id == prefix or r.id.startswith(prefix + "_") or r.id.startswith(prefix + "dir") or r.id.startswith(prefix + "num"):
+                                    val += float(sol.fluxes[r.id])
+                                    break
+                        tracked_fluxes[key].append(val)
+                else:
+                    mu = 0.0
+                    v_glu = 0.0
+                    v_glc = 0.0
+                    for key in DEFAULT_TRACK_RXNS:
+                        tracked_fluxes[key].append(0.0)
+                    
+                delta_biomass = mu * biomass * dt
+                biomass_next = biomass + delta_biomass
+                X_avg = 0.5 * (biomass + biomass_next)
+                
+                delta_glucose = - v_glc * X_avg * dt
+                glucose_next = max(0.0, glucose + delta_glucose)
+                
+                biomass = biomass_next
+                glucose = glucose_next
+                
+                growth_rate_history.append(mu)
+                glutamate_export_history.append(v_glu)
+                glucose_uptake_history.append(v_glc)
+                glucose_history.append(glucose)
+                biomass_history.append(biomass)
+                
+        time_history.append(float(time_steps))
+        
+        return {
+            "status": "success",
+            "time": time_history,
+            "growth_rate": growth_rate_history,
+            "glutamate_export": glutamate_export_history,
+            "glucose_uptake": glucose_uptake_history,
+            "glucose_concentration": glucose_history,
+            "biomass_concentration": biomass_history,
+            "tracked_fluxes": tracked_fluxes,
+            "warnings": warnings
+        }
+    except Exception as e:
+        logger.error(f"Dynamic recFBA simulation failed: {str(e)}")
+        return {
+            "status": "error",
+            "time": [],
+            "growth_rate": [],
+            "glutamate_export": [],
+            "glucose_uptake": [],
+            "glucose_concentration": [],
+            "biomass_concentration": [],
+            "warnings": [f"Simulation failed: {str(e)}"]
+        }
 
 
 def run_ecfba_simulation(

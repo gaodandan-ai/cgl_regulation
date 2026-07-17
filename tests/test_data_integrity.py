@@ -237,3 +237,48 @@ class TestSigmaAnnotations:
         assert sigA["sigma_class"] == "Group_1_sigma"
         assert sigA["consensus_minus35"] == "TTGACA"
         assert sigA["consensus_minus10"] == "TATAAT"
+
+
+# ─── Rhea & ChEBI mappings ─────────────────────────────────────────────────────
+
+class TestRheaChebiMappings:
+    def test_mappings_exist_and_valid(self):
+        rhea_data = load_json("rhea_mappings.json")
+        chebi_data = load_json("chebi_mappings.json")
+        
+        # Verify sizes
+        assert len(rhea_data) >= 500, f"Rhea mappings should have >= 500 entries, got {len(rhea_data)}"
+        assert len(chebi_data) >= 500, f"ChEBI mappings should have >= 500 entries, got {len(chebi_data)}"
+        
+        # Check standard entry in rhea
+        # e.g., PGI, GAPD, etc.
+        assert "R_GAPD" in rhea_data or "GAPD" in rhea_data
+        key = "R_GAPD" if "R_GAPD" in rhea_data else "GAPD"
+        gapd = rhea_data[key]
+        assert gapd["rhea"] is not None
+        assert gapd["ec"] is not None
+        
+        # Check standard entry in chebi
+        # e.g., M_atp_c or atp
+        assert "M_atp_c" in chebi_data or "atp" in chebi_data
+        key = "M_atp_c" if "M_atp_c" in chebi_data else "atp"
+        atp = chebi_data[key]
+        assert atp["chebi"] is not None
+
+
+# ─── COG Annotations ──────────────────────────────────────────────────────────
+
+class TestCogMappings:
+    def test_cog_mappings_exist_and_valid(self):
+        cog_data = load_json("cog_annotations.json")
+        
+        # Verify sizes
+        assert len(cog_data) >= 1000, f"COG annotations should have >= 1000 entries, got {len(cog_data)}"
+        
+        # Check standard entry (e.g., glxR -> cg0350)
+        assert "cg0350" in cog_data
+        glxr = cog_data["cg0350"]
+        assert glxr["cog_id"] == "COG0664"
+        assert glxr["category"] == "T"
+        assert "Signal transduction mechanisms" in glxr["description"]
+

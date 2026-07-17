@@ -71,6 +71,7 @@ from backend.bio_handlers import (
     calculate_tf_pathway_impact,
     get_regulatory_targets_for_tf,
     handle_regulon_enrichment,
+    handle_go_enrichment,
     handle_metabolic_impact,
     handle_metabolic_pathways,
     handle_imodulon_reactions,

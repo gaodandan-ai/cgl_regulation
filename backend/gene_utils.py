@@ -27,6 +27,7 @@ CG_TO_CGL:  dict = {}   # cg_locus (lower) -> cgl_locus
 CGL_TO_CG:  dict = {}   # cgl_locus (lower) -> cg_locus
 GENE_NAMES: dict = {}   # any locus (lower) -> display name
 NAME_TO_CG: dict = {}   # gene name (lower) -> cg_locus
+GENE_TO_UNIPROT: dict = {} # locus (lower) -> uniprot accession id
 
 _gene_mappings_loaded = False
 
@@ -47,6 +48,7 @@ def load_gene_mappings() -> None:
                 cg   = row.get("cg_locus",  "").strip()
                 cgl  = row.get("cgl_locus", "").strip()
                 name = row.get("gene_name", "").strip()
+                uniprot = row.get("uniprot_id", "").strip()
                 if cg and cgl:
                     CG_TO_CGL[cg.lower()]  = cgl
                     CGL_TO_CG[cgl.lower()] = cg
@@ -55,6 +57,11 @@ def load_gene_mappings() -> None:
                     NAME_TO_CG.setdefault(name.lower(), cg)
                 if cgl and name:
                     GENE_NAMES[cgl.lower()] = name
+                if uniprot:
+                    if cg:
+                        GENE_TO_UNIPROT[cg.lower()] = uniprot
+                    if cgl:
+                        GENE_TO_UNIPROT[cgl.lower()] = uniprot
     except Exception as e:
         print("Error loading gene mapping CSV:", e)
 

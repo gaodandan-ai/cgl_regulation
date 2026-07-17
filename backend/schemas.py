@@ -16,6 +16,8 @@ class ReactionMatchSchema(BaseModel):
     lowerBound: float
     upperBound: float
     metabolites: List[str]
+    databaseLinks: Optional[Dict] = None
+    metaboliteLinks: Optional[Dict[str, Dict]] = None
 
 class ReactionSearchResponse(BaseModel):
     query: str
@@ -151,6 +153,26 @@ class RFBAResponse(BaseModel):
     glucose_uptake: List[float]
     glucose_concentration: List[float]
     biomass_concentration: List[float]
+    tracked_fluxes: Optional[Dict[str, List[float]]] = None
+    warnings: List[str] = []
+
+class RECFBARequest(BaseModel):
+    tfPerturbations: Dict[str, str]  # e.g., {"sigH": "knockout"}
+    proteinPoolLimit: float = 0.129
+    temperature: float = 30.0
+    initialGlucose: float = 100.0
+    initialBiomass: float = 0.1
+    timeSteps: int = 24
+
+class RECFBAResponse(BaseModel):
+    status: str
+    time: List[float]
+    growth_rate: List[float]
+    glutamate_export: List[float]
+    glucose_uptake: List[float]
+    glucose_concentration: List[float]
+    biomass_concentration: List[float]
+    tracked_fluxes: Optional[Dict[str, List[float]]] = None
     warnings: List[str] = []
 
 class ECFBARequest(BaseModel):

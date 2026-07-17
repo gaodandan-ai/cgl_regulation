@@ -2,8 +2,8 @@ import sys
 import os
 import re
 
-# Add root folder to sys.path so we can import rag_service
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add backend folder to sys.path so we can import rag_service
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "backend"))
 
 from rag_service import RAGService
 

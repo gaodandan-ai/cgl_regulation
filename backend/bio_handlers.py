@@ -173,6 +173,17 @@ def handle_regulon_enrichment(tf: str) -> dict:
                 "target_genes":   [{"locus": g, "name": GENE_NAMES.get(g, g.upper())} for g in hits],
             })
     pathway_enrichments.sort(key=lambda p: p["p_value"])
+
+    # Benjamini-Hochberg FDR correction
+    n_tests = len(pathway_enrichments)
+    if n_tests > 0:
+        for rank, entry in enumerate(pathway_enrichments):
+            entry["fdr_bh"] = min(1.0, entry["p_value"] * n_tests / (rank + 1))
+        min_fdr = 1.0
+        for entry in reversed(pathway_enrichments):
+            min_fdr = min(min_fdr, entry["fdr_bh"])
+            entry["fdr_bh"] = round(min_fdr, 6)
+
     return {
         "tf": tf,
         "regulon_size":          len(targets),
@@ -180,6 +191,131 @@ def handle_regulon_enrichment(tf: str) -> dict:
         "total_annotated_genome": N,
         "pathways":              pathway_enrichments,
     }
+
+
+def handle_go_enrichment(tf: str) -> dict:
+    """
+    GO term enrichment for a TF's target regulon.
+    Collects GO annotations per target gene (via GENE_PATHWAYS_CACHE),
+    counts term frequencies, applies hypergeometric test + BH FDR,
+    and partitions results by GO namespace (BP / MF / CC).
+    """
+    load_gene_mappings()
+    tf_lower    = tf.strip().lower()
+    resolved_cg = CGL_TO_CG.get(tf_lower, tf)
+
+    # Collect target loci
+    targets = []
+    path = get_absolute_path("data/reference/regulations.csv")
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    tf_row  = row.get("TF_locusTag", "").strip().lower()
+                    tf_name = row.get("TF_name",     "").strip().lower()
+                    if tf_row == resolved_cg.lower() or (tf_name and tf_name == tf_lower):
+                        tg = row.get("TG_locusTag", "").strip()
+                        if tg and tg not in targets:
+                            targets.append(tg)
+        except Exception as e:
+            print("Error reading regulations for GO enrichment:", e)
+
+    if not targets:
+        return {"error": f"No target genes found for TF {tf}"}
+
+    # Collect GO terms from GENE_PATHWAYS_CACHE (populated by /api/kegg_pathways calls)
+    from kegg_client import GENE_PATHWAYS_CACHE, get_gene_pathways_and_go
+    go_term_hits: dict = {}   # go_id -> {name, type, link, genes_hit: set}
+
+    for locus in targets:
+        locus_lower = locus.lower()
+        cgl_locus   = CG_TO_CGL.get(locus_lower, "")
+        cache_key   = (locus_lower, cgl_locus.lower())
+        cached = GENE_PATHWAYS_CACHE.get(cache_key)
+        if cached is None:
+            try:
+                cached = get_gene_pathways_and_go(locus, cgl_locus)
+            except Exception:
+                cached = {"pathways": [], "go_terms": []}
+        for gt in (cached or {}).get("go_terms", []):
+            gid  = gt.get("id", "")
+            if not gid:
+                continue
+            if gid not in go_term_hits:
+                go_term_hits[gid] = {
+                    "go_id":   gid,
+                    "go_name": gt.get("name", ""),
+                    "go_type": gt.get("type", "GO"),
+                    "link":    gt.get("link", f"https://www.ebi.ac.uk/QuickGO/term/{gid}"),
+                    "genes_hit": set(),
+                }
+            go_term_hits[gid]["genes_hit"].add(locus_lower)
+
+    if not go_term_hits:
+        return {
+            "tf": tf,
+            "regulon_size": len(targets),
+            "annotated_regulon_size": 0,
+            "go_terms": [],
+            "by_namespace": {"biological_process": [], "molecular_function": [], "cellular_component": [], "other": []},
+        }
+
+    # C. glutamicum ATCC 13032: ~3002 protein-coding genes
+    N_GENOME            = 3000
+    BACKGROUND_MAX_TERM = 200   # conservative upper bound per GO term
+    k = len(targets)
+
+    results = []
+    for gid, info in go_term_hits.items():
+        x  = len(info["genes_hit"])
+        M  = min(BACKGROUND_MAX_TERM, N_GENOME)
+        p  = hypergeom_sf(x, N_GENOME, M, k)
+        fe = (x / k) / (M / N_GENOME) if M > 0 else 0
+        results.append({
+            "go_id":           gid,
+            "go_name":         info["go_name"],
+            "go_type":         info["go_type"],
+            "link":            info["link"],
+            "hits":            x,
+            "regulon_size":    k,
+            "background_size": M,
+            "fold_enrichment": round(fe, 3),
+            "p_value":         round(p, 6),
+            "fdr_bh":          1.0,
+            "genes_hit":       sorted(info["genes_hit"]),
+        })
+
+    results.sort(key=lambda r: r["p_value"])
+
+    # BH FDR
+    n_tests = len(results)
+    if n_tests > 0:
+        for rank, entry in enumerate(results):
+            entry["fdr_bh"] = min(1.0, entry["p_value"] * n_tests / (rank + 1))
+        min_fdr = 1.0
+        for entry in reversed(results):
+            min_fdr = min(min_fdr, entry["fdr_bh"])
+            entry["fdr_bh"] = round(min_fdr, 6)
+
+    bp    = [r for r in results if "Process"   in r["go_type"]]
+    mf    = [r for r in results if "Function"  in r["go_type"]]
+    cc    = [r for r in results if "Component" in r["go_type"]]
+    other = [r for r in results if r not in bp and r not in mf and r not in cc]
+
+    return {
+        "tf":             tf,
+        "regulon_size":   k,
+        "annotated_regulon_size": len({g for info in go_term_hits.values() for g in info["genes_hit"]}),
+        "go_terms":       results,
+        "by_namespace":   {
+            "biological_process": bp,
+            "molecular_function": mf,
+            "cellular_component": cc,
+            "other":             other,
+        },
+    }
+
 
 # ── Metabolic impact / pathway handlers ──────────────────────────────────────
 
@@ -208,7 +344,7 @@ def handle_metabolic_impact(query: str) -> dict:
 
         unique_rxns, local_seen = [], set()
         for r in reactions:
-            key = f"{r['model']}:{r['id']}"
+            key = r['id'].upper()
             if key not in local_seen:
                 local_seen.add(key)
                 unique_rxns.append(r)
@@ -245,7 +381,7 @@ def handle_metabolic_impact(query: str) -> dict:
                                                     "gene_count": 0, "reaction_count": 0, "genes": set(), "reactions": set()})
             stat["genes"].add(locus)
             stat["reactions"].add(r["id"])
-            reaction_seen.add(f"{r['model']}:{r['id']}")
+            reaction_seen.add(r['id'])
 
     pathways = sorted([
         {"id": s["id"], "name": s["name"], "model": s["model"],

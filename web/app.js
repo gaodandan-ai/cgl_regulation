@@ -45,6 +45,9 @@ let initAdvancedAnalytics;
 let abasyRoles = {};
 window.abasyRoles = abasyRoles;
 
+let cogAnnotations = {};
+window.cogAnnotations = cogAnnotations;
+
 let nameToCg = {};
 
 let cgToProduct = {};
@@ -201,6 +204,8 @@ function initializeApp() {
     initEventListeners();
     initSidebarResizer();
     initLeftSidebarResizer();
+    initCollapsibleSections();
+    initMobileHandlers();
     loadNetworkData();
 }
 
@@ -208,6 +213,123 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
     initializeApp();
+}
+
+
+// ==========================================================================
+// URL State Persistence
+// Keeps ?workflow=gene&gene=GlxR,NCgl1221 in sync with app state.
+// Supports: browser Back/Forward, page refresh, shareable links.
+// ==========================================================================
+
+/** Debounce timer so rapid workflow switches don't flood history */
+let _urlPushTimer = null;
+
+/**
+ * Push current app state to the browser URL bar.
+ * @param {{ workflow?: string, gene?: string|null }} state
+ */
+function _pushUrlState(state) {
+    if (window._suppressUrlPush) return;
+    clearTimeout(_urlPushTimer);
+    _urlPushTimer = setTimeout(() => {
+        try {
+            const url = new URL(window.location.href);
+            if (state.workflow)           url.searchParams.set('workflow', state.workflow);
+            if (state.gene)               url.searchParams.set('gene', state.gene);
+            else if (state.workflow !== 'gene') url.searchParams.delete('gene');
+            if (url.href !== window.location.href) {
+                window.history.pushState({ workflow: state.workflow, gene: state.gene || null }, '', url.href);
+            }
+        } catch (_) { /* non-critical */ }
+    }, 80);
+}
+
+/**
+ * Read URL parameters and restore app state.
+ * Called once after all data has finished loading.
+ */
+function restoreStateFromUrl() {
+    try {
+        const params   = new URLSearchParams(window.location.search);
+        const workflow = params.get('workflow') || 'gene';
+        const gene     = params.get('gene');
+
+        // Restore workflow without double-pushing
+        window._suppressUrlPush = true;
+        setActiveWorkflowEntry(workflow);
+        window._suppressUrlPush = false;
+
+        // Restore gene query
+        if (workflow === 'gene' && gene) {
+            const genes = gene.split(',').map(g => g.trim()).filter(Boolean);
+            if (genes.length === 1) {
+                querySingleGene(genes[0]);
+            } else if (genes.length > 1 && typeof queryMultipleGenes === 'function') {
+                queryMultipleGenes(genes);
+            }
+        }
+    } catch (_) { /* non-critical */ }
+}
+
+/**
+ * Handle browser Back/Forward navigation.
+ */
+window.addEventListener('popstate', (event) => {
+    try {
+        const st = event.state;
+        if (!st) return;
+        const workflow = st.workflow || 'gene';
+        window._suppressUrlPush = true;
+        setActiveWorkflowEntry(workflow);
+        window._suppressUrlPush = false;
+        if (workflow === 'gene' && st.gene) {
+            const genes = st.gene.split(',').map(g => g.trim()).filter(Boolean);
+            if (genes.length === 1) querySingleGene(genes[0]);
+            else if (genes.length > 1 && typeof queryMultipleGenes === 'function') queryMultipleGenes(genes);
+        }
+    } catch (_) { /* non-critical */ }
+});
+
+// ==========================================================================
+// Recently Viewed — localStorage-backed 10-item history
+// ==========================================================================
+
+const _RV_KEY   = 'cgl_recently_viewed';
+const _RV_LIMIT = 10;
+
+function _rvAdd(locusTag, displayName) {
+    try {
+        const list = _rvLoad();
+        const entry = { locus: locusTag, name: displayName || locusTag, ts: Date.now() };
+        const filtered = list.filter(e => e.locus !== locusTag);
+        filtered.unshift(entry);
+        if (filtered.length > _RV_LIMIT) filtered.length = _RV_LIMIT;
+        localStorage.setItem(_RV_KEY, JSON.stringify(filtered));
+        _rvRender();
+    } catch (_) {}
+}
+
+function _rvLoad() {
+    try { return JSON.parse(localStorage.getItem(_RV_KEY) || '[]'); }
+    catch (_) { return []; }
+}
+
+function _rvRender() {
+    const container = document.getElementById('recently-viewed-list');
+    if (!container) return;
+    const list = _rvLoad();
+    if (!list.length) {
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:10px;padding:4px 0;">No recent searches</span>';
+        return;
+    }
+    container.innerHTML = list.map(e =>
+        '<button class="rv-chip" onclick="querySingleGene(\'' + e.locus.replace(/'/g, '') + '\');setActiveWorkflowEntry(\'gene\');" title="Last viewed: ' + new Date(e.ts).toLocaleString() + '">' + e.name + '</button>'
+    ).join('');
+}
+
+function _trackRecentlyViewed(locusTag, displayName) {
+    _rvAdd(locusTag, displayName);
 }
 
 function showToast(title, message, type = 'success', duration = 8000) {
@@ -245,6 +367,24 @@ function showToast(title, message, type = 'success', duration = 8000) {
     }, duration);
 }
 
+// Load progress bar controller
+function setLoadProgress(pct, label) {
+    const fill = document.getElementById('load-progress-fill');
+    if (!fill) return;
+    if (pct === 0) {
+        fill.classList.add('active');
+        fill.classList.remove('complete');
+        fill.style.width = '0%';
+    } else if (pct >= 100) {
+        fill.style.width = '100%';
+        setTimeout(() => fill.classList.add('complete'), 250);
+    } else {
+        fill.classList.add('active');
+        fill.classList.remove('complete');
+        fill.style.width = pct + '%';
+    }
+    if (label) updateStatus(label, 'loading');
+}
 
 
 function updateStatus(message, type = 'loading') {
@@ -283,6 +423,7 @@ function updateStatus(message, type = 'loading') {
 
 async function loadNetworkData() {
     try {
+        setLoadProgress(5, 'Fetching database assets...');
         updateStatus('Loading database assets in parallel...', 'loading');
 
         // Fetch all assets in parallel to optimize page load performance
@@ -291,6 +432,7 @@ async function loadNetworkData() {
             essential: fetch('/api/quality/essential').then(r => r.ok ? r.json() : {}).catch(() => ({})),
             brenda: fetch('/api/quality/brenda').then(r => r.ok ? r.json() : {}).catch(() => ({})),
             abasy: fetch('/api/quality/abasy').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+            cog: fetch('/api/quality/cog').then(r => r.ok ? r.json() : {}).catch(() => ({})),
             mapping: fetch(MAPPING_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
             tf: fetch(REGULATIONS_URL).then(r => {
                 if (!r.ok) throw new Error('Unable to read regulations.csv. Please confirm the local server is running.');
@@ -336,6 +478,11 @@ async function loadNetworkData() {
         window.abasyRoles = abasyRoles;
         console.log(`Loaded ${Object.keys(abasyRoles).length} Abasy roles.`);
 
+        // 4.5 COG Annotations
+        cogAnnotations = results.cog;
+        window.cogAnnotations = cogAnnotations;
+        console.log(`Loaded ${Object.keys(cogAnnotations).length} COG annotations.`);
+
         // 5. Gene Mappings
         if (results.mapping) {
             geneMapping = parseCSV(results.mapping);
@@ -344,6 +491,7 @@ async function loadNetworkData() {
             console.warn('plate_gene_mapping.csv file not found. Skipping mapping.');
         }
 
+        setLoadProgress(60, 'Parsing regulatory network...');
         // 6. Regulations (TF-TG)
         regulations = parseCSV(results.tf);
         console.log(`Loaded ${regulations.length} TF-TG regulations.`);
@@ -369,6 +517,7 @@ async function loadNetworkData() {
             console.warn('Operons file not found. Skipping operons data.');
         }
 
+        setLoadProgress(75, 'Computing edge confidence...');
         // 9. Edge Confidence
         edgeConfidenceScores = [];
         rfConfidenceByEdge = new Map();
@@ -406,21 +555,31 @@ async function loadNetworkData() {
         });
         console.log(`Loaded ${Object.keys(results.sigma).length} sigma factor annotations.`);
 
+        setLoadProgress(88, 'Building gene index...');
         buildGeneIndex();
         normalizeNetworkData();
 
         rnaseqData = null;
 
+        setLoadProgress(100);
         updateStatus('Data ready', 'success');
         initGlobalMetabolicImpactRanking();
         initPathwayRegulatoryView();
         initEngineeringTargetFinder();
+        // Restore URL state after data is ready
+        restoreStateFromUrl();
         // loadDefaultExampleNetwork();
 
     } catch (err) {
         console.error(err);
         updateStatus('Data loading failed: ' + err.message, 'error');
-        alert('Error: unable to load regulatory database files. Please ensure the local server is running.');
+        setLoadProgress(100);
+        showToast(
+            'Data Loading Failed',
+            'Unable to load regulatory database files. Please ensure the local server is running.',
+            'error',
+            12000
+        );
     }
 }
 
@@ -724,6 +883,331 @@ function confidenceSummary(edge) {
         ? `; heuristic ${Math.round(Number(heuristic) * 100)}%`
         : '';
     return `Conf ${percent}% (${edge.confidenceLevel || 'low'}; ${modelText}${heuristicText}; motif ${Math.round((factors.motif || 0) * 100)} / ChIP ${Math.round((factors.chip || 0) * 100)} / expr ${Math.round((factors.expression || 0) * 100)} / db ${Math.round((factors.database || 0) * 100)})`;
+}
+
+// ============================================================
+// RF Confidence Method Card — Methodology Transparency
+// ============================================================
+
+/**
+ * Returns an HTML string for the "Regulatory Evidence Score" card.
+ * Displayed in the relations table source column tooltip and the
+ * edge detail panel whenever an edge is selected.
+ *
+ * Scoring logic (for reference):
+ *  - RF model (primary): Random Forest trained on 8 feature groups:
+ *      Binding site (motif strength), ChIP-seq/ChIP-exo support,
+ *      expression correlation, CoryneRegNet database evidence quality,
+ *      target metabolic coverage (reaction count, pathway count),
+ *      enzyme-constraint availability (kcat, kcat/MW median).
+ *  - Heuristic (fallback when RF score not available):
+ *      Weighted sum: Motif×0.25 + ChIP×0.30 + Expr×0.20 + DB×0.25
+ *      Multi-evidence bonus: +0.06 if ≥2 factors >0.1
+ *  - Thresholds: HIGH ≥0.75, MED ≥0.50, LOW <0.50
+ *
+ * @param {object} edgeObj  — normalized edge object (from normalizedEdges[])
+ * @returns {string} HTML
+ */
+function renderConfidenceMethodCard(edgeObj) {
+    if (!edgeObj) return '';
+
+    const factors    = edgeObj.confidenceFactors   || {};
+    const score      = edgeObj.confidenceScore     || 0;
+    const level      = edgeObj.confidenceLevel     || confidenceLevel(score);
+    const rf         = edgeObj.predictedConfidence ?? factors.randomForest ?? null;
+    const heuristic  = edgeObj.heuristicConfidenceScore ?? null;
+    const rfRank     = edgeObj.rfConfidenceRank    || edgeObj.evidence?.rfConfidenceRank || '';
+    const rfMissing  = edgeObj.evidence?.rfFeatureMissingCount || '';
+    const rfExprAvail= edgeObj.evidence?.rfExpressionFeatureAvailable || '';
+    const rfRxnCount = edgeObj.evidence?.rfTargetMappedReactionCount  || '';
+    const rfPwyCount = edgeObj.evidence?.rfTargetMappedPathwayCount   || '';
+    const rfKcat     = edgeObj.evidence?.rfTargetKcatMedian           || '';
+    const isRfEdge   = rf !== null && !Number.isNaN(Number(rf));
+
+    const pct     = Math.round(score * 100);
+    const rfPct   = isRfEdge  ? Math.round(Number(rf) * 100)       : null;
+    const heurPct = heuristic !== null ? Math.round(Number(heuristic) * 100) : Math.round(score * 100);
+
+    const levelColor = level === 'high'   ? '#10b981'
+                     : level === 'medium' ? '#f59e0b'
+                     : '#94a3b8';
+
+    // Small bar helper
+    function miniBar(val, color = '#3b82f6', bgColor = '#e2e8f0') {
+        const w = Math.round(Math.max(0, Math.min(1, val || 0)) * 100);
+        return `<span style="display:inline-block;vertical-align:middle;width:72px;height:6px;background:${bgColor};border-radius:3px;overflow:hidden;"><span style="display:block;height:100%;width:${w}%;background:${color};border-radius:3px;transition:width 0.4s;"></span></span>`;
+    }
+
+    // Factor rows for heuristic breakdown
+    const factorDefs = [
+        { key: 'motif',      label: 'Binding Site',  weight: 0.25, color: '#6366f1',
+          desc: 'Presence and quality of experimentally-annotated or predicted TF binding site (motif length, multi-site)' },
+        { key: 'chip',       label: 'ChIP evidence', weight: 0.30, color: '#0ea5e9',
+          desc: 'ChIP-seq or ChIP-exo experimental evidence for physical TF–DNA binding' },
+        { key: 'expression', label: 'Expression corr.', weight: 0.20, color: '#10b981',
+          desc: 'Pearson correlation of TF and target expression across available datasets; or CopraRNA p-value for sRNA edges' },
+        { key: 'database',   label: 'DB curation',  weight: 0.25, color: '#f59e0b',
+          desc: 'Evidence quality label from CoryneRegNet: experimental > curated > predicted' },
+    ];
+
+    const factorRowsHtml = factorDefs.map(f => {
+        const val = factors[f.key] || 0;
+        const fp  = Math.round(val * 100);
+        return `
+        <tr title="${f.desc}">
+            <td style="padding:3px 8px 3px 0;font-size:10.5px;color:var(--text-secondary);white-space:nowrap;">${f.label}</td>
+            <td style="padding:3px 4px;">${miniBar(val, f.color)}</td>
+            <td style="padding:3px 6px;font-size:10.5px;font-weight:600;color:${f.color};width:32px;text-align:right;">${fp}%</td>
+            <td style="padding:3px 0 3px 6px;font-size:9.5px;color:var(--text-muted);">w=${f.weight.toFixed(2)}</td>
+        </tr>`;
+    }).join('');
+
+    // RF feature summary row
+    const rfFeaturesHtml = isRfEdge ? `
+    <div style="margin-top:10px;padding:8px;background:rgba(59,130,246,0.04);border:1px solid rgba(59,130,246,0.12);border-radius:6px;">
+        <div style="font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">
+            <i class="fa-solid fa-robot" style="color:#3b82f6;margin-right:4px;"></i>RF Model Features
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;font-size:10px;color:var(--text-secondary);">
+            ${rfRank     ? `<div><span style="color:var(--text-muted);">Rank tier:</span> <strong>${rfRank}</strong></div>` : ''}
+            ${rfMissing  !== '' ? `<div><span style="color:var(--text-muted);">Features missing:</span> <strong style="color:${parseInt(rfMissing)>3?'#f59e0b':'#10b981'};">${rfMissing}/8</strong></div>` : ''}
+            ${rfExprAvail !== '' ? `<div><span style="color:var(--text-muted);">Expr. data:</span> <strong>${rfExprAvail === '1' || rfExprAvail === 'true' || rfExprAvail === true ? '✓ Available' : '✗ Missing'}</strong></div>` : ''}
+            ${rfRxnCount !== '' ? `<div><span style="color:var(--text-muted);">Mapped reactions:</span> <strong>${rfRxnCount}</strong></div>` : ''}
+            ${rfPwyCount !== '' ? `<div><span style="color:var(--text-muted);">Mapped pathways:</span> <strong>${rfPwyCount}</strong></div>` : ''}
+            ${rfKcat     !== '' ? `<div><span style="color:var(--text-muted);">kcat median:</span> <strong>${parseFloat(rfKcat).toFixed(2)} s⁻¹</strong></div>` : ''}
+        </div>
+    </div>` : '';
+
+    const sRnaNote = (edgeObj.interactionClass === 'sRNA-mRNA') ? `
+    <div style="margin-top:8px;font-size:10px;color:var(--text-muted);padding:6px 8px;background:rgba(123,31,162,0.04);border-left:2px solid rgba(123,31,162,0.3);border-radius:0 4px 4px 0;">
+        <i class="fa-solid fa-dna" style="color:#7b1fa2;margin-right:4px;"></i>
+        sRNA edge: Heuristic only. Score uses CopraRNA p-value / FDR and minimum free energy (ΔG). RF model is not applied to sRNA–mRNA edges.
+    </div>` : '';
+
+    return `
+    <div class="conf-method-card" id="conf-method-card-${edgeObj.id || 'edge'}" style="margin-top:12px;">
+        <!-- Header score bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:10.5px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">
+                <i class="fa-solid fa-shield-halved" style="color:${levelColor};margin-right:5px;"></i>Regulatory Evidence Score
+            </span>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:18px;font-weight:800;color:${levelColor};">${pct}%</span>
+                <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:${levelColor}1a;color:${levelColor};text-transform:uppercase;">${level}</span>
+            </div>
+        </div>
+        <div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:12px;">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${levelColor},${levelColor}99);border-radius:3px;transition:width 0.5s;"></div>
+        </div>
+
+        <!-- RF block (shown only when RF score available) -->
+        ${isRfEdge ? `
+        <div style="margin-bottom:10px;padding:8px 10px;background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.15);border-radius:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:10.5px;font-weight:700;color:#1d4ed8;">
+                    <i class="fa-solid fa-circle-nodes" style="margin-right:4px;"></i>Random Forest Score <span style="font-size:9px;font-weight:500;color:#3b82f6;margin-left:4px;">(primary)</span>
+                </span>
+                <span style="font-size:15px;font-weight:800;color:#1d4ed8;">${rfPct}%</span>
+            </div>
+            ${miniBar(rf, '#3b82f6', 'rgba(59,130,246,0.12)')}
+            <div style="margin-top:5px;font-size:10px;color:#475569;line-height:1.5;">
+                Trained on 8 multi-omics feature groups: binding site strength, ChIP support, expression correlation, database curation quality, metabolic model coverage (reaction/pathway count), and enzyme kinetic parameters (kcat, kcat/MW).
+            </div>
+            ${rfFeaturesHtml}
+        </div>` : ''}
+
+        <!-- Heuristic breakdown -->
+        <div style="padding:8px 10px;background:rgba(100,116,139,0.04);border:1px solid rgba(100,116,139,0.12);border-radius:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-size:10.5px;font-weight:700;color:var(--text-secondary);">
+                    <i class="fa-solid fa-calculator" style="margin-right:4px;"></i>Heuristic Score ${isRfEdge ? '<span style="font-size:9px;font-weight:500;color:var(--text-muted);margin-left:4px;">(reference)</span>' : '<span style="font-size:9px;font-weight:500;color:#f59e0b;margin-left:4px;">(primary — no RF data)</span>'}
+                </span>
+                <span style="font-size:13px;font-weight:700;color:var(--text-secondary);">${heurPct}%</span>
+            </div>
+            <table style="width:100%;border-collapse:collapse;">${factorRowsHtml}</table>
+            <div style="margin-top:5px;font-size:9.5px;color:var(--text-muted);">
+                Weighted sum. Multi-evidence bonus (+6%) applied when ≥2 factors >0.1.
+            </div>
+        </div>
+
+        ${sRnaNote}
+
+        <!-- Disclaimer -->
+        <div style="margin-top:8px;padding:6px 8px;background:rgba(245,158,11,0.06);border-left:2px solid #f59e0b;border-radius:0 4px 4px 0;font-size:9.5px;color:#92400e;line-height:1.5;">
+            <i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i>
+            <strong>Prioritization score only.</strong> This score estimates interaction confidence for network exploration and target ranking — it is not a calibrated experimental probability. Experimental validation is required before biological conclusions.
+        </div>
+
+        <!-- Method link -->
+        <div style="margin-top:8px;text-align:right;">
+            <button onclick="showRfMethodologyModal()" style="font-size:10px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">
+                <i class="fa-solid fa-circle-question" style="margin-right:3px;"></i>Full methodology details
+            </button>
+        </div>
+    </div>`;
+}
+
+/**
+ * Shows the RF methodology modal dialog with full documentation
+ * of the scoring system, feature definitions, and thresholds.
+ */
+function showRfMethodologyModal() {
+    // Remove existing if present
+    const existing = document.getElementById('rf-methodology-modal');
+    if (existing) { existing.remove(); return; }
+
+    const modal = document.createElement('div');
+    modal.id = 'rf-methodology-modal';
+    modal.style.cssText = `
+        position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;
+        background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);animation:backdropFadeIn 0.2s ease;
+    `;
+
+    modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;box-shadow:0 24px 64px rgba(15,23,42,0.18);width:min(740px,95vw);max-height:85vh;overflow-y:auto;padding:0;position:relative;">
+        <!-- Header -->
+        <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border-color);position:sticky;top:0;background:#fff;z-index:10;border-radius:16px 16px 0 0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <div style="font-size:16px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                        <i class="fa-solid fa-circle-nodes" style="color:#3b82f6;"></i>
+                        Regulatory Edge Scoring — Methodology
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">
+                        How confidence scores are computed and what they mean for research use
+                    </div>
+                </div>
+                <button onclick="document.getElementById('rf-methodology-modal').remove()" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">✕</button>
+            </div>
+        </div>
+
+        <div style="padding:20px 24px;display:flex;flex-direction:column;gap:20px;">
+
+            <!-- Score tiers -->
+            <section>
+                <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-secondary);margin:0 0 10px;">Score Tiers</h3>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                    <div style="padding:10px 12px;border-radius:10px;border:1px solid rgba(16,185,129,0.2);background:rgba(16,185,129,0.05);">
+                        <div style="font-size:12px;font-weight:800;color:#10b981;">HIGH ≥ 0.75</div>
+                        <div style="font-size:10px;color:#065f46;margin-top:3px;line-height:1.4;">Multiple independent evidence lines. Includes direct ChIP evidence or high motif + expression support. Suitable for hypothesis generation.</div>
+                    </div>
+                    <div style="padding:10px 12px;border-radius:10px;border:1px solid rgba(245,158,11,0.2);background:rgba(245,158,11,0.05);">
+                        <div style="font-size:12px;font-weight:800;color:#d97706;">MED 0.50–0.75</div>
+                        <div style="font-size:10px;color:#92400e;margin-top:3px;line-height:1.4;">Moderate confidence. Typically database-curated or motif-only with partial expression support. Use with additional verification.</div>
+                    </div>
+                    <div style="padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,0.3);background:rgba(148,163,184,0.06);">
+                        <div style="font-size:12px;font-weight:800;color:#64748b;">LOW < 0.50</div>
+                        <div style="font-size:10px;color:#475569;margin-top:3px;line-height:1.4;">Computational prediction only. Limited supporting evidence. Treat as exploratory leads only.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RF Model -->
+            <section>
+                <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#1d4ed8;margin:0 0 10px;">
+                    <i class="fa-solid fa-circle-nodes" style="margin-right:5px;"></i>Random Forest Model (Primary)
+                </h3>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px;">
+                    When available, the displayed score uses a <strong>Random Forest classifier</strong> trained on known TF–target interactions from CoryneRegNet. Each edge is represented by 8 multi-omics feature groups derived from heterogeneous data sources:
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-size:10.5px;">
+                    <thead>
+                        <tr style="background:var(--bg-card);">
+                            <th style="padding:6px 10px;text-align:left;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border-color);">#</th>
+                            <th style="padding:6px 10px;text-align:left;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border-color);">Feature Group</th>
+                            <th style="padding:6px 10px;text-align:left;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border-color);">Data Source</th>
+                            <th style="padding:6px 10px;text-align:left;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border-color);">CSV Column</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${[
+                            ['1','Binding site strength','CoryneRegNet motif annotation','(derived from Binding_site)'],
+                            ['2','ChIP-seq / ChIP-exo support','CoryneRegNet, Method/Assay field','(derived from Evidence, Method)'],
+                            ['3','Expression correlation','Transcriptomics datasets','expression_feature_available'],
+                            ['4','Database curation quality','CoryneRegNet evidence label','(derived from Evidence)'],
+                            ['5','Metabolic reaction coverage','iCW773 genome-scale model','target_mapped_reaction_count'],
+                            ['6','Metabolic pathway coverage','iCW773 / KEGG','target_mapped_pathway_count'],
+                            ['7','Enzyme kcat (median)','DLKcat predictions + BRENDA','target_kcat_median'],
+                            ['8','kcat/MW (catalytic efficiency)','DLKcat + UniProt MW','target_kcat_mw_median'],
+                        ].map(([n,f,s,c]) => `
+                        <tr style="border-bottom:1px solid var(--border-color);">
+                            <td style="padding:5px 10px;color:var(--text-muted);">${n}</td>
+                            <td style="padding:5px 10px;font-weight:600;color:var(--text-primary);">${f}</td>
+                            <td style="padding:5px 10px;color:var(--text-secondary);">${s}</td>
+                            <td style="padding:5px 10px;font-family:monospace;font-size:9.5px;color:#4f46e5;">${c}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+                <div style="margin-top:8px;padding:8px 10px;background:rgba(245,158,11,0.06);border-radius:6px;font-size:10px;color:#92400e;">
+                    <i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i>
+                    <strong>Limitation:</strong> The <code style="font-size:9.5px;background:rgba(0,0,0,0.05);padding:1px 4px;border-radius:3px;">feature_missing_count</code> field indicates how many feature groups were unavailable for this edge. Higher missing counts reduce prediction reliability. Edges with >4 missing features fall back to heuristic scoring.
+                </div>
+            </section>
+
+            <!-- Heuristic Model -->
+            <section>
+                <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#475569;margin:0 0 10px;">
+                    <i class="fa-solid fa-calculator" style="margin-right:5px;"></i>Heuristic Fallback Score
+                </h3>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px;">
+                    Applied when no RF prediction is available (e.g., sRNA edges, novel TF–target pairs not in training set). Uses a weighted combination of 4 factors:
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+                    ${[
+                        { name:'Binding Site Motif', w:'0.25', color:'#6366f1',
+                          desc:'Scored by motif length and number of annotated binding sites. Multi-site: 0.78; long single-site (≥10 bp): 0.66; short: 0.48; absent: 0.0' },
+                        { name:'ChIP Evidence', w:'0.30', color:'#0ea5e9',
+                          desc:'ChIP-exo: 0.95; ChIP-seq: 0.90; absent: 0.0. This factor has the highest weight due to its direct physical evidence.' },
+                        { name:'Expression Correlation', w:'0.20', color:'#10b981',
+                          desc:'TF-TG: |Pearson r| from available transcriptomics data. sRNA: CopraRNA p-value + FDR + minimum free energy (ΔG).' },
+                        { name:'Database Curation', w:'0.25', color:'#f59e0b',
+                          desc:'CoryneRegNet evidence label: experimental+predicted: 0.78; experimental: 0.86; curated: 0.74; predicted: 0.42; unknown: 0.32.' },
+                    ].map(f => `
+                    <div style="padding:10px;border-radius:8px;border:1px solid ${f.color}22;background:${f.color}08;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                            <span style="font-size:11px;font-weight:700;color:${f.color};">${f.name}</span>
+                            <span style="font-size:10px;padding:1px 6px;border-radius:8px;background:${f.color}18;color:${f.color};font-weight:700;">w=${f.w}</span>
+                        </div>
+                        <div style="font-size:10px;color:var(--text-secondary);line-height:1.5;">${f.desc}</div>
+                    </div>`).join('')}
+                </div>
+                <div style="margin-top:8px;font-size:10px;color:var(--text-muted);padding:6px 10px;background:var(--bg-card);border-radius:6px;">
+                    Formula: <code style="font-size:9.5px;">score = Σ(factor_i × weight_i) / Σ(weight_i for active factors) + 0.06 × [≥2 factors > 0.1]</code>
+                </div>
+            </section>
+
+            <!-- Limitations -->
+            <section>
+                <h3 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#dc2626;margin:0 0 10px;">
+                    <i class="fa-solid fa-circle-exclamation" style="margin-right:5px;"></i>Limitations & Research Use
+                </h3>
+                <ul style="font-size:11px;color:var(--text-secondary);line-height:1.8;margin:0;padding-left:18px;">
+                    <li>Scores are <strong>relative prioritization metrics</strong>, not absolute probabilities of biological interaction.</li>
+                    <li>The RF model is trained on <em>C. glutamicum</em> ATCC 13032 data only; extrapolation to other strains or conditions may be unreliable.</li>
+                    <li>sRNA–mRNA edges use heuristic-only scoring; RF model coverage for sRNA edges is not available in the current release.</li>
+                    <li>Expression feature availability depends on dataset deposition at time of model training; newly published datasets are not automatically included.</li>
+                    <li><strong>All interactions require experimental validation before publication.</strong> High confidence scores should be treated as prioritized hypotheses.</li>
+                </ul>
+            </section>
+
+            <!-- Data sources -->
+            <section style="padding:12px 14px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border-color);">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">Data Sources</div>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;font-size:10px;color:var(--text-secondary);">
+                    <div>· <strong>CoryneRegNet 7.0</strong> — TF–target curated interactions</div>
+                    <div>· <strong>iCW773</strong> — <em>C. glutamicum</em> genome-scale metabolic model</div>
+                    <div>· <strong>ecCGL1</strong> — Enzyme-constrained model (kcat from DLKcat)</div>
+                    <div>· <strong>BRENDA</strong> — Enzyme kinetics reference database</div>
+                    <div>· <strong>STRING v12</strong> — Protein–protein interaction network</div>
+                    <div>· <strong>CopraRNA</strong> — sRNA target prediction tool (p-value, ΔG)</div>
+                </div>
+            </section>
+
+        </div>
+    </div>`;
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
 function getNodeMetaForDetails(locus) {
@@ -1363,10 +1847,10 @@ async function renderKeggPathwayMap(summary) {
                                 'width': 90,
                                 'height': 30,
                                 'color': '#ffffff',
-                                'font-size': '9.5px',
+                                'font-size': '10.5px',
                                 'text-valign': 'center',
                                 'text-halign': 'center',
-                                'font-weight': '700',
+                                'font-weight': '800',
                                 'text-wrap': 'ellipsis',
                                 'text-max-width': '84px',
                                 'font-family': 'ui-monospace, monospace'
@@ -1391,12 +1875,12 @@ async function renderKeggPathwayMap(summary) {
                                 'label': 'data(label)',
                                 'width': 14,
                                 'height': 14,
-                                'color': '#1e293b',
-                                'font-size': '8px',
+                                'color': '#0f172a',
+                                'font-size': '11px',
                                 'text-valign': 'bottom',
                                 'text-margin-y': 4,
                                 'text-halign': 'center',
-                                'font-weight': '600'
+                                'font-weight': '800'
                             }
                         },
                         {
@@ -1473,13 +1957,28 @@ async function renderKeggPathwayMap(summary) {
                             pathwayKeggCy.nodes('[type="reaction"]').forEach(node => {
                                 const rxnId = node.data('label');
                                 if (fwdLocked.has(rxnId)) {
-                                    node.style({ 'background-color': '#dcfce7', 'border-color': '#16a34a', 'border-width': '2.5px' });
+                                    node.style({
+                                        'background-color': '#dcfce7',
+                                        'border-color': '#16a34a',
+                                        'border-width': '2.5px',
+                                        'color': '#166534'
+                                    });
                                     node.data('thermo', 'fwd-locked');
                                 } else if (revLocked.has(rxnId)) {
-                                    node.style({ 'background-color': '#fee2e2', 'border-color': '#dc2626', 'border-width': '2.5px' });
+                                    node.style({
+                                        'background-color': '#fee2e2',
+                                        'border-color': '#dc2626',
+                                        'border-width': '2.5px',
+                                        'color': '#991b1b'
+                                    });
                                     node.data('thermo', 'rev-locked');
                                 } else if (confirmedFwd.has(rxnId) || confirmedRev.has(rxnId)) {
-                                    node.style({ 'background-color': '#fef9c3', 'border-color': '#d97706', 'border-width': '1.5px' });
+                                    node.style({
+                                        'background-color': '#fef9c3',
+                                        'border-color': '#d97706',
+                                        'border-width': '1.5px',
+                                        'color': '#854d0e'
+                                    });
                                     node.data('thermo', 'near-eq');
                                 }
                             });
@@ -1982,6 +2481,9 @@ function loadDefaultExampleNetwork() {
 }
 
 function setActiveWorkflowEntry(workflow) {
+    // Sync workflow to URL
+    _pushUrlState({ workflow, gene: workflow === 'gene' ? (currentQueryGene ? [].concat(currentQueryGene).join(',') : null) : null });
+
     document.querySelectorAll('.workflow-entry').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-workflow') === workflow);
     });
@@ -2099,8 +2601,32 @@ function setActiveWorkflowEntry(workflow) {
         }
     }
 
+    // Toggle Dynamic Simulation overlay
+    const simulationOverlay = document.getElementById('simulation-overlay');
+    if (simulationOverlay) {
+        if (workflow === 'simulation') {
+            simulationOverlay.classList.remove('hidden');
+            if (window.initSimulationDashboard) {
+                window.initSimulationDashboard();
+            }
+        } else {
+            simulationOverlay.classList.add('hidden');
+        }
+    }
+
+    // Toggle Hierarchy View overlay
+    const hierarchyOverlay = document.getElementById('hierarchy-overlay');
+    if (hierarchyOverlay) {
+        if (workflow === 'hierarchy') {
+            hierarchyOverlay.classList.remove('hidden');
+            initHierarchyView();
+        } else {
+            hierarchyOverlay.classList.add('hidden');
+        }
+    }
+
     // Toggle welcome overlay visibility based on fullscreen views
-    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway', 'imodulon', 'topology', 'engineering', 'ppi', 'advanced'];
+    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway', 'imodulon', 'topology', 'engineering', 'ppi', 'advanced', 'simulation', 'hierarchy'];
     const isFullscreen = fullscreenWorkflows.includes(workflow);
     
     if (canvasOverlay) {
@@ -2199,7 +2725,6 @@ function initWorkflowEntrypoints() {
             scrollLeftSidebarTo('.search-section');
             const input = geneInputsContainer?.querySelector('.gene-input');
             if (input) input.focus();
-            // loadDefaultExampleNetwork();
         });
     }
     if (pathwayEntry && !pathwayEntry.dataset.bound) {
@@ -2287,6 +2812,14 @@ function initWorkflowEntrypoints() {
         advancedEntry.dataset.bound = '1';
         advancedEntry.addEventListener('click', () => {
             setActiveWorkflowEntry('advanced');
+        });
+    }
+
+    const simulationEntry = document.getElementById('workflow-entry-simulation');
+    if (simulationEntry && !simulationEntry.dataset.bound) {
+        simulationEntry.dataset.bound = '1';
+        simulationEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('simulation');
         });
     }
 }
@@ -2885,6 +3418,15 @@ async function renderNetwork(locusTag) {
     pushQueryToHistory(nextQuery);
 
     currentQueryGene = nextQuery;
+    // Sync gene query to URL
+    _pushUrlState({ workflow: 'gene', gene: [].concat(nextQuery).join(',') });
+    // Track recently viewed
+    {
+        const _rvLocus = [].concat(nextQuery)[0] || '';
+        const _rvMap   = geneMapping ? geneMapping.find(r => (r.locus_tag || r.LocusTag || '').toLowerCase() === _rvLocus.toLowerCase()) : null;
+        const _rvName  = _rvMap ? (_rvMap.gene_name || _rvMap.GeneName || _rvLocus) : _rvLocus;
+        _trackRecentlyViewed(_rvLocus, _rvName);
+    }
 
 
 
@@ -4002,6 +4544,24 @@ function showNodeDetails(locusTag) {
         }
     }
 
+    // Update COG category info
+    const cogRow = document.getElementById('info-cog-row');
+    const infoCog = document.getElementById('info-cog');
+    if (cogRow && infoCog) {
+        let cogInfo = cogAnnotations[resolvedLower];
+        if (!cogInfo && cgl) {
+            cogInfo = cogAnnotations[cgl.toLowerCase()];
+        }
+        
+        if (cogInfo) {
+            cogRow.style.display = '';
+            infoCog.innerHTML = `<span style="font-weight:600; color: #4f46e5;"><i class="fa-solid fa-folder-open"></i> [${cogInfo.category}] ${cogInfo.description}</span>`;
+            infoCog.title = `eggNOG Orthologous Group: ${cogInfo.cog_id}`;
+        } else {
+            cogRow.style.display = 'none';
+        }
+    }
+
     const product = cgToProduct[lower];
 
     const productRow = document.getElementById('info-product-row');
@@ -4157,6 +4717,65 @@ function showNodeDetails(locusTag) {
                     pathwayContainer.appendChild(badge);
 
                 });
+
+                // Update external DB links with enriched data
+                const linksCell = document.getElementById('info-links');
+                if (linksCell && detailLocusTag.textContent === meta.locusTag) {
+                    const dbLinks = [];
+                    
+                    // 1. KEGG
+                    if (cglLocusForKegg.toLowerCase().startsWith('cgl')) {
+                        dbLinks.push(`<a href="https://www.kegg.jp/entry/cgl:${cglLocusForKegg}" target="_blank" class="ext-link" title="View metabolic pathway in KEGG"><i class="fa-solid fa-diagram-project"></i> KEGG</a>`);
+                    } else if (standardCgForLinks.toLowerCase().startsWith('cg')) {
+                        const predictedCgl = standardCgForLinks.replace('cg', 'cgl');
+                        dbLinks.push(`<a href="https://www.kegg.jp/entry/cgl:${predictedCgl}" target="_blank" class="ext-link" title="View metabolic pathway in KEGG"><i class="fa-solid fa-diagram-project"></i> KEGG</a>`);
+                    }
+                    
+                    // 2. UniProt direct or search
+                    if (data.uniprot_id) {
+                        dbLinks.push(`<a href="https://www.uniprot.org/uniprotkb/${data.uniprot_id}/entry" target="_blank" class="ext-link" style="border-color: #4f46e5; background: rgba(79, 70, 229, 0.05); color: #4338ca;" title="View direct protein entry ${data.uniprot_id} in UniProt"><i class="fa-solid fa-graduation-cap"></i> UniProt (${data.uniprot_id})</a>`);
+                        // 3. AlphaFold structure
+                        dbLinks.push(`<a href="https://alphafold.ebi.ac.uk/entry/${data.uniprot_id}" target="_blank" class="ext-link" style="border-color: #06b6d4; background: rgba(6, 182, 212, 0.05); color: #0891b2;" title="View 3D structure prediction in AlphaFold DB"><i class="fa-solid fa-cube"></i> AlphaFold</a>`);
+                    } else {
+                        dbLinks.push(`<a href="https://www.uniprot.org/uniprotkb?query=gene:${standardCgForLinks}" target="_blank" class="ext-link" title="View protein function in UniProt"><i class="fa-solid fa-graduation-cap"></i> UniProt</a>`);
+                    }
+                    
+                    // 4. NCBI
+                    if (standardCgForLinks.toLowerCase().startsWith('cg')) {
+                        dbLinks.push(`<a href="https://www.ncbi.nlm.nih.gov/gene/?term=${standardCgForLinks}" target="_blank" class="ext-link" title="View official annotation in NCBI Gene"><i class="fa-solid fa-dna"></i> NCBI</a>`);
+                        dbLinks.push(`<a href="https://biocyc.org/getid?id=CORYNE:${standardCgForLinks}" target="_blank" class="ext-link" title="View detailed pathway context in BioCyc / CoryneCyc"><i class="fa-solid fa-database"></i> BioCyc</a>`);
+                    } else {
+                        dbLinks.push(`<a href="https://www.ncbi.nlm.nih.gov/search/all/?term=${standardCgForLinks}" target="_blank" class="ext-link" title="Search in NCBI"><i class="fa-solid fa-magnifying-glass"></i> NCBI</a>`);
+                    }
+                    
+                    // 5. String DB
+                    dbLinks.push(`<a href="https://string-db.org/network/196627.${standardCgForLinks}" target="_blank" class="ext-link" title="Search String DB protein-protein interactions"><i class="fa-solid fa-circle-nodes"></i> String DB</a>`);
+                    
+                    // 6. eggNOG COG
+                    if (data.cog_id) {
+                        dbLinks.push(`<a href="https://www.ncbi.nlm.nih.gov/research/cog/#COG${data.cog_id.replace('COG','')}" target="_blank" class="ext-link" style="border-color: #10b981; background: rgba(16, 185, 129, 0.05); color: #047857;" title="View eggNOG/NCBI COG group ${data.cog_id}"><i class="fa-solid fa-folder-open"></i> COG ${data.cog_id}</a>`);
+                    }
+                    
+                    // 7. BRENDA EC numbers
+                    if (data.ec_numbers && data.ec_numbers.length > 0) {
+                        data.ec_numbers.forEach(ec => {
+                            dbLinks.push(`<a href="https://www.brenda-enzymes.org/enzyme.php?ecno=${ec}" target="_blank" class="ext-link" style="border-color: #f59e0b; background: rgba(245, 158, 11, 0.05); color: #d97706;" title="View enzyme kinetics in BRENDA for EC ${ec}"><i class="fa-solid fa-gears"></i> BRENDA (${ec})</a>`);
+                        });
+                    }
+                    
+                    // 8. CoryneRegNet & Abasy website
+                    dbLinks.push(`<a href="https://cosy.bio/coryneregnet" target="_blank" class="ext-link" title="Search CoryneRegNet regulatory network database"><i class="fa-solid fa-network-wired"></i> CoryneRegNet</a>`);
+                    dbLinks.push(`<a href="https://abasy.cc/" target="_blank" class="ext-link" title="Search Abasy regulatory database"><i class="fa-solid fa-globe"></i> Abasy DB</a>`);
+                    
+                    // 9. Literature
+                    const pubmedQuery = encodeURIComponent(`"Corynebacterium glutamicum" AND (${standardCgForLinks}${meta.name && meta.name !== '--' && meta.name !== standardCgForLinks ? ' OR ' + meta.name : ''})`);
+                    dbLinks.push(`<a href="https://pubmed.ncbi.nlm.nih.gov/?term=${pubmedQuery}" target="_blank" class="ext-link" title="Search related scientific literature in PubMed"><i class="fa-solid fa-book-open"></i> PubMed</a>`);
+                    
+                    const scholarQuery = encodeURIComponent(`"Corynebacterium glutamicum" "${standardCgForLinks}"${meta.name && meta.name !== '--' && meta.name !== standardCgForLinks ? ' OR "' + meta.name + '"' : ''}`);
+                    dbLinks.push(`<a href="https://scholar.google.com/scholar?q=${scholarQuery}" target="_blank" class="ext-link" title="Search related literature in Google Scholar"><i class="fa-solid fa-graduation-cap"></i> Scholar</a>`);
+                    
+                    linksCell.innerHTML = dbLinks.join('');
+                }
 
             })
 
@@ -4477,7 +5096,8 @@ function showNodeDetails(locusTag) {
                 regulationType: edge.regulationType,
                 confidenceScore: edge.confidenceScore,
                 confidenceLevel: edge.confidenceLevel,
-                source: sourceText
+                source: sourceText,
+                edgeObj: edge
             });
         }
 
@@ -4491,7 +5111,8 @@ function showNodeDetails(locusTag) {
                 regulationType: edge.regulationType,
                 confidenceScore: edge.confidenceScore,
                 confidenceLevel: edge.confidenceLevel,
-                source: sourceText
+                source: sourceText,
+                edgeObj: edge
             });
         }
     });
@@ -4588,7 +5209,16 @@ function showNodeDetails(locusTag) {
 
                 <td><span class="badge-role ${roleClass}">${roleText}</span></td>
 
-                <td class="text-energy">${rel.source}</td>
+                <td class="text-energy conf-cell">
+                    <details class="conf-details">
+                        <summary class="conf-summary">
+                            <span class="conf-badge conf-badge-${rel.confidenceLevel || 'low'}">${Math.round((rel.confidenceScore || 0) * 100)}%</span>
+                            <span class="conf-summary-label">${rel.confidenceLevel ? rel.confidenceLevel.toUpperCase() : 'LOW'}</span>
+                            <i class="fa-solid fa-chevron-down conf-chevron"></i>
+                        </summary>
+                        <div class="conf-panel">${rel.edgeObj ? renderConfidenceMethodCard(rel.edgeObj) : rel.source}</div>
+                    </details>
+                </td>
 
             `;
 
@@ -4762,11 +5392,14 @@ function showNodeDetails(locusTag) {
     toggleRightSidebar(true);
 
     // Initialize FBA simulation
+    const fbaTargetInput = document.getElementById('fba-target-search');
+    if (fbaTargetInput) {
+        fbaTargetInput.value = meta.locusTag;
+    }
     initFbaSimulation(meta.locusTag, meta.type);
 }
 
 async function initFbaSimulation(locusTag, nodeType) {
-    const fbaSection = document.getElementById('detail-fba-simulation-section');
     const fbaStatus = document.getElementById('fba-backend-status');
     const fbaBtn = document.getElementById('btn-run-fba-simulation');
     const fbaResult = document.getElementById('fba-result-container');
@@ -4791,10 +5424,7 @@ async function initFbaSimulation(locusTag, nodeType) {
     const trackedResultsBox = document.getElementById('fba-tracked-flux-results');
     const interpretationText = document.getElementById('fba-interpretation-text');
     
-    if (!fbaSection || !fbaStatus || !fbaBtn || !fbaResult || !fbaError) return;
-    
-    // Show section
-    fbaSection.style.display = 'block';
+    if (!fbaStatus || !fbaBtn || !fbaResult || !fbaError) return;
     
     // Clear previous results & errors
     fbaResult.classList.add('hidden');
@@ -4814,6 +5444,7 @@ async function initFbaSimulation(locusTag, nodeType) {
     }
     
     const equationsMap = new Map();
+    const detailsMap = new Map();
     
     const populateReactionsSelect = (selectElement, equationDiv, matches) => {
         selectElement.innerHTML = '';
@@ -4836,14 +5467,61 @@ async function initFbaSimulation(locusTag, nodeType) {
             opt.textContent = `[${m.reactionId}] ${m.name || 'Unnamed'}`;
             selectElement.appendChild(opt);
             equationsMap.set(m.reactionId, m.equation);
+            detailsMap.set(m.reactionId, {
+                databaseLinks: m.databaseLinks,
+                metaboliteLinks: m.metaboliteLinks
+            });
         });
         
         selectElement.onchange = () => {
             const rxnId = selectElement.value;
             if (rxnId && equationsMap.has(rxnId)) {
-                equationDiv.textContent = `Equation: ${equationsMap.get(rxnId)}`;
+                let html = `<div style="margin-bottom: 6px;"><strong>Equation:</strong> ${escapeHtml(equationsMap.get(rxnId))}</div>`;
+                
+                const details = detailsMap.get(rxnId);
+                if (details) {
+                    const dbLinks = details.databaseLinks;
+                    const metLinks = details.metaboliteLinks;
+                    
+                    let linksHtml = '';
+                    
+                    // Render Reaction registry links
+                    if (dbLinks) {
+                        if (dbLinks.rhea) {
+                            linksHtml += `<a href="https://www.rhea-db.org/rhea/${dbLinks.rhea}" target="_blank" style="display: inline-flex; align-items: center; background: #3b82f6; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; text-decoration: none; margin-right: 6px; margin-bottom: 4px;"><i class="fa-solid fa-link" style="margin-right: 3px;"></i> Rhea ${dbLinks.rhea}</a>`;
+                        }
+                        if (dbLinks.kegg) {
+                            linksHtml += `<a href="https://www.kegg.jp/entry/${dbLinks.kegg}" target="_blank" style="display: inline-flex; align-items: center; background: #10b981; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; text-decoration: none; margin-right: 6px; margin-bottom: 4px;"><i class="fa-solid fa-link" style="margin-right: 3px;"></i> KEGG ${dbLinks.kegg}</a>`;
+                        }
+                        if (dbLinks.biocyc) {
+                            const simpleId = dbLinks.biocyc.replace("META:", "");
+                            linksHtml += `<a href="https://biocyc.org/META/NEW-IMAGE?type=REACTION&object=${encodeURIComponent(dbLinks.biocyc)}" target="_blank" style="display: inline-flex; align-items: center; background: #f59e0b; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; text-decoration: none; margin-right: 6px; margin-bottom: 4px;"><i class="fa-solid fa-link" style="margin-right: 3px;"></i> BioCyc ${simpleId}</a>`;
+                        }
+                        if (dbLinks.ec) {
+                            linksHtml += `<span style="display: inline-flex; align-items: center; background: #6b7280; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-right: 6px; margin-bottom: 4px;">EC ${dbLinks.ec}</span>`;
+                        }
+                    }
+                    
+                    // Render Metabolite ChEBI links
+                    if (metLinks && Object.keys(metLinks).length > 0) {
+                        for (const metId in metLinks) {
+                            const info = metLinks[metId];
+                            if (info.chebi) {
+                                const chebiNum = info.chebi.replace("CHEBI:", "");
+                                const label = metId.replace("M_", "");
+                                linksHtml += `<a href="https://www.ebi.ac.uk/chebi/searchId.do?chebiId=${chebiNum}" target="_blank" style="display: inline-flex; align-items: center; background: #8b5cf6; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; text-decoration: none; margin-right: 6px; margin-bottom: 4px;" title="${escapeHtml(info.name || '')}"><i class="fa-solid fa-flask" style="margin-right: 3px;"></i> ${label} (${info.chebi})</a>`;
+                            }
+                        }
+                    }
+                    
+                    if (linksHtml) {
+                        html += `<div style="display: flex; flex-wrap: wrap; margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 6px;">${linksHtml}</div>`;
+                    }
+                }
+                
+                equationDiv.innerHTML = html;
             } else {
-                equationDiv.textContent = '';
+                equationDiv.innerHTML = '';
             }
         };
     };
@@ -7992,7 +8670,7 @@ function renderMetabolicImpact(data, detailLocus) {
             + '<div class="metabolic-source">Models: ' + escapeHtml((mapping.models || []).join(', ') || 'none') + (files ? ' - Files: ' + escapeHtml(files) : '') + '<br><span class="source-attribution-note" style="font-size: 10px; font-style: italic; opacity: 0.85; margin-top: 4px; display: inline-block;">Gene–reaction–pathway mappings are derived from local GEM model adapters. Enzyme annotations are parsed from ecCGL1-derived model fields.</span></div>';
     } else {
         const gene = genes.find(g => String(g.locus || '').toLowerCase() === String(detailLocus || '').toLowerCase()) || genes[0] || {};
-        const reactions = Array.from(new Map((gene.reactions || []).map(r => [String(r.model || 'model') + ':' + String(r.id), r])).values());
+        const reactions = Array.from(new Map((gene.reactions || []).map(r => [String(r.id || '').toUpperCase(), r])).values());
         if (reactions.length === 0 && pathways.length === 0) {
             container.innerHTML = metabolicEmptyMessage();
             return;
@@ -11553,69 +12231,220 @@ function varColorTextSecondary() {
 // 4. Advanced Computational and Visual Features
 // ==========================================================================
 
-// A. Target Regulon KEGG Enrichment
-function fetchRegulonPathwayEnrichment(tfLocus) {
-    const tbody = document.getElementById('enrichment-results-body');
-    if (!tbody) return;
+// ──────────────────────────────────────────────────────────────────────────
+// Target Gene Enrichment Analysis — KEGG Pathway + GO Terms
+// ──────────────────────────────────────────────────────────────────────────
 
-    tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0;"><i class="fa-solid fa-spinner fa-spin"></i> Calculating pathway enrichment...</td></tr>`;
+/** Global enrichment state */
+let _enrichState = {
+    tfLocus: '', keggData: null, goData: null, activeTab: 'kegg',
+    keggFiltered: [], goFiltered: []
+};
+
+/**
+ * Entry point called when a TF node is selected.
+ * Loads KEGG enrichment immediately; GO is deferred to tab switch.
+ */
+function renderEnrichmentPanel(tfLocus) {
+    _enrichState.tfLocus  = tfLocus;
+    _enrichState.keggData = null;
+    _enrichState.goData   = null;
+    _enrichState.activeTab = 'kegg';
+    _enrichState.keggFiltered = [];
+    _enrichState.goFiltered   = [];
+
+    const statsBadge = document.getElementById('enrichment-stats-badge');
+    if (statsBadge) statsBadge.textContent = '';
+    const keggBars = document.getElementById('enrich-kegg-bars');
+    const goBars   = document.getElementById('enrich-go-bars');
+    if (keggBars) keggBars.innerHTML = '';
+    if (goBars)   goBars.innerHTML   = '';
+    ['enrich-kegg-empty', 'enrich-go-empty'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+
+    _showEnrichLoading('kegg', true);
+    _showEnrichLoading('go', false);
+    switchEnrichTab('kegg');
 
     fetch(`/api/regulon_enrichment?tf=${encodeURIComponent(tfLocus)}`)
-        .then(res => {
-            if (!res.ok) throw new Error("API request failed");
-            return res.json();
-        })
+        .then(r => r.ok ? r.json() : Promise.reject(r))
         .then(data => {
-            if (data.error) {
-                tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0; color:var(--color-repression);">${data.error}</td></tr>`;
-                return;
-            }
-
-            const pathways = data.pathways || [];
-            if (pathways.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0;">This TF has no significantly enriched metabolic pathways among its targets</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = '';
-            pathways.slice(0, 10).forEach(p => { // limit to top 10
-                const tr = document.createElement('tr');
-                tr.style.borderBottom = '1px solid var(--border-color)';
-                
-                // Color significant ones (p < 0.05) with light green background
-                const isSig = p.p_value < 0.05;
-                if (isSig) {
-                    tr.style.backgroundColor = 'rgba(46, 125, 50, 0.04)';
-                }
-
-                // Format hit genes list for highlighting on KEGG map
-                // Mapping targets to KEGG cgb:cgXXXX format
-                const cgbTargetList = p.target_genes.map(g => `cgb:${g.locus.toLowerCase()}`).join('+');
-                const keggUrl = `https://www.kegg.jp/kegg-bin/show_pathway?${p.pathway_id}+${cgbTargetList}`;
-
-                const pValText = p.p_value < 0.001 ? p.p_value.toExponential(3) : p.p_value.toFixed(4);
-
-                tr.innerHTML = `
-                    <td style="padding:6px; text-align:left;">
-                        <a href="${keggUrl}" target="_blank" title="Open the KEGG pathway map in a new window and mark target genes" style="color:var(--color-primary-accent); text-decoration:none; font-weight:500;">
-                            ${p.pathway_name} <i class="fa-solid fa-arrow-up-right-from-square fa-xs" style="font-size:7px; opacity:0.7;"></i>
-                        </a>
-                        <div style="font-size:7.5px; color:var(--text-muted); margin-top:2px;">ID: ${p.pathway_id} | FE: ${p.fold_enrichment.toFixed(2)}x</div>
-                    </td>
-                    <td style="padding:6px; text-align:center; font-family:var(--font-mono); font-weight:600; color:var(--text-primary);">
-                        ${p.hits}/${p.total_genes}
-                    </td>
-                    <td style="padding:6px; text-align:right; font-family:var(--font-mono); font-weight:600; color:${isSig ? 'var(--color-activation)' : 'var(--text-secondary)'}; padding-right:10px;">
-                        ${pValText}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            _enrichState.keggData = data;
+            const badge = document.getElementById('enrichment-stats-badge');
+            if (badge) badge.textContent = `${data.regulon_size || 0} targets · ${data.annotated_regulon_size || 0} KEGG-annotated`;
+            _showEnrichLoading('kegg', false);
+            applyEnrichmentFilter();
         })
         .catch(err => {
-            console.error("Failed to load regulon pathway enrichment:", err);
-            tbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:12px 0; color:var(--color-repression);">Failed to calculate pathway enrichment</td></tr>`;
+            console.error('KEGG enrichment failed:', err);
+            _showEnrichLoading('kegg', false);
+            const el = document.getElementById('enrich-kegg-bars');
+            if (el) el.innerHTML = `<div style="text-align:center;padding:12px;font-size:10.5px;color:var(--color-repression);">Failed to load KEGG enrichment.</div>`;
         });
+}
+
+/** Backward-compat alias for legacy call sites */
+function fetchRegulonPathwayEnrichment(tfLocus) { renderEnrichmentPanel(tfLocus); }
+
+/** Switch between KEGG and GO tabs */
+function switchEnrichTab(tab) {
+    _enrichState.activeTab = tab;
+    ['kegg','go'].forEach(t => {
+        const btn  = document.getElementById(`enrich-tab-${t}`);
+        const pane = document.getElementById(`enrich-pane-${t}`);
+        if (btn)  { btn.classList.toggle('enrich-tab-active', t === tab); btn.setAttribute('aria-selected', t === tab); }
+        if (pane) pane.style.display = t === tab ? '' : 'none';
+    });
+    const nsSelect = document.getElementById('enrich-go-ns');
+    if (nsSelect) nsSelect.style.display = tab === 'go' ? '' : 'none';
+    if (tab === 'go' && !_enrichState.goData && _enrichState.tfLocus) _fetchGoEnrichment(_enrichState.tfLocus);
+    applyEnrichmentFilter();
+}
+
+/** Internal: fetch GO enrichment from backend */
+function _fetchGoEnrichment(tfLocus) {
+    _showEnrichLoading('go', true);
+    const emEl = document.getElementById('enrich-go-empty');
+    if (emEl) emEl.style.display = 'none';
+
+    fetch(`/api/go_enrichment?tf=${encodeURIComponent(tfLocus)}`)
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(data => {
+            _enrichState.goData = data;
+            _showEnrichLoading('go', false);
+            _renderGoNsPills(data.by_namespace || {});
+            applyEnrichmentFilter();
+        })
+        .catch(err => {
+            console.error('GO enrichment failed:', err);
+            _showEnrichLoading('go', false);
+            const el = document.getElementById('enrich-go-bars');
+            if (el) el.innerHTML = `<div style="text-align:center;padding:12px;font-size:10.5px;color:var(--color-repression);">Failed to load GO terms. UniProt requires network access.</div>`;
+        });
+}
+
+/** Render GO namespace summary pills */
+function _renderGoNsPills(byNs) {
+    const c = document.getElementById('enrich-go-ns-pills');
+    if (!c) return;
+    const clr = { biological_process:'#10b981', molecular_function:'#3b82f6', cellular_component:'#f59e0b', other:'#94a3b8' };
+    const lbl = { biological_process:'BP', molecular_function:'MF', cellular_component:'CC', other:'?' };
+    c.innerHTML = Object.entries(byNs).filter(([,a]) => a.length > 0).map(([ns,a]) =>
+        `<span style="padding:2px 7px;border-radius:8px;background:${clr[ns]}18;color:${clr[ns]};border:1px solid ${clr[ns]}33;font-size:9px;font-weight:700;">${lbl[ns]} ${a.length}</span>`
+    ).join('');
+}
+
+/** Apply current filter settings and re-render both panes */
+function applyEnrichmentFilter() {
+    const sigOnly = document.getElementById('enrich-sig-only')?.checked ?? true;
+    const nsVal   = document.getElementById('enrich-go-ns')?.value || 'all';
+    const tab     = _enrichState.activeTab;
+    const badge   = document.getElementById('enrich-count-badge');
+
+    if (tab === 'kegg') {
+        const rows = (_enrichState.keggData?.pathways || []).filter(p =>
+            !sigOnly || (p.fdr_bh !== undefined ? p.fdr_bh < 0.05 : p.p_value < 0.05));
+        _enrichState.keggFiltered = rows;
+        _renderEnrichBars(rows, 'enrich-kegg-bars', 'kegg', 'enrich-kegg-empty');
+        if (badge) badge.textContent = `${rows.length} pathway(s) shown`;
+    } else {
+        let rows = _enrichState.goData?.go_terms || [];
+        if (nsVal !== 'all') rows = (_enrichState.goData?.by_namespace?.[nsVal]) || [];
+        if (sigOnly) rows = rows.filter(g => g.fdr_bh < 0.05);
+        _enrichState.goFiltered = rows;
+        _renderEnrichBars(rows, 'enrich-go-bars', 'go', 'enrich-go-empty');
+        if (badge) badge.textContent = `${rows.length} GO term(s) shown`;
+    }
+}
+
+/**
+ * Render horizontal bar rows for enrichment results.
+ * Each row: name | fold-enrichment bar | hits | FDR
+ */
+function _renderEnrichBars(items, containerId, type, emptyId) {
+    const el = document.getElementById(containerId);
+    const em = document.getElementById(emptyId);
+    if (!el) return;
+    if (!items || items.length === 0) {
+        el.innerHTML = '';
+        const dataLoaded = type === 'kegg' ? _enrichState.keggData !== null : _enrichState.goData !== null;
+        if (em && dataLoaded) em.style.display = '';
+        return;
+    }
+    if (em) em.style.display = 'none';
+
+    const maxFe = Math.max(...items.map(r => r.fold_enrichment || 0), 1);
+    const nsClr = { 'GO Process':'#10b981','GO Function':'#3b82f6','GO Component':'#f59e0b','GO':'#94a3b8' };
+
+    el.innerHTML = items.slice(0, 30).map((r, i) => {
+        const fdr    = r.fdr_bh !== undefined ? r.fdr_bh : r.p_value;
+        const isSig  = fdr < 0.05;
+        const fdrTxt = fdr < 0.001 ? fdr.toExponential(2) : fdr.toFixed(4);
+        const pTxt   = r.p_value < 0.001 ? r.p_value.toExponential(2) : r.p_value.toFixed(4);
+        const fe     = r.fold_enrichment || 0;
+        const barW   = Math.round((fe / maxFe) * 100);
+        const color  = type === 'kegg' ? (isSig ? '#7c3aed' : '#c4b5fd') : (nsClr[r.go_type] || '#94a3b8');
+        const link   = type === 'kegg'
+            ? `https://www.kegg.jp/kegg-bin/show_pathway?${r.pathway_id}+${(r.target_genes||[]).map(g=>`cgb:${g.locus}`).join('+')}`
+            : (r.link || `https://www.ebi.ac.uk/QuickGO/term/${r.go_id}`);
+        const name   = type === 'kegg' ? (r.pathway_name || r.pathway_id) : (r.go_name || r.go_id);
+        const id     = type === 'kegg' ? r.pathway_id : r.go_id;
+        const hits   = type === 'kegg' ? `${r.hits}/${r.total_genes} genes` : `${r.hits}/${r.regulon_size} targets`;
+        const nsTag  = type === 'go'
+            ? `<span style="font-size:8px;padding:1px 4px;border-radius:4px;background:${color}18;color:${color};margin-left:4px;">${(r.go_type||'GO').replace('GO ','')}</span>`
+            : '';
+        const geneList = type === 'kegg' && r.target_genes?.length
+            ? `<details style="margin-top:3px;"><summary style="font-size:8.5px;color:#7c3aed;cursor:pointer;list-style:none;">${r.target_genes.length} target gene(s) ▾</summary><div style="font-size:8px;color:var(--text-muted);font-family:var(--font-mono);line-height:1.6;padding-top:2px;">${r.target_genes.map(g=>g.name||g.locus).join(', ')}</div></details>`
+            : type === 'go' && r.genes_hit?.length
+            ? `<details style="margin-top:3px;"><summary style="font-size:8.5px;color:${color};cursor:pointer;list-style:none;">${r.genes_hit.length} gene(s) ▾</summary><div style="font-size:8px;color:var(--text-muted);font-family:var(--font-mono);line-height:1.6;padding-top:2px;">${r.genes_hit.join(', ')}</div></details>`
+            : '';
+        const dispName = name.length > 42 ? name.slice(0, 42) + '…' : name;
+
+        return `<div class="enrich-bar-row${isSig?' enrich-bar-sig':''}">
+            <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:3px;">
+                <a href="${link}" target="_blank" style="font-size:10px;font-weight:${isSig?700:500};color:${isSig?'var(--text-primary)':'var(--text-secondary)'};text-decoration:none;flex:1;line-height:1.3;" title="${name}">${dispName}${nsTag}</a>
+                <span style="font-size:8.5px;color:${isSig?color:'var(--text-muted)'};white-space:nowrap;font-weight:700;">${fe.toFixed(1)}x</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="height:100%;width:${barW}%;background:${color};border-radius:3px;transition:width 0.4s;"></div></div>
+                <span style="font-size:8.5px;color:var(--text-muted);white-space:nowrap;">${hits}</span>
+                <span style="font-size:8.5px;color:${isSig?'#10b981':'var(--text-muted)'};white-space:nowrap;min-width:52px;text-align:right;" title="raw p=${pTxt}">FDR=${fdrTxt}</span>
+            </div>
+            <div style="font-size:7.5px;color:var(--text-muted);margin-top:1px;">${id}</div>
+            ${geneList}
+        </div>`;
+    }).join('');
+}
+
+function _showEnrichLoading(pane, show) {
+    const el = document.getElementById(`enrich-${pane}-loading`);
+    if (el) el.style.display = show ? '' : 'none';
+}
+
+/** Export current tab results as CSV */
+function exportEnrichmentCsv() {
+    const tab = _enrichState.activeTab;
+    const tf  = _enrichState.tfLocus || 'unknown';
+    let header = '', rows = [];
+
+    if (tab === 'kegg') {
+        const data = _enrichState.keggFiltered.length ? _enrichState.keggFiltered : (_enrichState.keggData?.pathways || []);
+        header = 'TF,Pathway_ID,Pathway_Name,Hits,Total_Pathway_Genes,Fold_Enrichment,p_value,FDR_BH,Target_Genes\n';
+        rows = data.map(r => [tf, r.pathway_id, `"${r.pathway_name}"`, r.hits, r.total_genes,
+            r.fold_enrichment.toFixed(4), r.p_value, r.fdr_bh ?? '',
+            `"${(r.target_genes||[]).map(g=>g.locus).join(';')}"`].join(','));
+    } else {
+        const data = _enrichState.goFiltered.length ? _enrichState.goFiltered : (_enrichState.goData?.go_terms || []);
+        header = 'TF,GO_ID,GO_Name,GO_Namespace,Hits,Regulon_Size,Fold_Enrichment,p_value,FDR_BH,Genes_Hit\n';
+        rows = data.map(r => [tf, r.go_id, `"${r.go_name}"`, r.go_type, r.hits, r.regulon_size,
+            r.fold_enrichment.toFixed(4), r.p_value, r.fdr_bh ?? '',
+            `"${(r.genes_hit||[]).join(';')}"`].join(','));
+    }
+
+    const blob = new Blob([header + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: `${tf}_${tab}_enrichment.csv` });
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 // B. Client-side Promoter Motif Scanner
@@ -12741,6 +13570,127 @@ function exportNetworkPNG() {
 
 
 // ==========================================
+
+// ==========================================================================
+// Bulk Export Functions — CSV downloads for all result panels
+// ==========================================================================
+
+/** Generic helper: trigger a UTF-8 BOM CSV download */
+function _csvDownload(csv, filename) {
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+/** Extract text rows from a <tbody> element */
+function _tbodyToRows(tbodyId) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return [];
+    return Array.from(tbody.querySelectorAll('tr')).map(tr =>
+        Array.from(tr.querySelectorAll('td')).map(td =>
+            (td.dataset.value ?? td.textContent ?? '').trim().replace(/\n+/g, ' ').replace(/,/g, ';')
+        )
+    ).filter(row => row.length > 0 && row.join('').trim() !== '');
+}
+
+// ── 1. Global Metabolic Impact Ranking ───────────────────────────────────────
+function exportGlobalMetabolicCsv() {
+    const header = 'Rank,TF,Score,Targets,Mapped,Reactions,Pathways,Key_Pathways\n';
+    const rows   = _tbodyToRows('global-metabolic-impact-tbody');
+    if (!rows.length) { showToast('Export', 'No ranking data loaded yet.', 'warning', 3000); return; }
+    _csvDownload(header + rows.map(r => r.join(',')).join('\n'), 'cgl_global_metabolic_ranking.csv');
+    showToast('Export', rows.length + ' TFs exported.', 'success', 2500);
+}
+
+// ── 2. Engineering Targets Sidebar ───────────────────────────────────────────
+function exportEngineeringSidebarCsv() {
+    const header = 'Rank,TF,Score,Level,Mapped_Genes,Reactions,Pathways,Key_Pathways,Regulation\n';
+    const rows   = _tbodyToRows('engineering-target-tbody');
+    if (!rows.length) { showToast('Export', 'No engineering target data loaded yet.', 'warning', 3000); return; }
+    _csvDownload(header + rows.map(r => r.join(',')).join('\n'), 'cgl_engineering_targets.csv');
+    showToast('Export', rows.length + ' engineering targets exported.', 'success', 2500);
+}
+
+// ── 3. Engineering Candidates Full-screen Dashboard ───────────────────────────
+function exportEngineeringDashboardCsv() {
+    const ranks = window.globalEngineeringRanks || window.engineeringCandidates || null;
+    if (ranks && ranks.length) {
+        const header = 'Rank,TF,Locus,Score,Priority,Regulon_Size,Mapped_Genes,Reactions,Pathways,Key_Pathways,Pleiotropic_Risk\n';
+        const rows = ranks.map(function(r, i) {
+            const kp = (r.keyPathways || r.key_pathways || []).join('; ');
+            return [
+                i + 1,
+                r.tfName || r.tf_name || r.name || '',
+                r.locusTag || r.locus_tag || '',
+                r.score !== undefined ? r.score : (r.priorityScore || ''),
+                r.level || r.priority || '',
+                r.regulonSize || r.regulon_size || '',
+                r.mappedGenes !== undefined ? r.mappedGenes : (r.mapped_genes || ''),
+                r.reactions || '',
+                r.pathways || '',
+                '"' + kp + '"',
+                r.pleiotropicRisk || r.pleio_risk || ''
+            ].join(',');
+        });
+        _csvDownload(header + rows.join('\n'), 'cgl_engineering_dashboard.csv');
+        showToast('Export', rows.length + ' candidates exported.', 'success', 2500);
+    } else {
+        const header = 'Rank,TF,Score,Level,Details\n';
+        const rows   = _tbodyToRows('engineering-target-tbody');
+        if (!rows.length) { showToast('Export', 'No dashboard data loaded yet.', 'warning', 3000); return; }
+        _csvDownload(header + rows.map(r => r.join(',')).join('\n'), 'cgl_engineering_dashboard.csv');
+        showToast('Export', rows.length + ' candidates exported.', 'success', 2500);
+    }
+}
+
+// ── 4. Topology: Centrality Table ─────────────────────────────────────────────
+function exportTopoCentralityCsv() {
+    const header = 'Rank,TF,Regulon_Size,Betweenness,PageRank,Hub_Score,Activation_Pct,Importance\n';
+    const rows   = _tbodyToRows('topo-centrality-tbody');
+    if (!rows.length) { showToast('Export', 'No centrality data. Click Reload first.', 'warning', 3000); return; }
+    _csvDownload(header + rows.map(r => r.slice(0, 8).join(',')).join('\n'), 'cgl_topology_centrality.csv');
+    showToast('Export', rows.length + ' TFs exported.', 'success', 2500);
+}
+
+// ── 5. Topology: Feed-Forward Loops ──────────────────────────────────────────
+function exportTopoFflCsv() {
+    const list = document.getElementById('topo-ffl-list');
+    if (!list) return;
+    const allText = (list.innerText || list.textContent || '').trim();
+    if (!allText || allText.length < 5) {
+        showToast('Export', 'No FFL data loaded. Run Compute Analysis first.', 'warning', 3000);
+        return;
+    }
+    const lines = allText.split('\n').map(l => l.trim()).filter(l => l && l.length > 2);
+    const escaped = lines.map(l => '"' + l.replace(/"/g, "'") + '"');
+    _csvDownload('FFL_Description\n' + escaped.join('\n'), 'cgl_topology_ffl.csv');
+    showToast('Export', lines.length + ' FFL motifs exported.', 'success', 2500);
+}
+
+// ── 6. Topology: Autoregulation Table ────────────────────────────────────────
+function exportTopoAutoregCsv() {
+    const header = 'TF,Self_Regulation,Evidence,Out_Degree\n';
+    const rows   = _tbodyToRows('topo-auto-tbody');
+    if (!rows.length) {
+        showToast('Export', 'No autoregulation data. Run Compute Analysis first.', 'warning', 3000);
+        return;
+    }
+    _csvDownload(header + rows.map(r => r.slice(0, 4).join(',')).join('\n'), 'cgl_topology_autoregulation.csv');
+    showToast('Export', rows.length + ' autoregulations exported.', 'success', 2500);
+}
+
+// ── 7. iModulon Pathway Enrichment Table ─────────────────────────────────────
+function exportImodulonPathwayCsv() {
+    const header = 'KEGG_Pathway,Fold_Enrichment,P_value\n';
+    const rows   = _tbodyToRows('imodulon-pathway-tbody');
+    if (!rows.length) { showToast('Export', 'No iModulon pathway data loaded.', 'warning', 3000); return; }
+    const imodName = (document.getElementById('imodulon-detail-title')?.textContent || 'imodulon').trim();
+    const safe = imodName.replace(/[^a-z0-9_-]/gi, '_');
+    _csvDownload(header + rows.map(r => r.slice(0, 3).join(',')).join('\n'), 'cgl_imodulon_' + safe + '_pathways.csv');
+    showToast('Export', rows.length + ' pathways exported.', 'success', 2500);
+}
 // iModulon Explorer Dashboard Orchestrator
 // ==========================================
 let imodulonsMetadata = null;
@@ -14418,10 +15368,10 @@ async function simulateEngineeringTF(tfId) {
                     thermoConf.innerHTML = '<span style="color:var(--text-muted);font-size:10px;">No thermodynamic data available for this TF.</span>';
                     return;
                 }
-                const lvl = ctx.thermo_support_level;
-                const conf = ctx.ko_thermo_confidence;
-                const n = ctx.n_locked;
-                const tot = ctx.total_reactions;
+                const lvl = ctx.thermo_support_level || 'none';
+                const conf = ctx.ko_thermo_confidence || 0;
+                const n = ctx.n_locked || 0;
+                const tot = ctx.total_reactions || 0;
                 const confPct = Math.round(conf * 100);
                 const lvlConfig = {
                     'strong':   { color: '#16a34a', bg: 'rgba(22,163,74,0.08)',  label: '🔒 Strong' },
@@ -16307,5 +17257,1140 @@ if (!_origDetailPanel) {
         }
         return lower;
     }
+
+    // ── Start Dynamic Simulation Tab Logic ──────────────────────────────────────
+    let simTFPerturbations = {};
+    let biomassChart = null;
+    let metaboliteChart = null;
+    let fluxChart = null;
+    let currentSimulationData = null;
+
+    window.initSimulationDashboard = function() {
+        const overlay = document.getElementById('simulation-overlay');
+        if (!overlay || overlay.dataset.initialized) return;
+        overlay.dataset.initialized = '1';
+        const simMode = document.getElementById('sim-mode');
+        const simGlucose = document.getElementById('sim-glucose');
+        const simBiomass = document.getElementById('sim-biomass');
+        const simTime = document.getElementById('sim-time');
+        const simPool = document.getElementById('sim-pool');
+        const simTemp = document.getElementById('sim-temp');
+        
+        const simGlucoseVal = document.getElementById('sim-glucose-val');
+        const simBiomassVal = document.getElementById('sim-biomass-val');
+        const simTimeVal = document.getElementById('sim-time-val');
+        const simPoolVal = document.getElementById('sim-pool-val');
+        const simTempVal = document.getElementById('sim-temp-val');
+        
+        const simEcParams = document.getElementById('sim-ec-params');
+        
+        const tfSearchInput = document.getElementById('sim-tf-search');
+        const tfAutocomplete = document.getElementById('sim-tf-autocomplete');
+        const btnAddTf = document.getElementById('btn-sim-add-tf');
+        const tfListContainer = document.getElementById('sim-tf-list');
+        const btnRunSim = document.getElementById('btn-run-simulation');
+
+        // Tab switching
+        const btnTabDynamic = document.getElementById('btn-sim-tab-dynamic');
+        const btnTabStatic = document.getElementById('btn-sim-tab-static');
+        const dynamicWorkspace = document.getElementById('sim-dynamic-workspace');
+        const staticWorkspace = document.getElementById('sim-static-workspace');
+
+        if (btnTabDynamic && btnTabStatic && dynamicWorkspace && staticWorkspace) {
+            btnTabDynamic.onclick = () => {
+                btnTabDynamic.classList.add('active');
+                btnTabDynamic.style.color = 'var(--color-primary-accent)';
+                btnTabDynamic.style.borderBottom = '3px solid var(--color-primary-accent)';
+                
+                btnTabStatic.classList.remove('active');
+                btnTabStatic.style.color = 'var(--text-secondary)';
+                btnTabStatic.style.borderBottom = '3px solid transparent';
+                
+                dynamicWorkspace.classList.remove('hidden');
+                staticWorkspace.classList.add('hidden');
+            };
+            
+            btnTabStatic.onclick = () => {
+                btnTabStatic.classList.add('active');
+                btnTabStatic.style.color = 'var(--color-primary-accent)';
+                btnTabStatic.style.borderBottom = '3px solid var(--color-primary-accent)';
+                
+                btnTabDynamic.classList.remove('active');
+                btnTabDynamic.style.color = 'var(--text-secondary)';
+                btnTabDynamic.style.borderBottom = '3px solid transparent';
+                
+                staticWorkspace.classList.remove('hidden');
+                dynamicWorkspace.classList.add('hidden');
+                
+                // Pre-populate if currentQueryGene is active and search input is empty
+                const fbaTargetInput = document.getElementById('fba-target-search');
+                if (fbaTargetInput && !fbaTargetInput.value && currentQueryGene) {
+                    fbaTargetInput.value = currentQueryGene;
+                    // Find node type
+                    let nodeType = 'gene';
+                    const lowerGene = currentQueryGene.toLowerCase();
+                    if (geneIndex[lowerGene] && geneIndex[lowerGene].type === 'TF') {
+                        nodeType = 'TF';
+                    }
+                    initFbaSimulation(currentQueryGene, nodeType);
+                }
+            };
+        }
+
+        // FBA Target Autocomplete
+        const fbaTargetInput = document.getElementById('fba-target-search');
+        const fbaTargetAutocomplete = document.getElementById('fba-target-autocomplete');
+        if (fbaTargetInput && fbaTargetAutocomplete) {
+            fbaTargetInput.addEventListener('input', () => {
+                const query = fbaTargetInput.value.trim().toLowerCase();
+                if (!query) {
+                    fbaTargetAutocomplete.classList.add('hidden');
+                    return;
+                }
+                const candidates = [];
+                for (const name in nameToCg) {
+                    if (name.includes(query)) {
+                        candidates.push({ name: name, cg: nameToCg[name], display: `${name} (${nameToCg[name]})` });
+                    }
+                }
+                for (const cg in cgToCgl) {
+                    const cgl = cgToCgl[cg];
+                    if (cg.includes(query) || cgl.toLowerCase().includes(query)) {
+                        candidates.push({ name: cgl, cg: cg, display: `${cgl} (${cg})` });
+                    }
+                }
+                // Unique check
+                const seen = new Set();
+                const uniqueCandidates = [];
+                candidates.forEach(c => {
+                    const key = c.cg.toLowerCase();
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniqueCandidates.push(c);
+                    }
+                });
+                
+                if (uniqueCandidates.length === 0) {
+                    fbaTargetAutocomplete.classList.add('hidden');
+                    return;
+                }
+                
+                fbaTargetAutocomplete.innerHTML = '';
+                fbaTargetAutocomplete.classList.remove('hidden');
+                
+                uniqueCandidates.slice(0, 10).forEach(c => {
+                    const div = document.createElement('div');
+                    div.style.padding = '8px 12px';
+                    div.style.cursor = 'pointer';
+                    div.style.fontSize = '12px';
+                    div.style.borderBottom = '1px solid rgba(0,0,0,0.02)';
+                    div.textContent = c.display;
+                    div.addEventListener('mouseover', () => {
+                        div.style.background = 'rgba(15, 23, 42, 0.04)';
+                    });
+                    div.addEventListener('mouseout', () => {
+                        div.style.background = 'transparent';
+                    });
+                    div.addEventListener('click', () => {
+                        fbaTargetInput.value = c.name;
+                        fbaTargetAutocomplete.classList.add('hidden');
+                        
+                        // Find node type
+                        let nodeType = 'gene';
+                        const lowerGene = c.name.toLowerCase();
+                        if (geneIndex[lowerGene] && geneIndex[lowerGene].type === 'TF') {
+                            nodeType = 'TF';
+                        } else if (geneIndex[c.cg.toLowerCase()] && geneIndex[c.cg.toLowerCase()].type === 'TF') {
+                            nodeType = 'TF';
+                        }
+                        
+                        initFbaSimulation(c.name, nodeType);
+                    });
+                    fbaTargetAutocomplete.appendChild(div);
+                });
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!fbaTargetInput.contains(e.target) && !fbaTargetAutocomplete.contains(e.target)) {
+                    fbaTargetAutocomplete.classList.add('hidden');
+                }
+            });
+        }
+
+        // Initial setup
+        if (simMode) {
+            simMode.addEventListener('change', () => {
+                if (simMode.value === 'recfba') {
+                    simEcParams.classList.remove('hidden');
+                } else {
+                    simEcParams.classList.add('hidden');
+                }
+            });
+            // trigger change
+            simMode.dispatchEvent(new Event('change'));
+        }
+
+        // Slider value bindings
+        const bindSlider = (slider, valSpan, decimals = 0) => {
+            if (slider && valSpan) {
+                slider.addEventListener('input', () => {
+                    const val = Number(slider.value);
+                    valSpan.textContent = decimals > 0 ? val.toFixed(decimals) : val;
+                });
+            }
+        };
+        bindSlider(simGlucose, simGlucoseVal, 1);
+        bindSlider(simBiomass, simBiomassVal, 2);
+        bindSlider(simTime, simTimeVal, 0);
+        bindSlider(simPool, simPoolVal, 3);
+        bindSlider(simTemp, simTempVal, 1);
+
+        // Autocomplete
+        if (tfSearchInput && tfAutocomplete) {
+            tfSearchInput.addEventListener('input', () => {
+                const query = tfSearchInput.value.trim().toLowerCase();
+                if (!query) {
+                    tfAutocomplete.classList.add('hidden');
+                    return;
+                }
+
+                // Gather all candidate names
+                const candidates = [];
+                // 1. Search nameToCg
+                for (const name in nameToCg) {
+                    if (name.includes(query)) {
+                        candidates.push({ name: name, cg: nameToCg[name] });
+                    }
+                }
+                // 2. Search cgToCgl
+                for (const cg in cgToCgl) {
+                    if (cg.includes(query)) {
+                        candidates.push({ name: cgToCgl[cg], cg: cg });
+                    }
+                }
+
+                // Deduplicate and filter
+                const seen = new Set();
+                const unique = [];
+                for (const c of candidates) {
+                    const key = c.cg.toLowerCase();
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        unique.push(c);
+                    }
+                    if (unique.length >= 8) break;
+                }
+
+                if (unique.length === 0) {
+                    tfAutocomplete.classList.add('hidden');
+                    return;
+                }
+
+                tfAutocomplete.innerHTML = '';
+                unique.forEach(u => {
+                    const row = document.createElement('div');
+                    row.style.padding = '8px 12px';
+                    row.style.cursor = 'pointer';
+                    row.style.borderBottom = '1px solid var(--border-color)';
+                    row.style.fontSize = '11.5px';
+                    row.innerHTML = `<strong style="color:var(--text-primary);">${u.name.toUpperCase()}</strong> <span style="color:var(--text-secondary); margin-left:6px;">(${u.cg.toUpperCase()})</span>`;
+                    
+                    row.addEventListener('click', () => {
+                        tfSearchInput.value = u.name.toUpperCase();
+                        tfAutocomplete.classList.add('hidden');
+                    });
+                    tfAutocomplete.appendChild(row);
+                });
+                tfAutocomplete.classList.remove('hidden');
+            });
+
+            // Close autocomplete when clicking outside
+            document.addEventListener('click', (e) => {
+                if (e.target !== tfSearchInput && e.target !== tfAutocomplete) {
+                    tfAutocomplete.classList.add('hidden');
+                }
+            });
+        }
+
+        // Add TF to list
+        const updateTFListUI = () => {
+            if (!tfListContainer) return;
+            tfListContainer.innerHTML = '';
+            const keys = Object.keys(simTFPerturbations);
+            if (keys.length === 0) {
+                tfListContainer.innerHTML = `<div class="empty-tf-state" style="font-size:11px; color:var(--text-secondary); text-align:center; padding-top:20px;">No TF perturbations configured. Running Wild Type dynamics.</div>`;
+                return;
+            }
+
+            keys.forEach(k => {
+                const row = document.createElement('div');
+                row.className = 'sim-tf-row';
+                
+                const modeVal = simTFPerturbations[k];
+                row.innerHTML = `
+                    <span class="sim-tf-name">${k.toUpperCase()}</span>
+                    <div class="sim-tf-control">
+                        <select class="sim-tf-select" data-tf="${k}">
+                            <option value="knockout" ${modeVal === 'knockout' ? 'selected' : ''}>Knockout</option>
+                            <option value="overexpress" ${modeVal === 'overexpress' ? 'selected' : ''}>Overexpress</option>
+                            <option value="normal" ${modeVal === 'normal' ? 'selected' : ''}>Wild Type</option>
+                        </select>
+                        <button class="sim-tf-remove" data-tf="${k}" title="Remove"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                `;
+
+                // Bind change
+                row.querySelector('.sim-tf-select').addEventListener('change', (e) => {
+                    simTFPerturbations[k] = e.target.value;
+                });
+
+                // Bind remove
+                row.querySelector('.sim-tf-remove').addEventListener('click', () => {
+                    delete simTFPerturbations[k];
+                    updateTFListUI();
+                });
+
+                tfListContainer.appendChild(row);
+            });
+        };
+
+        if (btnAddTf && tfSearchInput) {
+            // Unbind any previous listener first by cloning
+            const newBtn = btnAddTf.cloneNode(true);
+            btnAddTf.parentNode.replaceChild(newBtn, btnAddTf);
+
+            newBtn.addEventListener('click', () => {
+                const name = tfSearchInput.value.trim().toLowerCase();
+                if (!name) return;
+                
+                // Resolve name
+                let resolved = name;
+                if (nameToCg[name]) {
+                    resolved = name;
+                } else if (cglToCg[name]) {
+                    resolved = cglToCg[name].toLowerCase();
+                    for (const [key, val] of Object.entries(nameToCg)) {
+                        if (val.toLowerCase() === resolved) {
+                            resolved = key;
+                            break;
+                        }
+                    }
+                }
+
+                simTFPerturbations[resolved] = 'knockout';
+                tfSearchInput.value = '';
+                updateTFListUI();
+            });
+        }
+
+        // Run Simulation
+        if (btnRunSim) {
+            // Clone to reset listeners
+            const newBtnRun = btnRunSim.cloneNode(true);
+            btnRunSim.parentNode.replaceChild(newBtnRun, btnRunSim);
+
+            newBtnRun.addEventListener('click', async () => {
+                const btnText = newBtnRun.innerHTML;
+                newBtnRun.disabled = true;
+                newBtnRun.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Running simulation...`;
+                
+                const statusKPI = document.getElementById('kpi-sim-status');
+                if (statusKPI) {
+                    statusKPI.textContent = 'Solving...';
+                    statusKPI.style.color = '#d97706';
+                }
+
+                try {
+                    const mode = simMode.value;
+                    const initGlucose = Number(simGlucose.value);
+                    const initBiomass = Number(simBiomass.value);
+                    const timeSteps = Number(simTime.value);
+
+                    let res;
+                    if (mode === 'recfba') {
+                        const poolLimit = Number(simPool.value);
+                        const temperature = Number(simTemp.value);
+                        res = await window.simulationClient.runDynamicRECFBA(
+                            simTFPerturbations,
+                            poolLimit,
+                            temperature,
+                            initGlucose,
+                            initBiomass,
+                            timeSteps
+                        );
+                    } else {
+                        res = await window.simulationClient.runDynamicRFBA(
+                            simTFPerturbations,
+                            initGlucose,
+                            initBiomass,
+                            timeSteps
+                        );
+                    }
+
+                    if (res.status === 'success') {
+                        if (statusKPI) {
+                            statusKPI.textContent = 'Success';
+                            statusKPI.style.color = '#16a34a';
+                        }
+                        
+                        // Update KPIs
+                        const peakB = Math.max(...res.biomass_concentration);
+                        const kpiB = document.getElementById('kpi-peak-biomass');
+                        if (kpiB) kpiB.textContent = `${peakB.toFixed(3)} g/L`;
+
+                        // Find glucose depletion index
+                        let depletionTime = 'None';
+                        for (let i = 0; i < res.glucose_concentration.length; i++) {
+                            if (res.glucose_concentration[i] <= 1e-3) {
+                                depletionTime = `${res.time[i].toFixed(1)} h`;
+                                break;
+                            }
+                        }
+                        const kpiG = document.getElementById('kpi-glucose-depletion');
+                        if (kpiG) kpiG.textContent = depletionTime;
+
+                        const peakGlu = Math.max(...res.glutamate_export);
+                        const kpiGlu = document.getElementById('kpi-peak-glutamate');
+                        if (kpiGlu) kpiGlu.textContent = `${peakGlu.toFixed(3)} mmol/gDW/h`;
+
+                        // Update Warnings Box
+                        const warnBox = document.getElementById('sim-warnings-box');
+                        const warnList = document.getElementById('sim-warnings-list');
+                        if (warnBox && warnList) {
+                            if (res.warnings && res.warnings.length > 0) {
+                                warnList.innerHTML = res.warnings.map(w => `<div>• ${w}</div>`).join('');
+                                warnBox.classList.remove('hidden');
+                            } else {
+                                warnBox.classList.add('hidden');
+                            }
+                        }
+
+                        // Update Charts
+                        currentSimulationData = res;
+                        renderSimulationCharts(res);
+
+                    } else {
+                        throw new Error(res.warnings?.join('; ') || 'Unknown solver error.');
+                    }
+
+                } catch (err) {
+                    console.error('[Simulation Controller] Error:', err);
+                    if (statusKPI) {
+                        statusKPI.textContent = 'Failed';
+                        statusKPI.style.color = '#ef4444';
+                    }
+                    alert(`Simulation failed: ${err.message}`);
+                } finally {
+                    newBtnRun.disabled = false;
+                    newBtnRun.innerHTML = btnText;
+                }
+            });
+        }
+
+        const fluxSelect = document.getElementById('sim-flux-pathway-select');
+        if (fluxSelect) {
+            // Clone and replace to avoid duplicate event listeners
+            const newFluxSelect = fluxSelect.cloneNode(true);
+            fluxSelect.parentNode.replaceChild(newFluxSelect, fluxSelect);
+            newFluxSelect.addEventListener('change', () => {
+                if (currentSimulationData) {
+                    renderPathwayFluxChart(currentSimulationData);
+                }
+            });
+        }
+    };
+
+    function renderSimulationCharts(data) {
+        const ctxBiomass = document.getElementById('sim-biomass-chart');
+        const ctxMetabolite = document.getElementById('sim-metabolite-chart');
+
+        if (!ctxBiomass || !ctxMetabolite) return;
+
+        // Destroy previous charts
+        if (biomassChart) biomassChart.destroy();
+        if (metaboliteChart) metaboliteChart.destroy();
+
+        // 1. Biomass & Growth Chart
+        biomassChart = new Chart(ctxBiomass, {
+            type: 'line',
+            data: {
+                labels: data.time.map(t => `${t.toFixed(1)}h`),
+                datasets: [
+                    {
+                        label: 'Biomass (gDW/L)',
+                        data: data.biomass_concentration,
+                        borderColor: '#0f766e',
+                        backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                        yAxisID: 'y',
+                        tension: 0.1,
+                        fill: true
+                    },
+                    {
+                        label: 'Growth Rate (1/h)',
+                        data: data.growth_rate,
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'transparent',
+                        yAxisID: 'y1',
+                        tension: 0.1,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Biomass (gDW/L)', color: '#0f766e' },
+                        grid: { drawOnChartArea: true }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Growth Rate (1/h)', color: '#06b6d4' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // 2. Glucose & Glutamate Chart
+        metaboliteChart = new Chart(ctxMetabolite, {
+            type: 'line',
+            data: {
+                labels: data.time.map(t => `${t.toFixed(1)}h`),
+                datasets: [
+                    {
+                        label: 'Glucose (mM)',
+                        data: data.glucose_concentration,
+                        borderColor: '#ea580c',
+                        backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                        yAxisID: 'y',
+                        tension: 0.1,
+                        fill: true
+                    },
+                    {
+                        label: 'Glutamate Export (mmol/gDW/h)',
+                        data: data.glutamate_export,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'transparent',
+                        yAxisID: 'y1',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Glucose (mM)', color: '#ea580c' },
+                        grid: { drawOnChartArea: true }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Glutamate Export (mmol/gDW/h)', color: '#2563eb' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // 3. Render Pathway Flux Chart
+        renderPathwayFluxChart(data);
+    }
+
+    function renderPathwayFluxChart(data) {
+        const ctxFlux = document.getElementById('sim-flux-chart');
+        if (!ctxFlux) return;
+
+        // Destroy previous chart
+        if (fluxChart) fluxChart.destroy();
+
+        if (!data || !data.tracked_fluxes) return;
+
+        const pathwayType = document.getElementById('sim-flux-pathway-select')?.value || 'core';
+        const labels = data.time.map(t => `${t.toFixed(1)}h`);
+
+        let datasets = [];
+
+        // Define color palette for lines
+        const colors = {
+            "PGI": { border: "#0ea5e9", bg: "rgba(14, 165, 233, 0.1)" },
+            "GAPD": { border: "#6366f1", bg: "rgba(99, 102, 241, 0.1)" },
+            "PYK": { border: "#a855f7", bg: "rgba(168, 85, 247, 0.1)" },
+            "CS": { border: "#10b981", bg: "rgba(16, 185, 129, 0.1)" },
+            "ICDH": { border: "#14b8a6", bg: "rgba(20, 184, 166, 0.1)" },
+            "AKGDH": { border: "#84cc16", bg: "rgba(132, 204, 22, 0.1)" },
+            "MDH": { border: "#eab308", bg: "rgba(234, 179, 8, 0.1)" },
+            "GLUDy": { border: "#ec4899", bg: "rgba(236, 72, 153, 0.1)" },
+            "GLUSy": { border: "#f43f5e", bg: "rgba(244, 63, 94, 0.1)" },
+            "GLNS": { border: "#f97316", bg: "rgba(249, 115, 22, 0.1)" }
+        };
+
+        const addDataset = (key, labelName) => {
+            if (data.tracked_fluxes[key]) {
+                const c = colors[key] || { border: "#cbd5e1", bg: "transparent" };
+                datasets.push({
+                    label: labelName || key,
+                    data: data.tracked_fluxes[key],
+                    borderColor: c.border,
+                    backgroundColor: 'transparent',
+                    tension: 0.1,
+                    fill: false
+                });
+            }
+        };
+
+        if (pathwayType === 'core') {
+            addDataset("PGI", "Glycolysis: PGI");
+            addDataset("CS", "TCA Cycle: CS");
+            addDataset("GLUDy", "Glutamate: GDH (GLUDy)");
+        } else if (pathwayType === 'glycolysis') {
+            addDataset("PGI", "PGI (Phosphoglucose Isomerase)");
+            addDataset("GAPD", "GAPD (Glyceraldehyde-3-P Dehydrogenase)");
+            addDataset("PYK", "PYK (Pyruvate Kinase)");
+        } else if (pathwayType === 'tca') {
+            addDataset("CS", "CS (Citrate Synthase)");
+            addDataset("ICDH", "ICDH (Isocitrate Dehydrogenase)");
+            addDataset("AKGDH", "AKGDH (Alpha-Ketoglutarate Dehydrogenase)");
+            addDataset("MDH", "MDH (Malate Dehydrogenase)");
+        } else if (pathwayType === 'glutamate') {
+            addDataset("GLUDy", "GLUDy (Glutamate Dehydrogenase)");
+            addDataset("GLUSy", "GLUSy (Glutamate Synthase)");
+            addDataset("GLNS", "GLNS (Glutamine Synthetase)");
+        }
+
+        fluxChart = new Chart(ctxFlux, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        title: { display: true, text: 'Reaction Flux (mmol/gDW/h)', color: '#334155' },
+                        grid: { drawOnChartArea: true }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 10 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    // ── End Dynamic Simulation Tab Logic ────────────────────────────────────────
+
     // ── End Advanced Analytics Tab Logic ───────────────────────────────────────
 }());
+
+// ==========================================================================
+// Collapsible Sidebar Sections
+// ==========================================================================
+
+function initCollapsibleSections() {
+    const defaultCollapsed = [
+        'Global Metabolic Impact',
+        'Pathway View',
+        'Engineering Targets',
+        'RNA-seq Overlay',
+        'AI Discovery Assistant',
+    ];
+
+    const sections = document.querySelectorAll('#left-sidebar .sidebar-section');
+    sections.forEach(section => {
+        const h2 = section.querySelector(':scope > h2');
+        if (!h2) return;
+
+        const header = document.createElement('div');
+        header.className = 'section-header';
+
+        section.insertBefore(header, h2);
+        header.appendChild(h2);
+
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-chevron-down section-toggle-icon';
+        header.appendChild(icon);
+
+        const body = document.createElement('div');
+        body.className = 'section-body';
+        while (section.children.length > 1) {
+            body.appendChild(section.children[1]);
+        }
+        section.appendChild(body);
+
+        const title = h2.textContent.trim();
+        const shouldCollapse = defaultCollapsed.some(keyword => title.includes(keyword));
+        if (shouldCollapse) {
+            header.classList.add('collapsed');
+            body.classList.add('collapsed');
+        }
+
+        header.addEventListener('click', () => {
+            const isCollapsed = header.classList.contains('collapsed');
+            if (isCollapsed) {
+                header.classList.remove('collapsed');
+                body.classList.remove('collapsed');
+            } else {
+                header.classList.add('collapsed');
+                body.classList.add('collapsed');
+            }
+        });
+    });
+}
+
+// ==========================================================================
+// Mobile Handlers
+// ==========================================================================
+
+function initMobileHandlers() {
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const leftSidebar = document.getElementById('left-sidebar');
+    if (!menuBtn || !leftSidebar) return;
+
+    let backdrop = document.getElementById('mobile-sidebar-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'mobile-sidebar-backdrop';
+        document.body.appendChild(backdrop);
+    }
+
+    function openSidebar() {
+        leftSidebar.classList.add('mobile-open');
+        backdrop.style.display = 'block';
+        menuBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        leftSidebar.classList.remove('mobile-open');
+        backdrop.style.display = 'none';
+        menuBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+        document.body.style.overflow = '';
+    }
+
+    menuBtn.addEventListener('click', () => {
+        if (leftSidebar.classList.contains('mobile-open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+
+    backdrop.addEventListener('click', closeSidebar);
+
+    document.querySelectorAll('.workflow-entry').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (window.innerWidth <= 768) closeSidebar();
+        });
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            backdrop.style.display = 'none';
+            leftSidebar.classList.remove('mobile-open');
+            document.body.style.overflow = '';
+        }
+    });
+}
+
+// ==========================================================================
+// Regulatory Hierarchy View
+// Pure-JS SVG rendering �?no external libraries required.
+// Layers: 0=Sigma, 1=Global TF (�?0 targets), 2=Local TF, 3=sRNA, 4=Target
+// ==========================================================================
+
+/** Module-level state */
+const _hier = {
+    built:        false,   // has computeHierarchyLayers() been run?
+    layers:       null,    // {sigma, globalTf, localTf, srna, target}
+    allEdges:     null,    // filtered edge list for current render
+    nodePos:      {},      // id -> {x, y, w, h}
+    expandedTf:   new Set(),  // TF ids whose target children are visible
+    confThresh:   0,
+    typeFilter:   'all',
+    showTfTf:     true,
+};
+
+/** Layer config: label, color, nodeHeight */
+const HIER_LAYERS = [
+    { key: 'sigma',    label: 'Sigma Factors',                color: '#f59e0b', textColor: '#78350f', h: 28 },
+    { key: 'globalTf', label: 'Global Regulators  (�?0 targets)', color: '#7c3aed', textColor: '#ede9fe', h: 26 },
+    { key: 'localTf',  label: 'Local TF  (1�? targets)',     color: '#3b82f6', textColor: '#dbeafe', h: 24 },
+    { key: 'srna',     label: 'sRNA  (post-transcriptional)', color: '#0d9488', textColor: '#ccfbf1', h: 24 },
+    { key: 'target',   label: 'Target Genes',                 color: '#94a3b8', textColor: '#f8fafc', h: 22 },
+];
+
+const GLOBAL_TF_THRESHOLD = 10;   // out-degree >= this => Global TF
+
+// ── Public entry point ──────────────────────────────────────────────────────
+
+function initHierarchyView() {
+    if (!_hier.built) {
+        computeHierarchyLayers();
+        _hier.built = true;
+    }
+    // Read control values
+    const slider = document.getElementById('hier-conf-slider');
+    if (slider) _hier.confThresh = parseFloat(slider.value) || 0;
+    renderHierarchy();
+}
+
+function updateHierConfLabel(val) {
+    const el = document.getElementById('hier-conf-label');
+    if (el) el.textContent = parseFloat(val).toFixed(2);
+    _hier.confThresh = parseFloat(val) || 0;
+}
+
+// ── Layer computation ───────────────────────────────────────────────────────
+
+function computeHierarchyLayers() {
+    const nodes   = normalizedNodes  || {};
+    const edges   = normalizedEdges  || [];
+
+    // Count out-degree for TF nodes
+    const outDeg = {};
+    edges.forEach(e => {
+        if (!e || !e.source) return;
+        const src = e.source.toLowerCase();
+        outDeg[src] = (outDeg[src] || 0) + 1;
+    });
+
+    const sigma    = [];
+    const globalTf = [];
+    const localTf  = [];
+    const srna     = [];
+    const target   = [];
+    const placed   = new Set();
+
+    // Classify each node
+    Object.values(nodes).forEach(node => {
+        if (!node || !node.id) return;
+        const id    = node.id.toLowerCase();
+        const type  = (node.type || '').toLowerCase();
+        const name  = node.label || node.name || node.id;
+        const isSigma  = !!(sigmaByLocus[id] || sigmaAnnotations[id] ||
+                            sigmaByLocus[node.id] || sigmaAnnotations[name?.toLowerCase()]);
+        const deg   = outDeg[id] || 0;
+
+        const rec = { id, name, deg, locusTag: node.id };
+
+        if (isSigma) {
+            sigma.push(rec); placed.add(id);
+        } else if (type === 'tf' && deg >= GLOBAL_TF_THRESHOLD) {
+            globalTf.push(rec); placed.add(id);
+        } else if (type === 'tf') {
+            localTf.push(rec); placed.add(id);
+        } else if (type === 'srna') {
+            srna.push(rec); placed.add(id);
+        } else {
+            target.push(rec); placed.add(id);
+        }
+    });
+
+    // Sort by degree descending within each layer
+    const byDeg = (a, b) => b.deg - a.deg;
+    sigma.sort(byDeg); globalTf.sort(byDeg);
+    localTf.sort(byDeg); srna.sort(byDeg);
+    target.sort((a, b) => a.name.localeCompare(b.name));
+
+    _hier.layers = { sigma, globalTf, localTf, srna, target };
+}
+
+// ── SVG rendering ───────────────────────────────────────────────────────────
+
+function renderHierarchy() {
+    if (!_hier.layers) { computeHierarchyLayers(); _hier.built = true; }
+
+    const typeFilter  = document.getElementById('hier-type-filter')?.value  || 'all';
+    const showTfTf    = document.getElementById('hier-show-tf-tf')?.checked  ?? true;
+    const confThresh  = parseFloat(document.getElementById('hier-conf-slider')?.value || 0);
+    _hier.typeFilter  = typeFilter;
+    _hier.showTfTf    = showTfTf;
+    _hier.confThresh  = confThresh;
+
+    const layers = _hier.layers;
+
+    // Layout constants
+    const PAD_X     = 36;     // horizontal padding from edge
+    const NODE_GAP  = 10;     // horizontal gap between nodes in same layer
+    const LAYER_GAP = 80;     // vertical gap between layers
+    const MIN_W     = 60;
+    const CHAR_W    = 7;
+    const CORNER    = 5;
+
+    // Collect all edges that pass filter
+    const activeEdges = (normalizedEdges || []).filter(e => {
+        if (!e || !e.source || !e.target) return false;
+        if ((e.confidenceScore || 0) < confThresh) return false;
+        const role = (e.role || e.legacyRole || '').toLowerCase();
+        const regType = (e.regulationType || '').toLowerCase();
+        if (typeFilter === 'activation' && !role.includes('activ')) return false;
+        if (typeFilter === 'repression' && !role.includes('repr')) return false;
+        const srcType = (normalizedNodes[e.source.toLowerCase()]?.type || '').toLowerCase();
+        const tgtType = (normalizedNodes[e.target.toLowerCase()]?.type || '').toLowerCase();
+        const isTfTf  = srcType === 'tf' && tgtType === 'tf';
+        if (typeFilter === 'tf-tf' && !isTfTf) return false;
+        if (!showTfTf && isTfTf) return false;
+        return true;
+    });
+    _hier.allEdges = activeEdges;
+
+    // Determine which targets are visible (only expanded TF children + TF/Sigma/sRNA nodes)
+    const visibleTargetIds = new Set();
+    _hier.expandedTf.forEach(tfId => {
+        activeEdges.forEach(e => {
+            if (e.source.toLowerCase() === tfId) {
+                const tgtType = (normalizedNodes[e.target.toLowerCase()]?.type || '').toLowerCase();
+                if (tgtType === 'target') visibleTargetIds.add(e.target.toLowerCase());
+            }
+        });
+    });
+
+    // Build ordered layer arrays for rendering
+    const renderLayers = [
+        { ...HIER_LAYERS[0], nodes: layers.sigma    },
+        { ...HIER_LAYERS[1], nodes: layers.globalTf },
+        { ...HIER_LAYERS[2], nodes: layers.localTf  },
+        { ...HIER_LAYERS[3], nodes: layers.srna     },
+        { ...HIER_LAYERS[4], nodes: layers.target.filter(n => visibleTargetIds.has(n.id)) },
+    ];
+
+    // Calculate positions
+    _hier.nodePos = {};
+    const svgWidth  = Math.max(document.getElementById('hier-canvas-wrap')?.clientWidth || 900, 900);
+    let y = 60;
+
+    renderLayers.forEach((layer, li) => {
+        if (layer.nodes.length === 0) return;
+        const nodeW  = n => Math.max(MIN_W, n.name.length * CHAR_W + 20);
+        const totalW = layer.nodes.reduce((s, n) => s + nodeW(n) + NODE_GAP, -NODE_GAP);
+        let x = Math.max(PAD_X, (svgWidth - totalW) / 2);
+
+        layer.nodes.forEach(n => {
+            const w = nodeW(n);
+            _hier.nodePos[n.id] = { x, y, w, h: layer.h, color: layer.color, textColor: layer.textColor, layer: li, name: n.name, locusTag: n.locusTag, deg: n.deg };
+            x += w + NODE_GAP;
+        });
+        y += layer.h + LAYER_GAP;
+    });
+
+    const svgHeight = y + 20;
+
+    // Render SVG elements
+    const svg       = document.getElementById('hier-svg');
+    const edgesG    = document.getElementById('hier-edges-g');
+    const nodesG    = document.getElementById('hier-nodes-g');
+    const labelsG   = document.getElementById('hier-labels-g');
+    if (!svg || !edgesG || !nodesG || !labelsG) return;
+
+    svg.setAttribute('width',  svgWidth);
+    svg.setAttribute('height', svgHeight);
+    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+
+    // Draw layer separator lines + labels
+    labelsG.innerHTML = '';
+    let yLabel = 60;
+    renderLayers.forEach((layer, li) => {
+        if (layer.nodes.length === 0) return;
+        // Horizontal separator above
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', PAD_X - 10); line.setAttribute('y1', yLabel - 16);
+        line.setAttribute('x2', svgWidth - PAD_X + 10); line.setAttribute('y2', yLabel - 16);
+        line.setAttribute('stroke', layer.color + '55'); line.setAttribute('stroke-width', '1');
+        labelsG.appendChild(line);
+        // Layer label on left
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('x', PAD_X - 10); txt.setAttribute('y', yLabel - 3);
+        txt.setAttribute('font-size', '9'); txt.setAttribute('fill', layer.color);
+        txt.setAttribute('font-weight', '700'); txt.setAttribute('letter-spacing', '0.04em');
+        txt.setAttribute('text-transform', 'uppercase');
+        txt.textContent = layer.label.toUpperCase();
+        labelsG.appendChild(txt);
+        yLabel += layer.h + LAYER_GAP;
+    });
+
+    // Draw edges
+    edgesG.innerHTML = '';
+    activeEdges.forEach(e => {
+        const srcId = e.source.toLowerCase();
+        const tgtId = e.target.toLowerCase();
+        const sp = _hier.nodePos[srcId];
+        const tp = _hier.nodePos[tgtId];
+        if (!sp || !tp) return;
+
+        const role    = (e.role || e.legacyRole || '').toLowerCase();
+        const isTfTf  = sp.layer <= 2 && tp.layer <= 2;
+        let stroke = '#f59e0b', marker = 'url(#arrow-dbl)';
+        if (e.interactionClass === 'sRNA-mRNA') { stroke = '#0d9488'; marker = 'url(#arrow-srna)'; }
+        else if (role.includes('activ'))         { stroke = '#10b981'; marker = 'url(#arrow-act)'; }
+        else if (role.includes('repr'))          { stroke = '#ef4444'; marker = 'url(#arrow-rep)'; }
+
+        const x1 = sp.x + sp.w / 2, y1 = sp.y + sp.h;
+        const x2 = tp.x + tp.w / 2, y2 = tp.y;
+        const cy1 = y1 + (y2 - y1) * 0.4, cy2 = y2 - (y2 - y1) * 0.4;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M${x1},${y1} C${x1},${cy1} ${x2},${cy2} ${x2},${y2}`);
+        path.setAttribute('stroke', stroke);
+        path.setAttribute('stroke-width', isTfTf ? '1.5' : '1');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke-opacity', (e.confidenceScore || 0.5).toFixed(2));
+        path.setAttribute('marker-end', marker);
+        path.classList.add('hier-edge');
+        edgesG.appendChild(path);
+    });
+
+    // Draw nodes
+    nodesG.innerHTML = '';
+    const tooltip = document.getElementById('hier-tooltip');
+    Object.entries(_hier.nodePos).forEach(([id, pos]) => {
+        const g    = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('cursor', 'pointer');
+        g.classList.add('hier-node-g');
+
+        // Drop shadow filter
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', pos.x); rect.setAttribute('y', pos.y);
+        rect.setAttribute('width', pos.w); rect.setAttribute('height', pos.h);
+        rect.setAttribute('rx', CORNER); rect.setAttribute('ry', CORNER);
+        rect.setAttribute('fill', pos.color);
+        rect.setAttribute('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))');
+        g.appendChild(rect);
+
+        // Badge: out-degree
+        if (pos.deg > 0 && pos.layer < 4) {
+            const badge = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            badge.setAttribute('x', pos.x + pos.w - 18); badge.setAttribute('y', pos.y - 7);
+            badge.setAttribute('width', 18); badge.setAttribute('height', 13);
+            badge.setAttribute('rx', 6); badge.setAttribute('fill', 'white');
+            badge.setAttribute('stroke', pos.color); badge.setAttribute('stroke-width', '1');
+            g.appendChild(badge);
+            const badgeTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            badgeTxt.setAttribute('x', pos.x + pos.w - 9);
+            badgeTxt.setAttribute('y', pos.y - 1);
+            badgeTxt.setAttribute('text-anchor', 'middle');
+            badgeTxt.setAttribute('font-size', '7.5');
+            badgeTxt.setAttribute('font-weight', '700');
+            badgeTxt.setAttribute('fill', pos.color);
+            badgeTxt.textContent = pos.deg > 99 ? '99+' : pos.deg;
+            g.appendChild(badgeTxt);
+        }
+
+        // Label
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('x', pos.x + pos.w / 2);
+        txt.setAttribute('y', pos.y + pos.h / 2 + 3.5);
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('font-size', pos.h < 24 ? '9' : '10');
+        txt.setAttribute('font-weight', '600');
+        txt.setAttribute('fill', pos.textColor);
+        txt.setAttribute('pointer-events', 'none');
+        txt.textContent = pos.name.length > 12 ? pos.name.slice(0, 11) + '\u2026' : pos.name;
+        g.appendChild(txt);
+
+        // Expand indicator for TF nodes (layer 1 or 2)
+        if (pos.layer === 1 || pos.layer === 2) {
+            const isExpanded = _hier.expandedTf.has(id);
+            const expandIcon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            expandIcon.setAttribute('x', pos.x + 8);
+            expandIcon.setAttribute('y', pos.y + pos.h / 2 + 3.5);
+            expandIcon.setAttribute('font-size', '8');
+            expandIcon.setAttribute('fill', pos.textColor + 'aa');
+            expandIcon.setAttribute('pointer-events', 'none');
+            expandIcon.textContent = isExpanded ? '\u25b4' : '\u25be';
+            g.appendChild(expandIcon);
+        }
+
+        // Hover tooltip
+        g.addEventListener('mouseenter', evt => {
+            if (!tooltip) return;
+            const nodeInEdges  = activeEdges.filter(e => e.target.toLowerCase() === id).length;
+            const nodeOutEdges = activeEdges.filter(e => e.source.toLowerCase() === id).length;
+            tooltip.innerHTML = `<strong>${pos.name}</strong><br>Locus: ${pos.locusTag}<br>Out-degree: ${pos.deg}<br>Regulating edges shown: ${nodeOutEdges}<br>Regulated by: ${nodeInEdges}`;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (evt.clientX + 12) + 'px';
+            tooltip.style.top  = (evt.clientY - 8)  + 'px';
+        });
+        g.addEventListener('mousemove', evt => {
+            if (tooltip) { tooltip.style.left = (evt.clientX + 12) + 'px'; tooltip.style.top = (evt.clientY - 8) + 'px'; }
+        });
+        g.addEventListener('mouseleave', () => { if (tooltip) tooltip.style.display = 'none'; });
+
+        // Click: expand/collapse targets for TF, or navigate to gene
+        g.addEventListener('click', () => {
+            if (pos.layer === 1 || pos.layer === 2) {
+                // Toggle expansion of target children
+                if (_hier.expandedTf.has(id)) {
+                    _hier.expandedTf.delete(id);
+                } else {
+                    _hier.expandedTf.add(id);
+                }
+                renderHierarchy();
+            } else {
+                // Navigate to Gene Explorer
+                if (pos.locusTag) {
+                    querySingleGene(pos.locusTag);
+                    setActiveWorkflowEntry('gene');
+                }
+            }
+        });
+
+        nodesG.appendChild(g);
+    });
+
+    // Update stats bar
+    _updateHierStats(activeEdges);
+}
+
+/** Update bottom statistics bar */
+function _updateHierStats(activeEdges) {
+    const l = _hier.layers;
+    const fmt = (label, arr, color) => arr.length
+        ? `<span style="color:${color};font-weight:700;">${arr.length}</span> ${label}`
+        : '';
+    const stats = [
+        { id: 'hier-stat-sigma',  html: fmt('Sigma factors', l.sigma,    '#f59e0b') },
+        { id: 'hier-stat-global', html: fmt('Global TFs',    l.globalTf, '#7c3aed') },
+        { id: 'hier-stat-local',  html: fmt('Local TFs',     l.localTf,  '#3b82f6') },
+        { id: 'hier-stat-srna',   html: fmt('sRNAs',         l.srna,     '#0d9488') },
+        { id: 'hier-stat-target', html: `<span style="color:#64748b;font-weight:700;">${l.target.length}</span> target genes (${_hier.expandedTf.size} TF${_hier.expandedTf.size!==1?'s':''} expanded)` },
+        { id: 'hier-stat-edges',  html: `<span style="color:#475569;font-weight:700;">${activeEdges.length}</span> edges shown` },
+    ];
+    stats.forEach(s => { const el = document.getElementById(s.id); if (el) el.innerHTML = s.html; });
+}
+
+/** Export current SVG to a downloadable file */
+function exportHierarchySvg() {
+    const svg = document.getElementById('hier-svg');
+    if (!svg) return;
+    const serializer = new XMLSerializer();
+    let svgStr = serializer.serializeToString(svg);
+    // Add XML declaration and styling
+    svgStr = `<?xml version="1.0" encoding="UTF-8"?>\n${svgStr}`;
+    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: 'cgl_regulatory_hierarchy.svg' });
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+}
