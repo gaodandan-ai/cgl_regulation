@@ -18,6 +18,11 @@
           "data/reference/imodulon/**",
           "data/reference/rna_seq_analysis_results.json",
           "data/reference/metabolic_models/**",
+          "data/reference/prodoric_pwms.json",
+          "data/reference/essential_genes.json",
+          "data/reference/abasy_roles.json",
+          "data/reference/string_interactions.json",
+          "data/reference/cog_annotations.json",
           "backend/models/**",
           "backend/lib/libexpat.so.1"
         ]

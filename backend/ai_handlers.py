@@ -13,6 +13,7 @@ from collections import Counter
 
 from rag_service import RAGService
 from bio_handlers import handle_pathway_regulation
+from gene_utils import get_absolute_path
 
 rag_service = RAGService()
 
@@ -214,8 +215,9 @@ def perform_protein_domain_analysis(gene, api_key, provider='google', model_name
     
     try:
         gene_lower = gene.lower()
-        if os.path.exists('data/reference/gene_mapping.csv'):
-            with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
+        gene_map_path = get_absolute_path('data/reference/gene_mapping.csv')
+        if os.path.exists(gene_map_path):
+            with open(gene_map_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if row['cg_locus'].lower() == gene_lower or row['cgl_locus'].lower() == gene_lower or row['gene_name'].lower() == gene_lower:
@@ -223,8 +225,9 @@ def perform_protein_domain_analysis(gene, api_key, provider='google', model_name
                         product = row['product']
                         break
         
-        if os.path.exists('data/reference/regulations.csv'):
-            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
+        reg_path = get_absolute_path('data/reference/regulations.csv')
+        if os.path.exists(reg_path):
+            with open(reg_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if row['TF_locusTag'].lower() == resolved_cg.lower():
@@ -262,8 +265,9 @@ def perform_binding_site_analysis(tf_query, api_key, provider='google', model_na
     binding_sites = []
     try:
         tf_lower = tf_query.lower()
-        if os.path.exists('data/reference/gene_mapping.csv'):
-            with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
+        gene_map_path = get_absolute_path('data/reference/gene_mapping.csv')
+        if os.path.exists(gene_map_path):
+            with open(gene_map_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if row['cg_locus'].lower() == tf_lower or row['cgl_locus'].lower() == tf_lower or row['gene_name'].lower() == tf_lower:
@@ -271,8 +275,9 @@ def perform_binding_site_analysis(tf_query, api_key, provider='google', model_na
                         tf_name = row['gene_name'] or row['cg_locus']
                         break
                         
-        if os.path.exists('data/reference/regulations.csv'):
-            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
+        reg_path = get_absolute_path('data/reference/regulations.csv')
+        if os.path.exists(reg_path):
+            with open(reg_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if row['TF_locusTag'].lower() == resolved_cg.lower() or row['TF_name'].lower() == tf_lower:
@@ -336,9 +341,10 @@ def perform_motif_prediction(tf):
     tf_lower = tf.lower()
     tf_name = tf
     
+    gene_map_path = get_absolute_path('data/reference/gene_mapping.csv')
     try:
-        if os.path.exists('data/reference/gene_mapping.csv'):
-            with open('data/reference/gene_mapping.csv', 'r', encoding='utf-8') as f:
+        if os.path.exists(gene_map_path):
+            with open(gene_map_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if row['cg_locus'].lower() == tf_lower or row['cgl_locus'].lower() == tf_lower or row['gene_name'].lower() == tf_lower:
@@ -347,11 +353,12 @@ def perform_motif_prediction(tf):
                         break
     except Exception as e:
         print(f"[MOTIF] Error reading gene_mapping.csv: {e}")
-                    
+
+    reg_path = get_absolute_path('data/reference/regulations.csv')
     target_loci = []
     try:
-        if os.path.exists('data/reference/regulations.csv'):
-            with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
+        if os.path.exists(reg_path):
+            with open(reg_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if row['TF_locusTag'].lower() == resolved_cg.lower() or (row['TF_name'] and row['TF_name'].lower() == tf_lower):
@@ -383,8 +390,8 @@ def perform_motif_prediction(tf):
         
         known_sites = []
         try:
-            if os.path.exists('data/reference/regulations.csv'):
-                with open('data/reference/regulations.csv', 'r', encoding='utf-8') as f:
+            if os.path.exists(reg_path):
+                with open(reg_path, 'r', encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
                         row_tf = (row.get('TF_locusTag') or '').strip()
