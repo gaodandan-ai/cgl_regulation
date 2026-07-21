@@ -2108,6 +2108,64 @@ async def mfa_comparison_endpoint():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+# ── Auto-update check endpoint ────────────────────────────────────────────────
+@app.get("/api/check-update")
+def check_update():
+    """
+    Compare the locally installed version (web/version_local.json, written at
+    build time) against the canonical version manifest (web/version.json).
+
+    Returns:
+        has_update (bool): True when a newer version is available.
+        current_version (str): Version of this installed build.
+        latest_version (str): Version from the manifest.
+        download_url (str): GitHub Releases URL.
+        changelog (str): Release notes snippet.
+    """
+    try:
+        root = ROOT_DIR if 'ROOT_DIR' in dir() else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        web_dir_path = os.path.join(root, "web")
+
+        # Read locally installed version (written by build_app.py at build time)
+        local_ver_path = os.path.join(web_dir_path, "version_local.json")
+        current_version = "0.0.0"
+        if os.path.exists(local_ver_path):
+            with open(local_ver_path, "r", encoding="utf-8") as f:
+                current_version = json.load(f).get("version", "0.0.0")
+
+        # Read the canonical manifest shipped with this build
+        manifest_path = os.path.join(web_dir_path, "version.json")
+        if not os.path.exists(manifest_path):
+            return {"has_update": False, "current_version": current_version,
+                    "latest_version": current_version, "download_url": "", "changelog": ""}
+
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+
+        latest_version = manifest.get("version", current_version)
+
+        def _parse(v: str):
+            try:
+                return tuple(int(x) for x in v.strip().lstrip("v").split("."))
+            except Exception:
+                return (0, 0, 0)
+
+        has_update = _parse(latest_version) > _parse(current_version)
+
+        return {
+            "has_update": has_update,
+            "current_version": current_version,
+            "latest_version": latest_version,
+            "download_url": manifest.get("download_url", "https://github.com/gaodandan-ai/cgl_regulation/releases/latest"),
+            "changelog": manifest.get("changelog", ""),
+        }
+    except Exception as e:
+        logger.warning(f"check-update failed: {e}")
+        return {"has_update": False, "current_version": "unknown",
+                "latest_version": "unknown", "download_url": "", "changelog": ""}
+
+
 # Mount static files
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     ROOT_DIR = sys._MEIPASS

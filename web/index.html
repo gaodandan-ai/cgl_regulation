@@ -121,12 +121,49 @@
                 <a href="https://github.com/gaodandan-ai" target="_blank" rel="noopener noreferrer" class="header-contact-link">
                     <i class="fa-brands fa-github"></i> <span class="header-github-text">GitHub</span>
                 </a>
+                <!-- Update notification toast (shown only in local app mode) -->
+                <a id="update-toast" href="#" target="_blank" rel="noopener noreferrer"
+                   style="display:none;"
+                   title="Click to download the latest version">
+                    <i class="fa-solid fa-circle-arrow-up"></i>
+                    <span id="update-toast-text">Update available</span>
+                    <button id="update-toast-close" aria-label="Dismiss update notification">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </a>
                 <div class="header-status" id="data-status">
                     <span class="status-dot pulsing"></span>
                     <span class="status-text">Loading local data...</span>
                 </div>
             </div>
         </header>
+        <script>
+        // Check for updates only when running as local desktop app
+        (function () {
+            if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
+            setTimeout(function () {
+                fetch('/api/check-update')
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data || !data.has_update) return;
+                        var toast = document.getElementById('update-toast');
+                        var label = document.getElementById('update-toast-text');
+                        var closeBtn = document.getElementById('update-toast-close');
+                        if (!toast) return;
+                        label.textContent = 'v' + data.latest_version + ' available';
+                        toast.href = data.download_url || 'https://github.com/gaodandan-ai/cgl_regulation/releases/latest';
+                        toast.style.display = 'inline-flex';
+                        closeBtn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toast.style.display = 'none';
+                        });
+                    })
+                    .catch(function () { /* silently ignore */ });
+            }, 3000); // delay 3s after page load
+        })();
+        </script>
+
 
         <nav id="workflow-entrybar" aria-label="Primary research workflows">
             <!-- 探索类 -->

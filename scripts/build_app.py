@@ -1,91 +1,82 @@
+#!/usr/bin/env python3
 """
 scripts/build_app.py
 ====================
-Packages the Cgl Regulation explorer platform into a single standalone
-desktop executable (dist/cgl_regulation.exe) using PyInstaller.
-
-Includes all static files, models, and hidden imports for uvicorn & scikit-learn.
+CI build script for GitHub Actions.
+- Reads the current git tag as the version string
+- Updates web/version.json with the new version
+- Runs PyInstaller to produce dist/cgl_regulation.exe
 """
 
+import json
 import os
 import subprocess
 import sys
 
-def main():
-    # Go to repository root
-    ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    os.chdir(ROOT)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    print("=== Preparing PyInstaller build ===")
 
-    # Setup PyInstaller arguments
-    cmd = [
-        "pyinstaller",
-        "--onefile",
-        "--name", "cgl_regulation",
-        "--icon", "icon.ico",
-        # Add backend/ to paths during analysis
-        "--paths", "backend",
-        # Add static assets and data folders
-        "--add-data", "web;web",
-        "--add-data", "data/reference;data/reference",
-        "--add-data", "backend/models;backend/models",
-        # Uvicorn hidden imports
-        "--hidden-import", "uvicorn.protocols.http.h11_impl",
-        "--hidden-import", "uvicorn.loop.asyncio",
-        "--hidden-import", "uvicorn.lifespan.on",
-        "--hidden-import", "uvicorn.lifespan.off",
-        "--hidden-import", "uvicorn.loop.auto",
-        # Scikit-learn forest models & dependencies
-        "--hidden-import", "sklearn.ensemble._forest",
-        "--hidden-import", "sklearn.utils._typedefs",
-        "--hidden-import", "sklearn.neighbors._typedefs",
-        # FastAPI / Cobra / Depinfo
-        "--hidden-import", "fastapi",
-        "--hidden-import", "pydantic",
-        "--hidden-import", "cobra",
-        "--hidden-import", "depinfo",
-        # RAG service
-        "--hidden-import", "rag_service",
-        # Backend modules (both absolute and relative names due to sys.path manipulation)
-        "--hidden-import", "backend.app",
-        "--hidden-import", "backend.gene_utils",
-        "--hidden-import", "backend.kegg_client",
-        "--hidden-import", "backend.metabolic_mapper",
-        "--hidden-import", "backend.bio_handlers",
-        "--hidden-import", "backend.sequence_tools",
-        "--hidden-import", "backend.model_loader",
-        "--hidden-import", "backend.thermo_pruner",
-        "--hidden-import", "backend.simulation",
-        "--hidden-import", "backend.schemas",
-        "--hidden-import", "backend.objectives",
-        "--hidden-import", "backend.thermodynamics",
-        "--hidden-import", "backend.enzyme_thermal_params",
-        "--hidden-import", "app",
-        "--hidden-import", "gene_utils",
-        "--hidden-import", "kegg_client",
-        "--hidden-import", "metabolic_mapper",
-        "--hidden-import", "bio_handlers",
-        "--hidden-import", "sequence_tools",
-        "--hidden-import", "model_loader",
-        "--hidden-import", "thermo_pruner",
-        "--hidden-import", "simulation",
-        "--hidden-import", "schemas",
-        "--hidden-import", "objectives",
-        "--hidden-import", "thermodynamics",
-        "--hidden-import", "enzyme_thermal_params",
-        # Main entrypoint script
-        "run_server.py"
-    ]
+def get_version():
+    """Return version from RELEASE_VERSION env var (set by GitHub Actions), git tag, or fallback."""
+    # GitHub Actions sets this from the tag
+    env_ver = os.environ.get("RELEASE_VERSION", "").strip().lstrip("v")
+    if env_ver:
+        return env_ver
 
-    print(f"Running command: {' '.join(cmd)}\n")
+    # Try git describe
     try:
-        subprocess.run(cmd, check=True)
-        print("\n=== PyInstaller build completed successfully ===")
-        print("Executable generated at: dist/cgl_regulation.exe")
-    except subprocess.CalledProcessError as e:
-        print(f"\nError: PyInstaller build failed with exit code {e.returncode}")
-        sys.exit(e.returncode)
+        tag = subprocess.check_output(
+            ["git", "describe", "--tags", "--abbrev=0"],
+            cwd=ROOT, stderr=subprocess.DEVNULL
+        ).decode().strip().lstrip("v")
+        if tag:
+            return tag
+    except Exception:
+        pass
 
-if __name__ == '__main__':
-    main()
+    return "0.0.0"
+
+
+def update_version_json(version: str):
+    """Write version info to web/version.json."""
+    import datetime
+    path = os.path.join(ROOT, "web", "version.json")
+    data = {
+        "version": version,
+        "release_date": datetime.date.today().isoformat(),
+        "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest",
+        "changelog": os.environ.get("RELEASE_NOTES", "See GitHub release notes for details.")
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"[build] Updated web/version.json -> v{version}")
+
+
+def write_local_version(version: str):
+    """Write a bundled version file that the frozen exe can read at runtime."""
+    path = os.path.join(ROOT, "web", "version_local.json")
+    data = {"version": version}
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+    print(f"[build] Wrote web/version_local.json -> v{version}")
+
+
+def run_pyinstaller():
+    spec = os.path.join(ROOT, "cgl_regulation.spec")
+    result = subprocess.run(
+        [sys.executable, "-m", "PyInstaller", spec, "--noconfirm"],
+        cwd=ROOT
+    )
+    if result.returncode != 0:
+        print("[build] PyInstaller failed!", file=sys.stderr)
+        sys.exit(1)
+    print("[build] PyInstaller build succeeded.")
+
+
+if __name__ == "__main__":
+    version = get_version()
+    print(f"[build] Building version v{version}")
+    update_version_json(version)
+    write_local_version(version)
+    run_pyinstaller()
+    print(f"[build] Done. Output: dist/cgl_regulation.exe")

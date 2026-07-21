@@ -1,0 +1,6 @@
+{
+  "version": "0.5.0",
+  "release_date": "2026-07-21",
+  "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest",
+  "changelog": "PPI expression overlay, centrality bubble chart enhancements (3D axes, gene detail, essentiality filter), sigma cascade network type, nav UI hierarchy"
+}

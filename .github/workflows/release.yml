@@ -9,10 +9,13 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: write  # Crucial: gives permission to create releases and upload assets
+      contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed for git describe
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -23,19 +26,53 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pyinstaller
+          pip install pyinstaller pillow
 
-      - name: Build executable
-        run: |
-          python scripts/build_app.py
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Build executable (updates version.json + version_local.json)
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.VERSION }}
+          RELEASE_NOTES: ${{ github.event.head_commit.message }}
+        run: python scripts/build_app.py
 
       - name: Compile Installer (Inno Setup)
-        run: |
-          iscc installer.iss
+        run: iscc installer.iss
 
-      - name: Create Release and Upload Asset
+      - name: Commit updated version.json back to repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/version.json web/version_local.json
+          git diff --staged --quiet || git commit -m "chore: bump version.json to ${{ steps.version.outputs.VERSION }} [skip ci]"
+          git push origin HEAD:main
+
+      - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/cgl_setup.exe
+          name: "Cgl Regulation Explorer v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## What's New in v${{ steps.version.outputs.VERSION }}
+
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for full details.
+
+            ## Download
+
+            | File | Description |
+            |------|-------------|
+            | `cgl_setup.exe` | **Recommended** — Windows installer (creates Start Menu & desktop shortcut) |
+            | `cgl_regulation.exe` | Portable single-file executable (no installation needed) |
+
+            ## How to Update
+
+            Download and run the new installer. It will replace the previous version automatically.
+          files: |
+            dist/cgl_setup.exe
+            dist/cgl_regulation.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
