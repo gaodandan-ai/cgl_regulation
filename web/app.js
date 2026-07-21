@@ -2822,6 +2822,14 @@ function initWorkflowEntrypoints() {
             setActiveWorkflowEntry('simulation');
         });
     }
+
+    const hierarchyEntry = document.getElementById('workflow-entry-hierarchy');
+    if (hierarchyEntry && !hierarchyEntry.dataset.bound) {
+        hierarchyEntry.dataset.bound = '1';
+        hierarchyEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('hierarchy');
+        });
+    }
 }
 
 
@@ -14180,13 +14188,15 @@ function renderIModulonNetwork() {
 }
 
 async function runIModulonSimulation() {
-    const runBtn = document.getElementById('btn-run-imodulon-sim');
+    const runBtn     = document.getElementById('btn-run-imodulon-sim');
     const resultsPanel = document.getElementById('imodulon-sim-results');
+    const addCompBtn = document.getElementById('btn-add-imodulon-compare');
     if (!runBtn || !resultsPanel) return;
 
     runBtn.disabled = true;
-    runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running simulations...';
+    runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Simulating…';
     resultsPanel.classList.add('hidden');
+    if (addCompBtn) addCompBtn.style.display = 'none';
 
     try {
         const resp = await fetch(`/api/imodulon/simulation?imodulon=${encodeURIComponent(selectedIModulonId)}`);
@@ -14196,18 +14206,18 @@ async function runIModulonSimulation() {
         const fba = data.fba || {};
         const renderFluxChange = (val) => {
             if (val === undefined || isNaN(val)) return '-';
-            const sign = val >= 0 ? '+' : '';
+            const sign  = val >= 0 ? '+' : '';
             const color = val >= 0 ? '#10b981' : '#ef4444';
             return `<strong style="color:${color};">${sign}${val.toFixed(1)}%</strong>`;
         };
 
         const growthPct = fba.objectiveChangePercent;
-        const tracked = fba.trackedFluxes || [];
-        const lysItem = tracked.find(t => t.reactionId === 'EX_lys_L_e') || {};
-        const gluItem = tracked.find(t => t.reactionId === 'EX_glu_L_e') || {};
+        const tracked   = fba.trackedFluxes || [];
+        const lysItem   = tracked.find(t => t.reactionId === 'EX_lys_L_e')  || {};
+        const gluItem   = tracked.find(t => t.reactionId === 'EX_glu_L_e')  || {};
 
-        document.getElementById('imodulon-sim-fba-growth').innerHTML = renderFluxChange(growthPct);
-        document.getElementById('imodulon-sim-fba-lysine').innerHTML = renderFluxChange(lysItem.fluxChangePercent);
+        document.getElementById('imodulon-sim-fba-growth').innerHTML    = renderFluxChange(growthPct);
+        document.getElementById('imodulon-sim-fba-lysine').innerHTML    = renderFluxChange(lysItem.fluxChangePercent);
         document.getElementById('imodulon-sim-fba-glutamate').innerHTML = renderFluxChange(gluItem.fluxChangePercent);
 
         const ec = data.ecfba || {};
@@ -14217,19 +14227,270 @@ async function runIModulonSimulation() {
             return `<strong style="color:${color}; font-family:monospace;">${val.toFixed(4)}</strong>`;
         };
 
-        document.getElementById('imodulon-sim-ec-growth').innerHTML = renderEcValue(ec.growth);
-        document.getElementById('imodulon-sim-ec-lysine').innerHTML = renderEcValue(ec.lysine);
+        document.getElementById('imodulon-sim-ec-growth').innerHTML    = renderEcValue(ec.growth);
+        document.getElementById('imodulon-sim-ec-lysine').innerHTML    = renderEcValue(ec.lysine);
         document.getElementById('imodulon-sim-ec-glutamate').innerHTML = renderEcValue(ec.glutamate);
 
         resultsPanel.classList.remove('hidden');
-        showToast('Knockout Simulation', 'Knockout simulations completed successfully!', 'success');
+
+        // ── Render WT vs KO Flux Bar Chart ──────────────────────────────────
+        const wtGrowth  = fba.baselineObjective    ?? 0.3;
+        const wtLysine  = (tracked.find(t => t.reactionId === 'EX_lys_L_e')?.baselineFlux) ?? 0.02;
+        const wtGlutate = (tracked.find(t => t.reactionId === 'EX_glu_L_e')?.baselineFlux) ?? 0.01;
+        const koGrowth  = fba.knockoutObjective    ?? (wtGrowth  * (1 + (growthPct || 0) / 100));
+        const koLysine  = lysItem.knockoutFlux     ?? (wtLysine  * (1 + (lysItem.fluxChangePercent || 0) / 100));
+        const koGlutate = gluItem.knockoutFlux     ?? (wtGlutate * (1 + (gluItem.fluxChangePercent || 0) / 100));
+
+        renderFluxBarChart({
+            wtGrowth, wtLysine, wtGlutate,
+            koGrowth, koLysine, koGlutate
+        });
+
+        // ── Store result for cross-iModulon comparison ──────────────────────
+        window._imodulonSimCache = window._imodulonSimCache || {};
+        window._imodulonSimCache[selectedIModulonId] = {
+            name:     selectedIModulonId,
+            growth:   growthPct               ?? 0,
+            lysine:   lysItem.fluxChangePercent   ?? 0,
+            glutamate: gluItem.fluxChangePercent  ?? 0,
+        };
+
+        // Show "Add to Compare" button
+        if (addCompBtn) {
+            addCompBtn.style.display = 'inline-flex';
+            addCompBtn.onclick = () => addIModulonToCompare(selectedIModulonId);
+        }
+
+        showToast('Knockout Simulation', 'Simulations completed successfully!', 'success');
     } catch (e) {
         console.error(e);
         showToast('Knockout Simulation', 'Simulation failed: ' + e.message, 'error');
     } finally {
         runBtn.disabled = false;
-        runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Knockout Simulation';
+        runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Simulation';
     }
+}
+
+// ── WT vs KO Flux Bar Chart ──────────────────────────────────────────────────
+
+let _imodFluxBarChart = null;
+
+function renderFluxBarChart({ wtGrowth, wtLysine, wtGlutate, koGrowth, koLysine, koGlutate }) {
+    const canvas = document.getElementById('imodulon-flux-bar-chart');
+    if (!canvas) return;
+    if (_imodFluxBarChart) { _imodFluxBarChart.destroy(); _imodFluxBarChart = null; }
+
+    const labels = ['Growth (h⁻¹)', 'Lysine (mmol/gDW/h)', 'Glutamate (mmol/gDW/h)'];
+    const wtVals = [wtGrowth,  wtLysine,  wtGlutate];
+    const koVals = [koGrowth,  koLysine,  koGlutate];
+
+    _imodFluxBarChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Wild-Type',
+                    data: wtVals,
+                    backgroundColor: 'rgba(99,102,241,0.75)',
+                    borderColor: '#6366f1',
+                    borderWidth: 1.5,
+                    borderRadius: 5,
+                    borderSkipped: false,
+                },
+                {
+                    label: 'Knockout',
+                    data: koVals,
+                    backgroundColor: 'rgba(239,68,68,0.65)',
+                    borderColor: '#ef4444',
+                    borderWidth: 1.5,
+                    borderRadius: 5,
+                    borderSkipped: false,
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toFixed(4)}`
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9.5 } } },
+                y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 9.5 } }, beginAtZero: true }
+            }
+        }
+    });
+}
+
+// ── Multi-iModulon Comparison ────────────────────────────────────────────────
+
+let _imodCompareSet = [];   // ordered list of iModulon IDs in comparison
+let _imodCompareChart = null;
+
+// Palette for up to 6 iModulons
+const IMOD_COMPARE_COLORS = [
+    { bg: 'rgba(99,102,241,0.72)',  border: '#6366f1' },
+    { bg: 'rgba(16,185,129,0.72)', border: '#10b981' },
+    { bg: 'rgba(245,158,11,0.72)', border: '#f59e0b' },
+    { bg: 'rgba(239,68,68,0.72)',  border: '#ef4444' },
+    { bg: 'rgba(139,92,246,0.72)', border: '#8b5cf6' },
+    { bg: 'rgba(20,184,166,0.72)', border: '#14b8a6' },
+];
+
+function addIModulonToCompare(id) {
+    const cache = window._imodulonSimCache || {};
+    if (!cache[id]) {
+        showToast('Compare', 'Run the simulation first to add this iModulon to the comparison.', 'warning');
+        return;
+    }
+    if (_imodCompareSet.includes(id)) {
+        showToast('Compare', `${id} is already in the comparison.`, 'info');
+        return;
+    }
+    if (_imodCompareSet.length >= 6) {
+        showToast('Compare', 'Maximum 6 iModulons can be compared at once. Clear one first.', 'warning');
+        return;
+    }
+
+    _imodCompareSet.push(id);
+
+    // Show compare panel
+    const panel = document.getElementById('imodulon-compare-panel');
+    if (panel) panel.style.display = 'block';
+
+    // Bind metric selector
+    const metricSel = document.getElementById('imodulon-compare-metric');
+    if (metricSel && !metricSel._bound) {
+        metricSel._bound = true;
+        metricSel.addEventListener('change', () => renderIModulonCompareChart(metricSel.value));
+    }
+
+    // Bind clear button
+    const clearBtn = document.getElementById('btn-clear-imodulon-compare');
+    if (clearBtn && !clearBtn._bound) {
+        clearBtn._bound = true;
+        clearBtn.addEventListener('click', () => {
+            _imodCompareSet = [];
+            if (panel) panel.style.display = 'none';
+            if (_imodCompareChart) { _imodCompareChart.destroy(); _imodCompareChart = null; }
+            const chips = document.getElementById('imodulon-compare-chips');
+            if (chips) chips.innerHTML = '';
+        });
+    }
+
+    // Update chips
+    _refreshCompareChips();
+
+    // Render chart
+    const metric = document.getElementById('imodulon-compare-metric')?.value || 'all';
+    renderIModulonCompareChart(metric);
+
+    showToast('Compare', `${id} added to comparison (${_imodCompareSet.length} iModulons).`, 'success');
+}
+
+function _refreshCompareChips() {
+    const chips = document.getElementById('imodulon-compare-chips');
+    if (!chips) return;
+    chips.innerHTML = '';
+    _imodCompareSet.forEach((id, i) => {
+        const color = IMOD_COMPARE_COLORS[i % IMOD_COMPARE_COLORS.length];
+        const chip = document.createElement('span');
+        chip.style.cssText = `display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:${color.bg};border:1px solid ${color.border};color:#1e1b4b;`;
+        chip.innerHTML = `${id} <button onclick="removeIModulonFromCompare('${id}')" style="border:none;background:none;cursor:pointer;color:#7c3aed;padding:0;font-size:11px;line-height:1;">×</button>`;
+        chips.appendChild(chip);
+    });
+}
+
+function removeIModulonFromCompare(id) {
+    _imodCompareSet = _imodCompareSet.filter(x => x !== id);
+    if (_imodCompareSet.length === 0) {
+        const panel = document.getElementById('imodulon-compare-panel');
+        if (panel) panel.style.display = 'none';
+        if (_imodCompareChart) { _imodCompareChart.destroy(); _imodCompareChart = null; }
+    } else {
+        _refreshCompareChips();
+        const metric = document.getElementById('imodulon-compare-metric')?.value || 'all';
+        renderIModulonCompareChart(metric);
+    }
+}
+
+function renderIModulonCompareChart(metric = 'all') {
+    const canvas = document.getElementById('imodulon-compare-chart');
+    if (!canvas || _imodCompareSet.length === 0) return;
+    if (_imodCompareChart) { _imodCompareChart.destroy(); _imodCompareChart = null; }
+
+    const cache = window._imodulonSimCache || {};
+    const imodNames = _imodCompareSet.map(id => id.length > 16 ? id.slice(0, 15) + '…' : id);
+
+    let datasets = [];
+    const metricConfigs = {
+        growth:    { label: 'Growth Rate Δ%',    key: 'growth',    color: '#6366f1' },
+        lysine:    { label: 'Lysine Flux Δ%',    key: 'lysine',    color: '#10b981' },
+        glutamate: { label: 'Glutamate Flux Δ%', key: 'glutamate', color: '#f59e0b' },
+    };
+
+    if (metric === 'all') {
+        datasets = Object.values(metricConfigs).map(cfg => ({
+            label: cfg.label,
+            data:  _imodCompareSet.map(id => cache[id]?.[cfg.key] ?? 0),
+            backgroundColor: cfg.color + 'bb',
+            borderColor: cfg.color,
+            borderWidth: 1.5,
+            borderRadius: 5,
+            borderSkipped: false,
+        }));
+    } else {
+        const cfg = metricConfigs[metric];
+        datasets = _imodCompareSet.map((id, i) => {
+            const c = IMOD_COMPARE_COLORS[i % IMOD_COMPARE_COLORS.length];
+            return {
+                label: id,
+                data:  [cache[id]?.[cfg.key] ?? 0],
+                backgroundColor: c.bg,
+                borderColor: c.border,
+                borderWidth: 1.5,
+                borderRadius: 5,
+                borderSkipped: false,
+            };
+        });
+    }
+
+    const labels = metric === 'all' ? imodNames : [metricConfigs[metric]?.label || metric];
+
+    _imodCompareChart = new Chart(canvas, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { font: { size: 9.5 }, boxWidth: 10, padding: 8 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%`
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                y: {
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: { font: { size: 9 }, callback: v => v + '%' },
+                    title: { display: true, text: 'Flux Change (%)', font: { size: 9 }, color: '#94a3b8' }
+                }
+            }
+        }
+    });
 }
 
 function searchAndExploreGene(geneId) {
@@ -16053,6 +16314,8 @@ if (!_origDetailPanel) {
         applyChannelFilter();
         bindPpiEvents();
         updatePpiExportToolbarVisibility();
+        // Re-apply expression overlay if it was active
+        if (typeof refreshPpiExprOverlayIfActive === 'function') refreshPpiExprOverlayIfActive();
     }
 
     function addTrnOverlayEdges() {
@@ -16211,6 +16474,21 @@ if (!_origDetailPanel) {
             badgeDiv.innerHTML = `<i class="fa-solid fa-circle-nodes"></i> <strong>${abasyInfo.role}</strong> (Risk: ${abasyInfo.risk || 'Low'})`;
             badgeDiv.title = abasyInfo.description || '';
             badgesContainer.appendChild(badgeDiv);
+        }
+
+        // 4b. Expression data badge (if RNA-seq overlay active)
+        var exprEntry = window._getPpiExprEntry ? window._getPpiExprEntry(nodeId) : null;
+        if (exprEntry && badgesContainer) {
+            var lfc  = exprEntry.log2fc;
+            var pval = exprEntry.pvalue || 1;
+            var sig  = pval < 0.05;
+            var lfcColor = lfc > 0 ? '#b91c1c' : '#1d4ed8';
+            var sigStr = sig ? (pval < 0.001 ? '***' : pval < 0.01 ? '**' : '*') : 'n.s.';
+            var exprBadge = document.createElement('div');
+            exprBadge.className = 'ppi-detail-badge';
+            exprBadge.style.cssText = `background:${lfc > 0 ? 'rgba(185,28,28,0.08)' : 'rgba(29,78,216,0.08)'}; border:1px solid ${lfc > 0 ? 'rgba(185,28,28,0.25)' : 'rgba(29,78,216,0.25)'}; color:${lfcColor}; border-radius:6px; padding:5px 8px; font-size:11px; display:flex; align-items:center; gap:5px;`;
+            exprBadge.innerHTML = `<i class="fa-solid fa-fire-flame-curved"></i> <strong>Log2FC: ${lfc >= 0 ? '+' : ''}${lfc.toFixed(2)}</strong> <span style="font-size:10px; color:#64748b; margin-left:2px;">p=${pval < 0.001 ? '<0.001' : pval.toFixed(3)} ${sigStr}</span>`;
+            badgesContainer.appendChild(exprBadge);
         }
 
         // 5. Action Buttons Event Listeners
@@ -16596,6 +16874,204 @@ if (!_origDetailPanel) {
                 }
             });
         }
+
+        // ── Expression Overlay controls ──────────────────────────────────────
+        var exprToggle  = document.getElementById('ppi-expr-toggle');
+        var exprControls= document.getElementById('ppi-expr-controls');
+        var exprSelect  = document.getElementById('ppi-expr-dataset-select');
+        var exprSlider  = document.getElementById('ppi-expr-lfc-slider');
+        var exprLfcVal  = document.getElementById('ppi-expr-lfc-val');
+
+        if (exprToggle) {
+            exprToggle.addEventListener('change', function() {
+                if (exprControls) exprControls.style.display = exprToggle.checked ? 'flex' : 'none';
+                if (!exprToggle.checked) {
+                    // Remove overlay — restore original node colors
+                    applyPpiExpressionOverlay(false);
+                } else {
+                    syncPpiExprDatasetDropdown();
+                    applyPpiExpressionOverlay(true);
+                }
+            });
+        }
+
+        if (exprSlider) {
+            exprSlider.addEventListener('input', function() {
+                if (exprLfcVal) exprLfcVal.textContent = parseFloat(exprSlider.value).toFixed(2);
+                applyPpiExpressionOverlay(true);
+            });
+        }
+
+        if (exprSelect) {
+            exprSelect.addEventListener('change', function() {
+                // Switch active rnaseqData to selected dataset
+                var idx = parseInt(exprSelect.value, 10);
+                if (!isNaN(idx) && rnaseqDatasets[idx]) {
+                    rnaseqData = rnaseqDatasets[idx].data;
+                }
+                applyPpiExpressionOverlay(true);
+            });
+        }
+    };
+
+    // ── PPI Expression Overlay helpers ────────────────────────────────────────
+
+    /** Populate the expr dataset dropdown from global rnaseqDatasets */
+    function syncPpiExprDatasetDropdown() {
+        var sel = document.getElementById('ppi-expr-dataset-select');
+        if (!sel) return;
+        sel.innerHTML = '';
+        if (!rnaseqDatasets || rnaseqDatasets.length === 0) {
+            sel.innerHTML = '<option value="">— Upload RNA-seq data in Gene/TF Explorer first —</option>';
+            return;
+        }
+        rnaseqDatasets.forEach(function(ds, i) {
+            var opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = ds.name || ('Dataset ' + (i + 1));
+            if (i === activeRnaseqDatasetIndex) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        // Set rnaseqData to current selection
+        var idx = parseInt(sel.value, 10);
+        if (!isNaN(idx) && rnaseqDatasets[idx]) rnaseqData = rnaseqDatasets[idx].data;
+    }
+
+    /**
+     * Apply or remove expression coloring on all PPI nodes.
+     * @param {boolean} active - true to apply colors, false to restore defaults
+     */
+    function applyPpiExpressionOverlay(active) {
+        if (!_ppiCy) return;
+        var slider = document.getElementById('ppi-expr-lfc-slider');
+        var lfcThresh = slider ? parseFloat(slider.value) : 0;
+
+        _ppiCy.nodes().forEach(function(node) {
+            var nodeId  = node.id().toLowerCase();
+            var cglTag  = cgToCgl[nodeId] || '';
+            var exprEntry = (rnaseqData && (rnaseqData[nodeId] || (cglTag && rnaseqData[cglTag.toLowerCase()]))) || null;
+
+            if (!active || !exprEntry) {
+                // Restore class-based coloring
+                node.removeData('ppi_expr_color');
+                node.removeData('ppi_expr_border');
+                node.removeData('ppi_lfc');
+                // Re-apply original style via class selectors
+                _ppiCy.style().update();
+                return;
+            }
+
+            var lfc   = exprEntry.log2fc;
+            var pval  = exprEntry.pvalue || 1;
+            var sig   = Math.abs(lfc) >= lfcThresh && pval < 0.05;
+
+            // Store on node data for tooltip access
+            node.data('ppi_lfc', lfc);
+            node.data('ppi_pval', pval);
+            node.data('ppi_sig', sig);
+
+            var fillColor   = sig ? ppiExprColor(lfc) : '#e2e8f0'; // grey for non-significant
+            var borderColor = sig ? (lfc > 0 ? '#b91c1c' : '#1d4ed8') : '#94a3b8';
+            node.data('ppi_expr_color',  fillColor);
+            node.data('ppi_expr_border', borderColor);
+        });
+
+        // Bulk style update using data-driven mapper
+        if (active) {
+            _ppiCy.nodes().forEach(function(n) {
+                var c = n.data('ppi_expr_color');
+                var b = n.data('ppi_expr_border');
+                if (c) {
+                    n.style('background-color', c);
+                    n.style('border-color', b || '#94a3b8');
+                    n.style('border-width', '2.5px');
+                }
+            });
+            showPpiExprLegend(true, lfcThresh);
+        } else {
+            // Reset inline styles to let Cytoscape class rules take over
+            _ppiCy.nodes().forEach(function(n) {
+                n.removeStyle('background-color');
+                n.removeStyle('border-color');
+                n.removeStyle('border-width');
+                n.removeData('ppi_lfc');
+                n.removeData('ppi_pval');
+                n.removeData('ppi_sig');
+            });
+            showPpiExprLegend(false, 0);
+        }
+    }
+
+    /**
+     * Convert log2FC to a red-blue gradient color (same scale as getRnaSeqColor but more vivid).
+     * Blue (down-regulated) ← → Red (up-regulated)
+     */
+    function ppiExprColor(log2fc) {
+        if (log2fc === undefined || isNaN(log2fc)) return '#e2e8f0';
+        var val = Math.max(-4, Math.min(4, log2fc));
+        if (val < 0) {
+            // Blue gradient: #1d4ed8 → #bfdbfe
+            var t = (val + 4) / 4; // 0 (most down) → 1 (near 0)
+            var r = Math.round(29  + (191 - 29)  * t);
+            var g = Math.round(78  + (219 - 78)  * t);
+            var b = Math.round(216 + (254 - 216) * t);
+            return 'rgb(' + r + ',' + g + ',' + b + ')';
+        } else {
+            // Red gradient: #fee2e2 → #b91c1c
+            var t = val / 4; // 0 (near 0) → 1 (most up)
+            var r = Math.round(254 + (185 - 254) * t);
+            var g = Math.round(226 + (28  - 226) * t);
+            var bv= Math.round(226 + (28  - 226) * t);
+            return 'rgb(' + r + ',' + g + ',' + bv + ')';
+        }
+    }
+
+    /** Show / hide the floating expression legend overlay on the canvas */
+    function showPpiExprLegend(visible, lfcThresh) {
+        var existing = document.getElementById('ppi-expr-canvas-legend');
+        if (!visible) {
+            if (existing) existing.remove();
+            return;
+        }
+        if (!existing) {
+            existing = document.createElement('div');
+            existing.id = 'ppi-expr-canvas-legend';
+            existing.style.cssText = [
+                'position:absolute', 'bottom:14px', 'left:14px', 'z-index:20',
+                'background:rgba(255,255,255,0.92)', 'border:1px solid #e2e8f0',
+                'border-radius:10px', 'padding:8px 12px', 'font-size:11px',
+                'box-shadow:0 2px 8px rgba(0,0,0,0.08)', 'min-width:160px',
+                'backdrop-filter:blur(4px)'
+            ].join(';');
+            var container = document.getElementById('ppi-cy-container');
+            if (container) container.appendChild(existing);
+        }
+        existing.innerHTML =
+            '<div style="font-weight:700;color:#0f172a;margin-bottom:5px;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;">' +
+            '<i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i> Expression Overlay</div>' +
+            '<div style="width:136px;height:9px;border-radius:4px;background:linear-gradient(to right,#1d4ed8,#bfdbfe,#e2e8f0,#fca5a5,#b91c1c);margin-bottom:4px;"></div>' +
+            '<div style="display:flex;justify-content:space-between;color:#64748b;font-size:9.5px;">' +
+            '<span>↓ Down</span><span>0</span><span>↑ Up</span></div>' +
+            (lfcThresh > 0 ? '<div style="margin-top:5px;color:#64748b;font-size:9.5px;">Grey = |Log2FC| &lt; ' + lfcThresh.toFixed(2) + ' or n.s.</div>' : '');
+    }
+
+    /**
+     * Called after any network render to re-apply overlay if toggle is on.
+     * Hook this from renderPpiGraph and expandPpiNode.
+     */
+    function refreshPpiExprOverlayIfActive() {
+        var toggle = document.getElementById('ppi-expr-toggle');
+        if (toggle && toggle.checked) {
+            applyPpiExpressionOverlay(true);
+        }
+    }
+
+    // Expose so updatePpiDetailPanel can show expression info
+    window._getPpiExprEntry = function(nodeId) {
+        if (!rnaseqData) return null;
+        var lowerId = nodeId.toLowerCase();
+        var cglTag  = (typeof cgToCgl !== 'undefined' && cgToCgl[lowerId]) || '';
+        return rnaseqData[lowerId] || (cglTag && rnaseqData[cglTag.toLowerCase()]) || null;
     };
 
     // ── Motif Search Dashboard ───────────────────────────────────────────────
@@ -16791,9 +17267,24 @@ if (!_origDetailPanel) {
             btnFindMotifs.addEventListener('click', mineAdvancedMotifs);
         }
 
-        // Render Centrality Scatter Chart
-        renderCentralityScatterChart();
+        // PPI Score slider live update
+        const ppiSlider = document.getElementById('adv-motif-ppi-slider');
+        const ppiVal = document.getElementById('adv-motif-ppi-val');
+        if (ppiSlider && ppiVal && !ppiSlider.dataset.bound) {
+            ppiSlider.dataset.bound = '1';
+            ppiSlider.addEventListener('input', () => { ppiVal.innerText = ppiSlider.value; });
+        }
+
+        // Render Centrality Scatter Chart, then trigger embedding
+        renderCentralityScatterChart().then(() => {
+            // Auto-render embedding space once centrality data is loaded
+            if (typeof window.renderEmbeddingCanvas === 'function') {
+                window.renderEmbeddingCanvas();
+            }
+        });
     }
+
+    let advGnnAttributionChart = null;
 
     async function runGnnPrediction() {
         const sourceVal = document.getElementById('adv-gnn-source').value.trim();
@@ -16840,6 +17331,12 @@ if (!_origDetailPanel) {
             srcNeighbors.delete(sourceLocus.toLowerCase());
             tgtNeighbors.delete(targetLocus.toLowerCase());
 
+            // Find common neighbors
+            const commonNeighbors = [];
+            srcNeighbors.forEach(n => {
+                if (tgtNeighbors.has(n)) commonNeighbors.push(n);
+            });
+
             // 1. Check if directly connected in database
             let isConnected = false;
             let dbScore = 0;
@@ -16855,25 +17352,32 @@ if (!_origDetailPanel) {
                 }
             }
 
-            let prob = 10; // base probability
+            // Feature attribution scores (named, for chart)
+            let prob = 10;
             let factors = [];
+            const featureScores = {
+                'Direct PPI (STRING)': 0,
+                'Shared PPI Neighbors (Jaccard)': 0,
+                'Co-expression (iModulon)': 0,
+                'Path Proximity': 0,
+                'Embedding Variance': 0
+            };
 
             if (isConnected) {
                 prob = Math.round(dbScore / 10);
                 prob = Math.max(85, Math.min(99, prob));
+                featureScores['Direct PPI (STRING)'] = Math.round(dbScore / 10);
                 factors.push(`Direct physical interaction documented in STRING (Confidence: ${dbScore}/1000).`);
             } else {
-                // Heuristic GNN message passing score
                 // A. Jaccard coefficient on physical neighbors
                 const union = new Set([...srcNeighbors, ...tgtNeighbors]);
-                let intersectionCount = 0;
-                srcNeighbors.forEach(n => {
-                    if (tgtNeighbors.has(n)) intersectionCount++;
-                });
+                let intersectionCount = commonNeighbors.length;
                 const jaccard = union.size > 0 ? (intersectionCount / union.size) : 0;
                 
                 if (jaccard > 0) {
-                    prob += Math.round(jaccard * 120);
+                    const jScore = Math.round(jaccard * 120);
+                    prob += jScore;
+                    featureScores['Shared PPI Neighbors (Jaccard)'] = jScore;
                     factors.push(`Shared interactors in physical network: ${intersectionCount} (Jaccard: ${jaccard.toFixed(2)}).`);
                 }
 
@@ -16882,16 +17386,17 @@ if (!_origDetailPanel) {
                 const imTarget = (typeof iModulonByGene !== 'undefined' ? iModulonByGene[targetLocus.toLowerCase()] : []) || [];
                 const sharedIm = imSource.filter(id => imTarget.includes(id));
                 if (sharedIm.length > 0) {
-                    prob += 25;
+                    const imScore = 25;
+                    prob += imScore;
+                    featureScores['Co-expression (iModulon)'] = imScore;
                     factors.push(`Shared co-expression transcriptional module (iModulon: ${sharedIm.join(', ')}).`);
                 }
 
                 // C. Path proximity
                 let pathDistance = 4;
                 if (intersectionCount > 0) {
-                    pathDistance = 2; // Source -> Shared Neighbor -> Target
+                    pathDistance = 2;
                 } else {
-                    // Check if any neighbor of A interacts with any neighbor of B
                     let neighborEdgeFound = false;
                     for (const edge of combinedEdges) {
                         const s = edge.source.toLowerCase();
@@ -16901,57 +17406,139 @@ if (!_origDetailPanel) {
                             break;
                         }
                     }
-                    if (neighborEdgeFound) {
-                        pathDistance = 3;
-                    }
+                    if (neighborEdgeFound) pathDistance = 3;
                 }
 
                 if (pathDistance === 2) {
-                    prob += 20;
+                    prob += 20; featureScores['Path Proximity'] = 20;
                     factors.push(`Short physical neighborhood distance of 2 hops.`);
                 } else if (pathDistance === 3) {
-                    prob += 10;
+                    prob += 10; featureScores['Path Proximity'] = 10;
                     factors.push(`Neighborhood distance of 3 hops.`);
                 }
 
-                // Simulated embedding alignment variance
+                // D. Simulated embedding alignment variance
                 const hash = (sourceLocus + targetLocus).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-                const variance = (hash % 11) - 5; // -5% to +5%
+                const variance = (hash % 11) - 5;
+                featureScores['Embedding Variance'] = Math.max(0, variance);
                 prob += variance;
-
                 prob = Math.max(12, Math.min(88, prob));
             }
 
-            // Animate progress and results
             setTimeout(() => {
                 probText.innerText = `${prob}%`;
                 progressBar.style.width = `${prob}%`;
                 
-                // Explanatory HTML
-                let html = `<div style="margin-top: 8px;">`;
+                // Color the progress bar by confidence level
+                if (prob >= 70) {
+                    progressBar.style.background = 'linear-gradient(90deg, #34d399, #059669)';
+                } else if (prob >= 40) {
+                    progressBar.style.background = 'linear-gradient(90deg, #a78bfa, #8b5cf6)';
+                } else {
+                    progressBar.style.background = 'linear-gradient(90deg, #94a3b8, #64748b)';
+                }
+
+                // Status text
+                let html = `<div style="margin-top:6px;">`;
                 if (isConnected) {
-                    html += `<strong>Status:</strong> <span style="color:#059669; font-weight:600;"><i class="fa-solid fa-circle-check"></i> Known Edge</span><br>`;
+                    html += `<span style="display:inline-flex;align-items:center;gap:4px;background:#dcfce7;color:#059669;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;"><i class="fa-solid fa-circle-check"></i> Known Edge (STRING)</span>`;
                 } else if (prob > 70) {
-                    html += `<strong>Prediction:</strong> <span style="color:#8b5cf6; font-weight:600;"><i class="fa-solid fa-sparkles"></i> High Probability Interactor</span><br>`;
+                    html += `<span style="display:inline-flex;align-items:center;gap:4px;background:#ede9fe;color:#7c3aed;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;"><i class="fa-solid fa-wand-magic-sparkles"></i> High Probability Interactor</span>`;
                 } else if (prob > 40) {
-                    html += `<strong>Prediction:</strong> <span style="color:#3b82f6; font-weight:600;"><i class="fa-solid fa-circle-question"></i> Possible Interactor</span><br>`;
+                    html += `<span style="display:inline-flex;align-items:center;gap:4px;background:#dbeafe;color:#1d4ed8;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;"><i class="fa-solid fa-circle-question"></i> Possible Interactor</span>`;
                 } else {
-                    html += `<strong>Prediction:</strong> <span style="color:var(--text-secondary); font-weight:600;"><i class="fa-solid fa-circle-minus"></i> Low Probability Interactor</span><br>`;
+                    html += `<span style="display:inline-flex;align-items:center;gap:4px;background:#f1f5f9;color:#64748b;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;"><i class="fa-solid fa-circle-minus"></i> Low Probability</span>`;
                 }
-                
-                html += `<div style="margin-top:6px; font-weight:600; color:var(--text-primary);">GNN Feature Attributions:</div>`;
-                html += `<ul style="margin:4px 0 0 0; padding-left:14px; display:flex; flex-direction:column; gap:3px;">`;
-                if (factors.length === 0) {
-                    html += `<li>No significant topological features or co-expression similarities found.</li>`;
-                } else {
-                    factors.forEach(f => {
-                        html += `<li>${f}</li>`;
-                    });
-                }
-                html += `</ul>`;
-                html += `<div style="margin-top:8px; font-size:9.5px; border-top:1px solid var(--border-color); padding-top:6px; color:var(--text-muted);">GNN embeddings represent the condensed topological feature space learned via localized node attribute diffusion.</div>`;
                 html += `</div>`;
+
+                if (factors.length > 0) {
+                    html += `<ul style="margin:8px 0 0 0; padding-left:14px; font-size:10px; color:var(--text-secondary); display:flex; flex-direction:column; gap:3px;">`;
+                    factors.forEach(f => { html += `<li>${f}</li>`; });
+                    html += `</ul>`;
+                } else {
+                    html += `<div style="margin-top:6px; font-size:10px; color:var(--text-muted);">No significant topological features or co-expression similarities found.</div>`;
+                }
                 explanationDiv.innerHTML = html;
+
+                // ── Render Feature Attribution Chart ──────────────────────
+                const attrWrap = document.getElementById('adv-gnn-attribution-wrap');
+                const attrCtx = document.getElementById('adv-gnn-attribution-chart');
+                const attrLabels = Object.keys(featureScores);
+                const attrValues = Object.values(featureScores);
+                const hasAttr = attrValues.some(v => v > 0);
+
+                if (hasAttr && attrCtx && attrWrap) {
+                    attrWrap.style.display = 'block';
+                    if (advGnnAttributionChart) { advGnnAttributionChart.destroy(); advGnnAttributionChart = null; }
+                    advGnnAttributionChart = new Chart(attrCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: attrLabels,
+                            datasets: [{
+                                label: 'Score Contribution',
+                                data: attrValues,
+                                backgroundColor: [
+                                    'rgba(16,185,129,0.8)',
+                                    'rgba(99,102,241,0.8)',
+                                    'rgba(245,158,11,0.8)',
+                                    'rgba(59,130,246,0.8)',
+                                    'rgba(148,163,184,0.7)'
+                                ],
+                                borderRadius: 4,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: ctx => ` +${ctx.raw} pts`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 9 } } },
+                                y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                            }
+                        }
+                    });
+                } else {
+                    if (attrWrap) attrWrap.style.display = 'none';
+                }
+
+                // ── Render Common Neighbors Chips ──────────────────────────
+                const nbWrap = document.getElementById('adv-gnn-neighbors-wrap');
+                const nbList = document.getElementById('adv-gnn-neighbors-list');
+                if (commonNeighbors.length > 0 && nbWrap && nbList) {
+                    nbWrap.style.display = 'block';
+                    nbList.innerHTML = '';
+                    commonNeighbors.slice(0, 8).forEach(n => {
+                        const displayName = cgToCgl[n] || n;
+                        const chip = document.createElement('span');
+                        chip.style.cssText = 'display:inline-flex;align-items:center;gap:3px;background:#dcfce7;color:#065f46;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #bbf7d0;';
+                        chip.innerHTML = `<i class="fa-solid fa-circle-nodes" style="font-size:8px;"></i> ${displayName}`;
+                        chip.title = `Click to explore ${displayName} in Gene Explorer`;
+                        chip.addEventListener('click', () => {
+                            if (typeof setActiveWorkflowEntry === 'function') setActiveWorkflowEntry('gene');
+                            const gi = document.querySelector('.gene-input');
+                            if (gi) { gi.value = displayName; if (typeof renderNetwork === 'function') renderNetwork([n]); }
+                        });
+                        nbList.appendChild(chip);
+                    });
+                    if (commonNeighbors.length > 8) {
+                        const more = document.createElement('span');
+                        more.style.cssText = 'display:inline-flex;align-items:center;background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;';
+                        more.innerText = `+${commonNeighbors.length - 8} more`;
+                        nbList.appendChild(more);
+                    }
+                } else if (nbWrap) {
+                    nbWrap.style.display = 'none';
+                }
+
             }, 600);
 
         } catch (err) {
@@ -17053,6 +17640,202 @@ if (!_origDetailPanel) {
         }
     }
 
+    let advCentralityAllNodes = null; // cache fetched nodes
+    let advEssentialityFilter = 'all';
+
+    function getAxisValue(n, axis) {
+        switch (axis) {
+            case 'degree':       return (n.out_degree || 0) + (n.in_degree || 0);
+            case 'out_degree':   return n.out_degree || 0;
+            case 'in_degree':    return n.in_degree || 0;
+            case 'betweenness':  return n.betweenness || 0;
+            case 'pagerank':     return n.pagerank || 0;
+            case 'closeness':    return n.closeness || 0;
+            case 'hub_score':    return n.hub_score || 0;
+            default:             return 0;
+        }
+    }
+
+    function getAxisLabel(axis) {
+        const labels = {
+            degree:      'Degree (Total Connections)',
+            out_degree:  'Out-Degree (Regulon Size)',
+            in_degree:   'In-Degree (Regulated by)',
+            betweenness: 'Betweenness Centrality',
+            pagerank:    'PageRank',
+            closeness:   'Closeness Centrality',
+            hub_score:   'Hub Score (HITS)'
+        };
+        return labels[axis] || axis;
+    }
+
+    function rebuildCentralityChart() {
+        if (!advCentralityAllNodes) return;
+        const xAxis = document.getElementById('adv-centrality-x-axis')?.value || 'degree';
+        const yAxis = document.getElementById('adv-centrality-y-axis')?.value || 'closeness';
+        const filter = advEssentialityFilter;
+        const ctx = document.getElementById('adv-centrality-chart');
+        if (!ctx) return;
+
+        const essentialPoints = [];
+        const nonEssentialPoints = [];
+
+        advCentralityAllNodes.forEach(n => {
+            const locusLower = n.locus.toLowerCase();
+            const isEssential = !!(window.essentialGenes && (window.essentialGenes[locusLower] ||
+                (cgToCgl[locusLower] && window.essentialGenes[cgToCgl[locusLower].toLowerCase()])));
+
+            if (filter === 'essential' && !isEssential) return;
+            if (filter === 'nonessential' && isEssential) return;
+
+            const xVal = getAxisValue(n, xAxis);
+            const yVal = getAxisValue(n, yAxis);
+
+            // Bubble size (3rd dim)
+            const bubbleAxis = document.getElementById('adv-centrality-bubble-size')?.value || 'uniform';
+            const sizeRaw = bubbleAxis === 'uniform' ? 1 : getAxisValue(n, bubbleAxis);
+            const pt = {
+                x: xVal, y: yVal,
+                r: sizeRaw,  // store raw for scaling
+                label: n.name || n.locus,
+                locus: n.locus,
+                nodeData: n,
+                essential: isEssential
+            };
+            if (isEssential) essentialPoints.push(pt);
+            else nonEssentialPoints.push(pt);
+        });
+
+        // Normalize bubble sizes 4–16px
+        const bubbleAxis = document.getElementById('adv-centrality-bubble-size')?.value || 'uniform';
+        const highlightGene = (document.getElementById('adv-centrality-highlight')?.value || '').toLowerCase().trim();
+        const allPts = [...essentialPoints, ...nonEssentialPoints];
+        const maxR = bubbleAxis === 'uniform' ? 1 : Math.max(...allPts.map(p => p.r), 1);
+        allPts.forEach(p => {
+            p._radius = bubbleAxis === 'uniform' ? 4 : Math.max(4, Math.min(16, 4 + (p.r / maxR) * 12));
+        });
+
+        if (advCentralityChart) { advCentralityChart.destroy(); }
+
+        advCentralityChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: `Essential (${essentialPoints.length})`,
+                        data: essentialPoints,
+                        backgroundColor: essentialPoints.map(p =>
+                            highlightGene && (p.label.toLowerCase().includes(highlightGene) || p.locus.toLowerCase().includes(highlightGene))
+                                ? 'rgba(251,191,36,0.95)' : 'rgba(239,68,68,0.80)'),
+                        borderColor: essentialPoints.map(p =>
+                            highlightGene && (p.label.toLowerCase().includes(highlightGene) || p.locus.toLowerCase().includes(highlightGene))
+                                ? '#f59e0b' : '#ef4444'),
+                        borderWidth: essentialPoints.map(p =>
+                            highlightGene && (p.label.toLowerCase().includes(highlightGene) || p.locus.toLowerCase().includes(highlightGene)) ? 2.5 : 1),
+                        pointRadius: essentialPoints.map(p => p._radius || 6),
+                        pointHoverRadius: essentialPoints.map(p => (p._radius || 6) + 3)
+                    },
+                    {
+                        label: `Non-Essential (${nonEssentialPoints.length})`,
+                        data: nonEssentialPoints,
+                        backgroundColor: nonEssentialPoints.map(p =>
+                            highlightGene && (p.label.toLowerCase().includes(highlightGene) || p.locus.toLowerCase().includes(highlightGene))
+                                ? 'rgba(251,191,36,0.95)' : 'rgba(59,130,246,0.55)'),
+                        borderColor: nonEssentialPoints.map(p =>
+                            highlightGene && (p.label.toLowerCase().includes(highlightGene) || p.locus.toLowerCase().includes(highlightGene))
+                                ? '#f59e0b' : '#3b82f6'),
+                        borderWidth: nonEssentialPoints.map(p =>
+                            highlightGene && (p.label.toLowerCase().includes(highlightGene) || p.locus.toLowerCase().includes(highlightGene)) ? 2.5 : 1),
+                        pointRadius: nonEssentialPoints.map(p => p._radius || 4),
+                        pointHoverRadius: nonEssentialPoints.map(p => (p._radius || 4) + 3)
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: getAxisLabel(xAxis), font: { size: 10, weight: 'bold' } },
+                        grid: { color: 'rgba(0,0,0,0.04)' }
+                    },
+                    y: {
+                        title: { display: true, text: getAxisLabel(yAxis), font: { size: 10, weight: 'bold' } },
+                        grid: { color: 'rgba(0,0,0,0.04)' }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const pt = context.raw;
+                                return `${pt.label} (${pt.locus}) | X: ${pt.x.toFixed ? pt.x.toFixed(3) : pt.x}, Y: ${pt.y.toFixed ? pt.y.toFixed(3) : pt.y} [${pt.essential ? 'Essential' : 'Non-Essential'}]`;
+                            }
+                        }
+                    },
+                    legend: { labels: { boxWidth: 10, font: { size: 10 } } }
+                },
+                onClick: function(evt, elements) {
+                    if (elements && elements.length > 0) {
+                        const index = elements[0].index;
+                        const dsIdx = elements[0].datasetIndex;
+                        const pt = advCentralityChart.data.datasets[dsIdx].data[index];
+                        if (!pt) return;
+
+                        // Populate GNN source
+                        document.getElementById('adv-gnn-source').value = pt.label;
+                        document.getElementById('adv-gnn-target').value = '';
+
+                        // Show gene details panel
+                        const panel = document.getElementById('adv-centrality-detail');
+                        const content = document.getElementById('adv-centrality-detail-content');
+                        if (panel && content) {
+                            const n = pt.nodeData;
+                            const xVal = getAxisValue(n, xAxis);
+                            const yVal = getAxisValue(n, yAxis);
+                            content.innerHTML = `
+                                <div style="color:var(--text-secondary);font-size:10px;">Gene</div>
+                                <div style="font-weight:700;color:var(--text-primary);font-size:11px;">${pt.label}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;">Locus</div>
+                                <div style="font-weight:600;font-size:10.5px;">${pt.locus}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;">Essentiality</div>
+                                <div>${pt.essential ? '<span style="color:#ef4444;font-weight:700;">Essential</span>' : '<span style="color:#3b82f6;font-weight:600;">Non-Essential</span>'}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;">Regulon (out)</div>
+                                <div style="font-weight:600;font-size:10.5px;">${n.out_degree || 0}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;">Betweenness</div>
+                                <div style="font-weight:600;font-size:10.5px;">${(n.betweenness || 0).toFixed(4)}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;">PageRank</div>
+                                <div style="font-weight:600;font-size:10.5px;">${(n.pagerank || 0).toFixed(4)}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;">Closeness</div>
+                                <div style="font-weight:600;font-size:10.5px;">${(n.closeness || 0).toFixed(4)}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;">Importance Score</div>
+                                <div style="font-weight:700;color:#6366f1;font-size:10.5px;">${(n.importance || 0).toFixed(3)}</div>
+                            `;
+                            panel.style.display = 'block';
+
+                            // Jump to gene explorer button
+                            const gotoBtn = document.getElementById('adv-centrality-goto-gene');
+                            if (gotoBtn) {
+                                gotoBtn.onclick = () => {
+                                    if (typeof setActiveWorkflowEntry === 'function') setActiveWorkflowEntry('gene');
+                                    const gi = document.querySelector('.gene-input');
+                                    if (gi) { gi.value = pt.label; if (typeof renderNetwork === 'function') renderNetwork([pt.locus]); }
+                                };
+                            }
+                        }
+
+                        // Highlight source input
+                        const sourceIn = document.getElementById('adv-gnn-source');
+                        if (sourceIn) {
+                            sourceIn.style.outline = '2px solid #8b5cf6';
+                            setTimeout(() => sourceIn.style.outline = 'none', 1000);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     async function renderCentralityScatterChart() {
         const ctx = document.getElementById('adv-centrality-chart');
         if (!ctx) return;
@@ -17061,121 +17844,38 @@ if (!_origDetailPanel) {
             const resp = await fetch('/api/network/centrality?limit=1000&tfs_only=false');
             if (!resp.ok) throw new Error('API failed');
             const data = await resp.json();
-            const nodes = data.top_tfs || [];
+            advCentralityAllNodes = data.top_tfs || [];
 
-            // Group into essential vs non-essential
-            const essentialPoints = [];
-            const nonEssentialPoints = [];
-
-            nodes.forEach(n => {
-                const locusLower = n.locus.toLowerCase();
-                const isEssential = window.essentialGenes[locusLower] || 
-                                    (cgToCgl[locusLower] && window.essentialGenes[cgToCgl[locusLower].toLowerCase()]);
-                
-                // Use Closeness Centrality on Y, total Degree on X
-                const xVal = (n.out_degree || 0) + (n.in_degree || 0);
-                const yVal = n.closeness || 0.0;
-
-                const pt = {
-                    x: xVal,
-                    y: yVal,
-                    label: n.name || n.locus,
-                    locus: n.locus,
-                    deg: xVal,
-                    close: yVal,
-                    essential: isEssential ? "Essential" : "Non-Essential"
-                };
-
-                if (isEssential) {
-                    essentialPoints.push(pt);
-                } else {
-                    nonEssentialPoints.push(pt);
-                }
-            });
-
-            if (advCentralityChart) {
-                advCentralityChart.destroy();
+            // Wire up axis selectors
+            const xSel = document.getElementById('adv-centrality-x-axis');
+            const ySel = document.getElementById('adv-centrality-y-axis');
+            if (xSel && !xSel.dataset.bound) {
+                xSel.dataset.bound = '1';
+                xSel.addEventListener('change', rebuildCentralityChart);
+            }
+            if (ySel && !ySel.dataset.bound) {
+                ySel.dataset.bound = '1';
+                ySel.addEventListener('change', rebuildCentralityChart);
             }
 
-            advCentralityChart = new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [
-                        {
-                            label: 'Essential Genes',
-                            data: essentialPoints,
-                            backgroundColor: 'rgba(239, 68, 68, 0.85)',
-                            borderColor: '#ef4444',
-                            borderWidth: 1,
-                            pointRadius: 6,
-                            pointHoverRadius: 8
-                        },
-                        {
-                            label: 'Non-Essential Genes',
-                            data: nonEssentialPoints,
-                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                            borderColor: '#3b82f6',
-                            borderWidth: 1,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Degree Centrality (Connections)',
-                                font: { size: 10, weight: 'bold' }
-                            },
-                            grid: { color: 'rgba(0,0,0,0.04)' }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Closeness Centrality',
-                                font: { size: 10, weight: 'bold' }
-                            },
-                            grid: { color: 'rgba(0,0,0,0.04)' }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const pt = context.raw;
-                                    return `${pt.label} (${pt.locus}) | Degree: ${pt.deg}, Closeness: ${pt.close.toFixed(3)} [${pt.essential}]`;
-                                }
-                            }
-                        },
-                        legend: {
-                            labels: {
-                                boxWidth: 10,
-                                font: { size: 10 }
-                            }
-                        }
-                    },
-                    onClick: function(evt, elements) {
-                        if (elements && elements.length > 0) {
-                            const index = elements[0].index;
-                            const datasetIndex = elements[0].datasetIndex;
-                            const pt = advCentralityChart.data.datasets[datasetIndex].data[index];
-                            if (pt) {
-                                document.getElementById('adv-gnn-source').value = pt.label;
-                                document.getElementById('adv-gnn-target').value = '';
-                                // Highlight/shake source input slightly to guide user
-                                const sourceIn = document.getElementById('adv-gnn-source');
-                                sourceIn.style.outline = '2px solid #8b5cf6';
-                                setTimeout(() => sourceIn.style.outline = 'none', 1000);
-                            }
-                        }
-                    }
+            // Wire up essentiality filter pills
+            document.querySelectorAll('.adv-ess-filter').forEach(btn => {
+                if (!btn.dataset.bound) {
+                    btn.dataset.bound = '1';
+                    btn.addEventListener('click', () => {
+                        advEssentialityFilter = btn.dataset.filter;
+                        document.querySelectorAll('.adv-ess-filter').forEach(b => {
+                            const isActive = b === btn;
+                            b.style.background = isActive ? '#eff6ff' : 'white';
+                            b.style.color = isActive ? '#1d4ed8' : 'var(--text-secondary)';
+                            b.style.borderColor = isActive ? '#3b82f6' : 'var(--border-color)';
+                        });
+                        rebuildCentralityChart();
+                    });
                 }
             });
 
+            rebuildCentralityChart();
         } catch (err) {
             console.error('[Chart] Render failed:', err);
         }
@@ -17184,57 +17884,163 @@ if (!_origDetailPanel) {
     async function mineAdvancedMotifs() {
         const select = document.getElementById('adv-motif-select');
         const container = document.getElementById('adv-motif-results-container');
+        const statsEl = document.getElementById('adv-motif-stats');
         
         const rawType = select.value;
+        const ppiSlider = document.getElementById('adv-motif-ppi-slider');
+        const minScore = ppiSlider ? parseInt(ppiSlider.value) : 400;
+
         // Map UI values to backend motif types
         let type = 'co_complex';
         if (rawType === 'dimer-feedback') type = 'feedback';
         if (rawType === 'ffl-dimer') type = 'co_tf';
+        const isSigmaCascade = (rawType === 'sigma-cascade');
 
         container.innerHTML = '<span style="font-size:11px; color:var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin"></i> Searching regulatory-physical network layers...</span>';
+        if (statsEl) statsEl.style.display = 'none';
 
         try {
-            const resp = await fetch(`/api/analysis/cross_motifs?motif_type=${type}&min_score=400`);
-            if (!resp.ok) throw new Error('API failed');
-            const data = await resp.json();
-            const list = data.motifs || [];
+            let list = [];
+
+            if (isSigmaCascade) {
+                // Client-side derivation: Sigma → TF → Target from TRN data
+                if (typeof window.trnData !== 'undefined' && window.trnData) {
+                    const edges = window.trnData.edges || window.trnData || [];
+                    const sigmaNodes = new Set();
+                    const tfNodes = new Set();
+
+                    // Identify sigma factors (node type = sigma)
+                    (window.trnData.nodes || []).forEach(n => {
+                        if (n.type === 'sigma' || (n.name && n.name.toLowerCase().startsWith('sig'))) {
+                            sigmaNodes.add(n.id || n.locus || n.name);
+                        }
+                        if (n.type === 'TF' || n.type === 'tf') {
+                            tfNodes.add(n.id || n.locus || n.name);
+                        }
+                    });
+
+                    // Build edge lookup
+                    const edgeMap = {};
+                    edges.forEach(e => {
+                        const src = e.source || e.tf;
+                        const tgt = e.target;
+                        if (!edgeMap[src]) edgeMap[src] = [];
+                        edgeMap[src].push(tgt);
+                    });
+
+                    // Sigma → TF edges
+                    sigmaNodes.forEach(sigma => {
+                        const tfTargets = (edgeMap[sigma] || []).filter(t => tfNodes.has(t));
+                        tfTargets.forEach(tf => {
+                            const tfTargets2 = edgeMap[tf] || [];
+                            tfTargets2.slice(0, 3).forEach(target => {
+                                if (!sigmaNodes.has(target)) {
+                                    list.push({
+                                        type: 'sigma_cascade',
+                                        sigma_name: sigma,
+                                        tf_name: tf,
+                                        target_name: target,
+                                        ppi_score: 0
+                                    });
+                                }
+                            });
+                        });
+                    });
+                    // Limit and add placeholder ppi_score
+                    list = list.slice(0, 30);
+                } else {
+                    // Fallback: derive from gene index
+                    const sigmaGenes = Object.entries(geneIndex || {})
+                        .filter(([k, v]) => k.startsWith('sig') && v.type === 'TF')
+                        .slice(0, 5);
+                    sigmaGenes.forEach(([sigName]) => {
+                        list.push({
+                            type: 'sigma_cascade',
+                            sigma_name: sigName,
+                            tf_name: '—',
+                            target_name: '—',
+                            ppi_score: 0
+                        });
+                    });
+                }
+            } else {
+                const resp = await fetch(`/api/analysis/cross_motifs?motif_type=${type}&min_score=${minScore}`);
+                if (!resp.ok) throw new Error('API failed');
+                const data = await resp.json();
+                list = data.motifs || [];
+            }
 
             if (list.length === 0) {
                 container.innerHTML = '<span style="font-size:11px; color:var(--text-secondary); text-align:center; display:block; padding-top:20px;">No motifs found matching filters.</span>';
                 return;
             }
 
+            // ── Update Stats Summary ───────────────────────────────────────
+            if (statsEl) {
+                const scores = list.filter(m => m.ppi_score > 0).map(m => m.ppi_score);
+                const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : '—';
+                const uniqueGenes = new Set();
+                list.forEach(m => {
+                    [m.tf_name, m.tf_a_name, m.tf_b_name, m.target_name, m.target_b_name, m.target_c_name, m.sigma_name]
+                        .filter(Boolean).forEach(g => uniqueGenes.add(g));
+                });
+                document.getElementById('adv-motif-stat-count').innerText = list.length;
+                document.getElementById('adv-motif-stat-avg').innerText = avgScore;
+                document.getElementById('adv-motif-stat-genes').innerText = uniqueGenes.size;
+                statsEl.style.display = 'block';
+            }
+
             container.innerHTML = '';
-            // Display top 20 results for performance
             list.slice(0, 20).forEach(m => {
                 const card = document.createElement('div');
                 card.className = 'motif-result-card';
-                
-                let titleHtml = '';
-                let detailsHtml = '';
+
+                let titleHtml = '', detailsHtml = '', svgHtml = '';
 
                 if (type === 'co_complex') {
-                    titleHtml = `<strong style="font-size:12px; color:var(--text-primary);"><i class="fa-solid fa-diagram-project" style="color:#10b981;"></i> Co-regulation Hub</strong>`;
-                    detailsHtml = `TF <strong style="color:var(--color-primary-accent);">${m.tf_name}</strong> regulates <strong style="color:#10b981;">${m.target_b_name}</strong> &amp; <strong style="color:#10b981;">${m.target_c_name}</strong>, which physically interact (STRING: ${m.ppi_score}).`;
+                    titleHtml = `<strong style="font-size:11.5px; color:var(--text-primary);"><i class="fa-solid fa-diagram-project" style="color:#10b981;"></i> Co-regulation Hub</strong>`;
+                    detailsHtml = `TF <strong style="color:var(--color-primary-accent);">${m.tf_name}</strong> → <strong style="color:#10b981;">${m.target_b_name}</strong> &amp; <strong style="color:#10b981;">${m.target_c_name}</strong> <span style="color:#0d9488;">⟷ PPI</span>`;
+                    svgHtml = buildMotifSvg('co_complex', { A: m.tf_name, B: m.target_b_name, C: m.target_c_name });
                 } else if (type === 'feedback') {
-                    titleHtml = `<strong style="font-size:12px; color:var(--text-primary);"><i class="fa-solid fa-arrows-spin" style="color:#3b82f6;"></i> Mutual Feedback</strong>`;
-                    detailsHtml = `TF <strong style="color:#3b82f6;">${m.tf_name}</strong> regulates <strong style="color:#10b981;">${m.target_name}</strong>, and they physically dimerize/bind (STRING: ${m.ppi_score}).`;
+                    titleHtml = `<strong style="font-size:11.5px; color:var(--text-primary);"><i class="fa-solid fa-arrows-spin" style="color:#3b82f6;"></i> Mutual Feedback</strong>`;
+                    detailsHtml = `TF <strong style="color:#3b82f6;">${m.tf_name}</strong> → <strong style="color:#10b981;">${m.target_name}</strong> <span style="color:#0d9488;">⟷ PPI dimer</span>`;
+                    svgHtml = buildMotifSvg('feedback', { A: m.tf_name, B: m.target_name });
                 } else if (type === 'co_tf') {
-                    titleHtml = `<strong style="font-size:12px; color:var(--text-primary);"><i class="fa-solid fa-people-carry-box" style="color:#8b5cf6;"></i> FFL Dimer Loop</strong>`;
-                    detailsHtml = `TF <strong style="color:#3b82f6;">${m.tf_a_name}</strong> dimerizes with TF <strong style="color:#3b82f6;">${m.tf_b_name}</strong> (STRING: ${m.ppi_score}) and both co-regulate <strong style="color:#10b981;">${m.target_c_name}</strong>.`;
+                    titleHtml = `<strong style="font-size:11.5px; color:var(--text-primary);"><i class="fa-solid fa-people-carry-box" style="color:#8b5cf6;"></i> FFL Dimer Loop</strong>`;
+                    detailsHtml = `TF <strong style="color:#3b82f6;">${m.tf_a_name}</strong> + <strong style="color:#3b82f6;">${m.tf_b_name}</strong> <span style="color:#0d9488;">⟷ PPI</span> → co-regulate <strong style="color:#10b981;">${m.target_c_name}</strong>`;
+                    svgHtml = buildMotifSvg('co_tf', { A: m.tf_a_name, B: m.tf_b_name, C: m.target_c_name });
+                } else if (isSigmaCascade) {
+                    titleHtml = `<strong style="font-size:11.5px; color:var(--text-primary);"><i class="fa-solid fa-layer-group" style="color:#f59e0b;"></i> Sigma Cascade</strong>`;
+                    detailsHtml = `<strong style="color:#f59e0b;">${m.sigma_name}</strong> → <strong style="color:#3b82f6;">${m.tf_name}</strong> → <strong style="color:#10b981;">${m.target_name}</strong>`;
+                    svgHtml = buildMotifSvg('sigma_cascade', { A: m.sigma_name, B: m.tf_name, C: m.target_name });
                 }
 
+                const scoreTag = m.ppi_score > 0
+                    ? `<span style="font-size:10px; background:#e6fffa; border:1px solid #b2f5ea; color:#00a389; padding:2px 6px; border-radius:12px; font-weight:600;">PPI: ${m.ppi_score}</span>`
+                    : '';
+
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
                         ${titleHtml}
-                        <span style="font-size:10px; background:#e6fffa; border:1px solid #b2f5ea; color:#00a389; padding:2px 6px; border-radius:12px; font-weight:600;">PPI Score: ${m.ppi_score}</span>
+                        ${scoreTag}
                     </div>
-                    <div style="font-size:11px; color:var(--text-secondary); line-height:1.4; margin-top: 4px;">${detailsHtml}</div>
-                    <div style="font-size:9.5px; color:var(--text-muted); text-align:right; margin-top: 4px; border-top: 1px solid var(--border-color); padding-top: 4px;"><i class="fa-solid fa-magnifying-glass-plus"></i> Click to render subnetwork</div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                        ${svgHtml}
+                        <div style="font-size:10.5px; color:var(--text-secondary); line-height:1.5; flex:1;">${detailsHtml}</div>
+                    </div>
+                    <div style="font-size:9px; color:var(--text-muted); text-align:right; margin-top:4px; border-top:1px solid var(--border-color); padding-top:3px;">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i> Click to render subnetwork
+                    </div>
                 `;
 
                 card.addEventListener('click', () => {
-                    visualizeMotif(type, m);
+                    if (!isSigmaCascade) visualizeMotif(type, m);
+                    else {
+                        // For sigma cascade jump to gene explorer with sigma + tf
+                        if (typeof setActiveWorkflowEntry === 'function') setActiveWorkflowEntry('gene');
+                        const gi = document.querySelector('.gene-input');
+                        if (gi) { gi.value = [m.sigma_name, m.tf_name].filter(Boolean).join(', '); if (typeof renderNetwork === 'function') renderNetwork([m.sigma_name, m.tf_name].filter(Boolean)); }
+                    }
                 });
 
                 container.appendChild(card);
@@ -17244,6 +18050,75 @@ if (!_origDetailPanel) {
             console.error('[Motif Mining] Error:', err);
             container.innerHTML = '<span style="font-size:11px; color:var(--text-danger);">Failed to search motif repository.</span>';
         }
+    }
+
+    // Build SVG mini diagram for motif patterns
+    function buildMotifSvg(type, nodes) {
+        const W = 72, H = 50;
+        const nodeStyle = 'font-family:sans-serif; font-size:6px; text-anchor:middle;';
+        const tfColor = '#3b82f6', targetColor = '#10b981', sigmaColor = '#f59e0b', ppiColor = '#0d9488';
+        const truncate = s => (s && s.length > 7 ? s.slice(0, 6) + '…' : (s || '?'));
+
+        if (type === 'co_complex') {
+            // TF at top-center, B and C at bottom-left / bottom-right
+            return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="flex-shrink:0;">
+                <rect x="22" y="2" width="28" height="12" rx="3" fill="${tfColor}" opacity="0.85"/>
+                <text x="36" y="11" style="${nodeStyle}" fill="white">${truncate(nodes.A)}</text>
+                <rect x="2" y="34" width="28" height="12" rx="3" fill="${targetColor}" opacity="0.8"/>
+                <text x="16" y="43" style="${nodeStyle}" fill="white">${truncate(nodes.B)}</text>
+                <rect x="42" y="34" width="28" height="12" rx="3" fill="${targetColor}" opacity="0.8"/>
+                <text x="56" y="43" style="${nodeStyle}" fill="white">${truncate(nodes.C)}</text>
+                <line x1="30" y1="14" x2="16" y2="34" stroke="${tfColor}" stroke-width="1.2" marker-end="url(#arr-t)"/>
+                <line x1="42" y1="14" x2="56" y2="34" stroke="${tfColor}" stroke-width="1.2" marker-end="url(#arr-t)"/>
+                <line x1="30" y1="40" x2="42" y2="40" stroke="${ppiColor}" stroke-width="1.5" stroke-dasharray="2,1"/>
+                <defs><marker id="arr-t" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="${tfColor}"/></marker></defs>
+            </svg>`;
+        } else if (type === 'feedback') {
+            // A on left, B on right with bidirectional arrows
+            return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="flex-shrink:0;">
+                <rect x="2" y="18" width="28" height="12" rx="3" fill="${tfColor}" opacity="0.85"/>
+                <text x="16" y="27" style="${nodeStyle}" fill="white">${truncate(nodes.A)}</text>
+                <rect x="42" y="18" width="28" height="12" rx="3" fill="${targetColor}" opacity="0.8"/>
+                <text x="56" y="27" style="${nodeStyle}" fill="white">${truncate(nodes.B)}</text>
+                <line x1="30" y1="22" x2="42" y2="22" stroke="${tfColor}" stroke-width="1.2" marker-end="url(#arr-f)"/>
+                <line x1="42" y1="28" x2="30" y2="28" stroke="${ppiColor}" stroke-width="1.5" stroke-dasharray="2,1" marker-end="url(#arr-p)"/>
+                <defs>
+                    <marker id="arr-f" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="${tfColor}"/></marker>
+                    <marker id="arr-p" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="${ppiColor}"/></marker>
+                </defs>
+            </svg>`;
+        } else if (type === 'co_tf') {
+            // A and B at top, C at bottom, PPI between A and B
+            return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="flex-shrink:0;">
+                <rect x="2" y="4" width="28" height="12" rx="3" fill="${tfColor}" opacity="0.85"/>
+                <text x="16" y="13" style="${nodeStyle}" fill="white">${truncate(nodes.A)}</text>
+                <rect x="42" y="4" width="28" height="12" rx="3" fill="${tfColor}" opacity="0.85"/>
+                <text x="56" y="13" style="${nodeStyle}" fill="white">${truncate(nodes.B)}</text>
+                <rect x="22" y="34" width="28" height="12" rx="3" fill="${targetColor}" opacity="0.8"/>
+                <text x="36" y="43" style="${nodeStyle}" fill="white">${truncate(nodes.C)}</text>
+                <line x1="30" y1="10" x2="42" y2="10" stroke="${ppiColor}" stroke-width="1.5" stroke-dasharray="2,1"/>
+                <line x1="16" y1="16" x2="30" y2="34" stroke="${tfColor}" stroke-width="1.2" marker-end="url(#arr-ct)"/>
+                <line x1="56" y1="16" x2="42" y2="34" stroke="${tfColor}" stroke-width="1.2" marker-end="url(#arr-ct)"/>
+                <defs><marker id="arr-ct" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="${tfColor}"/></marker></defs>
+            </svg>`;
+        } else if (type === 'sigma_cascade') {
+            // Sigma → TF → Target (vertical cascade)
+            return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="flex-shrink:0;">
+                <rect x="14" y="2" width="28" height="11" rx="3" fill="${sigmaColor}" opacity="0.85"/>
+                <text x="28" y="11" style="${nodeStyle}" fill="white">${truncate(nodes.A)}</text>
+                <rect x="14" y="19" width="28" height="11" rx="3" fill="${tfColor}" opacity="0.85"/>
+                <text x="28" y="28" style="${nodeStyle}" fill="white">${truncate(nodes.B)}</text>
+                <rect x="14" y="36" width="28" height="11" rx="3" fill="${targetColor}" opacity="0.8"/>
+                <text x="28" y="45" style="${nodeStyle}" fill="white">${truncate(nodes.C)}</text>
+                <line x1="28" y1="13" x2="28" y2="19" stroke="${sigmaColor}" stroke-width="1.2" marker-end="url(#arr-s)"/>
+                <line x1="28" y1="30" x2="28" y2="36" stroke="${tfColor}" stroke-width="1.2" marker-end="url(#arr-s2)"/>
+                <defs>
+                    <marker id="arr-s" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="${sigmaColor}"/></marker>
+                    <marker id="arr-s2" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L0,4 L4,2 z" fill="${tfColor}"/></marker>
+                </defs>
+            </svg>`;
+        }
+        return '';
     }
 
     function resolveGeneToCg(input) {
@@ -17256,6 +18131,321 @@ if (!_origDetailPanel) {
             return nameToCg[lower].toLowerCase();
         }
         return lower;
+    }
+
+    // ── Bubble-size wiring for scatter chart ─────────────────────────────────
+    (function _bindBubbleSize() {
+        document.addEventListener('DOMContentLoaded', () => {
+            const sel = document.getElementById('adv-centrality-bubble-size');
+            const hi  = document.getElementById('adv-centrality-highlight');
+            if (sel && !sel.dataset.bound) {
+                sel.dataset.bound = '1';
+                sel.addEventListener('change', rebuildCentralityChart);
+            }
+            if (hi && !hi.dataset.bound) {
+                hi.dataset.bound = '1';
+                hi.addEventListener('input', rebuildCentralityChart);
+            }
+        });
+    })();
+
+    // ── Network Embedding Canvas ──────────────────────────────────────────────
+    let _embNodes    = null;   // [{id, name, locus, type, deg, x, y, vx, vy}, ...]
+    let _embColorMode = 'type';
+    let _embAnimId   = null;
+
+    const EMB_TYPE_COLOR = {
+        sigma:    '#f59e0b',
+        globalTf: '#7c3aed',
+        localTf:  '#3b82f6',
+        srna:     '#0d9488',
+        other:    '#94a3b8',
+    };
+
+    function _embGetColor(node) {
+        if (_embColorMode === 'essential') {
+            const lk = node.locus ? node.locus.toLowerCase() : '';
+            const isEss = !!(window.essentialGenes && (window.essentialGenes[lk] ||
+                (cgToCgl[lk] && window.essentialGenes[cgToCgl[lk].toLowerCase()])));
+            return isEss ? '#ef4444' : '#94a3b8';
+        }
+        if (_embColorMode === 'degree') {
+            // Heat: low = blue, high = orange-red
+            const maxDeg = _embNodes ? Math.max(..._embNodes.map(n => n.deg)) : 1;
+            const t = Math.min(1, node.deg / Math.max(maxDeg, 1));
+            // lerp #3b82f6 → #f59e0b → #ef4444
+            if (t < 0.5) {
+                const r = Math.round(59  + (245 - 59)  * (t * 2));
+                const g = Math.round(130 + (158 - 130) * (t * 2));
+                const b = Math.round(246 + (11  - 246) * (t * 2));
+                return `rgb(${r},${g},${b})`;
+            } else {
+                const r = Math.round(245 + (239 - 245) * ((t - 0.5) * 2));
+                const g = Math.round(158 + (68  - 158) * ((t - 0.5) * 2));
+                const b = Math.round(11  + (68  - 11)  * ((t - 0.5) * 2));
+                return `rgb(${r},${g},${b})`;
+            }
+        }
+        return EMB_TYPE_COLOR[node.type] || EMB_TYPE_COLOR.other;
+    }
+
+    function _embInitNodes(centralityData) {
+        const W = 800, H = 280;
+        _embNodes = centralityData.map((n, i) => {
+            let type = 'localTf';
+            if (n.name && n.name.toLowerCase().startsWith('sig')) type = 'sigma';
+            else if ((n.out_degree || 0) >= 10) type = 'globalTf';
+            else if ((n.in_degree || 0) > (n.out_degree || 0) * 2) type = 'srna';
+            const deg = (n.out_degree || 0) + (n.in_degree || 0);
+            return {
+                id: n.locus,
+                name: n.name || n.locus,
+                locus: n.locus,
+                type,
+                deg,
+                essential: !!(window.essentialGenes && window.essentialGenes[(n.locus || '').toLowerCase()]),
+                nodeData: n,
+                // Random initial positions
+                x: 60 + Math.random() * (W - 120),
+                y: 40 + Math.random() * (H - 80),
+                vx: 0, vy: 0
+            };
+        });
+    }
+
+    function _embRunForce(iterations) {
+        if (!_embNodes || _embNodes.length === 0) return;
+        const W = 800, H = 280;
+        const k = Math.sqrt((W * H) / _embNodes.length);  // ideal spring length
+        const cooling = 0.85;
+        let temp = k * 0.5;
+
+        for (let iter = 0; iter < iterations; iter++) {
+            // Repulsion between all pairs (O(n²) but n is small ~100 nodes)
+            for (let i = 0; i < _embNodes.length; i++) {
+                _embNodes[i].fx = 0; _embNodes[i].fy = 0;
+                for (let j = 0; j < _embNodes.length; j++) {
+                    if (i === j) continue;
+                    const dx = _embNodes[i].x - _embNodes[j].x;
+                    const dy = _embNodes[i].y - _embNodes[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy) || 0.01;
+                    const force = (k * k) / dist;
+                    _embNodes[i].fx += (dx / dist) * force;
+                    _embNodes[i].fy += (dy / dist) * force;
+                }
+            }
+            // Gravity towards center
+            _embNodes.forEach(n => {
+                n.fx += (W/2 - n.x) * 0.01;
+                n.fy += (H/2 - n.y) * 0.01;
+            });
+            // Apply displacement
+            _embNodes.forEach(n => {
+                const disp = Math.sqrt(n.fx*n.fx + n.fy*n.fy) || 0.001;
+                const scale = Math.min(disp, temp) / disp;
+                n.x = Math.max(20, Math.min(W-20, n.x + n.fx * scale));
+                n.y = Math.max(20, Math.min(H-20, n.y + n.fy * scale));
+            });
+            temp *= cooling;
+        }
+    }
+
+    window.renderEmbeddingCanvas = function() {
+        const canvas  = document.getElementById('adv-embedding-canvas');
+        const loading = document.getElementById('adv-emb-loading');
+        if (!canvas) return;
+
+        // Stop previous animation
+        if (_embAnimId) { cancelAnimationFrame(_embAnimId); _embAnimId = null; }
+
+        // If no data yet, fetch and then render
+        if (!advCentralityAllNodes) {
+            if (loading) loading.style.display = 'flex';
+            renderCentralityScatterChart().then(() => {
+                if (advCentralityAllNodes) {
+                    _embInitNodes(advCentralityAllNodes);
+                    _doRenderEmbedding(canvas, loading);
+                }
+            });
+            return;
+        }
+        _embInitNodes(advCentralityAllNodes);
+        _doRenderEmbedding(canvas, loading);
+    };
+
+    function _doRenderEmbedding(canvas, loading) {
+        if (loading) loading.style.display = 'flex';
+        // Run force layout off-screen (200 iterations)
+        setTimeout(() => {
+            _embRunForce(200);
+            if (loading) loading.style.display = 'none';
+            _drawEmbeddingFrame(canvas);
+            _bindEmbeddingInteractions(canvas);
+            _bindEmbeddingColorBtns();
+        }, 50);
+    }
+
+    function _drawEmbeddingFrame(canvas) {
+        if (!_embNodes || !canvas) return;
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        const W = rect.width || canvas.offsetWidth || 800;
+        const H = rect.height || canvas.offsetHeight || 280;
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        // Background
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, W, H);
+
+        // Subtle grid
+        ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+        ctx.lineWidth = 0.5;
+        for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+        for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+        // Scale node positions from 800×280 space to actual canvas size
+        const scaleX = W / 800;
+        const scaleY = H / 280;
+
+        const maxDeg = Math.max(..._embNodes.map(n => n.deg), 1);
+        _embNodes.forEach(n => {
+            const cx = n.x * scaleX;
+            const cy = n.y * scaleY;
+            const r  = 4 + Math.sqrt(n.deg / maxDeg) * 10;
+            const color = _embGetColor(n);
+            // Shadow
+            ctx.shadowColor = color + '55';
+            ctx.shadowBlur  = 6;
+            ctx.fillStyle   = color;
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+            // Border
+            ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx.lineWidth   = 1.5;
+            ctx.stroke();
+            // Label for larger nodes
+            if (n.deg >= 10 || n.type === 'sigma') {
+                ctx.fillStyle   = '#1e293b';
+                ctx.font        = `bold ${Math.min(10, 7 + r * 0.2)}px Inter, sans-serif`;
+                ctx.textAlign   = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(n.name.slice(0, 8), cx, cy + r + 2);
+            }
+        });
+        // Store scale for interaction
+        canvas._embScaleX = scaleX;
+        canvas._embScaleY = scaleY;
+    }
+
+    let _embInteractionsBound = false;
+    function _bindEmbeddingInteractions(canvas) {
+        if (_embInteractionsBound) return;
+        _embInteractionsBound = true;
+        const tooltip = document.getElementById('adv-emb-tooltip');
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!_embNodes) return;
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const scX = canvas._embScaleX || 1;
+            const scY = canvas._embScaleY || 1;
+            const maxDeg = Math.max(..._embNodes.map(n => n.deg), 1);
+
+            let hit = null;
+            for (const n of _embNodes) {
+                const cx = n.x * scX, cy = n.y * scY;
+                const r  = 4 + Math.sqrt(n.deg / maxDeg) * 10;
+                if (Math.hypot(mx - cx, my - cy) <= r + 3) { hit = n; break; }
+            }
+            if (hit && tooltip) {
+                const lk = (hit.locus || '').toLowerCase();
+                const isEss = !!(window.essentialGenes && (window.essentialGenes[lk] ||
+                    (cgToCgl[lk] && window.essentialGenes[cgToCgl[lk].toLowerCase()])));
+                tooltip.innerHTML = `<strong>${hit.name}</strong><br>${hit.locus}<br>
+                    Degree: ${hit.deg} | Out: ${hit.nodeData.out_degree||0}<br>
+                    Type: ${hit.type} · ${isEss ? '<span style="color:#f87171">Essential</span>' : 'Non-essential'}`;
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.clientX - canvas.getBoundingClientRect().left + 12) + 'px';
+                tooltip.style.top  = (e.clientY - canvas.getBoundingClientRect().top  - 10) + 'px';
+                canvas.style.cursor = 'pointer';
+            } else {
+                if (tooltip) tooltip.style.display = 'none';
+                canvas.style.cursor = 'crosshair';
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            if (tooltip) tooltip.style.display = 'none';
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (!_embNodes) return;
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const scX = canvas._embScaleX || 1;
+            const scY = canvas._embScaleY || 1;
+            const maxDeg = Math.max(..._embNodes.map(n => n.deg), 1);
+
+            for (const n of _embNodes) {
+                const cx = n.x * scX, cy = n.y * scY;
+                const r  = 4 + Math.sqrt(n.deg / maxDeg) * 10;
+                if (Math.hypot(mx - cx, my - cy) <= r + 3) {
+                    if (typeof setActiveWorkflowEntry === 'function') setActiveWorkflowEntry('gene');
+                    const gi = document.querySelector('.gene-input');
+                    if (gi && typeof renderNetwork === 'function') {
+                        gi.value = n.name;
+                        renderNetwork([n.locus]);
+                    }
+                    break;
+                }
+            }
+        });
+
+        // Redraw on resize
+        window.addEventListener('resize', () => {
+            if (_embNodes) _drawEmbeddingFrame(canvas);
+        });
+    }
+
+    function _bindEmbeddingColorBtns() {
+        document.querySelectorAll('.emb-color-btn').forEach(btn => {
+            if (btn.dataset.bound) return;
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', () => {
+                _embColorMode = btn.dataset.mode;
+                document.querySelectorAll('.emb-color-btn').forEach(b => {
+                    const isActive = b === btn;
+                    b.style.background   = isActive ? '#eef2ff' : 'white';
+                    b.style.color        = isActive ? '#4338ca' : 'var(--text-secondary)';
+                    b.style.borderColor  = isActive ? '#6366f1' : 'var(--border-color)';
+                });
+                const canvas = document.getElementById('adv-embedding-canvas');
+                if (canvas && _embNodes) _drawEmbeddingFrame(canvas);
+                // Update legend for non-type modes
+                const legend = document.getElementById('adv-emb-legend');
+                if (legend) {
+                    if (_embColorMode === 'essential') {
+                        legend.innerHTML = `<div style="font-weight:700;color:var(--text-secondary);margin-bottom:2px;font-size:9px;text-transform:uppercase;letter-spacing:0.05em;">Legend</div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;"></span> Essential</div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#94a3b8;"></span> Non-essential</div>`;
+                    } else if (_embColorMode === 'degree') {
+                        legend.innerHTML = `<div style="font-weight:700;color:var(--text-secondary);margin-bottom:2px;font-size:9px;text-transform:uppercase;letter-spacing:0.05em;">Legend</div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:36px;height:8px;border-radius:4px;background:linear-gradient(90deg,#3b82f6,#f59e0b,#ef4444);"></span> Low → High</div>`;
+                    } else {
+                        legend.innerHTML = `<div style="font-weight:700;color:var(--text-secondary);margin-bottom:2px;font-size:9px;text-transform:uppercase;letter-spacing:0.05em;">Legend</div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;"></span> Sigma Factor</div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#7c3aed;"></span> Global TF (≥10)</div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;"></span> Local TF</div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#0d9488;"></span> sRNA</div>`;
+                    }
+                }
+            });
+        });
     }
 
     // ── Start Dynamic Simulation Tab Logic ──────────────────────────────────────
@@ -18034,11 +19224,11 @@ const _hier = {
 
 /** Layer config: label, color, nodeHeight */
 const HIER_LAYERS = [
-    { key: 'sigma',    label: 'Sigma Factors',                color: '#f59e0b', textColor: '#78350f', h: 28 },
-    { key: 'globalTf', label: 'Global Regulators  (�?0 targets)', color: '#7c3aed', textColor: '#ede9fe', h: 26 },
-    { key: 'localTf',  label: 'Local TF  (1�? targets)',     color: '#3b82f6', textColor: '#dbeafe', h: 24 },
-    { key: 'srna',     label: 'sRNA  (post-transcriptional)', color: '#0d9488', textColor: '#ccfbf1', h: 24 },
-    { key: 'target',   label: 'Target Genes',                 color: '#94a3b8', textColor: '#f8fafc', h: 22 },
+    { key: 'sigma',    label: 'Sigma Factors',                   color: '#f59e0b', textColor: '#78350f', h: 32 },
+    { key: 'globalTf', label: 'Global Regulators (≥10 targets)', color: '#7c3aed', textColor: '#ede9fe', h: 30 },
+    { key: 'localTf',  label: 'Local TF (1–9 targets)',          color: '#3b82f6', textColor: '#dbeafe', h: 28 },
+    { key: 'srna',     label: 'sRNA (post-transcriptional)',      color: '#0d9488', textColor: '#ccfbf1', h: 28 },
+    { key: 'target',   label: 'Target Genes',                    color: '#94a3b8', textColor: '#f8fafc', h: 24 },
 ];
 
 const GLOBAL_TF_THRESHOLD = 10;   // out-degree >= this => Global TF
@@ -18053,6 +19243,8 @@ function initHierarchyView() {
     // Read control values
     const slider = document.getElementById('hier-conf-slider');
     if (slider) _hier.confThresh = parseFloat(slider.value) || 0;
+    // Auto-collapse right sidebar for more canvas space
+    toggleRightSidebar(false);
     renderHierarchy();
 }
 
@@ -18131,20 +19323,20 @@ function renderHierarchy() {
 
     const layers = _hier.layers;
 
-    // Layout constants
-    const PAD_X     = 36;     // horizontal padding from edge
-    const NODE_GAP  = 10;     // horizontal gap between nodes in same layer
-    const LAYER_GAP = 80;     // vertical gap between layers
-    const MIN_W     = 60;
-    const CHAR_W    = 7;
-    const CORNER    = 5;
+    // Layout constants — generously spaced for readability
+    const PAD_X     = 48;     // horizontal padding from edge
+    const NODE_GAP  = 14;     // horizontal gap between nodes in same layer
+    const LAYER_GAP = 130;    // vertical gap between layers (was 80)
+    const MIN_W     = 72;     // minimum node width
+    const CHAR_W    = 7.2;    // px per character
+    const CORNER    = 6;
+    const PAD_IN    = 14;     // horizontal inner padding per node
 
     // Collect all edges that pass filter
     const activeEdges = (normalizedEdges || []).filter(e => {
         if (!e || !e.source || !e.target) return false;
         if ((e.confidenceScore || 0) < confThresh) return false;
         const role = (e.role || e.legacyRole || '').toLowerCase();
-        const regType = (e.regulationType || '').toLowerCase();
         if (typeFilter === 'activation' && !role.includes('activ')) return false;
         if (typeFilter === 'repression' && !role.includes('repr')) return false;
         const srcType = (normalizedNodes[e.source.toLowerCase()]?.type || '').toLowerCase();
@@ -18156,7 +19348,7 @@ function renderHierarchy() {
     });
     _hier.allEdges = activeEdges;
 
-    // Determine which targets are visible (only expanded TF children + TF/Sigma/sRNA nodes)
+    // Determine which targets are visible (only expanded TF children)
     const visibleTargetIds = new Set();
     _hier.expandedTf.forEach(tfId => {
         activeEdges.forEach(e => {
@@ -18176,14 +19368,23 @@ function renderHierarchy() {
         { ...HIER_LAYERS[4], nodes: layers.target.filter(n => visibleTargetIds.has(n.id)) },
     ];
 
+    // Calculate node widths and adaptive SVG width
+    const nodeW = n => Math.max(MIN_W, n.name.length * CHAR_W + PAD_IN * 2);
+    const maxLayerW = renderLayers.reduce((mx, layer) => {
+        if (!layer.nodes.length) return mx;
+        const total = layer.nodes.reduce((s, n) => s + nodeW(n) + NODE_GAP, -NODE_GAP);
+        return Math.max(mx, total + PAD_X * 2);
+    }, 900);
+    const canvasWrap = document.getElementById('hier-canvas-wrap');
+    const viewW = canvasWrap?.clientWidth || 900;
+    const svgWidth = Math.max(viewW, maxLayerW);
+
     // Calculate positions
     _hier.nodePos = {};
-    const svgWidth  = Math.max(document.getElementById('hier-canvas-wrap')?.clientWidth || 900, 900);
-    let y = 60;
+    let y = 70;
 
     renderLayers.forEach((layer, li) => {
         if (layer.nodes.length === 0) return;
-        const nodeW  = n => Math.max(MIN_W, n.name.length * CHAR_W + 20);
         const totalW = layer.nodes.reduce((s, n) => s + nodeW(n) + NODE_GAP, -NODE_GAP);
         let x = Math.max(PAD_X, (svgWidth - totalW) / 2);
 
@@ -18195,7 +19396,7 @@ function renderHierarchy() {
         y += layer.h + LAYER_GAP;
     });
 
-    const svgHeight = y + 20;
+    const svgHeight = y + 30;
 
     // Render SVG elements
     const svg       = document.getElementById('hier-svg');
@@ -18208,31 +19409,41 @@ function renderHierarchy() {
     svg.setAttribute('height', svgHeight);
     svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
 
-    // Draw layer separator lines + labels
+    // Draw layer background bands + separator lines + labels
     labelsG.innerHTML = '';
-    let yLabel = 60;
+    let yLabel = 70;
     renderLayers.forEach((layer, li) => {
         if (layer.nodes.length === 0) return;
+        // Subtle band background for this layer
+        const band = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        band.setAttribute('x', 0); band.setAttribute('y', yLabel - 22);
+        band.setAttribute('width', svgWidth); band.setAttribute('height', layer.h + 22);
+        band.setAttribute('fill', layer.color + '09');
+        labelsG.appendChild(band);
         // Horizontal separator above
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', PAD_X - 10); line.setAttribute('y1', yLabel - 16);
-        line.setAttribute('x2', svgWidth - PAD_X + 10); line.setAttribute('y2', yLabel - 16);
-        line.setAttribute('stroke', layer.color + '55'); line.setAttribute('stroke-width', '1');
+        line.setAttribute('x1', 0); line.setAttribute('y1', yLabel - 22);
+        line.setAttribute('x2', svgWidth); line.setAttribute('y2', yLabel - 22);
+        line.setAttribute('stroke', layer.color + '40'); line.setAttribute('stroke-width', '1');
         labelsG.appendChild(line);
         // Layer label on left
         const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        txt.setAttribute('x', PAD_X - 10); txt.setAttribute('y', yLabel - 3);
-        txt.setAttribute('font-size', '9'); txt.setAttribute('fill', layer.color);
-        txt.setAttribute('font-weight', '700'); txt.setAttribute('letter-spacing', '0.04em');
-        txt.setAttribute('text-transform', 'uppercase');
+        txt.setAttribute('x', PAD_X - 10); txt.setAttribute('y', yLabel - 6);
+        txt.setAttribute('font-size', '9.5'); txt.setAttribute('fill', layer.color);
+        txt.setAttribute('font-weight', '800'); txt.setAttribute('letter-spacing', '0.06em');
         txt.textContent = layer.label.toUpperCase();
         labelsG.appendChild(txt);
         yLabel += layer.h + LAYER_GAP;
     });
 
-    // Draw edges
+    // Build node→edge index for hover highlighting
+    const nodeEdgeMap = {};  // nodeId -> [pathElement, ...]
+    _hier._edgePaths = [];   // store for later hover logic
+
+    // Draw edges — default very faint, highlighted on hover
     edgesG.innerHTML = '';
-    activeEdges.forEach(e => {
+    const edgePaths = [];
+    activeEdges.forEach((e, ei) => {
         const srcId = e.source.toLowerCase();
         const tgtId = e.target.toLowerCase();
         const sp = _hier.nodePos[srcId];
@@ -18241,114 +19452,209 @@ function renderHierarchy() {
 
         const role    = (e.role || e.legacyRole || '').toLowerCase();
         const isTfTf  = sp.layer <= 2 && tp.layer <= 2;
+        const isSrna  = e.interactionClass === 'sRNA-mRNA';
         let stroke = '#f59e0b', marker = 'url(#arrow-dbl)';
-        if (e.interactionClass === 'sRNA-mRNA') { stroke = '#0d9488'; marker = 'url(#arrow-srna)'; }
-        else if (role.includes('activ'))         { stroke = '#10b981'; marker = 'url(#arrow-act)'; }
-        else if (role.includes('repr'))          { stroke = '#ef4444'; marker = 'url(#arrow-rep)'; }
+        if (isSrna)                   { stroke = '#0d9488'; marker = 'url(#arrow-srna)'; }
+        else if (role.includes('activ')) { stroke = '#10b981'; marker = 'url(#arrow-act)'; }
+        else if (role.includes('repr'))  { stroke = '#ef4444'; marker = 'url(#arrow-rep)'; }
 
         const x1 = sp.x + sp.w / 2, y1 = sp.y + sp.h;
         const x2 = tp.x + tp.w / 2, y2 = tp.y;
-        const cy1 = y1 + (y2 - y1) * 0.4, cy2 = y2 - (y2 - y1) * 0.4;
+        // Gentler S-curve with less extreme control points
+        const dy = y2 - y1;
+        const cy1 = y1 + dy * 0.35, cy2 = y2 - dy * 0.35;
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', `M${x1},${y1} C${x1},${cy1} ${x2},${cy2} ${x2},${y2}`);
         path.setAttribute('stroke', stroke);
-        path.setAttribute('stroke-width', isTfTf ? '1.5' : '1');
+        path.setAttribute('stroke-width', isTfTf ? '1.2' : '0.9');
         path.setAttribute('fill', 'none');
-        path.setAttribute('stroke-opacity', (e.confidenceScore || 0.5).toFixed(2));
+        // Default: very subtle — will highlight on hover
+        const baseOpacity = Math.min(0.18, (e.confidenceScore || 0.3) * 0.25);
+        path.setAttribute('stroke-opacity', baseOpacity.toFixed(3));
         path.setAttribute('marker-end', marker);
+        path.setAttribute('data-src', srcId);
+        path.setAttribute('data-tgt', tgtId);
+        path.setAttribute('data-op', (Math.min(0.85, (e.confidenceScore || 0.5) * 0.95)).toFixed(3));
+        path.setAttribute('data-edge-src', srcId);  // for Focus Mode
+        path.setAttribute('data-edge-tgt', tgtId);  // for Focus Mode
         path.classList.add('hier-edge');
         edgesG.appendChild(path);
+        edgePaths.push(path);
+        if (!nodeEdgeMap[srcId]) nodeEdgeMap[srcId] = [];
+        if (!nodeEdgeMap[tgtId]) nodeEdgeMap[tgtId] = [];
+        nodeEdgeMap[srcId].push(path);
+        nodeEdgeMap[tgtId].push(path);
     });
+    _hier._edgePaths  = edgePaths;
+    _hier._nodeEdgeMap = nodeEdgeMap;
 
-    // Draw nodes
+    // Draw nodes with hover-highlight edge logic
     nodesG.innerHTML = '';
     const tooltip = document.getElementById('hier-tooltip');
+
+    // Helper: highlight edges connected to a node
+    const highlightNode = (id) => {
+        const connected = new Set();
+        (_hier._nodeEdgeMap[id] || []).forEach(p => {
+            connected.add(p.getAttribute('data-src'));
+            connected.add(p.getAttribute('data-tgt'));
+        });
+        _hier._edgePaths.forEach(p => {
+            const isConn = p.getAttribute('data-src') === id || p.getAttribute('data-tgt') === id;
+            if (isConn) {
+                p.setAttribute('stroke-opacity', p.getAttribute('data-op'));
+                p.setAttribute('stroke-width', parseFloat(p.getAttribute('stroke-width') || 1) * 2);
+            } else {
+                p.setAttribute('stroke-opacity', '0.04');
+            }
+        });
+    };
+    const resetEdges = () => {
+        _hier._edgePaths.forEach(p => {
+            const base = Math.min(0.18, parseFloat(p.getAttribute('data-op') || 0.3) * 0.25);
+            p.setAttribute('stroke-opacity', base.toFixed(3));
+            // Reset to original width stored in data-op
+            const isWide = p.getAttribute('data-wide') === '1';
+            p.setAttribute('stroke-width', isWide ? '1.2' : '0.9');
+        });
+    };
+    // Tag edges with their base width
+    _hier._edgePaths.forEach(p => {
+        p.setAttribute('data-wide', p.getAttribute('stroke-width') === '1.2' ? '1' : '0');
+    });
+
     Object.entries(_hier.nodePos).forEach(([id, pos]) => {
-        const g    = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         g.setAttribute('cursor', 'pointer');
         g.classList.add('hier-node-g');
+        g.dataset.hierid = id;   // used by highlightHierSearch()
 
-        // Drop shadow filter
+        // Node rectangle
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('x', pos.x); rect.setAttribute('y', pos.y);
         rect.setAttribute('width', pos.w); rect.setAttribute('height', pos.h);
         rect.setAttribute('rx', CORNER); rect.setAttribute('ry', CORNER);
         rect.setAttribute('fill', pos.color);
-        rect.setAttribute('filter', 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))');
+        rect.setAttribute('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.18))');
         g.appendChild(rect);
 
         // Badge: out-degree
         if (pos.deg > 0 && pos.layer < 4) {
+            const BADGE_W = pos.deg > 99 ? 22 : 18;
             const badge = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            badge.setAttribute('x', pos.x + pos.w - 18); badge.setAttribute('y', pos.y - 7);
-            badge.setAttribute('width', 18); badge.setAttribute('height', 13);
-            badge.setAttribute('rx', 6); badge.setAttribute('fill', 'white');
-            badge.setAttribute('stroke', pos.color); badge.setAttribute('stroke-width', '1');
+            badge.setAttribute('x', pos.x + pos.w - BADGE_W + 2);
+            badge.setAttribute('y', pos.y - 8);
+            badge.setAttribute('width', BADGE_W);
+            badge.setAttribute('height', 14);
+            badge.setAttribute('rx', 7); badge.setAttribute('fill', 'white');
+            badge.setAttribute('stroke', pos.color); badge.setAttribute('stroke-width', '1.2');
             g.appendChild(badge);
             const badgeTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            badgeTxt.setAttribute('x', pos.x + pos.w - 9);
+            badgeTxt.setAttribute('x', pos.x + pos.w - BADGE_W / 2 + 2);
             badgeTxt.setAttribute('y', pos.y - 1);
             badgeTxt.setAttribute('text-anchor', 'middle');
-            badgeTxt.setAttribute('font-size', '7.5');
+            badgeTxt.setAttribute('font-size', '8');
             badgeTxt.setAttribute('font-weight', '700');
             badgeTxt.setAttribute('fill', pos.color);
+            badgeTxt.setAttribute('pointer-events', 'none');
             badgeTxt.textContent = pos.deg > 99 ? '99+' : pos.deg;
             g.appendChild(badgeTxt);
         }
 
-        // Label
+        // Label — truncate longer names
         const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         txt.setAttribute('x', pos.x + pos.w / 2);
-        txt.setAttribute('y', pos.y + pos.h / 2 + 3.5);
+        txt.setAttribute('y', pos.y + pos.h / 2 + 4);
         txt.setAttribute('text-anchor', 'middle');
-        txt.setAttribute('font-size', pos.h < 24 ? '9' : '10');
+        txt.setAttribute('font-size', '10');
         txt.setAttribute('font-weight', '600');
         txt.setAttribute('fill', pos.textColor);
         txt.setAttribute('pointer-events', 'none');
-        txt.textContent = pos.name.length > 12 ? pos.name.slice(0, 11) + '\u2026' : pos.name;
+        const maxChars = Math.floor((pos.w - 8) / 6.5);
+        txt.textContent = pos.name.length > maxChars ? pos.name.slice(0, maxChars - 1) + '…' : pos.name;
         g.appendChild(txt);
 
         // Expand indicator for TF nodes (layer 1 or 2)
         if (pos.layer === 1 || pos.layer === 2) {
             const isExpanded = _hier.expandedTf.has(id);
             const expandIcon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            expandIcon.setAttribute('x', pos.x + 8);
-            expandIcon.setAttribute('y', pos.y + pos.h / 2 + 3.5);
-            expandIcon.setAttribute('font-size', '8');
-            expandIcon.setAttribute('fill', pos.textColor + 'aa');
+            expandIcon.setAttribute('x', pos.x + 9);
+            expandIcon.setAttribute('y', pos.y + pos.h / 2 + 4);
+            expandIcon.setAttribute('font-size', '9');
+            expandIcon.setAttribute('fill', pos.textColor + 'cc');
             expandIcon.setAttribute('pointer-events', 'none');
-            expandIcon.textContent = isExpanded ? '\u25b4' : '\u25be';
+            expandIcon.textContent = isExpanded ? '▴' : '▾';
             g.appendChild(expandIcon);
         }
 
-        // Hover tooltip
+        // Tag node group for Focus Mode
+        g.dataset.nodeId = id;
+
+        // Hover: show tooltip + highlight connected edges
         g.addEventListener('mouseenter', evt => {
+            highlightNode(id);
+            // Scale up node slightly
+            rect.setAttribute('filter', 'drop-shadow(0 4px 10px rgba(0,0,0,0.28))');
             if (!tooltip) return;
             const nodeInEdges  = activeEdges.filter(e => e.target.toLowerCase() === id).length;
             const nodeOutEdges = activeEdges.filter(e => e.source.toLowerCase() === id).length;
-            tooltip.innerHTML = `<strong>${pos.name}</strong><br>Locus: ${pos.locusTag}<br>Out-degree: ${pos.deg}<br>Regulating edges shown: ${nodeOutEdges}<br>Regulated by: ${nodeInEdges}`;
+            const isTfNode = pos.layer === 1 || pos.layer === 2 || pos.layer === 0;
+            const ctrlHint = isTfNode
+                ? `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-arrow-right"></i> Ctrl+Click → Gene Explorer &nbsp;|&nbsp; Click → expand</div>`
+                : `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-arrow-right"></i> Click → Gene Explorer</div>`;
+            tooltip.innerHTML = `<strong>${pos.name}</strong><br>Locus: ${pos.locusTag}<br>Out-degree: ${pos.deg}<br>↑ Regulates: ${nodeOutEdges} edges<br>↓ Regulated by: ${nodeInEdges} edges${ctrlHint}`;
             tooltip.style.display = 'block';
-            tooltip.style.left = (evt.clientX + 12) + 'px';
-            tooltip.style.top  = (evt.clientY - 8)  + 'px';
+            tooltip.style.left = (evt.clientX + 14) + 'px';
+            tooltip.style.top  = (evt.clientY - 10) + 'px';
         });
         g.addEventListener('mousemove', evt => {
-            if (tooltip) { tooltip.style.left = (evt.clientX + 12) + 'px'; tooltip.style.top = (evt.clientY - 8) + 'px'; }
+            if (tooltip) { tooltip.style.left = (evt.clientX + 14) + 'px'; tooltip.style.top = (evt.clientY - 10) + 'px'; }
         });
-        g.addEventListener('mouseleave', () => { if (tooltip) tooltip.style.display = 'none'; });
+        g.addEventListener('mouseleave', () => {
+            resetEdges();
+            rect.setAttribute('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.18))');
+            if (tooltip) tooltip.style.display = 'none';
+        });
 
-        // Click: expand/collapse targets for TF, or navigate to gene
-        g.addEventListener('click', () => {
-            if (pos.layer === 1 || pos.layer === 2) {
-                // Toggle expansion of target children
-                if (_hier.expandedTf.has(id)) {
-                    _hier.expandedTf.delete(id);
+        // Click: expand/collapse targets for TF (plain click), or Ctrl+Click → Gene Explorer
+        g.addEventListener('click', (evt) => {
+            // Focus Mode: intercept click → apply focus on clicked node
+            if (_hierFocusMode) {
+                if (_hierFocusedTf === id) {
+                    // Clicking same node again → clear focus
+                    _hierFocusedTf = null;
+                    hierClearFocus();
                 } else {
-                    _hier.expandedTf.add(id);
+                    hierApplyFocus(id);
                 }
-                renderHierarchy();
+                return; // don't expand/navigate in focus mode
+            }
+
+            if (pos.layer === 1 || pos.layer === 2) {
+                // Ctrl / Meta key → jump to Gene Explorer
+                if (evt.ctrlKey || evt.metaKey) {
+                    if (pos.locusTag) {
+                        querySingleGene(pos.locusTag);
+                        setActiveWorkflowEntry('gene');
+                    }
+                } else {
+                    // Plain click → toggle expand
+                    if (_hier.expandedTf.has(id)) {
+                        _hier.expandedTf.delete(id);
+                    } else {
+                        _hier.expandedTf.add(id);
+                    }
+                    renderHierarchy();
+                }
+            } else if (pos.layer === 0) {
+                // Sigma factor: plain click also opens Gene Explorer (they don't expand targets)
+                if (pos.locusTag) {
+                    querySingleGene(pos.locusTag);
+                    setActiveWorkflowEntry('gene');
+                }
             } else {
-                // Navigate to Gene Explorer
+                // Target gene / sRNA — single click → Gene Explorer
                 if (pos.locusTag) {
                     querySingleGene(pos.locusTag);
                     setActiveWorkflowEntry('gene');
@@ -18356,11 +19662,44 @@ function renderHierarchy() {
             }
         });
 
+        // Double-click on TF also jumps (alternative shortcut)
+        if (pos.layer === 1 || pos.layer === 2) {
+            g.addEventListener('dblclick', (evt) => {
+                evt.stopPropagation();
+                if (pos.locusTag) {
+                    querySingleGene(pos.locusTag);
+                    setActiveWorkflowEntry('gene');
+                }
+            });
+        }
+
         nodesG.appendChild(g);
     });
 
     // Update stats bar
     _updateHierStats(activeEdges);
+
+    // Init minimap (first time) and update it
+    requestAnimationFrame(() => {
+        initHierMinimap();
+        updateHierMinimap();
+    });
+
+    // Center the canvas horizontally after render (scroll to middle of SVG width)
+    if (canvasWrap) {
+        // Double rAF: first frame paints, second frame measures real clientWidth
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const wrapW   = canvasWrap.clientWidth  || canvasWrap.offsetWidth  || viewW;
+                const svgW    = parseInt(svg.getAttribute('width') || svgWidth, 10);
+                const centerX = (svgW - wrapW) / 2;
+                if (centerX > 0) {
+                    canvasWrap.scrollLeft = centerX;
+                }
+            });
+        });
+    }
+
 }
 
 /** Update bottom statistics bar */
@@ -18393,4 +19732,360 @@ function exportHierarchySvg() {
     const a    = Object.assign(document.createElement('a'), { href: url, download: 'cgl_regulatory_hierarchy.svg' });
     document.body.appendChild(a); a.click();
     document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+// ── Hierarchy Zoom ────────────────────────────────────────────────────────────
+
+let _hierZoom = 1.0;
+
+function hierZoom(delta) {
+    _hierZoom = Math.min(3.0, Math.max(0.25, _hierZoom + delta));
+    _applyHierZoom();
+}
+
+function hierZoomReset() {
+    _hierZoom = 1.0;
+    _applyHierZoom();
+    // Re-center after reset
+    const canvasWrap = document.getElementById('hier-canvas-wrap');
+    const svg = document.getElementById('hier-svg');
+    if (canvasWrap && svg) {
+        const svgW = parseInt(svg.getAttribute('width') || 0, 10);
+        const centerX = (svgW * _hierZoom - canvasWrap.clientWidth) / 2;
+        if (centerX > 0) canvasWrap.scrollLeft = centerX;
+    }
+}
+
+function _applyHierZoom() {
+    const svg = document.getElementById('hier-svg');
+    const label = document.getElementById('hier-zoom-label');
+    if (!svg) return;
+    const pct = Math.round(_hierZoom * 100);
+    svg.style.transform = `scale(${_hierZoom})`;
+    svg.style.transformOrigin = 'top left';
+    if (label) label.textContent = pct + '%';
+    // Update minimap viewport rect after zoom
+    requestAnimationFrame(updateHierMinimap);
+}
+
+// Mouse-wheel zoom on the canvas
+(function _bindHierWheelZoom() {
+    document.addEventListener('DOMContentLoaded', () => {
+        const wrap = document.getElementById('hier-canvas-wrap');
+        if (!wrap) return;
+        wrap.addEventListener('wheel', (e) => {
+            // Only zoom when Ctrl/Cmd is held, to not conflict with native scroll
+            if (!e.ctrlKey && !e.metaKey) return;
+            e.preventDefault();
+            hierZoom(e.deltaY < 0 ? 0.1 : -0.1);
+        }, { passive: false });
+    });
+})();
+
+// ── Expand / Collapse All ─────────────────────────────────────────────────────
+
+function hierExpandAll() {
+    if (!_hier.layers) return;
+    const allTfIds = [
+        ..._hier.layers.sigma.map(n => n.id),
+        ..._hier.layers.globalTf.map(n => n.id),
+        ..._hier.layers.localTf.map(n => n.id),
+    ];
+    allTfIds.forEach(id => _hier.expandedTf.add(id));
+    renderHierarchy();
+    showToast('Hierarchy', `Expanded all ${allTfIds.length} TF nodes.`, 'success', 2500);
+}
+
+function hierCollapseAll() {
+    _hier.expandedTf.clear();
+    renderHierarchy();
+    showToast('Hierarchy', 'All target genes collapsed.', 'info', 2000);
+}
+
+// ── TF Focus Mode ─────────────────────────────────────────────────────────────
+
+let _hierFocusMode = false;
+let _hierFocusedTf = null;
+
+function hierToggleFocusMode() {
+    _hierFocusMode = !_hierFocusMode;
+    const btn = document.getElementById('hier-focus-mode-btn');
+    if (btn) {
+        if (_hierFocusMode) {
+            btn.style.background = '#7c3aed';
+            btn.style.color = '#fff';
+            btn.title = 'Focus Mode: ON — click a TF node to focus its chain. Click again to exit.';
+            showToast('Hierarchy', 'Focus Mode ON — click any TF to highlight its regulatory chain.', 'info', 3000);
+        } else {
+            btn.style.background = 'transparent';
+            btn.style.color = '#7c3aed';
+            btn.title = 'Focus Mode: click any TF to highlight only its regulatory chain';
+            _hierFocusedTf = null;
+            hierClearFocus();
+            showToast('Hierarchy', 'Focus Mode OFF.', 'info', 1500);
+        }
+    }
+}
+
+/** Apply focus dimming: show only the focused TF and its direct neighbors */
+function hierApplyFocus(tfId) {
+    _hierFocusedTf = tfId;
+    const svg = document.getElementById('hier-svg');
+    if (!svg || !_hier.allEdges) return;
+
+    // Collect IDs that should remain bright
+    const visible = new Set([tfId]);
+    _hier.allEdges.forEach(e => {
+        const src = e.source.toLowerCase();
+        const tgt = e.target.toLowerCase();
+        if (src === tfId) visible.add(tgt);
+        if (tgt === tfId) visible.add(src);
+    });
+
+    // Dim / un-dim all node groups
+    svg.querySelectorAll('g[data-node-id]').forEach(g => {
+        const nid = g.dataset.nodeId;
+        if (visible.has(nid)) {
+            g.style.opacity = '1';
+        } else {
+            g.style.opacity = '0.10';
+        }
+    });
+
+    // Dim / un-dim all edge paths
+    svg.querySelectorAll('path[data-edge-src]').forEach(p => {
+        const src = p.dataset.edgeSrc;
+        const tgt = p.dataset.edgeTgt;
+        if (visible.has(src) && visible.has(tgt)) {
+            p.style.opacity = null; // restore CSS default
+        } else {
+            p.style.opacity = '0.04';
+        }
+    });
+}
+
+function hierClearFocus() {
+    const svg = document.getElementById('hier-svg');
+    if (!svg) return;
+    svg.querySelectorAll('g[data-node-id]').forEach(g => { g.style.opacity = ''; });
+    svg.querySelectorAll('path[data-edge-src]').forEach(p => { p.style.opacity = ''; });
+}
+
+// ── Minimap ───────────────────────────────────────────────────────────────────
+
+function updateHierMinimap() {
+    const canvas = document.getElementById('hier-minimap');
+    const svg    = document.getElementById('hier-svg');
+    const wrap   = document.getElementById('hier-canvas-wrap');
+    if (!canvas || !svg || !wrap) return;
+
+    const ctx    = canvas.getContext('2d');
+    const MW     = canvas.width;
+    const MH     = canvas.height;
+
+    // Full SVG dimensions (unscaled)
+    const svgW   = parseInt(svg.getAttribute('width')  || 900, 10);
+    const svgH   = parseInt(svg.getAttribute('height') || 600, 10);
+    const scaleX = MW / svgW;
+    const scaleY = MH / svgH;
+
+    ctx.clearRect(0, 0, MW, MH);
+
+    // Background
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(0, 0, MW, MH);
+
+    // Draw miniature nodes from _hier.nodePos
+    if (_hier.nodePos) {
+        Object.entries(_hier.nodePos).forEach(([id, pos]) => {
+            const x = pos.x * scaleX;
+            const y = pos.y * scaleY;
+            const w = pos.w * scaleX;
+            const h = pos.h * scaleY;
+            ctx.fillStyle = pos.color + 'cc';
+            ctx.beginPath();
+            ctx.roundRect(x, y, Math.max(w, 2), Math.max(h, 2), 1);
+            ctx.fill();
+        });
+    }
+
+    // Draw viewport indicator rectangle (accounting for zoom)
+    const scrollL = wrap.scrollLeft  / _hierZoom;
+    const scrollT = wrap.scrollTop   / _hierZoom;
+    const viewW   = wrap.clientWidth  / _hierZoom;
+    const viewH   = wrap.clientHeight / _hierZoom;
+
+    ctx.strokeStyle = '#7c3aed';
+    ctx.lineWidth   = 1.5;
+    ctx.fillStyle   = 'rgba(124,58,237,0.08)';
+    const rx = scrollL * scaleX;
+    const ry = scrollT * scaleY;
+    const rw = viewW   * scaleX;
+    const rh = viewH   * scaleY;
+    ctx.fillRect(rx, ry, rw, rh);
+    ctx.strokeRect(rx, ry, rw, rh);
+}
+
+/** Wire up minimap click-to-navigate (idempotent — only binds once) */
+let _hierMinimapInited = false;
+function initHierMinimap() {
+    const canvas = document.getElementById('hier-minimap');
+    const wrap   = document.getElementById('hier-canvas-wrap');
+    const svg    = document.getElementById('hier-svg');
+    if (!canvas || !wrap) return;
+    if (_hierMinimapInited) return;
+    _hierMinimapInited = true;
+
+    canvas.addEventListener('click', (e) => {
+        const rect  = canvas.getBoundingClientRect();
+        const mx    = e.clientX - rect.left;
+        const my    = e.clientY - rect.top;
+        const svgW  = parseInt(svg?.getAttribute('width')  || 900, 10);
+        const svgH  = parseInt(svg?.getAttribute('height') || 600, 10);
+        const ratio = { x: svgW / canvas.width, y: svgH / canvas.height };
+        // Center the viewport on the clicked point (in zoomed space)
+        const targetX = mx * ratio.x * _hierZoom - wrap.clientWidth  / 2;
+        const targetY = my * ratio.y * _hierZoom - wrap.clientHeight / 2;
+        wrap.scrollTo({ left: Math.max(0, targetX), top: Math.max(0, targetY), behavior: 'smooth' });
+    });
+
+    // Update minimap on every scroll
+    wrap.addEventListener('scroll', () => requestAnimationFrame(updateHierMinimap));
+}
+
+// ── Hierarchy Gene Search ─────────────────────────────────────────────────────
+
+/** Stores the list of matching node group elements from the last search */
+let _hierSearchMatches = [];
+let _hierSearchMatchIdx = 0;
+
+/**
+ * Live-highlight nodes matching `query` in the hierarchy SVG.
+ * - Matching nodes get a glowing violet ring outline.
+ * - Non-matching nodes fade to 22% opacity.
+ * - Status badge shows "N match(es)" or is hidden when query is empty.
+ * - Automatically scrolls to the first match.
+ */
+function highlightHierSearch(query) {
+    const nodesG   = document.getElementById('hier-nodes-g');
+    const statusEl = document.getElementById('hier-search-status');
+    const clearBtn = document.getElementById('hier-search-clear');
+    if (!nodesG) return;
+
+    // Show / hide clear button
+    if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
+
+    // Reset all nodes first
+    const allGroups = nodesG.querySelectorAll('.hier-node-g');
+    allGroups.forEach(g => {
+        g.style.opacity = '';
+        const r = g.querySelector('rect');
+        if (r) {
+            r.removeAttribute('stroke');
+            r.removeAttribute('stroke-width');
+            r.removeAttribute('filter');
+        }
+    });
+
+    _hierSearchMatches = [];
+    _hierSearchMatchIdx = 0;
+
+    if (!query || query.trim() === '') {
+        if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
+        return;
+    }
+
+    const q = query.trim().toLowerCase();
+
+    // Match against nodePos which has {name, locusTag}
+    const posEntries = Object.entries(_hier.nodePos || {});
+    const matchedIds = new Set();
+    posEntries.forEach(([id, pos]) => {
+        const nameMatch  = pos.name  && pos.name.toLowerCase().includes(q);
+        const locusMatch = pos.locusTag && pos.locusTag.toLowerCase().includes(q);
+        const idMatch    = id.includes(q);
+        if (nameMatch || locusMatch || idMatch) matchedIds.add(id);
+    });
+
+    // Apply visual treatment
+    allGroups.forEach(g => {
+        const dataId = g.dataset.hierid;
+        if (!dataId) return;
+        if (matchedIds.has(dataId)) {
+            g.style.opacity = '1';
+            const r = g.querySelector('rect');
+            if (r) {
+                r.setAttribute('stroke', '#7c3aed');
+                r.setAttribute('stroke-width', '2.5');
+                r.setAttribute('filter', 'drop-shadow(0 0 6px rgba(124,58,237,0.75))');
+            }
+            _hierSearchMatches.push(g);
+        } else {
+            g.style.opacity = '0.20';
+        }
+    });
+
+    // Update status
+    if (statusEl) {
+        statusEl.style.display = 'inline';
+        if (_hierSearchMatches.length > 0) {
+            statusEl.innerHTML = `<span style="color:#7c3aed;font-weight:700;">${_hierSearchMatches.length}</span> match${_hierSearchMatches.length !== 1 ? 'es' : ''}`;
+        } else {
+            statusEl.innerHTML = `<span style="color:#ef4444;">No matches</span>`;
+        }
+    }
+
+    // Auto-scroll to first match
+    if (_hierSearchMatches.length > 0) scrollToHierMatch(0);
+}
+
+/**
+ * Scroll the SVG canvas to the match at `index`.
+ * Called with no argument on Enter key 鈥?cycles to next match.
+ */
+function scrollToHierMatch(index) {
+    if (_hierSearchMatches.length === 0) return;
+
+    if (index === undefined) {
+        _hierSearchMatchIdx = (_hierSearchMatchIdx + 1) % _hierSearchMatches.length;
+    } else {
+        _hierSearchMatchIdx = index % _hierSearchMatches.length;
+    }
+
+    const g = _hierSearchMatches[_hierSearchMatchIdx];
+    if (!g) return;
+
+    const wrap = document.getElementById('hier-canvas-wrap');
+    const r = g.querySelector('rect');
+    if (!r || !wrap) return;
+
+    const rx = parseFloat(r.getAttribute('x') || 0);
+    const ry = parseFloat(r.getAttribute('y') || 0);
+    const rw = parseFloat(r.getAttribute('width') || 60);
+    const rh = parseFloat(r.getAttribute('height') || 28);
+
+    // Compute scroll position accounting for SVG scale
+    const svg = document.getElementById('hier-svg');
+    const svgRect = svg ? svg.getBoundingClientRect() : null;
+    const svgAttrW = parseFloat(svg ? svg.getAttribute('width') : 1) || 1;
+    const scale = svgRect ? svgRect.width / svgAttrW : 1;
+
+    const scrollX = rx * scale - wrap.clientWidth  / 2 + (rw * scale) / 2;
+    const scrollY = ry * scale - wrap.clientHeight / 2 + (rh * scale) / 2;
+
+    wrap.scrollTo({ left: Math.max(0, scrollX), top: Math.max(0, scrollY), behavior: 'smooth' });
+
+    // Pulse animation on the matched rect
+    if (r) {
+        r.setAttribute('filter', 'drop-shadow(0 0 12px rgba(124,58,237,1)) brightness(1.2)');
+        setTimeout(() => {
+            r.setAttribute('filter', 'drop-shadow(0 0 6px rgba(124,58,237,0.75))');
+        }, 300);
+    }
+
+    // Show "X / N" counter in status
+    const statusEl = document.getElementById('hier-search-status');
+    if (statusEl && _hierSearchMatches.length > 1) {
+        statusEl.innerHTML = `<span style="color:#7c3aed;font-weight:700;">${_hierSearchMatchIdx + 1} / ${_hierSearchMatches.length}</span> matches`;
+    }
 }

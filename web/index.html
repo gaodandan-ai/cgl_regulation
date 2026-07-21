@@ -129,17 +129,10 @@
         </header>
 
         <nav id="workflow-entrybar" aria-label="Primary research workflows">
+            <!-- 探索类 -->
             <button class="workflow-entry active" id="workflow-entry-gene" data-workflow="gene">
                 <i class="fa-solid fa-network-wired"></i>
                 <span>Gene / TF Explorer</span>
-            </button>
-            <button class="workflow-entry" id="workflow-entry-topology" data-workflow="topology">
-                <i class="fa-solid fa-atom"></i>
-                <span>Network Topology</span>
-            </button>
-            <button class="workflow-entry" id="workflow-entry-hierarchy" data-workflow="hierarchy">
-                <i class="fa-solid fa-layer-group"></i>
-                <span>Hierarchy View</span>
             </button>
             <button class="workflow-entry" id="workflow-entry-imodulon" data-workflow="imodulon">
                 <i class="fa-solid fa-circle-nodes"></i>
@@ -149,10 +142,20 @@
                 <i class="fa-solid fa-share-nodes"></i>
                 <span>PPI Explorer</span>
             </button>
+            <!-- 网络可视化类 -->
+            <button class="workflow-entry" id="workflow-entry-topology" data-workflow="topology">
+                <i class="fa-solid fa-atom"></i>
+                <span>Network Topology</span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-hierarchy" data-workflow="hierarchy">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Hierarchy View</span>
+            </button>
             <button class="workflow-entry" id="workflow-entry-pathway" data-workflow="pathway">
                 <i class="fa-solid fa-diagram-project"></i>
                 <span>Pathway View</span>
             </button>
+            <!-- 分析类 -->
             <button class="workflow-entry" id="workflow-entry-engineering" data-workflow="engineering">
                 <i class="fa-solid fa-bullseye"></i>
                 <span>Engineering Targets</span>
@@ -165,7 +168,7 @@
                 <i class="fa-solid fa-gauge-high" style="color:#f97316;"></i>
                 <span>Dynamic Simulation</span>
             </button>
-            <!-- doc separator -->
+            <!-- 文档类 -->
             <div class="nav-doc-separator" aria-hidden="true"></div>
             <button class="workflow-entry" id="workflow-entry-quality" data-workflow="quality">
                 <i class="fa-solid fa-chart-line"></i>
@@ -2018,23 +2021,36 @@
                                 
                                 <!-- Simulation Tab -->
                                 <div id="imodulon-tab-simulation" class="imodulon-subtab-panel hidden">
-                                    <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:6px; padding:12px; margin-bottom:12px;">
-                                        <div style="font-weight:700; font-size:11.5px; color:var(--text-primary); margin-bottom:4px;"><i class="fa-solid fa-play"></i> Simulating iModulon Knockout</div>
-                                        <p style="margin:0 0 10px 0; font-size:11px; color:var(--text-secondary); line-height:1.4;">Runs both a standard FBA gene-set deletion on the iCW773 model and an enzyme-constrained simulation (ecFBA) under temperature constraints. Tracks changes in growth, lysine excretion, and glutamate excretion.</p>
-                                        <button class="primary-btn" id="btn-run-imodulon-sim" style="font-weight:600;"><i class="fa-solid fa-play"></i> Run Knockout Simulation</button>
+                                    <!-- Run Controls -->
+                                    <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:12px;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                                            <div>
+                                                <div style="font-weight:700; font-size:11.5px; color:var(--text-primary); margin-bottom:2px;"><i class="fa-solid fa-play"></i> iModulon Knockout FBA</div>
+                                                <p style="margin:0; font-size:11px; color:var(--text-secondary); line-height:1.4;">Simulates gene-set deletion on iCW773 (FBA) and enzyme-constrained ecFBA. Tracks growth, lysine, and glutamate fluxes.</p>
+                                            </div>
+                                            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                                                <button class="primary-btn" id="btn-run-imodulon-sim" style="font-weight:600; height:34px; padding:0 14px; font-size:11.5px;"><i class="fa-solid fa-play"></i> Run Simulation</button>
+                                                <button id="btn-add-imodulon-compare" style="height:34px; padding:0 12px; font-size:11px; font-weight:600; border:1.5px solid #6366f1; background:#f5f3ff; color:#4f46e5; border-radius:8px; cursor:pointer; display:none; gap:5px; align-items:center; white-space:nowrap;">
+                                                    <i class="fa-solid fa-plus"></i> Add to Compare
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
+
+                                    <!-- Results Panel -->
                                     <div id="imodulon-sim-results" class="hidden">
-                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-                                            <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
-                                                <div style="font-weight:700; font-size:11px; color:#0f766e; margin-bottom:6px;">Standard FBA (iCW773)</div>
+                                        <!-- KPI Summary Row -->
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                                            <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:8px; padding:10px;">
+                                                <div style="font-weight:700; font-size:11px; color:#0f766e; margin-bottom:6px; display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-dna"></i> Standard FBA (iCW773)</div>
                                                 <table style="width:100%; font-size:10.5px;">
                                                     <tr><td style="color:#64748b; padding:4px 0;">Growth rate change:</td><td id="imodulon-sim-fba-growth" style="font-weight:600; text-align:right;">0%</td></tr>
                                                     <tr><td style="color:#64748b; padding:4px 0;">Lysine flux change:</td><td id="imodulon-sim-fba-lysine" style="font-weight:600; text-align:right;">0%</td></tr>
                                                     <tr><td style="color:#64748b; padding:4px 0;">Glutamate flux change:</td><td id="imodulon-sim-fba-glutamate" style="font-weight:600; text-align:right;">0%</td></tr>
                                                 </table>
                                             </div>
-                                            <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
-                                                <div style="font-weight:700; font-size:11px; color:#4f46e5; margin-bottom:6px;">Enzyme-Constrained ecFBA</div>
+                                            <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:8px; padding:10px;">
+                                                <div style="font-weight:700; font-size:11px; color:#4f46e5; margin-bottom:6px; display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-flask"></i> Enzyme-Constrained ecFBA</div>
                                                 <table style="width:100%; font-size:10.5px;">
                                                     <tr><td style="color:#64748b; padding:4px 0;">Growth flux (Knockout):</td><td id="imodulon-sim-ec-growth" style="font-weight:600; text-align:right;">0.00</td></tr>
                                                     <tr><td style="color:#64748b; padding:4px 0;">Lysine flux (Knockout):</td><td id="imodulon-sim-ec-lysine" style="font-weight:600; text-align:right;">0.00</td></tr>
@@ -2042,11 +2058,60 @@
                                                 </table>
                                             </div>
                                         </div>
-                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:12px; display:flex; flex-direction:column;">
-                                            <div style="font-weight:700; font-size:11px; margin-bottom:8px; color:var(--text-primary);"><i class="fa-solid fa-chart-line"></i> Knockout Simulation Flux Changes (FBA %)</div>
-                                            <div style="height:180px; position:relative;">
+
+                                        <!-- Flux Bar Chart: WT vs KO absolute comparison -->
+                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:12px;">
+                                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                                <div style="font-weight:700; font-size:11px; color:var(--text-primary);"><i class="fa-solid fa-chart-bar" style="color:#10b981;"></i> Flux Profile: Wild-Type vs Knockout</div>
+                                                <div style="display:flex; align-items:center; gap:6px; font-size:10px; color:var(--text-muted);">
+                                                    <span style="display:inline-block;width:10px;height:10px;background:#6366f1;border-radius:2px;"></span>Wild-Type
+                                                    <span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:2px;margin-left:4px;"></span>Knockout
+                                                </div>
+                                            </div>
+                                            <div style="height:200px; position:relative;">
+                                                <canvas id="imodulon-flux-bar-chart"></canvas>
+                                            </div>
+                                        </div>
+
+                                        <!-- Legacy line chart (kept for consistency) -->
+                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:12px; margin-bottom:12px; display:flex; flex-direction:column;">
+                                            <div style="font-weight:700; font-size:11px; margin-bottom:8px; color:var(--text-primary);"><i class="fa-solid fa-chart-line"></i> Flux Change % (FBA)</div>
+                                            <div style="height:150px; position:relative;">
                                                 <canvas id="imodulon-simulation-chart"></canvas>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ──── Multi-iModulon Comparison Panel ──── -->
+                                    <div id="imodulon-compare-panel" style="display:none; margin-top:4px; background:#faf5ff; border:1.5px solid #c4b5fd; border-radius:10px; padding:12px;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                            <div>
+                                                <div style="font-weight:700; font-size:12px; color:#5b21b6;"><i class="fa-solid fa-code-compare"></i> Multi-iModulon Flux Comparison</div>
+                                                <div id="imodulon-compare-subtitle" style="font-size:10px; color:#7c3aed; margin-top:2px;">Compare knockout flux changes across different iModulons</div>
+                                            </div>
+                                            <div style="display:flex; gap:6px; align-items:center;">
+                                                <select id="imodulon-compare-metric" style="font-size:10.5px; padding:4px 8px; border:1px solid #c4b5fd; border-radius:6px; background:white; color:#5b21b6; cursor:pointer;">
+                                                    <option value="growth">Growth Rate Δ%</option>
+                                                    <option value="lysine">Lysine Flux Δ%</option>
+                                                    <option value="glutamate">Glutamate Flux Δ%</option>
+                                                    <option value="all">All Metrics</option>
+                                                </select>
+                                                <button id="btn-clear-imodulon-compare" style="padding:4px 10px; font-size:10.5px; font-weight:600; border:1px solid #c4b5fd; background:white; color:#7c3aed; border-radius:6px; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Compare Chips Row -->
+                                        <div id="imodulon-compare-chips" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"></div>
+
+                                        <!-- Grouped Bar Chart -->
+                                        <div style="background:white; border:1px solid #e9d5ff; border-radius:8px; padding:10px;">
+                                            <div style="height:230px; position:relative;">
+                                                <canvas id="imodulon-compare-chart"></canvas>
+                                            </div>
+                                        </div>
+
+                                        <div style="font-size:9.5px; color:#a78bfa; text-align:center; margin-top:6px;">
+                                            <i class="fa-solid fa-circle-info"></i> Each bar = FBA flux change (%) when that iModulon's gene set is knocked out
                                         </div>
                                     </div>
                                 </div>
@@ -2201,6 +2266,38 @@
                                     Show Partner-to-Partner Links
                                 </label>
                             </div>
+
+                            <!-- Expression Overlay -->
+                            <div class="sidebar-section" id="ppi-expr-overlay-section" style="border-top: 1px dashed var(--border-color); padding-top: 14px; margin-top: 14px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <label style="font-size: 11px; color: var(--text-secondary); font-weight: 700; text-transform:uppercase; letter-spacing:0.05em;">
+                                        <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i> Expression Overlay
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+                                        <span style="font-size:10.5px; color:var(--text-secondary);">On</span>
+                                        <input type="checkbox" id="ppi-expr-toggle" style="accent-color:#ef4444; cursor:pointer; width:14px; height:14px;">
+                                    </label>
+                                </div>
+                                <div id="ppi-expr-controls" style="display:none; flex-direction:column; gap:8px;">
+                                    <select id="ppi-expr-dataset-select" style="width:100%; padding:5px 8px; border:1px solid var(--border-color); border-radius:8px; font-size:11.5px; background:#f8fafc; cursor:pointer; outline:none;">
+                                        <option value="">— No RNA-seq dataset loaded —</option>
+                                    </select>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span style="font-size:10.5px; color:var(--text-secondary); font-weight:600;">Min |Log2FC|</span>
+                                        <span id="ppi-expr-lfc-val" style="font-size:11px; font-weight:700; color:#ef4444;">0.0</span>
+                                    </div>
+                                    <input type="range" id="ppi-expr-lfc-slider" min="0" max="4" value="0" step="0.25"
+                                           style="width:100%; accent-color:#ef4444; cursor:pointer; height:4px;">
+                                    <!-- Color scale legend -->
+                                    <div id="ppi-expr-legend" style="margin-top:4px;">
+                                        <div style="width:100%; height:10px; border-radius:5px; background:linear-gradient(to right, #1d4edb, #93c5fd, #e2e8f0, #fca5a5, #b91c1c); margin-bottom:4px;"></div>
+                                        <div style="display:flex; justify-content:space-between; font-size:9.5px; color:var(--text-secondary);">
+                                            <span>↓ Down</span><span>0</span><span>↑ Up</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         </div>
 
                         <!-- Panel: Shortest Path Mode Controls -->
@@ -2747,6 +2844,54 @@
                                     style="accent-color:#7c3aed;">
                                 TF–TF edges
                             </label>
+                            <!-- Gene Search -->
+                            <div style="display:flex;align-items:center;gap:4px;background:white;border:1px solid #c4b5fd;border-radius:8px;padding:3px 8px;min-width:180px;">
+                                <i class="fa-solid fa-magnifying-glass" style="font-size:10px;color:#7c3aed;flex-shrink:0;"></i>
+                                <input type="text" id="hier-search-input" placeholder="Search gene / locus…"
+                                    style="border:none;outline:none;font-size:11px;width:100%;background:transparent;color:var(--text-primary);"
+                                    oninput="highlightHierSearch(this.value)"
+                                    onkeydown="if(event.key==='Escape'){this.value='';highlightHierSearch('');}else if(event.key==='Enter'){scrollToHierMatch();}">
+                                <button id="hier-search-clear" onclick="document.getElementById('hier-search-input').value='';highlightHierSearch('');"
+                                    style="border:none;background:none;cursor:pointer;color:#94a3b8;font-size:10px;padding:0;line-height:1;display:none;">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            <span id="hier-search-status" style="font-size:10px;color:var(--text-muted);white-space:nowrap;display:none;"></span>
+                            <!-- Expand / Collapse All -->
+                            <div style="display:flex;gap:4px;">
+                                <button id="hier-expand-all-btn" onclick="hierExpandAll()"
+                                    title="Expand all TFs to show their target genes"
+                                    style="font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">
+                                    <i class="fa-solid fa-expand"></i> All
+                                </button>
+                                <button id="hier-collapse-all-btn" onclick="hierCollapseAll()"
+                                    title="Collapse all TFs — hide target gene rows"
+                                    style="font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">
+                                    <i class="fa-solid fa-compress"></i> Collapse
+                                </button>
+                            </div>
+                            <!-- Focus Mode toggle -->
+                            <button id="hier-focus-mode-btn" onclick="hierToggleFocusMode()"
+                                title="Focus Mode: click any TF to highlight only its regulatory chain"
+                                style="font-size:11px;padding:5px 12px;border-radius:7px;border:1px solid #7c3aed;background:transparent;cursor:pointer;color:#7c3aed;display:flex;align-items:center;gap:5px;transition:all 0.15s;">
+                                <i class="fa-solid fa-crosshairs"></i> Focus
+                            </button>
+                            <!-- Zoom controls -->
+                            <div style="display:flex;align-items:center;gap:3px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:7px;padding:2px 4px;">
+                                <button onclick="hierZoom(-0.15)" title="Zoom out"
+                                    style="border:none;background:none;cursor:pointer;color:var(--text-secondary);font-size:13px;padding:3px 5px;line-height:1;">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <span id="hier-zoom-label" style="font-size:10.5px;min-width:30px;text-align:center;color:var(--text-secondary);font-weight:600;">100%</span>
+                                <button onclick="hierZoom(0.15)" title="Zoom in"
+                                    style="border:none;background:none;cursor:pointer;color:var(--text-secondary);font-size:13px;padding:3px 5px;line-height:1;">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                                <button onclick="hierZoomReset()" title="Reset zoom"
+                                    style="border:none;background:none;cursor:pointer;color:var(--text-secondary);font-size:10px;padding:3px 5px;line-height:1;">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            </div>
                             <!-- Export -->
                             <button onclick="exportHierarchySvg()"
                                 style="font-size:11px;padding:5px 12px;border-radius:7px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:5px;">
@@ -2788,12 +2933,18 @@
                                     <path d="M0,0 L0,6 L8,3 z" fill="#0d9488"/>
                                 </marker>
                             </defs>
+                            <!-- labelsG (bands) at bottom, then edges, then nodes on top -->
+                            <g id="hier-labels-g"></g>
                             <g id="hier-edges-g"></g>
                             <g id="hier-nodes-g"></g>
-                            <g id="hier-labels-g"></g>
                         </svg>
                         <!-- Tooltip -->
                         <div id="hier-tooltip" style="position:fixed;display:none;background:rgba(15,23,42,0.92);color:#fff;font-size:10.5px;padding:7px 11px;border-radius:8px;pointer-events:none;z-index:9999;max-width:220px;line-height:1.5;"></div>
+                        <!-- Minimap -->
+                        <div id="hier-minimap-wrap" style="position:absolute;bottom:14px;right:14px;z-index:30;background:rgba(255,255,255,0.94);border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.10);padding:6px;cursor:crosshair;" title="Minimap — click to navigate">
+                            <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;padding:0 2px;">Overview</div>
+                            <canvas id="hier-minimap" width="180" height="80" style="display:block;border-radius:5px;"></canvas>
+                        </div>
                     </div>
 
                     <!-- Bottom stats bar -->
@@ -2938,12 +3089,12 @@
                     <div style="display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 20px; flex: 1; min-height: 0;">
                         
                         <!-- Column 1: GNN Link Predictor -->
-                        <div class="dashboard-card" style="display:flex; flex-direction:column; gap:12px;">
+                        <div class="dashboard-card" style="display:flex; flex-direction:column; gap:12px; overflow-y:auto;">
                             <div class="card-header" style="border-bottom: 1px dashed var(--border-color); padding-bottom:8px; margin-bottom:4px;">
                                 <h3 style="font-size:13.5px; font-weight:700; margin:0; display:flex; align-items:center; gap:6px; color: var(--text-primary);"><i class="fa-solid fa-wand-magic-sparkles" style="color:#8b5cf6;"></i> GNN Link Predictor</h3>
                             </div>
                             <p style="font-size:11px; color:var(--text-secondary); line-height:1.4; margin:0;">
-                                Evaluate the likelihood of a physical interaction. Real GNNs use Message Passing to compile neighbors' features into dense vector embeddings.
+                                Evaluate the likelihood of a physical interaction. Uses neighborhood Jaccard, shared iModulons, and path proximity as GNN feature proxies.
                             </p>
                             
                             <!-- Input Forms -->
@@ -2972,6 +3123,24 @@
                                     <div id="adv-gnn-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #a78bfa, #8b5cf6); border-radius:3px; transition:width 0.5s ease;"></div>
                                 </div>
                                 <div id="adv-gnn-explanation" style="font-size:10.5px; color:var(--text-secondary); line-height:1.4;"></div>
+
+                                <!-- Feature Attribution Chart -->
+                                <div id="adv-gnn-attribution-wrap" style="display:none; margin-top:10px; background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:8px;">
+                                    <div style="font-size:10px; font-weight:700; color:var(--text-primary); margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+                                        <i class="fa-solid fa-chart-bar" style="color:#8b5cf6;"></i> Feature Attribution Scores
+                                    </div>
+                                    <div style="position:relative; height:110px;">
+                                        <canvas id="adv-gnn-attribution-chart"></canvas>
+                                    </div>
+                                </div>
+
+                                <!-- Common Neighbors -->
+                                <div id="adv-gnn-neighbors-wrap" style="display:none; margin-top:10px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:8px;">
+                                    <div style="font-size:10px; font-weight:700; color:#065f46; margin-bottom:6px;">
+                                        <i class="fa-solid fa-people-arrows"></i> Common PPI Neighbors
+                                    </div>
+                                    <div id="adv-gnn-neighbors-list" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+                                </div>
                             </div>
 
                             <!-- Novel Discovery Finder -->
@@ -2985,16 +3154,75 @@
                         </div>
 
                         <!-- Column 2: Centrality vs Essentiality Scatter Plot -->
-                        <div class="dashboard-card" style="display:flex; flex-direction:column; gap:12px;">
+                        <div class="dashboard-card" style="display:flex; flex-direction:column; gap:10px;">
                             <div class="card-header" style="border-bottom: 1px dashed var(--border-color); padding-bottom:8px; margin-bottom:4px;">
                                 <h3 style="font-size:13.5px; font-weight:700; margin:0; display:flex; align-items:center; gap:6px; color: var(--text-primary);"><i class="fa-solid fa-chart-scatter" style="color:#3b82f6;"></i> Topology &amp; Essentiality Correlation</h3>
                             </div>
-                            <p style="font-size:11px; color:var(--text-secondary); line-height:1.4; margin:0;">
-                                Correlates Degree Centrality (X-axis) with Betweenness Centrality (Y-axis). Coral/red dots represent experimental <strong>Essential Genes</strong> (growth-lethal when knocked out), while blue dots are non-essential.
-                            </p>
+
+                            <!-- Axis + Filter Controls -->
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                <div>
+                                    <label style="font-size:9.5px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px;">X Axis</label>
+                                    <select id="adv-centrality-x-axis" style="width:100%; height:26px; padding:0 6px; font-size:11px; border:1px solid var(--border-color); border-radius:6px; background:white; color:var(--text-primary); cursor:pointer;">
+                                        <option value="degree">Degree (Total)</option>
+                                        <option value="out_degree">Out-Degree (Regulon)</option>
+                                        <option value="betweenness">Betweenness</option>
+                                        <option value="pagerank">PageRank</option>
+                                        <option value="hub_score">Hub Score</option>
+                                        <option value="in_degree">In-Degree</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:9.5px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px;">Y Axis</label>
+                                    <select id="adv-centrality-y-axis" style="width:100%; height:26px; padding:0 6px; font-size:11px; border:1px solid var(--border-color); border-radius:6px; background:white; color:var(--text-primary); cursor:pointer;">
+                                        <option value="closeness">Closeness</option>
+                                        <option value="betweenness">Betweenness</option>
+                                        <option value="pagerank">PageRank</option>
+                                        <option value="hub_score">Hub Score</option>
+                                        <option value="out_degree">Regulon Size</option>
+                                        <option value="in_degree">In-Degree</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Bubble Size + Gene Search row -->
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                <div>
+                                    <label style="font-size:9.5px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px;">Bubble Size (3rd Dim)</label>
+                                    <select id="adv-centrality-bubble-size" style="width:100%; height:26px; padding:0 6px; font-size:11px; border:1px solid var(--border-color); border-radius:6px; background:white; color:var(--text-primary); cursor:pointer;">
+                                        <option value="uniform">Uniform</option>
+                                        <option value="out_degree">Regulon Size (out-degree)</option>
+                                        <option value="betweenness">Betweenness</option>
+                                        <option value="pagerank">PageRank</option>
+                                        <option value="hub_score">Hub Score</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:9.5px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px;">Highlight Gene</label>
+                                    <input id="adv-centrality-highlight" type="text" placeholder="e.g. sigH" style="width:100%; height:26px; padding:0 6px; font-size:11px; border:1px solid var(--border-color); border-radius:6px; box-sizing:border-box;">
+                                </div>
+                            </div>
+                            <!-- Essentiality filter pills -->
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                <button class="adv-ess-filter" data-filter="all" id="adv-ess-btn-all" style="padding:3px 10px; border-radius:12px; font-size:10.5px; font-weight:600; cursor:pointer; border:1px solid #3b82f6; background:#eff6ff; color:#1d4ed8; transition:all 0.15s;">All Genes</button>
+                                <button class="adv-ess-filter" data-filter="essential" id="adv-ess-btn-essential" style="padding:3px 10px; border-radius:12px; font-size:10.5px; font-weight:600; cursor:pointer; border:1px solid var(--border-color); background:white; color:var(--text-secondary); transition:all 0.15s;">Essential Only</button>
+                                <button class="adv-ess-filter" data-filter="nonessential" id="adv-ess-btn-nonessential" style="padding:3px 10px; border-radius:12px; font-size:10.5px; font-weight:600; cursor:pointer; border:1px solid var(--border-color); background:white; color:var(--text-secondary); transition:all 0.15s;">Non-Essential Only</button>
+                            </div>
+
                             <!-- Chart Canvas Container -->
-                            <div style="flex:1; position:relative; min-height:220px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:10px;">
+                            <div style="flex:1; position:relative; min-height:200px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid var(--border-color); border-radius:12px; padding:10px;">
                                 <canvas id="adv-centrality-chart"></canvas>
+                            </div>
+
+                            <!-- Gene Detail Panel (shown on click) -->
+                            <div id="adv-centrality-detail" style="display:none; background:#fff; border:1px solid #6366f1; border-radius:8px; padding:10px; font-size:11px;">
+                                <div style="font-weight:700; color:#6366f1; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                                    <span><i class="fa-solid fa-circle-info"></i> Gene Details</span>
+                                    <button onclick="document.getElementById('adv-centrality-detail').style.display='none'" style="border:none; background:none; cursor:pointer; color:var(--text-secondary); font-size:12px;"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <div id="adv-centrality-detail-content" style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; color:var(--text-secondary);"></div>
+                                <button id="adv-centrality-goto-gene" class="primary-btn" style="width:100%; margin-top:8px; height:28px; font-size:11px; font-weight:600; cursor:pointer;">
+                                    <i class="fa-solid fa-arrow-right"></i> Open in Gene Explorer
+                                </button>
                             </div>
                         </div>
 
@@ -3011,18 +3239,40 @@
                             <div>
                                 <label style="font-size:10px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:3px;">Select Motif Pattern</label>
                                 <select id="adv-motif-select" class="dashboard-select">
-                                    <option value="co-regulation-ppi">TF Co-regulation with Physical PPI Interaction</option>
+                                    <option value="co-regulation-ppi">TF Co-regulation with PPI Interaction</option>
                                     <option value="dimer-feedback">TF-Target Co-Dimerization Loop</option>
                                     <option value="ffl-dimer">Feed-Forward Regulatory Dimer Loop</option>
+                                    <option value="sigma-cascade">Sigma Factor Cascade (Sigma→TF→Target)</option>
                                 </select>
                             </div>
+
+                            <!-- PPI Score Slider -->
+                            <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:8px;">
+                                <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:4px;">
+                                    <span style="font-weight:600; color:var(--text-secondary);">Min PPI Score</span>
+                                    <span id="adv-motif-ppi-val" style="font-weight:700; color:#10b981;">400</span>
+                                </div>
+                                <input type="range" id="adv-motif-ppi-slider" min="150" max="900" value="400" step="50" style="width:100%; accent-color:#10b981; height:4px; cursor:pointer;">
+                                <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-muted); margin-top:2px;">
+                                    <span>150 (Low)</span><span>900 (Very High)</span>
+                                </div>
+                            </div>
                             
-                            <button id="btn-adv-find-motifs" class="primary-btn" style="width:100%; justify-content:center; gap:6px; margin-top:4px; height: 36px; font-size:12.5px; font-weight:600; cursor: pointer; background: linear-gradient(135deg, #059669 0%, #0d9488 100%); border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
+                            <button id="btn-adv-find-motifs" class="primary-btn" style="width:100%; justify-content:center; gap:6px; height: 36px; font-size:12.5px; font-weight:600; cursor: pointer; background: linear-gradient(135deg, #059669 0%, #0d9488 100%); border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
                                 <i class="fa-solid fa-search"></i> Mine Motif Patterns
                             </button>
+
+                            <!-- Stats Summary Row -->
+                            <div id="adv-motif-stats" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; padding:8px;">
+                                <div style="display:flex; justify-content:space-around; text-align:center;">
+                                    <div><div id="adv-motif-stat-count" style="font-size:16px; font-weight:800; color:#065f46;">0</div><div style="color:#6b7280; font-size:10px;">Motifs Found</div></div>
+                                    <div><div id="adv-motif-stat-avg" style="font-size:16px; font-weight:800; color:#0d9488;">—</div><div style="color:#6b7280; font-size:10px;">Avg PPI Score</div></div>
+                                    <div><div id="adv-motif-stat-genes" style="font-size:16px; font-weight:800; color:#7c3aed;">0</div><div style="color:#6b7280; font-size:10px;">Unique Genes</div></div>
+                                </div>
+                            </div>
                             
                             <!-- Motif results list -->
-                            <div style="flex:1; overflow-y:auto; margin-top:8px; max-height: 280px; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; background: var(--bg-sidebar);">
+                            <div style="flex:1; overflow-y:auto; margin-top:4px; max-height: 300px; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; background: var(--bg-sidebar);">
                                 <div id="adv-motif-results-container" style="display:flex; flex-direction:column; gap:6px;">
                                     <span style="font-size:11px; color:var(--text-secondary); text-align:center; display:block; padding-top:20px;">Click 'Mine Motif Patterns' to search the network.</span>
                                 </div>
@@ -3030,6 +3280,38 @@
                         </div>
 
                     </div>
+
+                    <!-- Network Embedding Space Panel (full-width 4th panel) -->
+                    <div class="dashboard-card" style="display:flex; flex-direction:column; gap:10px; min-height:340px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border-color); padding-bottom:8px; flex-wrap:wrap; gap:6px;">
+                            <h3 style="font-size:13.5px; font-weight:700; margin:0; display:flex; align-items:center; gap:6px; color:var(--text-primary);">
+                                <i class="fa-solid fa-circle-nodes" style="color:#6366f1;"></i> Gene Regulatory Network Embedding Space
+                                <span style="font-size:10px; font-weight:400; color:var(--text-muted); margin-left:4px;">Force-directed topology layout · Hover = details · Click = Gene Explorer</span>
+                            </h3>
+                            <div style="display:flex; gap:5px; align-items:center; flex-shrink:0;">
+                                <span style="font-size:9.5px; color:var(--text-secondary); font-weight:600;">Color by:</span>
+                                <button class="emb-color-btn" data-mode="type" id="emb-btn-type" style="font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid #6366f1;background:#eef2ff;color:#4338ca;font-weight:600;cursor:pointer;">Node Type</button>
+                                <button class="emb-color-btn" data-mode="essential" id="emb-btn-essential" style="font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border-color);background:white;color:var(--text-secondary);font-weight:600;cursor:pointer;">Essentiality</button>
+                                <button class="emb-color-btn" data-mode="degree" id="emb-btn-degree" style="font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border-color);background:white;color:var(--text-secondary);font-weight:600;cursor:pointer;">Degree Heat</button>
+                                <button onclick="renderEmbeddingCanvas()" style="font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border-color);background:white;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;gap:3px;"><i class="fa-solid fa-arrows-rotate"></i> Shuffle</button>
+                            </div>
+                        </div>
+                        <div style="position:relative;flex:1;min-height:280px;background:#f8fafc;border:1px solid var(--border-color);border-radius:10px;overflow:hidden;">
+                            <canvas id="adv-embedding-canvas" style="width:100%;height:100%;cursor:crosshair;display:block;"></canvas>
+                            <div id="adv-emb-tooltip" style="position:absolute;display:none;background:rgba(15,23,42,0.92);color:#fff;font-size:10.5px;padding:6px 10px;border-radius:7px;pointer-events:none;z-index:10;max-width:200px;line-height:1.5;"></div>
+                            <div id="adv-emb-legend" style="position:absolute;bottom:10px;left:12px;display:flex;flex-direction:column;gap:4px;background:rgba(255,255,255,0.92);border:1px solid #e2e8f0;border-radius:8px;padding:7px 10px;font-size:9.5px;">
+                                <div style="font-weight:700;color:var(--text-secondary);margin-bottom:2px;font-size:9px;text-transform:uppercase;letter-spacing:0.05em;">Legend</div>
+                                <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;"></span> Sigma Factor</div>
+                                <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#7c3aed;"></span> Global TF (≥10)</div>
+                                <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;"></span> Local TF</div>
+                                <div style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#0d9488;"></span> sRNA</div>
+                            </div>
+                            <div id="adv-emb-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,0.9);border-radius:10px;">
+                                <span style="font-size:12px;color:var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin"></i> Building embedding layout…</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Dynamic Regulatory FBA/ecFBA Simulation Overlay -->

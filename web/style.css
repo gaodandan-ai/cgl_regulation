@@ -5387,27 +5387,33 @@ details[open] .conf-chevron {
 
 #hier-canvas-wrap {
     flex: 1;
-    min-height: 400px;
+    min-height: 500px;
     overflow: auto;
-    background: linear-gradient(160deg, #f1f5f9 0%, #e8edf5 100%);
+    background: linear-gradient(160deg, #f8fafc 0%, #eef2f8 100%);
+    cursor: grab;
+}
+#hier-canvas-wrap:active {
+    cursor: grabbing;
 }
 
 .hier-node-g rect {
-    transition: filter 0.15s, opacity 0.15s;
+    transition: filter 0.12s ease, transform 0.12s ease;
 }
 
 .hier-node-g:hover rect {
-    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.22)) !important;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.28)) !important;
 }
 
 .hier-edge {
-    transition: stroke-opacity 0.2s;
+    transition: stroke-opacity 0.15s ease, stroke-width 0.15s ease;
+    will-change: stroke-opacity;
 }
 
 #hier-tooltip {
-    border: 1px solid rgba(255,255,255,0.12);
-    backdrop-filter: blur(4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.32);
+    line-height: 1.6;
 }
 
 /* ==========================================================================
