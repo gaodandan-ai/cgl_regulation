@@ -7,9 +7,12 @@ to help identify which ones have known thermodynamic data in literature.
 import cobra, json, re, warnings
 warnings.filterwarnings('ignore')
 
-model = cobra.io.read_sbml_model('backend/models/iCW773.xml')
+import os
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(os.path.dirname(SCRIPT_DIR))
+model = cobra.io.read_sbml_model(os.path.join(ROOT_DIR, 'backend/models/iCW773.xml'))
 
-with open('data/reference/thermo_dgr_data.json', encoding='utf-8') as f:
+with open(os.path.join(ROOT_DIR, 'data/reference/thermo_dgr_data.json'), encoding='utf-8') as f:
     data = json.load(f)
 
 covered = {k for k,v in data['reactions'].items() if v.get('dgr_prime_0') is not None}

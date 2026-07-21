@@ -46,7 +46,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("build_string")
 
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR     = os.path.dirname(SCRIPT_DIR)
+ROOT_DIR     = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 MAPPING_CSV  = os.path.join(ROOT_DIR, "data", "reference", "gene_mapping.csv")
 OUTPUT_PATH  = os.path.join(ROOT_DIR, "data", "reference", "string_interactions.json")
 

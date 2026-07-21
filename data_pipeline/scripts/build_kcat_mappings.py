@@ -15,7 +15,7 @@ Output format (per reaction):
 """
 import os, json
 
-ROOT       = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BRENDA_IN  = os.path.join(ROOT, "data", "reference", "brenda_kcat_mappings.json")
 DLKCAT_IN  = os.path.join(ROOT, "data", "reference", "dlkcat_predicted_kcat.json")
 OUT        = BRENDA_IN   # overwrite brenda file with merged result

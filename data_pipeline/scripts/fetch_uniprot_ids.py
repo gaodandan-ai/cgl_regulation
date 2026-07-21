@@ -15,7 +15,7 @@ UniProt REST endpoint (no auth required):
 """
 import os, csv, urllib.request, urllib.parse, time, re
 
-ROOT       = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAPPING    = os.path.join(ROOT, "data", "reference", "gene_mapping.csv")
 CACHE_FILE = os.path.join(ROOT, "data", "reference", "uniprot_cgl_proteome.tsv")
 

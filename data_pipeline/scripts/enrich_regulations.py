@@ -13,7 +13,7 @@ Also adds a 'confidence_label' column: HIGH / MEDIUM / LOW
 """
 import os, csv
 
-ROOT    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT    = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 IN_CSV  = os.path.join(ROOT, "data", "reference", "regulations.csv")
 OUT_CSV = IN_CSV  # overwrite in-place
 

@@ -35,7 +35,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("build_thermo")
 
 SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR    = os.path.dirname(SCRIPT_DIR)
+ROOT_DIR    = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 MODEL_PATH  = os.path.join(ROOT_DIR, "backend", "models", "iCW773.xml")
 OUTPUT_PATH = os.path.join(ROOT_DIR, "data", "reference", "thermo_dgr_data.json")
 

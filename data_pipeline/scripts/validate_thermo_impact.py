@@ -21,7 +21,7 @@ log = logging.getLogger("validate_thermo")
 import cobra
 from cobra.flux_analysis import single_gene_deletion
 
-ROOT_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR   = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODEL_PATH = os.path.join(ROOT_DIR, "backend", "models", "iCW773.xml")
 THERMO_PATH= os.path.join(ROOT_DIR, "data", "reference", "thermo_dgr_data.json")
 OUT_PATH   = os.path.join(ROOT_DIR, "data", "reference", "thermo_validation_report.json")

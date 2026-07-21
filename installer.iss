@@ -16,5 +16,5 @@ Source: "dist\cgl_regulation.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{userdesktop}\C. glutamicum 调控网络浏览器"; Filename: "{app}\cgl_regulation.exe"; WorkingDir: "{app}"; IconFilename: "{app}\icon.ico"
-Name: "{group}\C. glutamicum 调控网络浏览器"; Filename: "{app}\cgl_regulation.exe"; WorkingDir: "{app}"; IconFilename: "{app}\icon.ico"
+Name: "{userdesktop}\Cgl Regulation Explorer"; Filename: "{app}\cgl_regulation.exe"; WorkingDir: "{app}"; IconFilename: "{app}\icon.ico"
+Name: "{group}\Cgl Regulation Explorer"; Filename: "{app}\cgl_regulation.exe"; WorkingDir: "{app}"; IconFilename: "{app}\icon.ico"

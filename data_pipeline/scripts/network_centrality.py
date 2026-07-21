@@ -22,7 +22,7 @@ from collections import defaultdict
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("network_centrality")
 
-ROOT_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR  = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 REG_CSV   = os.path.join(ROOT_DIR, "data", "reference", "regulations.csv")
 TCS_CSV   = os.path.join(ROOT_DIR, "data", "reference", "tcs_regulations.csv")
 OUT_PATH  = os.path.join(ROOT_DIR, "data", "reference", "network_centrality.json")
