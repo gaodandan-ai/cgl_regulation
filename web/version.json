@@ -1,6 +1,6 @@
 {
-  "version": "1.2.2",
+  "version": "1.2.3",
   "release_date": "2026-07-21",
   "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest",
-  "changelog": "fix: header version badge dynamically loaded from version.json; fix check-update fetches GitHub Releases API; splash screen launcher; app mode window"
+  "changelog": "fix: taskbar/taskbar icon now shows correct app icon in Chrome app mode; fix: header version badge dynamic; fix: check-update uses GitHub API"
 }
