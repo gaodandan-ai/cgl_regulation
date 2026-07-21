@@ -10,6 +10,7 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -23,36 +24,57 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pyinstaller pillow
-
       - name: Extract version from tag
         id: version
         shell: bash
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-      - name: Build executable (updates version.json + version_local.json)
+      - name: Install runtime dependencies (skip heavy offline tools)
+        run: |
+          pip install --upgrade pip
+          pip install fastapi uvicorn pydantic cobra networkx pandas scikit-learn joblib pyvis matplotlib openpyxl httpx
+          pip install pyinstaller pillow
+
+      - name: Build executable
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.VERSION }}
           RELEASE_NOTES: ${{ github.event.head_commit.message }}
         run: python scripts/build_app.py
 
-      - name: Install Inno Setup
-        run: |
-          choco install innosetup --no-progress -y
+      - name: Install Inno Setup via Chocolatey
         shell: powershell
+        run: |
+          choco install innosetup --no-progress -y --force
+          refreshenv
 
-      - name: Compile Installer (Inno Setup)
-        run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+      - name: Compile Installer
         shell: powershell
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            $iscc = "C:\Program Files\Inno Setup 6\ISCC.exe"
+          }
+          & $iscc installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify build outputs
+        shell: powershell
+        run: |
+          $exe = "dist\cgl_regulation.exe"
+          $setup = "dist\cgl_setup.exe"
+          if (-not (Test-Path $exe)) { Write-Error "cgl_regulation.exe not found!"; exit 1 }
+          Write-Host "cgl_regulation.exe: $([math]::Round((Get-Item $exe).Length/1MB,1)) MB"
+          if (Test-Path $setup) {
+            Write-Host "cgl_setup.exe: $([math]::Round((Get-Item $setup).Length/1MB,1)) MB"
+          } else {
+            Write-Warning "cgl_setup.exe not found, will upload portable exe only"
+          }
 
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
           name: "Cgl Regulation Explorer v${{ steps.version.outputs.VERSION }}"
+          make_latest: true
           body: |
             ## What's New in v${{ steps.version.outputs.VERSION }}
 
@@ -62,7 +84,7 @@ jobs:
 
             | File | Description |
             |------|-------------|
-            | `cgl_setup.exe` | **Recommended** — Windows installer (creates Start Menu & desktop shortcut) |
+            | `cgl_setup.exe` | **Recommended** — Windows installer (creates Start Menu & desktop shortcut options) |
             | `cgl_regulation.exe` | Portable single-file executable (no installation needed) |
 
             ## How to Update
@@ -71,5 +93,6 @@ jobs:
           files: |
             dist/cgl_setup.exe
             dist/cgl_regulation.exe
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

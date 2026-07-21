@@ -1,6 +1,6 @@
 {
-  "version": "0.6.0",
+  "version": "1.1.0",
   "release_date": "2026-07-21",
   "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest",
-  "changelog": "Nav hierarchy, PPI expression overlay, centrality enhancements, sigma cascade, sky-blue icon, auto-update notification"
+  "changelog": "Nav hierarchy, PPI overlay, centrality enhancements, sky-blue icon, auto-update notification, hierarchy view detail panel"
 }
