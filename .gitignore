@@ -74,4 +74,5 @@ data_pipeline/scratch*
 build/
 dist/
 *.spec
+!cgl_regulation.spec
 
