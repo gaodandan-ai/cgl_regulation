@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "release_date": "2026-07-21",
   "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest",
-  "changelog": "RegPrecise TFBS motif cards with coloured consensus, ChIP-seq evidence badges per edge (ATCC13032/Strain R), strain filter in relations table, RegPrecise PWM data (56 TFs, 458 sites), evidence_level classification, TSS-aligned binding site positions"
+  "changelog": "fix: check-update fetches GitHub Releases API; splash screen launcher; app mode window; RegPrecise TFBS motif cards; ChIP evidence badges; strain filter; port reuse fix"
 }
