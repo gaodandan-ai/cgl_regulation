@@ -4,6 +4,21 @@ All notable changes to the Cgl Regulation Explorer project will be documented in
 
 ---
 
+## [v0.6.0] - 2026-07-21
+### Added
+- **Auto-update Notification**: App checks for new versions on startup and shows a sky-blue toast in the header when an update is available, with a direct link to GitHub Releases.
+- **GitHub Releases Distribution**: Automated CI/CD pipeline builds and publishes Windows installer (`cgl_setup.exe`) and portable executable (`cgl_regulation.exe`) on every version tag push.
+- **PPI Expression Overlay**: RNA-seq log2FC coloring on protein–protein interaction network nodes with red↔blue gradient, LFC threshold slider, dataset switcher, and floating legend.
+- **Centrality Bubble Chart Enhancements**: Configurable X/Y axes and bubble-size dimensions; gene highlight search; click-to-inspect gene detail panel with "Open in Gene Explorer" jump; essentiality filter pills (All / Essential Only / Non-Essential Only).
+- **Sigma Cascade Network Type**: New "Sigma Factor Cascade (Sigma→TF→Target)" network query mode.
+- **PPI Score Threshold Slider**: Adjustable minimum STRING PPI score (150–900, default 400) in Advanced Network panel.
+
+### Changed
+- **Nav Hierarchy**: Primary workflow buttons (Gene/TF, Hierarchy, Network Topology, iModulon, PPI, Pathway) visually distinguished from secondary analysis tools (Engineering, Advanced Analytics, Simulation) via a vertical divider and subdued styling.
+- **Nav Order**: Reordered to Gene/TF → Hierarchy View → Network Topology → iModulon Explorer → PPI Explorer → Pathway View.
+- **App Icon**: New sky-blue radial-gradient squircle icon with white "Cgl" text (programmatically generated with Pillow).
+- **Script Organization**: Data pipeline scripts moved to `data_pipeline/scripts/`; icon generator at `scripts/gen_icon.py`.
+
 ## [v0.5.0] - 2026-07-15
 ### Added
 - **GPR Rule Parser for rFBA**: Implemented a recursive descent parser that evaluates standard COBRApy `gene_reaction_rule` expressions under formal `min` (AND) and `max` (OR) logic, ensuring rate-limiting subunit dynamics and isozyme compensation are accurately modeled in dynamic simulations.

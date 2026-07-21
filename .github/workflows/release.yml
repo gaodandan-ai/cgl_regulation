@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # needed for git describe
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,18 +39,15 @@ jobs:
           RELEASE_NOTES: ${{ github.event.head_commit.message }}
         run: python scripts/build_app.py
 
-      - name: Compile Installer (Inno Setup)
-        run: iscc installer.iss
-
-      - name: Commit updated version.json back to repo
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Inno Setup
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add web/version.json web/version_local.json
-          git diff --staged --quiet || git commit -m "chore: bump version.json to ${{ steps.version.outputs.VERSION }} [skip ci]"
-          git push origin HEAD:main
+          choco install innosetup --no-progress -y
+        shell: powershell
+
+      - name: Compile Installer (Inno Setup)
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+        shell: powershell
 
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
