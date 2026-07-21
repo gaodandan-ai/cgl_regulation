@@ -116,21 +116,49 @@ SPECIES_MAP = {
 
 
 def open_browser():
-    # Wait 1 second to make sure the server has started
     time.sleep(1.0)
     url = f"http://localhost:{PORT}/index.html"
     print(f"Opening network explorer at: {url}")
     webbrowser.open(url)
 
+
+def _is_port_busy(port: int) -> bool:
+    import socket
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+            return True
+    except OSError:
+        return False
+
+
 if __name__ == "__main__":
     import uvicorn
-    
-    # Start browser in a background thread if not in headless mode
-    if os.environ.get("HEADLESS", "false").lower() != "true":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int, default=PORT)
+    parser.add_argument("--no-browser", action="store_true")
+    args, _ = parser.parse_known_args()
+    PORT = args.port
+
+    # ── 如果端口已被占用，直接复用，不重新绑定 ───────────────────────────────
+    if _is_port_busy(PORT):
+        url = f"http://localhost:{PORT}/index.html"
+        print(f"[INFO] Port {PORT} already in use — reusing existing server.")
+        if not args.no_browser:
+            browser_thread = threading.Thread(target=open_browser)
+            browser_thread.daemon = True
+            browser_thread.start()
+            browser_thread.join(timeout=3)
+        print(f"Opened: {url}")
+        sys.exit(0)
+
+    # ── 正常启动 ──────────────────────────────────────────────────────────────
+    if not args.no_browser and os.environ.get("HEADLESS", "false").lower() != "true":
         browser_thread = threading.Thread(target=open_browser)
         browser_thread.daemon = True
         browser_thread.start()
-        
+
     print(f"Local Server successfully starting on port {PORT} using FastAPI & Uvicorn...")
     try:
         from backend.app import app
