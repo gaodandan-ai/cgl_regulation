@@ -2110,41 +2110,96 @@ async def mfa_comparison_endpoint():
 
 
 # ── Auto-update check endpoint ────────────────────────────────────────────────
+
+# ── Update check cache ──────────────────────────────────────────────────────
+_update_cache: dict = {}   # {"time": float, "data": dict}
+_UPDATE_CACHE_TTL = 6 * 3600   # re-fetch at most once every 6 hours
+
 @app.get("/api/check-update")
 def check_update():
     """
-    Compare the locally installed version (web/version_local.json, written at
-    build time) against the canonical version manifest (web/version.json).
+    Compare the locally installed version (version_local.json, written at
+    build time by build_app.py) against the **GitHub Releases API** to find
+    the true latest release.
+
+    Falls back to local version.json comparison if GitHub is unreachable
+    (e.g. no internet access in an isolated lab environment).
 
     Returns:
-        has_update (bool): True when a newer version is available.
+        has_update (bool): True when a newer version is available online.
         current_version (str): Version of this installed build.
-        latest_version (str): Version from the manifest.
-        download_url (str): GitHub Releases URL.
+        latest_version (str): Latest version on GitHub Releases.
+        download_url (str): Direct link to the GitHub Releases page.
         changelog (str): Release notes snippet.
     """
+    import time as _time
+    now = _time.time()
+
+    # Return cached result if still fresh
+    if _update_cache and (now - _update_cache.get("time", 0)) < _UPDATE_CACHE_TTL:
+        return _update_cache["data"]
+
     try:
         root = ROOT_DIR if 'ROOT_DIR' in dir() else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         web_dir_path = os.path.join(root, "web")
 
-        # Read locally installed version (written by build_app.py at build time)
+        # ── Step 1: current installed version ──────────────────────────────
         local_ver_path = os.path.join(web_dir_path, "version_local.json")
         current_version = "0.0.0"
         if os.path.exists(local_ver_path):
             with open(local_ver_path, "r", encoding="utf-8") as f:
                 current_version = json.load(f).get("version", "0.0.0")
+        else:
+            # Fallback: read version.json (dev environment)
+            vf = os.path.join(web_dir_path, "version.json")
+            if os.path.exists(vf):
+                with open(vf, "r", encoding="utf-8") as f:
+                    current_version = json.load(f).get("version", "0.0.0")
 
-        # Read the canonical manifest shipped with this build
-        manifest_path = os.path.join(web_dir_path, "version.json")
-        if not os.path.exists(manifest_path):
-            return {"has_update": False, "current_version": current_version,
-                    "latest_version": current_version, "download_url": "", "changelog": ""}
+        # ── Step 2: fetch latest release from GitHub ────────────────────────
+        import urllib.request as _req
+        import urllib.error as _uerr
 
-        with open(manifest_path, "r", encoding="utf-8") as f:
-            manifest = json.load(f)
+        GITHUB_API = "https://api.github.com/repos/gaodandan-ai/cgl_regulation/releases/latest"
+        DOWNLOAD_URL = "https://github.com/gaodandan-ai/cgl_regulation/releases/latest"
 
-        latest_version = manifest.get("version", current_version)
+        latest_version = current_version
+        changelog = ""
+        download_url = DOWNLOAD_URL
+        fetched_from_github = False
 
+        try:
+            gh_req = _req.Request(
+                GITHUB_API,
+                headers={
+                    "User-Agent": "CglRegulationExplorer-UpdateChecker/2",
+                    "Accept": "application/vnd.github+json",
+                },
+            )
+            with _req.urlopen(gh_req, timeout=5) as resp:
+                gh_data = json.loads(resp.read().decode())
+            tag = gh_data.get("tag_name", "").lstrip("v")
+            if tag:
+                latest_version = tag
+                changelog = gh_data.get("body", "")[:500]   # first 500 chars
+                # Use assets download if present, else fallback
+                assets = gh_data.get("assets", [])
+                setup_url = next((a["browser_download_url"] for a in assets
+                                   if "setup" in a.get("name","").lower()), None)
+                download_url = setup_url or DOWNLOAD_URL
+                fetched_from_github = True
+        except Exception as gh_err:
+            logger.info(f"GitHub update check failed (offline?): {gh_err}")
+            # Fallback: compare local version.json (may be same version — that's OK)
+            manifest_path = os.path.join(web_dir_path, "version.json")
+            if os.path.exists(manifest_path):
+                with open(manifest_path, "r", encoding="utf-8") as f:
+                    manifest = json.load(f)
+                latest_version = manifest.get("version", current_version)
+                changelog = manifest.get("changelog", "")
+                download_url = manifest.get("download_url", DOWNLOAD_URL)
+
+        # ── Step 3: compare ─────────────────────────────────────────────────
         def _parse(v: str):
             try:
                 return tuple(int(x) for x in v.strip().lstrip("v").split("."))
@@ -2153,13 +2208,20 @@ def check_update():
 
         has_update = _parse(latest_version) > _parse(current_version)
 
-        return {
+        result = {
             "has_update": has_update,
             "current_version": current_version,
             "latest_version": latest_version,
-            "download_url": manifest.get("download_url", "https://github.com/gaodandan-ai/cgl_regulation/releases/latest"),
-            "changelog": manifest.get("changelog", ""),
+            "download_url": download_url,
+            "changelog": changelog,
+            "source": "github" if fetched_from_github else "local",
         }
+
+        # Cache result
+        _update_cache["time"] = now
+        _update_cache["data"] = result
+        return result
+
     except Exception as e:
         logger.warning(f"check-update failed: {e}")
         return {"has_update": False, "current_version": "unknown",
