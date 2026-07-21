@@ -1,6 +1,6 @@
 {
-  "version": "1.2.1",
+  "version": "1.2.2",
   "release_date": "2026-07-21",
   "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest",
-  "changelog": "fix: check-update fetches GitHub Releases API; splash screen launcher; app mode window; RegPrecise TFBS motif cards; ChIP evidence badges; strain filter; port reuse fix"
+  "changelog": "fix: header version badge dynamically loaded from version.json; fix check-update fetches GitHub Releases API; splash screen launcher; app mode window"
 }
