@@ -166,10 +166,18 @@
 
 
         <nav id="workflow-entrybar" aria-label="Primary research workflows">
-            <!-- 探索类 -->
+            <!-- 主级 -->
             <button class="workflow-entry active" id="workflow-entry-gene" data-workflow="gene">
                 <i class="fa-solid fa-network-wired"></i>
                 <span>Gene / TF Explorer</span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-hierarchy" data-workflow="hierarchy">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Hierarchy View</span>
+            </button>
+            <button class="workflow-entry" id="workflow-entry-topology" data-workflow="topology">
+                <i class="fa-solid fa-atom"></i>
+                <span>Network Topology</span>
             </button>
             <button class="workflow-entry" id="workflow-entry-imodulon" data-workflow="imodulon">
                 <i class="fa-solid fa-circle-nodes"></i>
@@ -178,15 +186,6 @@
             <button class="workflow-entry" id="workflow-entry-ppi" data-workflow="ppi">
                 <i class="fa-solid fa-share-nodes"></i>
                 <span>PPI Explorer</span>
-            </button>
-            <!-- 网络可视化类 -->
-            <button class="workflow-entry" id="workflow-entry-topology" data-workflow="topology">
-                <i class="fa-solid fa-atom"></i>
-                <span>Network Topology</span>
-            </button>
-            <button class="workflow-entry" id="workflow-entry-hierarchy" data-workflow="hierarchy">
-                <i class="fa-solid fa-layer-group"></i>
-                <span>Hierarchy View</span>
             </button>
             <button class="workflow-entry" id="workflow-entry-pathway" data-workflow="pathway">
                 <i class="fa-solid fa-diagram-project"></i>
@@ -206,6 +205,7 @@
                 <i class="fa-solid fa-gauge-high"></i>
                 <span>Dynamic Simulation</span>
             </button>
+
             <!-- 文档类 -->
             <div class="nav-doc-separator" aria-hidden="true"></div>
             <button class="workflow-entry workflow-entry-doc" id="workflow-entry-quality" data-workflow="quality">
