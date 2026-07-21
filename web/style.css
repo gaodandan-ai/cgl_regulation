@@ -5341,39 +5341,42 @@ tr.selected-row {
     vertical-align: top;
 }
 
+/* ── Confidence details: compact badge + floating popover ─────────────────── */
 .conf-details {
     width: 100%;
+    position: relative; /* anchor for potential fallback */
 }
 
 .conf-summary {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 8px;
+    gap: 5px;
+    padding: 4px 6px;
     cursor: pointer;
     list-style: none;
     user-select: none;
-    border-radius: 6px;
+    border-radius: 7px;
     transition: background 0.15s;
     outline: none;
+    white-space: nowrap;
 }
 
 .conf-summary::-webkit-details-marker { display: none; }
 
 .conf-summary:hover {
-    background: rgba(99, 102, 241, 0.04);
+    background: rgba(99, 102, 241, 0.06);
 }
 
 .conf-summary-label {
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
     color: var(--text-muted);
     letter-spacing: 0.05em;
-    flex: 1;
+    text-transform: uppercase;
 }
 
 .conf-chevron {
-    font-size: 9px;
+    font-size: 8px;
     color: var(--text-muted);
     transition: transform 0.2s;
     flex-shrink: 0;
@@ -5383,14 +5386,73 @@ details[open] .conf-chevron {
     transform: rotate(180deg);
 }
 
+/* Floating popover — anchored via JS to the clicked badge */
 .conf-panel {
-    padding: 4px 8px 10px;
-    animation: confPanelIn 0.2s ease;
+    display: none; /* hidden by default; JS toggles */
 }
 
-@keyframes confPanelIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
+/* The actual floating card */
+.conf-popover {
+    position: fixed;
+    z-index: 1500;
+    width: 320px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--bg-sidebar, #fff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.18), 0 2px 8px rgba(15, 23, 42, 0.08);
+    padding: 14px;
+    animation: confPopoverIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    scrollbar-width: thin;
+}
+
+.conf-popover::-webkit-scrollbar { width: 4px; }
+.conf-popover::-webkit-scrollbar-track { background: transparent; }
+.conf-popover::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.3); border-radius: 2px; }
+
+/* Arrow pointer on the popover */
+.conf-popover::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: var(--bg-sidebar, #fff);
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    border-left: 1px solid var(--border-color, #e2e8f0);
+    transform: rotate(45deg);
+    border-radius: 2px 0 0 0;
+}
+
+/* Close button inside popover */
+.conf-popover-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: rgba(100,116,139,0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+.conf-popover-close:hover {
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+}
+
+@keyframes confPopoverIn {
+    from { opacity: 0; transform: translateY(6px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Confidence tier badges in the summary row */
@@ -5536,59 +5598,50 @@ details[open] .conf-chevron {
     vertical-align: top;
 }
 
-.conf-details {
-    width: 100%;
-}
-
-.conf-summary {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 8px;
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-    border-radius: 6px;
-    transition: background 0.15s;
-    outline: none;
-}
-
+/* ── Duplicate block (mobile override context) — kept minimal ─────────────── */
+.conf-details { width: 100%; }
+.conf-summary { display: inline-flex; align-items: center; gap: 5px; padding: 4px 6px;
+    cursor: pointer; list-style: none; user-select: none; border-radius: 7px;
+    transition: background 0.15s; outline: none; white-space: nowrap; }
 .conf-summary::-webkit-details-marker { display: none; }
+.conf-summary:hover { background: rgba(99,102,241,0.06); }
+.conf-summary-label { font-size: 9px; font-weight: 700; color: var(--text-muted);
+    letter-spacing: 0.05em; text-transform: uppercase; }
+.conf-chevron { font-size: 8px; color: var(--text-muted); transition: transform 0.2s; }
+details[open] .conf-chevron { transform: rotate(180deg); }
+.conf-panel { display: none; }
 
-.conf-summary:hover {
-    background: rgba(99, 102, 241, 0.04);
+@keyframes confPopoverIn {
+    from { opacity: 0; transform: translateY(6px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.conf-summary-label {
-    font-size: 9.5px;
-    font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-    flex: 1;
+/* Trigger button — replaces the old <summary> inside <details> */
+.conf-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 7px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+    font-family: inherit;
 }
-
-.conf-chevron {
-    font-size: 9px;
-    color: var(--text-muted);
-    transition: transform 0.2s;
-    flex-shrink: 0;
+.conf-trigger:hover {
+    background: rgba(99, 102, 241, 0.06);
+    border-color: rgba(99, 102, 241, 0.15);
 }
-
-details[open] .conf-chevron {
+.conf-trigger[aria-expanded="true"] .conf-chevron {
     transform: rotate(180deg);
 }
-
-.conf-panel {
-    padding: 4px 8px 10px;
-    animation: confPanelIn 0.2s ease;
+.conf-cell {
+    vertical-align: middle;
+    white-space: nowrap;
 }
 
-@keyframes confPanelIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Confidence tier badges in the summary row */
 .conf-badge {
     display: inline-flex;
     align-items: center;

@@ -1124,6 +1124,77 @@ function initRelationFilters() {
 
 
 // ============================================================
+// Floating Confidence Score Popover
+// ============================================================
+function initConfPopover() {
+    var popover = null;
+    var activeTrigger = null;
+
+    function closePopover() {
+        if (popover) {
+            popover.style.opacity = '0';
+            popover.style.transform = 'translateY(6px) scale(0.97)';
+            var p = popover;
+            setTimeout(function() { if (p && p.parentNode) p.remove(); }, 150);
+            popover = null;
+        }
+        if (activeTrigger) {
+            activeTrigger.setAttribute('aria-expanded', 'false');
+            activeTrigger = null;
+        }
+    }
+
+    function openPopover(trigger) {
+        var panel = trigger.parentElement.querySelector('.conf-panel');
+        if (!panel) return;
+        var html = panel.innerHTML.trim();
+        if (!html) return;
+        if (popover) {
+            if (activeTrigger === trigger) { closePopover(); return; }
+            if (popover && popover.parentNode) popover.remove();
+            popover = null;
+            if (activeTrigger) { activeTrigger.setAttribute('aria-expanded','false'); activeTrigger = null; }
+        }
+        popover = document.createElement('div');
+        popover.className = 'conf-popover';
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'conf-popover-close';
+        closeBtn.innerHTML = '\u2715';
+        closeBtn.title = 'Close';
+        closeBtn.addEventListener('click', closePopover);
+        popover.appendChild(closeBtn);
+        var content = document.createElement('div');
+        content.innerHTML = html;
+        popover.appendChild(content);
+        document.body.appendChild(popover);
+        var pw = 320;
+        var rect = trigger.getBoundingClientRect();
+        var left = rect.right - pw;
+        var top  = rect.bottom + 6;
+        if (left < 8) left = 8;
+        if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+        var ph = Math.min(popover.scrollHeight + 28, window.innerHeight * 0.7);
+        if (top + ph > window.innerHeight - 8) top = Math.max(8, rect.top - ph - 6);
+        popover.style.left = left + 'px';
+        popover.style.top  = top + 'px';
+        popover.style.transition = 'opacity 0.15s, transform 0.15s';
+        activeTrigger = trigger;
+        trigger.setAttribute('aria-expanded', 'true');
+    }
+
+    document.addEventListener('click', function(e) {
+        var trigger = e.target.closest('.conf-trigger');
+        if (trigger) { e.stopPropagation(); openPopover(trigger); return; }
+        if (popover && popover.contains(e.target)) return;
+        closePopover();
+    }, true);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closePopover();
+    });
+}
+
+// ============================================================
 // RF Confidence Method Card — Methodology Transparency
 // ============================================================
 
@@ -5479,14 +5550,15 @@ function showNodeDetails(locusTag) {
                 <td>${evidenceBadgesHtml || '<span style="color:var(--text-muted);font-size:10px;">—</span>'}</td>
 
                 <td class="text-energy conf-cell">
-                    <details class="conf-details">
-                        <summary class="conf-summary">
-                            <span class="conf-badge conf-badge-${rel.confidenceLevel || 'low'}">${Math.round((rel.confidenceScore || 0) * 100)}%</span>
-                            <span class="conf-summary-label">${rel.confidenceLevel ? rel.confidenceLevel.toUpperCase() : 'LOW'}</span>
-                            <i class="fa-solid fa-chevron-down conf-chevron"></i>
-                        </summary>
-                        <div class="conf-panel">${rel.edgeObj ? renderConfidenceMethodCard(rel.edgeObj) : rel.source}</div>
-                    </details>
+                    <button class="conf-trigger conf-trigger-${rel.confidenceLevel || 'low'}"
+                            data-conf-level="${rel.confidenceLevel || 'low'}"
+                            data-conf-pct="${Math.round((rel.confidenceScore || 0) * 100)}"
+                            title="Click to view evidence score breakdown">
+                        <span class="conf-badge conf-badge-${rel.confidenceLevel || 'low'}">${Math.round((rel.confidenceScore || 0) * 100)}%</span>
+                        <span class="conf-summary-label">${rel.confidenceLevel ? rel.confidenceLevel.toUpperCase() : 'LOW'}</span>
+                        <i class="fa-solid fa-chevron-down conf-chevron"></i>
+                    </button>
+                    <div class="conf-panel" style="display:none;">${rel.edgeObj ? renderConfidenceMethodCard(rel.edgeObj) : (rel.source || '')}</div>
                 </td>
 
             `;
@@ -6995,6 +7067,8 @@ function initEventListeners() {
     // Wire ChIP-seq evidence filter and Strain Filter controls
     initRelationFilters();
 
+    // Initialize floating confidence score popover
+    initConfPopover();
 
 
     searchBtn.addEventListener('click', () => {
