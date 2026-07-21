@@ -19606,9 +19606,11 @@ function renderHierarchy() {
             const nodeInEdges  = activeEdges.filter(e => e.target.toLowerCase() === id).length;
             const nodeOutEdges = activeEdges.filter(e => e.source.toLowerCase() === id).length;
             const isTfNode = pos.layer === 1 || pos.layer === 2 || pos.layer === 0;
-            const ctrlHint = isTfNode
-                ? `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-arrow-right"></i> Ctrl+Click → Gene Explorer &nbsp;|&nbsp; Click → expand</div>`
-                : `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-arrow-right"></i> Click → Gene Explorer</div>`;
+            const ctrlHint = (pos.layer === 1 || pos.layer === 2)
+                ? `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-sidebar"></i> Click → Details &nbsp;|&nbsp; <i class="fa-solid fa-arrow-right"></i> Ctrl+Click → Gene Explorer</div>`
+                : (pos.layer === 0)
+                ? `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-sidebar"></i> Click → Details &nbsp;|&nbsp; <i class="fa-solid fa-arrow-right"></i> Ctrl+Click → Gene Explorer</div>`
+                : `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-sidebar"></i> Click → Details &nbsp;|&nbsp; <i class="fa-solid fa-arrow-right"></i> Ctrl+Click → Gene Explorer</div>`;
             tooltip.innerHTML = `<strong>${pos.name}</strong><br>Locus: ${pos.locusTag}<br>Out-degree: ${pos.deg}<br>↑ Regulates: ${nodeOutEdges} edges<br>↓ Regulated by: ${nodeInEdges} edges${ctrlHint}`;
             tooltip.style.display = 'block';
             tooltip.style.left = (evt.clientX + 14) + 'px';
@@ -19623,48 +19625,42 @@ function renderHierarchy() {
             if (tooltip) tooltip.style.display = 'none';
         });
 
-        // Click: expand/collapse targets for TF (plain click), or Ctrl+Click → Gene Explorer
+        // Click: show right-side detail panel; Ctrl+Click → Gene Explorer
         g.addEventListener('click', (evt) => {
             // Focus Mode: intercept click → apply focus on clicked node
             if (_hierFocusMode) {
                 if (_hierFocusedTf === id) {
-                    // Clicking same node again → clear focus
                     _hierFocusedTf = null;
                     hierClearFocus();
                 } else {
                     hierApplyFocus(id);
                 }
-                return; // don't expand/navigate in focus mode
+                return;
             }
 
+            if (evt.ctrlKey || evt.metaKey) {
+                // Ctrl+Click → always jump to Gene Explorer
+                if (pos.locusTag) {
+                    querySingleGene(pos.locusTag);
+                    setActiveWorkflowEntry('gene');
+                }
+                return;
+            }
+
+            // Plain click → show right sidebar with gene details
+            if (pos.locusTag) {
+                showNodeDetails(pos.locusTag);
+                toggleRightSidebar(true);
+            }
+
+            // For TF nodes (layer 1/2): also toggle expand/collapse
             if (pos.layer === 1 || pos.layer === 2) {
-                // Ctrl / Meta key → jump to Gene Explorer
-                if (evt.ctrlKey || evt.metaKey) {
-                    if (pos.locusTag) {
-                        querySingleGene(pos.locusTag);
-                        setActiveWorkflowEntry('gene');
-                    }
+                if (_hier.expandedTf.has(id)) {
+                    _hier.expandedTf.delete(id);
                 } else {
-                    // Plain click → toggle expand
-                    if (_hier.expandedTf.has(id)) {
-                        _hier.expandedTf.delete(id);
-                    } else {
-                        _hier.expandedTf.add(id);
-                    }
-                    renderHierarchy();
+                    _hier.expandedTf.add(id);
                 }
-            } else if (pos.layer === 0) {
-                // Sigma factor: plain click also opens Gene Explorer (they don't expand targets)
-                if (pos.locusTag) {
-                    querySingleGene(pos.locusTag);
-                    setActiveWorkflowEntry('gene');
-                }
-            } else {
-                // Target gene / sRNA — single click → Gene Explorer
-                if (pos.locusTag) {
-                    querySingleGene(pos.locusTag);
-                    setActiveWorkflowEntry('gene');
-                }
+                renderHierarchy();
             }
         });
 
