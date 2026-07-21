@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "release_date": "2026-07-21",
   "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest",
-  "changelog": "Nav hierarchy, PPI overlay, centrality enhancements, sky-blue icon, auto-update notification, hierarchy view detail panel"
+  "changelog": "RegPrecise TFBS motif cards with coloured consensus, ChIP-seq evidence badges per edge (ATCC13032/Strain R), strain filter in relations table, RegPrecise PWM data (56 TFs, 458 sites), evidence_level classification, TSS-aligned binding site positions"
 }

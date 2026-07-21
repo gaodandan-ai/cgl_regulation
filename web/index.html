@@ -353,6 +353,24 @@
                                     <span class="checkmark chk-only-tf-targets"></span>
                                     <span class="label-text" style="font-size: 11px;">Show TF targets only</span>
                                 </label>
+                                <!-- ChIP-seq evidence filter -->
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="filter-chipseq-only">
+                                    <span class="checkmark" style="border-color:#059669;"></span>
+                                    <span class="label-text" style="font-size: 11px;">ChIP evidence only</span>
+                                </label>
+                            </div>
+                            <!-- Strain Filter -->
+                            <div style="margin-top: 10px;">
+                                <label style="font-size: 10.5px; font-weight: 600; color: var(--text-secondary); display:block; margin-bottom: 4px;">
+                                    <i class="fa-solid fa-microscope" style="color:#6366f1;"></i> Strain Filter
+                                </label>
+                                <select id="filter-strain" style="width:100%; font-size:11px; padding:4px 6px; border:1px solid var(--border-color); border-radius:5px; background:var(--bg-primary); color:var(--text-primary); cursor:pointer;">
+                                    <option value="all">All strains</option>
+                                    <option value="ATCC13032">ATCC 13032 only</option>
+                                    <option value="Strain_R">Strain R only</option>
+                                    <option value="Strain_ATCC14067">ATCC 14067 only</option>
+                                </select>
                             </div>
                         <div class="edge-schema-legend" style="margin-top:10px;padding:8px 10px;border:1px solid var(--border-color);border-radius:6px;background:#fff;font-size:10px;color:var(--text-secondary);line-height:1.6;">
                             <div style="font-weight:700;color:var(--text-primary);margin-bottom:5px;font-size:10.5px;">Edge Schema</div>
@@ -3029,9 +3047,40 @@
                                             Scientific Data 7, 142 (2020).
                                         </li>
                                         <li>
-                                            <strong>Extended C. glutamicum TRN:</strong><br>
-                                            Parise, M.T.D. et al. <em>The transcriptional regulatory network of
-                                                Corynebacterium glutamicum: an update.</em> BMC Genomics 12, 608 (2011).
+                                            <strong>GlxR ChIP-seq (2013):</strong><br>
+                                            Jungwirth, B. et al. <em>High-resolution detection of DNA binding sites of the global transcriptional regulator GlxR in Corynebacterium glutamicum.</em> Microbiology 159, 12–22 (2013).
+                                        </li>
+                                        <li>
+                                            <strong>DtxR &amp; HrrA ChAP-seq (2025):</strong><br>
+                                            DataPLANT Consortium / Mol. Microbiol. <em>Interconnected iron and heme regulatory networks in C. glutamicum.</em> ENA Accession: PRJEB83556 (2025).
+                                        </li>
+                                        <li>
+                                            <strong>MalR ChAP-seq (2020):</strong><br>
+                                            Hensko, L. et al. <em>Genome-wide binding site analysis of the MalR transcriptional regulator in C. glutamicum.</em> Frontiers in Microbiology (2020).
+                                        </li>
+                                        <li>
+                                            <strong>5′ TSS &amp; Promoter Map (GSE156688):</strong><br>
+                                            Pfeifer-Sancar, E. et al. <em>Genome-wide Primary TSS and 5′-UTR promoter mapping in C. glutamicum.</em> NCBI GEO Accession: GSE156688.
+                                        </li>
+                                        <li>
+                                            <strong>RegPrecise Database:</strong><br>
+                                            Novichkov, P.S. et al. <em>RegPrecise: a database of curated transcription factor regulons and motifs in prokaryotes.</em> Nucleic Acids Research 40, D150–D158 (2012).
+                                        </li>
+                                        <li>
+                                            <strong>SigH Regulon &amp; ChIP-chip Series (GSE52040, GSE52039):</strong><br>
+                                            Toyoda, K. et al. <em>Genome-wide identification of the SigH regulon in C. glutamicum.</em> J. Bacteriol. 197, 1058–1070 (2015). DOI: 10.1186/1471-2164-16-S1-S10 / 10.1128/JB.02248-14.
+                                        </li>
+                                        <li>
+                                            <strong>GntR1, IolR &amp; Heme Regulators (GSE58633, GSE44812, GSE37327, GSE120924):</strong><br>
+                                            Tanaka et al. <em>GntR1 Regulon</em> J. Bacteriol (2014); IolR Inositol Regulon (PMID: 23873914); ChrSA/HrrSA Heme Series (PMID: 23038807).
+                                        </li>
+                                        <li>
+                                            <strong>SigA, SigC &amp; Stress Series (GSE86866, GSE72451, GSE70017):</strong><br>
+                                            SigA master sigma factor OE (GSE86866); SigC respiratory chain OE (GSE72451); SigH/FMN stress response.
+                                        </li>
+                                        <li>
+                                            <strong>OsnR &amp; AmtR ChIP-seq (2021–2022):</strong><br>
+                                            Si, M. et al. BMC Microbiol (2021); Zhang, Y. et al. Front. Bioeng. Biotechnol. 10, 816628 (2022).
                                         </li>
                                         <li>
                                             <strong>Abasy Atlas:</strong><br>
@@ -3863,6 +3912,12 @@
                         <div id="info-sigma-content"></div>
                     </div>
 
+                    <!-- RegPrecise TFBS Motif card -->
+                    <div class="detail-section" id="info-motif-row" style="display:none;">
+                        <h3><i class="fa-solid fa-dna" style="color:#059669;"></i> Binding Site Motif <span style="font-size:10px;font-weight:400;color:var(--text-muted);">(RegPrecise 3.2)</span></h3>
+                        <div id="info-motif-content" style="font-size:12px;"></div>
+                    </div>
+
                     <!-- Cross-Network Section -->
                     <div class="detail-section" id="info-crossnetwork-row" style="display:none; border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 12px;">
                         <h3><i class="fa-solid fa-code-merge" style="color:#f57c00;"></i> Regulatory + PPI Cross-links</h3>
@@ -4455,6 +4510,7 @@
                                             <th>Related gene</th>
                                             <th>Direction</th>
                                             <th>Regulatory effect</th>
+                                            <th>Evidence</th>
                                             <th>Source / score</th>
                                         </tr>
                                     </thead>
@@ -4507,7 +4563,7 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js?v=4.13"></script>
+    <script src="app.js?v=4.15"></script>
 </body>
 
 </html>

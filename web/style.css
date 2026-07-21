@@ -5413,6 +5413,201 @@ details[open] .conf-chevron {
 }
 
 .conf-badge-medium {
+
+.enrich-tab-active {
+    color: #7c3aed;
+    border-bottom-color: #7c3aed;
+}
+    /* Hide desktop collapse button on mobile */
+    .left-sidebar-toggle { display: none; }
+    .left-sidebar-resizer { display: none; }
+
+    /* Canvas takes full height */
+    #canvas-container {
+        width: 100%;
+        height: calc(100vh - 52px - 46px); /* minus header and nav */
+        min-height: 400px;
+        position: relative;
+    }
+
+    /* Right sidebar: full-width slide-in from bottom */
+    #right-sidebar {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        top: auto;
+        width: 100% !important;
+        max-width: 100%;
+        min-width: 0;
+        height: 55vh;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.1);
+        transform: translateY(0);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #right-sidebar.collapsed {
+        transform: translateY(100%);
+    }
+
+    .right-sidebar-toggle {
+        top: -20px;
+        right: 50%;
+        transform: translateX(50%);
+        width: 60px;
+        height: 22px;
+        border-radius: 10px 10px 0 0;
+        border-bottom: none;
+        border-right: 1px solid var(--border-color);
+        flex-direction: row;
+    }
+
+    .right-sidebar-toggle span { writing-mode: horizontal-tb; }
+
+    /* Landing overlay scrollable */
+    #canvas-overlay {
+        position: absolute;
+        overflow-y: auto;
+    }
+
+    .overlay-content.scrollable-overlay {
+        padding: 16px;
+    }
+
+    .landing-hero { padding: 16px 0 8px; }
+
+    .landing-grid-bullets {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .landing-grid-about {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .workflow-roadmap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .roadmap-arrow { transform: rotate(90deg); }
+}
+
+/* ==========================================================================
+   Responsive Layout — Small Mobile (≤ 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+    #app-header h1 {
+        font-size: 13px;
+    }
+
+    .header-contact-link {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    #left-sidebar {
+        width: 260px !important;
+    }
+
+    .workflow-entry span {
+        display: none;
+    }
+
+    .workflow-entry {
+        width: 36px;
+        padding: 0;
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   Confidence Method Card — Edge Scoring Transparency
+   ========================================================================== */
+
+/* Collapsible <details> wrapper in relations table */
+.conf-cell {
+    padding: 0 !important;
+    vertical-align: top;
+}
+
+.conf-details {
+    width: 100%;
+}
+
+.conf-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    border-radius: 6px;
+    transition: background 0.15s;
+    outline: none;
+}
+
+.conf-summary::-webkit-details-marker { display: none; }
+
+.conf-summary:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.conf-summary-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    flex: 1;
+}
+
+.conf-chevron {
+    font-size: 9px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+details[open] .conf-chevron {
+    transform: rotate(180deg);
+}
+
+.conf-panel {
+    padding: 4px 8px 10px;
+    animation: confPanelIn 0.2s ease;
+}
+
+@keyframes confPanelIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Confidence tier badges in the summary row */
+.conf-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 800;
+    min-width: 38px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    letter-spacing: 0.01em;
+}
+
+.conf-badge-high {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.conf-badge-medium {
     background: rgba(245, 158, 11, 0.12);
     color: #d97706;
     border: 1px solid rgba(245, 158, 11, 0.25);
@@ -5430,6 +5625,68 @@ details[open] .conf-chevron {
     border-radius: 10px;
     padding: 12px;
     background: var(--bg-sidebar);
+}
+
+/* ==========================================================================
+   ChIP-seq / RegPrecise Evidence Badges
+   ========================================================================== */
+
+.evidence-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    align-items: center;
+    min-width: 60px;
+}
+
+.ev-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 5px;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    cursor: default;
+    transition: opacity 0.15s;
+}
+.ev-badge:hover { opacity: 0.78; }
+
+.ev-chip-atcc {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.30);
+}
+
+.ev-chap-atcc {
+    background: rgba(14, 165, 233, 0.12);
+    color: #0284c7;
+    border: 1px solid rgba(14, 165, 233, 0.30);
+}
+
+.ev-chip-strain-r {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.30);
+}
+
+.ev-chip-atcc14067 {
+    background: rgba(99, 102, 241, 0.10);
+    color: #6366f1;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.ev-regprecise {
+    background: rgba(139, 92, 246, 0.10);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    font-style: italic;
+}
+
+.strain-filtered-hidden {
+    display: none !important;
 }
 
 /* ==========================================================================

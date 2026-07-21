@@ -1,0 +1,40 @@
+accession	organism_or_strain_in_GEO	ATCC13032_status	备注
+GSE141132	Corynebacterium glutamicum	不确定	GEO 系列页未明确菌株；需查样本/论文方法
+GSE97961	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE50210	Corynebacterium glutamicum ATCC 13032（该系列含多物种）	是（C. glutamicum 样本）	按样本筛选 C. glutamicum
+GSE26870	Corynebacterium glutamicum	不确定	GEO 系列页未写 ATCC/R
+GSE27510	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE26122	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE81004	Corynebacterium glutamicum（多物种系列）	不确定	样本页为 generic organism，未明确 ATCC/R
+GSE80674	Corynebacterium glutamicum（多物种系列）	不确定	样本页为 generic organism，未明确 ATCC/R
+GSE67012	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE58632	Corynebacterium glutamicum R	否	GEO 明确标注 R
+GSE58631	Corynebacterium glutamicum R	否	GEO 明确标注 R
+GSE102323	Corynebacterium glutamicum R	否	GEO 明确标注 R
+GSE102324	Corynebacterium glutamicum R	否	GEO 样本页明确标注 R
+GSE102325	Corynebacterium glutamicum R	否	GEO 样本页明确标注 R
+GSE102326	Corynebacterium glutamicum R	否	GEO 明确标注 R
+GSE102327	Corynebacterium glutamicum R	否	GEO 样本页明确标注 R
+GSE102328	Corynebacterium glutamicum R	否	GEO 明确标注 R
+GSE72452	Corynebacterium glutamicum R	否	GEO 明确标注 R
+GSE72453	Corynebacterium glutamicum R	否	GEO 样本页明确标注 R
+GSE156688	Corynebacterium glutamicum	不确定	GEO 系列页未明确 ATCC/R
+GSE184402	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE52040	Corynebacterium glutamicum R	否	SigH ChIP-chip，GEO 明确标注 R
+GSE52039	Corynebacterium glutamicum R	否	GEO 明确标注 R
+GSE58633	Corynebacterium glutamicum R	否	GntR1 SuperSeries，GEO 明确标注 R
+GSE44812	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE37327	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE120924	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注；原始 reads 在 PRJNA495033/SRA
+GSE72451	Corynebacterium glutamicum R	否	GEO 明确标注 R
+GSE86866	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE70017	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注
+GSE92348	Corynebacterium glutamicum ATCC 13032	是	铁限制 Set I，GEO 样本页明确标注
+GSE92359	Corynebacterium glutamicum ATCC 13032	是	铁限制 Set II，GEO 样本页明确标注
+GSE92397	Corynebacterium glutamicum ATCC 13032	是	铁限制 SuperSeries，GEO 样本页明确标注
+GSE64866	Corynebacterium glutamicum ATCC 13032	是	GEO 明确标注；Δpup 与 WT 铁限制响应
+GSE65294	Corynebacterium glutamicum	不确定	GEO 页面只写 generic organism
+GSE86537	Corynebacterium glutamicum	不确定	GEO 页面未明确 ATCC/R
+GSE55516	Corynebacterium glutamicum ATCC 13032	是	GEO 样本页明确标注
+GSE41232	Corynebacterium glutamicum	不确定	GEO 页面未明确 ATCC/R
+GSE169361	Corynebacterium glutamicum ATCC 13032	是	ATCC13032 compendium 的基因编号映射文件

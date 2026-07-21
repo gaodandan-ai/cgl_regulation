@@ -177,6 +177,9 @@ let IMODULON_BY_GENE_URL = 'data/imodulon/imodulon_by_gene.json';
 let IMODULON_METADATA_URL = 'data/imodulon/imodulon_metadata.json';
 let TCS_SYSTEMS_URL = 'data/tcs_systems.json';
 let SIGMA_ANNOTATIONS_URL = 'data/sigma_factor_annotations.json';
+let CHIPSEQ_URL = 'data/chipseq_regulations.csv';
+let REGPRECISE_URL = 'data/regprecise_regulations.csv';
+let REGPRECISE_PWM_URL = 'data/regprecise_pwm.json';
 
 // iModulon global state
 let iModulonWeights = {};       // iModulon_id -> { name, genes: {locus: weight}, ... }
@@ -191,6 +194,12 @@ let tcsByRR = {};               // rr_locus -> TCS object
 // Sigma factor global state
 let sigmaAnnotations = {};      // gene_name (lowercase) -> annotation object
 let sigmaByLocus = {};          // locus -> annotation object
+
+// ChIP-seq / RegPrecise evidence lookup
+// Key: "TF_locus::TG_locus" (both lowercase) -> array of evidence record objects
+let chipseqEvidenceMap = {};    // from chipseq_regulations.csv
+let regpreciseEvidenceMap = {}; // from regprecise_regulations.csv
+let regprecisePwmData = {};     // tf_name -> {consensus, ic_bits_total, n_sites, chip_supported_sites, pwm}
 
 
 
@@ -446,6 +455,9 @@ async function loadNetworkData() {
             imodulonWeights: fetch(IMODULON_WEIGHTS_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
             imodulonByGene: fetch(IMODULON_BY_GENE_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
             imodulonMetadata: fetch(IMODULON_METADATA_URL).then(r => r.ok ? r.json() : []).catch(() => []),
+            chipseq: fetch(CHIPSEQ_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
+            regprecise: fetch(REGPRECISE_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
+            regprecisePwm: fetch(REGPRECISE_PWM_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
             metabolic: (window.metabolicModelAdapter && typeof window.metabolicModelAdapter.loadMetabolicPathways === 'function')
                 ? window.metabolicModelAdapter.loadMetabolicPathways().catch(() => null)
                 : Promise.resolve(null)
@@ -554,6 +566,48 @@ async function loadNetworkData() {
             if (ann.gene_name) sigmaAnnotations[ann.gene_name.toLowerCase()] = ann;
         });
         console.log(`Loaded ${Object.keys(results.sigma).length} sigma factor annotations.`);
+
+        // 13. ChIP-seq evidence lookup
+        chipseqEvidenceMap = {};
+        if (results.chipseq) {
+            const chipRows = parseCSV(results.chipseq);
+            chipRows.forEach(row => {
+                const tf = (row.TF_locusTag || row.TF_name || '').toLowerCase().trim();
+                const tg = (row.TG_locusTag || '').toLowerCase().trim();
+                if (!tf || !tg) return;
+                const key = `${tf}::${tg}`;
+                if (!chipseqEvidenceMap[key]) chipseqEvidenceMap[key] = [];
+                chipseqEvidenceMap[key].push({
+                    evidence: row.Evidence || '',
+                    source: row.Source || '',
+                    strain_group: row.strain_group || '',
+                    pmid: row.PMID || ''
+                });
+            });
+            console.log(`Loaded ${chipRows.length} ChIP-seq evidence rows → ${Object.keys(chipseqEvidenceMap).length} unique edges.`);
+        }
+
+        // 14. RegPrecise predicted regulon lookup
+        regpreciseEvidenceMap = {};
+        if (results.regprecise) {
+            const rpRows = parseCSV(results.regprecise);
+            rpRows.forEach(row => {
+                const tf = (row.TF_locusTag || row.TF_name || '').toLowerCase().trim();
+                const tg = (row.TG_locusTag || '').toLowerCase().trim();
+                if (!tf || !tg) return;
+                const key = `${tf}::${tg}`;
+                regpreciseEvidenceMap[key] = true;
+            });
+            console.log(`Loaded ${rpRows.length} RegPrecise evidence rows → ${Object.keys(regpreciseEvidenceMap).length} unique edges.`);
+        }
+
+
+        // 15. RegPrecise PWM data
+        regprecisePwmData = results.regprecisePwm || {};
+        // Build a lowercase-keyed alias map too
+        const pwmKeys = Object.keys(regprecisePwmData);
+        pwmKeys.forEach(k => { regprecisePwmData[k.toLowerCase()] = regprecisePwmData[k]; });
+        console.log(`Loaded ${pwmKeys.length} RegPrecise PWMs.`);
 
         setLoadProgress(88, 'Building gene index...');
         buildGeneIndex();
@@ -870,6 +924,145 @@ function roleLabelFromType(role, regulationType) {
     return 'Unknown / pending';
 }
 
+/**
+ * Given TF locus and TG locus (both lowercase), builds HTML for evidence badges.
+ * Returns an HTML string with .ev-badge spans, or '' if no evidence found.
+ */
+function renderEvidenceBadges(tfLocus, tgLocus) {
+    const key = `${tfLocus.toLowerCase()}::${tgLocus.toLowerCase()}`;
+    const chipHits = chipseqEvidenceMap[key] || [];
+    const hasRegPrecise = !!regpreciseEvidenceMap[key];
+
+    if (!chipHits.length && !hasRegPrecise) return '';
+
+    const badges = [];
+    const seen = new Set();
+
+    chipHits.forEach(hit => {
+        const ev = (hit.evidence || '').toLowerCase();
+        const sg = hit.strain_group || '';
+        const src = hit.source || '';
+        const pmid = hit.pmid || '';
+        const tooltip = `${hit.evidence} | ${src}${pmid ? ' | PMID:' + pmid : ''}`;
+
+        // Deduplicate by evidence+strain_group
+        const dedup = `${ev}::${sg}`;
+        if (seen.has(dedup)) return;
+        seen.add(dedup);
+
+        let cls, label, icon;
+        if (ev.includes('chap')) {
+            // ChAP-seq
+            cls = sg === 'ATCC13032' ? 'ev-chap-atcc' : sg === 'Strain_R' ? 'ev-chip-strain-r' : 'ev-chip-atcc14067';
+            icon = '⛓';
+            label = sg === 'ATCC13032' ? 'ChAP ✓' : `ChAP (${sg.replace('Strain_', '')})`;
+        } else if (ev.includes('chip-chip')) {
+            cls = sg === 'ATCC13032' ? 'ev-chip-atcc' : sg === 'Strain_R' ? 'ev-chip-strain-r' : 'ev-chip-atcc14067';
+            icon = '🔬';
+            label = sg === 'ATCC13032' ? 'ChIP-chip ✓' : `ChIP-chip (${sg.replace('Strain_', '')})`;
+        } else {
+            // ChIP-seq
+            cls = sg === 'ATCC13032' ? 'ev-chip-atcc' : sg === 'Strain_R' ? 'ev-chip-strain-r' : 'ev-chip-atcc14067';
+            icon = '🔬';
+            label = sg === 'ATCC13032' ? 'ChIP-seq ✓' : `ChIP (${sg.replace('Strain_', '')})`;
+        }
+        badges.push(`<span class="ev-badge ${cls}" title="${escapeHtml(tooltip)}">${label}</span>`);
+    });
+
+    if (hasRegPrecise) {
+        badges.push(`<span class="ev-badge ev-regprecise" title="RegPrecise: computationally predicted TFBS / regulon">RegPrecise ⚙</span>`);
+    }
+
+    return badges.length ? `<div class="evidence-badges">${badges.join('')}</div>` : '';
+}
+
+/**
+ * Returns an array of strain_group values for a given TF::TG edge, from chipseqEvidenceMap.
+ */
+function getEdgeStrainGroups(tfLocus, tgLocus) {
+    const key = `${tfLocus.toLowerCase()}::${tgLocus.toLowerCase()}`;
+    const hits = chipseqEvidenceMap[key] || [];
+    return [...new Set(hits.map(h => h.strain_group).filter(Boolean))];
+}
+
+/**
+ * Renders the RegPrecise TFBS consensus motif card HTML for a given TF name.
+ * Base colours: A=emerald, T=rose, G=amber, C=sky, N=slate
+ */
+function renderMotifCard(tfName) {
+    const BASE_COLOR = {
+        A: { bg: '#d1fae5', txt: '#065f46' },
+        T: { bg: '#ffe4e6', txt: '#9f1239' },
+        G: { bg: '#fef3c7', txt: '#92400e' },
+        C: { bg: '#e0f2fe', txt: '#075985' },
+        N: { bg: '#f1f5f9', txt: '#94a3b8' },
+    };
+
+    const pwm = regprecisePwmData[tfName] || regprecisePwmData[tfName?.toLowerCase()];
+    if (!pwm) return null;
+
+    const consensus = pwm.consensus || '';
+    const ic = pwm.ic_bits_total || 0;
+    const nSites = pwm.n_sites || 0;
+    const chipN = pwm.chip_supported_sites || 0;
+    const expN = pwm.experimental_atcc_sites || 0;
+
+    // Build colored nucleotide boxes
+    const boxes = [...consensus].map(base => {
+        const col = BASE_COLOR[base] || BASE_COLOR['N'];
+        return `<span style="display:inline-block;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:11px;font-weight:700;background:${col.bg};color:${col.txt};margin:1px;">${base}</span>`;
+    }).join('');
+
+    // Evidence level badge
+    const evLevel = expN > 0 ? 'EXPERIMENTAL_ATCC13032' : chipN > 0 ? 'EXPERIMENTAL_OTHER' : 'PREDICTED';
+    const evBadge = evLevel === 'EXPERIMENTAL_ATCC13032'
+        ? `<span class="ev-badge ev-chip-atcc">ChIP ✓ ATCC13032</span>`
+        : evLevel === 'EXPERIMENTAL_OTHER'
+        ? `<span class="ev-badge ev-chip-strain-r">ChIP (other strain)</span>`
+        : `<span class="ev-badge ev-regprecise">Predicted ⚙</span>`;
+
+    return `
+        <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:10px 12px;">
+            <div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                ${evBadge}
+                <span style="font-size:10px;color:var(--text-muted);">IC=${ic.toFixed(1)} bits&nbsp;|&nbsp;${nSites} sites&nbsp;${chipN>0?'| '+chipN+' ChIP-supported':''}</span>
+            </div>
+            <div style="margin-bottom:6px;line-height:1.8;word-break:break-all;">${boxes}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">
+                <code style="letter-spacing:1px;">${consensus}</code>
+                &nbsp;·&nbsp;w=${consensus.length} bp
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Shows or hides the TFBS motif card in the detail panel for a given locus/gene name.
+ */
+function updateMotifCardForNode(locus, geneName) {
+    const motifRow     = document.getElementById('info-motif-row');
+    const motifContent = document.getElementById('info-motif-content');
+    if (!motifRow || !motifContent) return;
+
+    // Try TF name first (gene_name), then locus tag
+    const candidates = [geneName, locus, geneName?.toLowerCase(), locus?.toLowerCase()];
+    let html = null;
+    for (const c of candidates) {
+        if (!c) continue;
+        html = renderMotifCard(c);
+        if (html) break;
+    }
+
+    if (html) {
+        motifRow.style.display = '';
+        motifContent.innerHTML = html;
+    } else {
+        motifRow.style.display = 'none';
+        motifContent.innerHTML = '';
+    }
+}
+
+
 function confidenceSummary(edge) {
     if (!edge) return '';
     const factors = edge.confidenceFactors || {};
@@ -884,6 +1077,51 @@ function confidenceSummary(edge) {
         : '';
     return `Conf ${percent}% (${edge.confidenceLevel || 'low'}; ${modelText}${heuristicText}; motif ${Math.round((factors.motif || 0) * 100)} / ChIP ${Math.round((factors.chip || 0) * 100)} / expr ${Math.round((factors.expression || 0) * 100)} / db ${Math.round((factors.database || 0) * 100)})`;
 }
+
+/**
+ * Reads the Strain Filter dropdown and ChIP-evidence-only checkbox,
+ * then shows/hides rows in the regulatory-details relations table.
+ * Called after every render and on filter change.
+ */
+function applyRelationTableFilters() {
+    const strainFilter = document.getElementById('filter-strain');
+    const chipOnlyFilter = document.getElementById('filter-chipseq-only');
+    if (!relationsTableBody) return;
+
+    const selectedStrain = strainFilter ? strainFilter.value : 'all';
+    const chipOnly = chipOnlyFilter ? chipOnlyFilter.checked : false;
+
+    relationsTableBody.querySelectorAll('tr').forEach(tr => {
+        const rowStrains = (tr.dataset.strains || '').split(',').filter(Boolean);
+        const hasChipseq = tr.dataset.hasChipseq === 'true';
+
+        let visible = true;
+
+        // ChIP-only filter
+        if (chipOnly && !hasChipseq) {
+            visible = false;
+        }
+
+        // Strain filter (only applies to rows that have chipseq evidence)
+        if (visible && selectedStrain !== 'all' && hasChipseq) {
+            if (!rowStrains.includes(selectedStrain)) {
+                visible = false;
+            }
+        }
+
+        tr.classList.toggle('strain-filtered-hidden', !visible);
+    });
+}
+
+// Wire strain filter and ChIP-only filter controls
+// Called from initEventListeners() after DOM is ready
+function initRelationFilters() {
+    const strainSel = document.getElementById('filter-strain');
+    const chipOnlyCb = document.getElementById('filter-chipseq-only');
+    if (strainSel) strainSel.addEventListener('change', applyRelationTableFilters);
+    if (chipOnlyCb) chipOnlyCb.addEventListener('change', applyRelationTableFilters);
+}
+
 
 // ============================================================
 // RF Confidence Method Card — Methodology Transparency
@@ -4854,6 +5092,9 @@ function showNodeDetails(locusTag) {
     // ── Sigma factor annotation card ───────────────────────────────────────
     renderSigmaCard(meta.locusTag, meta.name);
 
+    // ── RegPrecise TFBS motif card ─────────────────────────────────────────
+    updateMotifCardForNode(meta.locusTag, meta.name);
+
     // ── STRING PPI interaction card ────────────────────────────────────────
     renderStringPpiCard(meta.locusTag);
 
@@ -5105,6 +5346,8 @@ function showNodeDetails(locusTag) {
             relations.push({
                 gene: getPrioritizedLabel(edge.target, targetMeta.name),
                 locusTag: edge.target,
+                tfLocus: edge.source,
+                tgLocus: edge.target,
                 dir: 'outgoing',
                 role: edge.legacyRole || edge.role,
                 regulationType: edge.regulationType,
@@ -5120,6 +5363,8 @@ function showNodeDetails(locusTag) {
             relations.push({
                 gene: getPrioritizedLabel(edge.source, sourceMeta.name),
                 locusTag: edge.source,
+                tfLocus: edge.source,
+                tgLocus: edge.target,
                 dir: 'incoming',
                 role: edge.legacyRole || edge.role,
                 regulationType: edge.regulationType,
@@ -5207,13 +5452,21 @@ function showNodeDetails(locusTag) {
 
             const tr = document.createElement('tr');
 
-            
-
             const roleClass = rel.regulationType === 'activation' ? 'activation' : rel.regulationType === 'repression' ? 'repression' : rel.regulationType === 'post_transcriptional_repression' ? 'srna' : 'dual';
 
             const roleText = roleLabelFromType(rel.role, rel.regulationType);
 
-            
+            // Build evidence badges
+            const evidenceBadgesHtml = (rel.tfLocus && rel.tgLocus)
+                ? renderEvidenceBadges(rel.tfLocus, rel.tgLocus)
+                : '';
+
+            // Strain filter: collect strain groups for this edge
+            const edgeStrains = (rel.tfLocus && rel.tgLocus)
+                ? getEdgeStrainGroups(rel.tfLocus, rel.tgLocus)
+                : [];
+            tr.dataset.strains = edgeStrains.join(',');
+            tr.dataset.hasChipseq = edgeStrains.length > 0 ? 'true' : 'false';
 
             tr.innerHTML = `
 
@@ -5222,6 +5475,8 @@ function showNodeDetails(locusTag) {
                 <td><span class="badge-dir ${rel.dir}">${rel.dir === 'incoming' ? 'Upstream' : 'Downstream'}</span></td>
 
                 <td><span class="badge-role ${roleClass}">${roleText}</span></td>
+
+                <td>${evidenceBadgesHtml || '<span style="color:var(--text-muted);font-size:10px;">—</span>'}</td>
 
                 <td class="text-energy conf-cell">
                     <details class="conf-details">
@@ -5235,8 +5490,6 @@ function showNodeDetails(locusTag) {
                 </td>
 
             `;
-
-            
 
             // Allow jumping to associated gene on click
 
@@ -5252,11 +5505,12 @@ function showNodeDetails(locusTag) {
 
             });
 
-            
-
             relationsTableBody.appendChild(tr);
 
         });
+
+        // Apply strain / chipseq-only filters immediately after render
+        applyRelationTableFilters();
 
     }
 
@@ -6737,6 +6991,9 @@ function initEventListeners() {
 
     clearAllInputs();
     initWorkflowEntrypoints();
+
+    // Wire ChIP-seq evidence filter and Strain Filter controls
+    initRelationFilters();
 
 
 
