@@ -31,8 +31,11 @@ jobs:
 
       - name: Install runtime dependencies (skip heavy offline tools)
         run: |
-          pip install --upgrade pip
-          pip install fastapi uvicorn pydantic cobra networkx pandas scikit-learn joblib pyvis matplotlib openpyxl httpx
+          pip install --upgrade pip wheel setuptools
+          pip install fastapi "uvicorn[standard]" pydantic httpx
+          pip install networkx pandas scikit-learn joblib pyvis matplotlib openpyxl
+          pip install depinfo sympy
+          pip install cobra || echo "cobra install failed, continuing without it"
           pip install pyinstaller pillow
 
       - name: Build executable
