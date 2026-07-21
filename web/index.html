@@ -115,7 +115,7 @@
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <i class="fa-solid fa-network-wired header-logo-icon"></i>
-                <h1>Cgl Regulation Explorer <span class="badge-v">v1.1.0</span></h1>
+                <h1>Cgl Regulation Explorer <span class="badge-v" id="app-version-badge">v1.2.1</span></h1>
             </div>
             <div class="header-right">
                 <a href="https://github.com/gaodandan-ai" target="_blank" rel="noopener noreferrer" class="header-contact-link">
@@ -138,14 +138,32 @@
             </div>
         </header>
         <script>
-        // Check for updates only when running as local desktop app
+        // ── Dynamic version badge ─────────────────────────────────────────────
+        (function () {
+            fetch('/data/version.json?' + Date.now())
+                .then(function(r){ return r.ok ? r.json() : null; })
+                .then(function(d){
+                    if (!d || !d.version) return;
+                    var badge = document.getElementById('app-version-badge');
+                    if (badge) badge.textContent = 'v' + d.version;
+                })
+                .catch(function(){});
+        })();
+
+        // ── Update notification (local app only) ──────────────────────────────
         (function () {
             if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
             setTimeout(function () {
                 fetch('/api/check-update')
                     .then(function (r) { return r.ok ? r.json() : null; })
                     .then(function (data) {
-                        if (!data || !data.has_update) return;
+                        if (!data) return;
+                        // Update the current version badge if server knows it
+                        if (data.current_version && data.current_version !== 'unknown') {
+                            var badge = document.getElementById('app-version-badge');
+                            if (badge) badge.textContent = 'v' + data.current_version;
+                        }
+                        if (!data.has_update) return;
                         var toast = document.getElementById('update-toast');
                         var label = document.getElementById('update-toast-text');
                         var closeBtn = document.getElementById('update-toast-close');
@@ -160,7 +178,7 @@
                         });
                     })
                     .catch(function () { /* silently ignore */ });
-            }, 3000); // delay 3s after page load
+            }, 3000);
         })();
         </script>
 
@@ -4563,7 +4581,7 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js?v=4.15"></script>
+    <script src="app.js?v=4.16"></script>
 </body>
 
 </html>
