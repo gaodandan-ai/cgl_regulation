@@ -1,12 +1,44 @@
 {
-  "name": "Corynebacterium glutamicum Regulatory Network Explorer",
+  "name": "Cgl Regulation Explorer",
   "short_name": "Cgl Regulation",
   "description": "Interactive regulatory network explorer for Corynebacterium glutamicum transcription factors, sRNA interactions, operons, motif evidence, and pathway context.",
-  "start_url": "/",
+  "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0f766e",
-  "lang": "zh-CN",
-  "categories": ["science", "education", "productivity"]
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
+  "lang": "en",
+  "categories": ["science", "education", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon-16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
