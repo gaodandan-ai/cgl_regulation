@@ -165,13 +165,7 @@
                 fetch('/api/check-update')
                     .then(function (r) { return r.ok ? r.json() : null; })
                     .then(function (data) {
-                        if (!data) return;
-                        // Update the current version badge if server knows it
-                        if (data.current_version && data.current_version !== 'unknown') {
-                            var badge = document.getElementById('app-version-badge');
-                            if (badge) badge.textContent = 'v' + data.current_version;
-                        }
-                        if (!data.has_update) return;
+                        if (!data || !data.has_update) return;
                         var toast = document.getElementById('update-toast');
                         var label = document.getElementById('update-toast-text');
                         var closeBtn = document.getElementById('update-toast-close');
