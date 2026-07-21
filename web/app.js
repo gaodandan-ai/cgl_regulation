@@ -4455,13 +4455,19 @@ function showNodeDetails(locusTag) {
         cgl = 'cgl' + cgl.substring(3);
     }
 
-    // Prioritize Cgl locus tag for header
-
-    detailGeneName.textContent = cgl ? cgl : (meta.name && meta.name !== '--' ? meta.name : meta.locusTag);
-
-    detailLocusTag.textContent = meta.locusTag;
-
-    
+    // Priority: gene name (e.g. sugR) > cgl locus tag > cg locus tag
+    const hasGeneName = meta.name && meta.name !== '--' && meta.name.trim() !== '' && meta.name.trim().toLowerCase() !== meta.locusTag.toLowerCase();
+    if (hasGeneName) {
+        detailGeneName.textContent = meta.name;
+        // Show cgl or cg as subtitle in locus tag row
+        detailLocusTag.textContent = cgl ? cgl : meta.locusTag;
+    } else if (cgl) {
+        detailGeneName.textContent = cgl;
+        detailLocusTag.textContent = meta.locusTag;
+    } else {
+        detailGeneName.textContent = meta.locusTag;
+        detailLocusTag.textContent = '';
+    }
 
     infoLocus.textContent = meta.locusTag;
 

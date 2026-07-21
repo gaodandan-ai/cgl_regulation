@@ -1209,17 +1209,20 @@ details.advanced-filters-details[open] > .advanced-filters-summary::before {
 }
 
 #detail-gene-name {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
     word-break: break-all;
+    letter-spacing: -0.3px;
+    line-height: 1.15;
 }
 
 .locus-tag {
-    font-size: 13px;
-    color: var(--text-muted);
+    font-size: 12.5px;
+    color: var(--text-secondary);
     font-family: monospace;
-    margin-top: 2px;
+    margin-top: 4px;
+    letter-spacing: 0.02em;
 }
 
 .detail-section {
