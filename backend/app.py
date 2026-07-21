@@ -991,12 +991,31 @@ def get_thermo_gene_context(gene: str = ""):
         "ko_thermo_confidence": round(ko_confidence, 3),
     }
 
+
+# Server-side cache for metabolic impact (FBA is slow, results are deterministic)
+_METABOLIC_IMPACT_CACHE: dict = {}
+
 @app.get("/api/metabolic_impact")
 def metabolic_impact(gene: str = "", query: str = ""):
-    target = gene or query
+    from fastapi.responses import JSONResponse
+    target = (gene or query).strip().lower()
+    if not target:
+        raise HTTPException(status_code=400, detail="Missing gene parameter")
+
+    # Return cached result if available (FBA is expensive ~200-1000ms per gene)
+    if target in _METABOLIC_IMPACT_CACHE:
+        return JSONResponse(
+            content=_METABOLIC_IMPACT_CACHE[target],
+            headers={"Cache-Control": "public, max-age=3600", "X-Cache": "HIT"}
+        )
+
     try:
         result = run_server.handle_metabolic_impact(target)
-        return result
+        _METABOLIC_IMPACT_CACHE[target] = result  # cache for session lifetime
+        return JSONResponse(
+            content=result,
+            headers={"Cache-Control": "public, max-age=3600", "X-Cache": "MISS"}
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -2228,19 +2247,65 @@ def check_update():
                 "latest_version": "unknown", "download_url": "", "changelog": ""}
 
 
-# Mount static files
+# ── Static file serving with Cache-Control headers ────────────────────────────
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     ROOT_DIR = sys._MEIPASS
 else:
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-web_dir = os.path.join(ROOT_DIR, "web")
+web_dir  = os.path.join(ROOT_DIR, "web")
 data_dir = os.path.join(ROOT_DIR, "data", "reference")
 
-if os.path.exists(data_dir):
-    app.mount("/data", StaticFiles(directory=data_dir), name="data")
+import mimetypes, hashlib
+from fastapi import Request as _Req
+from fastapi.responses import FileResponse as _FileResp, Response as _Resp
 
-if os.path.exists(web_dir):
-    app.mount("/", StaticFiles(directory=web_dir, html=True), name="static")
+def _etag(path: str) -> str:
+    stat = os.stat(path)
+    return f'"{stat.st_size}-{int(stat.st_mtime)}"'
 
+def _file_response(path: str, cache_seconds: int, request: _Req = None) -> _Resp:
+    if not os.path.isfile(path):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404)
+    etag = _etag(path)
+    if request:
+        client_etag = request.headers.get("If-None-Match", "")
+        if client_etag == etag:
+            return _Resp(status_code=304)
+    mt, _ = mimetypes.guess_type(path)
+    resp = _FileResp(path, media_type=mt or "application/octet-stream")
+    resp.headers["Cache-Control"] = f"public, max-age={cache_seconds}"
+    resp.headers["ETag"] = etag
+    resp.headers["Vary"] = "Accept-Encoding"
+    return resp
 
+# ── Data reference files: 1-hour cache ────────────────────────────────────────
+@app.get("/data/{path:path}")
+async def serve_data(path: str, request: _Req):
+    """Serve data reference files with 1-hour browser caching."""
+    full = os.path.realpath(os.path.join(data_dir, path))
+    # Security: must stay inside data_dir
+    if not full.startswith(os.path.realpath(data_dir)):
+        raise HTTPException(status_code=403)
+    return _file_response(full, cache_seconds=3600, request=request)   # 1 hour
+
+# ── Web static assets ─────────────────────────────────────────────────────────
+@app.get("/{path:path}")
+async def serve_static(path: str, request: _Req):
+    """Serve web static files. JS/CSS/images get 7-day cache, HTML gets no-cache."""
+    if not path or path == "/":
+        path = "index.html"
+    full = os.path.realpath(os.path.join(web_dir, path))
+    if not full.startswith(os.path.realpath(web_dir)):
+        raise HTTPException(status_code=403)
+    # If not found as file, fall back to index.html (SPA routing)
+    if not os.path.isfile(full):
+        full = os.path.join(web_dir, "index.html")
+    # HTML: no caching (always fresh)
+    if full.endswith(".html"):
+        return _file_response(full, cache_seconds=0, request=request)
+    # Versioned assets (app.js?v=4.16, style.css?v=...) — long cache
+    if full.endswith((".js", ".css", ".ico", ".png", ".svg", ".woff", ".woff2")):
+        return _file_response(full, cache_seconds=604800, request=request)  # 7 days
+    return _file_response(full, cache_seconds=3600, request=request)
