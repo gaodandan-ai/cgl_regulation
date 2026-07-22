@@ -3,6 +3,9 @@ import re
 import json
 import math
 import urllib.request
+from security import validate_outbound_url
+
+OUTBOUND_TIMEOUT_SECONDS = float(os.environ.get("CGL_OUTBOUND_TIMEOUT", "30"))
 import urllib.error
 import time
 
@@ -90,14 +93,14 @@ class RAGService:
                     headers={'Content-Type': 'application/json'},
                     method='POST'
                 )
-                with urllib.request.urlopen(req) as resp:
+                with urllib.request.urlopen(req, timeout=OUTBOUND_TIMEOUT_SECONDS) as resp:
                     res = json.loads(resp.read().decode('utf-8'))
                     return res.get("embedding", {}).get("values", [])
             except Exception as e:
                 print(f"Gemini embedding failed: {e}")
                 return None
         elif provider == 'ollama':
-            url = base_url if base_url else "http://localhost:11434"
+            url = validate_outbound_url(base_url if base_url else "http://localhost:11434", provider)
             if not url.endswith('/api/embeddings') and not url.endswith('/v1/embeddings'):
                 url = url.rstrip('/') + "/api/embeddings"
             
@@ -117,7 +120,7 @@ class RAGService:
                     headers={'Content-Type': 'application/json'},
                     method='POST'
                 )
-                with urllib.request.urlopen(req) as resp:
+                with urllib.request.urlopen(req, timeout=OUTBOUND_TIMEOUT_SECONDS) as resp:
                     res = json.loads(resp.read().decode('utf-8'))
                     if "embedding" in res:
                         return res["embedding"]
@@ -127,7 +130,7 @@ class RAGService:
                 print(f"Ollama embedding failed: {e}")
                 return None
         else:
-            url = base_url if base_url else "https://api.openai.com/v1"
+            url = validate_outbound_url(base_url if base_url else "https://api.openai.com/v1", provider)
             url = url.rstrip('/') + "/embeddings"
             headers = {
                 'Content-Type': 'application/json',
@@ -152,7 +155,7 @@ class RAGService:
                     headers=headers,
                     method='POST'
                 )
-                with urllib.request.urlopen(req) as resp:
+                with urllib.request.urlopen(req, timeout=OUTBOUND_TIMEOUT_SECONDS) as resp:
                     res = json.loads(resp.read().decode('utf-8'))
                     data = res.get("data", [])
                     if data:
@@ -271,6 +274,22 @@ class RAGService:
                     "text": chunk["text"],
                     "vector": chunk.get("vector")
                 })
+
+        # Pull SQLite FTS5 results as additional candidate literature chunks
+        try:
+            from db_manager import get_db_manager
+            db = get_db_manager()
+            fts_matches = db.search_literature_fts(query, limit=10)
+            for match in fts_matches:
+                text_content = match.get("abstract") or match.get("title") or ""
+                if text_content:
+                    all_chunks.append({
+                        "file": match.get("gene_locus", "SQLite_FTS"),
+                        "text": text_content,
+                        "vector": None
+                    })
+        except Exception as e:
+            print("SQLite FTS5 RAG query fallback warning:", e)
 
         if not all_chunks:
             return []

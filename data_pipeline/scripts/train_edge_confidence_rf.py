@@ -42,6 +42,9 @@ TEXT_COLUMNS = {
     "evidence_text",
     "source",
     "target_operon",
+    "chipseq_source",        # ChIP-seq audit text — excluded from RF
+    "chipseq_strain_note",   # ChIP-seq strain note — excluded from RF
+    "chipseq_strain_group",  # Strain group classification — excluded from RF
 }
 
 DEFAULT_LEAKAGE_COLUMNS = {

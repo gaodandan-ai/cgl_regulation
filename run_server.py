@@ -131,6 +131,21 @@ def _is_port_busy(port: int) -> bool:
         return False
 
 
+def _is_cgl_server(port: int) -> bool:
+    import json
+    import urllib.request
+    try:
+        request = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/health",
+            headers={"User-Agent": "CglServerLauncher/1"},
+        )
+        with urllib.request.urlopen(request, timeout=1) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        return response.status == 200 and payload.get("app") == "cgl-regulation"
+    except Exception:
+        return False
+
+
 if __name__ == "__main__":
     import uvicorn
     import argparse
@@ -143,6 +158,9 @@ if __name__ == "__main__":
 
     # ── 如果端口已被占用，直接复用，不重新绑定 ───────────────────────────────
     if _is_port_busy(PORT):
+        if not _is_cgl_server(PORT):
+            print(f"[ERROR] Port {PORT} is occupied by another application.")
+            sys.exit(2)
         url = f"http://localhost:{PORT}/index.html"
         print(f"[INFO] Port {PORT} already in use — reusing existing server.")
         if not args.no_browser:
@@ -162,7 +180,8 @@ if __name__ == "__main__":
     print(f"Local Server successfully starting on port {PORT} using FastAPI & Uvicorn...")
     try:
         from backend.app import app
-        uvicorn.run(app, host="0.0.0.0", port=PORT, reload=False)
+        host = os.environ.get("CGL_HOST", "127.0.0.1")
+        uvicorn.run(app, host=host, port=PORT, reload=False)
     except KeyboardInterrupt:
         print("\nStopping local server. Goodbye!")
         sys.exit(0)

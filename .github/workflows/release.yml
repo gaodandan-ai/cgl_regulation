@@ -35,6 +35,7 @@ jobs:
           pip install fastapi "uvicorn[standard]" pydantic httpx
           pip install networkx pandas scikit-learn joblib pyvis matplotlib openpyxl
           pip install depinfo sympy
+          pip install "pywebview>=4.4"
           pip install cobra || echo "cobra install failed, continuing without it"
           pip install pyinstaller pillow
 

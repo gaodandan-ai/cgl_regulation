@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header, Response
+from fastapi import FastAPI, HTTPException, Header, Response, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -7,6 +7,13 @@ import logging
 import sys
 import os
 import json
+
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+try:
+    from .security import PUBLIC_DEPLOYMENT
+except ImportError:
+    from security import PUBLIC_DEPLOYMENT
 
 from ai_handlers import (
     perform_summarize,
@@ -61,13 +68,22 @@ from schemas import (
     ECFBARequest,
     ECFBAResponse,
     MFAComparisonResponse,
-    PathwayReactionsRequest
+    PathwayReactionsRequest,
+    GraphCascadeResponse,
+    GraphMotifResponse
 )
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("app")
 
 # Mappings and cache directories will be initialized in lifespan startup event below.
+
+try:
+    from db_manager import get_db_manager
+    _DB_MANAGER_AVAILABLE = True
+except ImportError:
+    get_db_manager = None
+    _DB_MANAGER_AVAILABLE = False
 
 ESSENTIAL_GENES = {}
 PRODORIC_PWMS = {}
@@ -82,15 +98,24 @@ def check_essentiality(gene_id: str):
     """
     Check if a gene locus tag (e.g. cg0001) or its aliases are classified as essential.
     """
-    if not gene_id or not ESSENTIAL_GENES:
+    if not gene_id:
         return None
+    if _DB_MANAGER_AVAILABLE:
+        db = get_db_manager()
+        res = db.get_essential_gene(gene_id)
+        if res:
+            return res["details"]
+        aliases = run_server.expand_gene_aliases(gene_id)
+        for alias in aliases:
+            res = db.get_essential_gene(alias)
+            if res:
+                return res["details"]
     
-    # Try direct lookup
+    # Fallback to memory dict
     g_lower = gene_id.strip().lower()
     if g_lower in ESSENTIAL_GENES:
         return ESSENTIAL_GENES[g_lower]
         
-    # Try resolving aliases
     aliases = run_server.expand_gene_aliases(g_lower)
     for alias in aliases:
         a_lower = alias.lower()
@@ -103,14 +128,24 @@ def check_abasy_role(gene_id: str):
     """
     Check if a gene locus tag has an Abasy role classification.
     """
-    if not gene_id or not ABASY_ROLES:
+    if not gene_id:
         return None
-        
+    if _DB_MANAGER_AVAILABLE:
+        db = get_db_manager()
+        role = db.get_abasy_role(gene_id)
+        if role:
+            return role
+        aliases = run_server.expand_gene_aliases(gene_id)
+        for alias in aliases:
+            role = db.get_abasy_role(alias)
+            if role:
+                return role
+
+    # Fallback to memory dict
     g_lower = gene_id.strip().lower()
     if g_lower in ABASY_ROLES:
         return ABASY_ROLES[g_lower]
         
-    # Resolve aliases
     aliases = run_server.expand_gene_aliases(g_lower)
     for alias in aliases:
         a_lower = alias.lower()
@@ -123,10 +158,13 @@ def check_abasy_role(gene_id: str):
 async def lifespan(app: FastAPI):
     global ESSENTIAL_GENES, PRODORIC_PWMS, BRENDA_KCAT_MAPPINGS, STRING_INTERACTIONS, ABASY_ROLES, RHEA_MAPPINGS, CHEBI_MAPPINGS, COG_ANNOTATIONS
     logger.info("Initializing FBA simulator service...")
-    try:
-        load_model_if_needed()
-    except Exception as e:
-        logger.warning(f"Initial model load failed (will retry on demand): {str(e)}")
+    if PUBLIC_DEPLOYMENT:
+        logger.info("Deferring metabolic model load in the public serverless deployment.")
+    else:
+        try:
+            load_model_if_needed()
+        except Exception as e:
+            logger.warning(f"Initial model load failed (will retry on demand): {str(e)}")
     
     # Initialize run_server mappings and caches
     try:
@@ -241,20 +279,93 @@ async def lifespan(app: FastAPI):
         logger.error(f"Error loading cog_annotations.json: {e}")
 
     yield
+    if _DB_MANAGER_AVAILABLE:
+        get_db_manager().close()
 
-app = FastAPI(title="Cgl Regulation FBA Simulator API", version="0.5.0", lifespan=lifespan)
+def _application_version() -> str:
+    try:
+        with open(os.path.join(PARENT_DIR, "web", "version.json"), encoding="utf-8") as stream:
+            return str(json.load(stream).get("version", "0.0.0"))
+    except (OSError, ValueError, TypeError):
+        return "0.0.0"
 
-# Enable CORS for frontend integration across ports
+
+APP_VERSION = _application_version()
+app = FastAPI(
+    title="Cgl Regulation FBA Simulator API",
+    version=APP_VERSION,
+    lifespan=lifespan,
+    docs_url=None if PUBLIC_DEPLOYMENT else "/docs",
+    redoc_url=None if PUBLIC_DEPLOYMENT else "/redoc",
+    openapi_url=None if PUBLIC_DEPLOYMENT else "/openapi.json",
+)
+
+_configured_origins = [
+    origin.strip()
+    for origin in os.environ.get(
+        "CGL_ALLOWED_ORIGINS",
+        "https://cgl-regulation.vercel.app,http://127.0.0.1:8000,http://localhost:8000",
+    ).split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_configured_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=[
+        "Accept", "Content-Type", "If-None-Match",
+        "X-AI-API-Key", "X-Gemini-API-Key", "X-AI-Provider",
+        "X-AI-Model", "X-AI-Base-URL",
+    ],
 )
 
 # Enable Gzip compression to speed up transfer of large datasets (like 6MB metabolic mapping JSON)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+        "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: blob: https:; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; "
+        "worker-src 'self' blob:; form-action 'self'"
+    )
+    return response
+
+
+@app.exception_handler(StarletteHTTPException)
+async def sanitized_http_exception(request: Request, exc: StarletteHTTPException):
+    if exc.status_code >= 500:
+        logger.error("Server error on %s: %s", request.url.path, exc.detail)
+        return JSONResponse(status_code=exc.status_code, content={"detail": "Internal server error"})
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=exc.headers)
+
+
+@app.exception_handler(Exception)
+async def sanitized_unhandled_exception(request: Request, exc: Exception):
+    logger.exception("Unhandled error on %s", request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
+@app.get("/api/health")
+def health():
+    db_path = getattr(get_db_manager(), "_db_path", "") if _DB_MANAGER_AVAILABLE else ""
+    return {
+        "status": "ok",
+        "app": "cgl-regulation",
+        "version": APP_VERSION,
+        "database": "available" if db_path and os.path.isfile(db_path) else "unavailable",
+        "deployment": "public" if PUBLIC_DEPLOYMENT else "local",
+    }
 
 @app.get("/api/model/status", response_model=ModelStatusResponse)
 def model_status():
@@ -2280,13 +2391,233 @@ def _file_response(path: str, cache_seconds: int, request: _Req = None) -> _Resp
     resp.headers["Vary"] = "Accept-Encoding"
     return resp
 
+from graph_engine import get_graph_engine
+
+@app.get("/api/graph/cascade", response_model=GraphCascadeResponse)
+def get_graph_cascade(source: str = "", target: str = "", max_depth: int = 3):
+    ge = get_graph_engine()
+    paths = ge.find_cascade_paths(source, target, max_depth=max_depth)
+    return GraphCascadeResponse(source=source, target=target, paths=paths)
+
+@app.get("/api/graph/motifs", response_model=GraphMotifResponse)
+def get_graph_motifs(type: str = "ffl", limit: int = 50):
+    ge = get_graph_engine()
+    items = ge.detect_motifs(motif_type=type, limit=limit)
+    return GraphMotifResponse(motif_type=type, count=len(items), items=items)
+
+@app.get("/api/gene/coordinates/{gene_id}")
+def get_gene_coordinates_api(gene_id: str):
+    db = get_db_manager()
+    res = db.get_gene_coordinates(gene_id)
+    if not res:
+        raise HTTPException(status_code=404, detail=f"Coordinates not found for {gene_id}")
+    return res
+
+@app.get("/api/tf/effectors/{tf_id}")
+def get_tf_effectors_api(tf_id: str):
+    db = get_db_manager()
+    res = db.get_tf_effector_info(tf_id)
+    if not res:
+        raise HTTPException(status_code=404, detail=f"TF Effector info not found for {tf_id}")
+    return res
+
+@app.get("/api/network/extended")
+def get_extended_network_api(locus: str = "", mode: str = "all", edge_type: str = None):
+    db = get_db_manager()
+    edges = db.get_extended_edges(locus, mode=mode, edge_type=edge_type)
+    return {"locus": locus, "mode": mode, "edge_type": edge_type, "count": len(edges), "edges": edges}
+
+@app.get("/api/gene/profile/{gene_id}")
+def get_full_gene_profile_api(gene_id: str):
+    db = get_db_manager()
+    res = db.get_full_gene_profile(gene_id)
+    if not res:
+        raise HTTPException(status_code=404, detail=f"Profile not found for {gene_id}")
+    return res
+
+@app.get("/api/gene/neighborhood/{gene_id}")
+def get_genomic_neighborhood_api(gene_id: str, window_bp: int = 20000):
+    db = get_db_manager()
+    genes = db.get_genomic_neighborhood(gene_id, window_bp=window_bp)
+    return {"center_gene": gene_id, "window_bp": window_bp, "count": len(genes), "genes": genes}
+
+@app.get("/api/network/allosteric-feedback")
+def get_allosteric_feedback_api(query: str = None):
+    db = get_db_manager()
+    loops = db.get_allosteric_feedback_loops(tf_or_metabolite=query)
+    return {"query": query, "count": len(loops), "loops": loops}
+
+@app.get("/api/network/srna-competition")
+def get_srna_competition_api(srna_id: str = None):
+    db = get_db_manager()
+    targets = db.get_srna_target_competition(srna_id=srna_id)
+    return {"srna_id": srna_id, "count": len(targets), "targets": targets}
+
+@app.get("/api/imodulon/gene/{gene_id}")
+def get_imodulon_gene_api(gene_id: str):
+    db = get_db_manager()
+    imodulons = db.get_imodulons_for_gene(gene_id)
+    return {"gene_id": gene_id, "count": len(imodulons), "imodulons": imodulons}
+
+@app.get("/api/network/rf-scores")
+def get_rf_scores_api(locus: str = "", min_confidence: float = 0.3):
+    db = get_db_manager()
+    scores = db.get_rf_edge_scores(locus, min_confidence=min_confidence)
+    return {"locus": locus, "min_confidence": min_confidence, "count": len(scores), "scores": scores}
+
+@app.get("/api/tf/hierarchy-rankings")
+def get_tf_hierarchy_rankings_api():
+    db = get_db_manager()
+    rankings = db.get_tf_hierarchy_rankings()
+    return {"count": len(rankings), "rankings": rankings}
+
+@app.get("/api/network/rewired")
+def get_network_rewired_api(locus: str = None):
+    db = get_db_manager()
+    edges = db.get_rewired_edges(locus=locus)
+    return {"locus": locus, "count": len(edges), "edges": edges}
+
+@app.get("/api/tfbs/collectf")
+def get_collectf_tfbs_api(locus: str = None):
+    db = get_db_manager()
+    sites = db.get_collectf_tfbs(locus=locus)
+    return {"locus": locus, "count": len(sites), "sites": sites}
+
+@app.get("/api/pathway/gene/{gene_id}")
+def get_pathways_for_gene_api(gene_id: str):
+    db = get_db_manager()
+    pathways = db.get_pathways_for_gene(gene_id)
+    return {"gene_id": gene_id, "count": len(pathways), "pathways": pathways}
+
+@app.get("/api/pathway/info/{pathway_id}")
+def get_genes_in_pathway_api(pathway_id: str):
+    db = get_db_manager()
+    genes = db.get_genes_in_pathway(pathway_id)
+    return {"pathway_id": pathway_id, "count": len(genes), "genes": genes}
+
+@app.get("/api/ncrna/list")
+def get_ncrna_list_api(rna_type: str = None):
+    db = get_db_manager()
+    ncrnas = db.get_ncrnas(rna_type=rna_type)
+    return {"rna_type": rna_type, "count": len(ncrnas), "ncrnas": ncrnas}
+
+@app.get("/api/ncrna/targets")
+def get_srna_targets_api(locus: str = None):
+    db = get_db_manager()
+    targets = db.get_srna_targets(locus=locus)
+    return {"locus": locus, "count": len(targets), "targets": targets}
+
+@app.get("/api/imodulon/condition")
+def get_condition_specific_regulons_api(condition: str = None):
+    db = get_db_manager()
+    activities = db.get_condition_specific_regulons(condition_name=condition)
+    return {"condition": condition, "count": len(activities), "activities": activities}
+
+@app.get("/api/imodulon/overlap")
+def get_imodulon_regulon_overlap_api(imodulon_id: str = None):
+    db = get_db_manager()
+    overlaps = db.get_imodulon_regulon_overlap(imodulon_id=imodulon_id)
+    return {"imodulon_id": imodulon_id, "count": len(overlaps), "overlaps": overlaps}
+
+@app.get("/api/condition-regulation/runs")
+def get_condition_regulation_runs_api():
+    db = get_db_manager()
+    runs = db.get_condition_regulation_runs()
+    return {"count": len(runs), "runs": runs}
+
+@app.get("/api/condition-regulation/conditions")
+def get_condition_regulation_conditions_api(run_id: str = "iron_regulon_v1"):
+    db = get_db_manager()
+    conditions = db.get_condition_regulation_conditions(run_id=run_id)
+    return {"run_id": run_id, "count": len(conditions), "conditions": conditions}
+
+@app.get("/api/condition-regulation/summary")
+def get_condition_regulation_summary_api(
+    comparison_id: str = None, tf: str = None,
+    run_id: str = "iron_regulon_v1",
+):
+    db = get_db_manager()
+    summaries = db.get_condition_regulation_summary(
+        comparison_id=comparison_id, tf_name=tf, run_id=run_id,
+    )
+    return {
+        "run_id": run_id,
+        "comparison_id": comparison_id,
+        "tf": tf,
+        "count": len(summaries),
+        "summaries": summaries,
+    }
+
+@app.get("/api/condition-regulation/edges")
+def get_condition_regulation_edges_api(
+    comparison_id: str,
+    tf: str = None,
+    state: str = None,
+    min_score: float = 0.0,
+    limit: int = 100,
+    offset: int = 0,
+    run_id: str = "iron_regulon_v1",
+):
+    if not 0.0 <= min_score <= 1.0:
+        raise HTTPException(status_code=400, detail="min_score must be between 0 and 1")
+    db = get_db_manager()
+    result = db.get_condition_regulation_edges(
+        comparison_id=comparison_id,
+        tf_name=tf,
+        support_state=state,
+        min_score=min_score,
+        limit=limit,
+        offset=offset,
+        run_id=run_id,
+    )
+    return {
+        "run_id": run_id,
+        "comparison_id": comparison_id,
+        "tf": tf,
+        "state": state,
+        "min_score": min_score,
+        "total": result["total"],
+        "count": len(result["edges"]),
+        "edges": result["edges"],
+    }
+
+@app.get("/api/intervention-targets")
+def get_intervention_targets_api(
+    q: str = None,
+    strategy: str = None,
+    min_modules: int = 1,
+    max_risk: float = 1.0,
+    grade: str = None,
+    include_known_essential: bool = True,
+    limit: int = 100,
+    offset: int = 0,
+):
+    if not 0.0 <= max_risk <= 1.0:
+        raise HTTPException(status_code=400, detail="max_risk must be between 0 and 1")
+    db = get_db_manager()
+    result = db.get_intervention_targets(
+        query=q, strategy=strategy, min_modules=min_modules, max_risk=max_risk,
+        evidence_grade=grade, include_known_essential=include_known_essential,
+        limit=limit, offset=offset,
+    )
+    return {"total": result["total"], "count": len(result["targets"]), "targets": result["targets"]}
+
+@app.get("/api/intervention-targets/{locus}")
+def get_intervention_target_detail_api(locus: str):
+    db = get_db_manager()
+    target = db.get_intervention_target_detail(locus)
+    if not target:
+        raise HTTPException(status_code=404, detail="Target priority not found")
+    return target
+
 # ── Data reference files: 1-hour cache ────────────────────────────────────────
 @app.get("/data/{path:path}")
 async def serve_data(path: str, request: _Req):
     """Serve data reference files with 1-hour browser caching."""
     full = os.path.realpath(os.path.join(data_dir, path))
     # Security: must stay inside data_dir
-    if not full.startswith(os.path.realpath(data_dir)):
+    base = os.path.realpath(data_dir)
+    if os.path.commonpath((base, full)) != base:
         raise HTTPException(status_code=403)
     return _file_response(full, cache_seconds=3600, request=request)   # 1 hour
 
@@ -2296,14 +2627,20 @@ async def serve_static(path: str, request: _Req):
     """Serve web static files. JS/CSS/images get 7-day cache, HTML gets no-cache."""
     if not path or path == "/":
         path = "index.html"
+    if path == "api" or path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="API endpoint not found")
     full = os.path.realpath(os.path.join(web_dir, path))
-    if not full.startswith(os.path.realpath(web_dir)):
+    base = os.path.realpath(web_dir)
+    if os.path.commonpath((base, full)) != base:
         raise HTTPException(status_code=403)
     # If not found as file, fall back to index.html (SPA routing)
     if not os.path.isfile(full):
         full = os.path.join(web_dir, "index.html")
     # HTML: no caching (always fresh)
     if full.endswith(".html"):
+        return _file_response(full, cache_seconds=0, request=request)
+    # Version manifests: always serve fresh, never cache
+    if os.path.basename(full) in ("version.json", "version_local.json"):
         return _file_response(full, cache_seconds=0, request=request)
     # Versioned assets (app.js?v=4.16, style.css?v=...) — long cache
     if full.endswith((".js", ".css", ".ico", ".png", ".svg", ".woff", ".woff2")):

@@ -1,6 +1,6 @@
 [Setup]
 AppName=Cgl Regulation Explorer
-AppVersion=0.6.0
+AppVersion=1.2.3
 DefaultDirName={autopf}\CglRegulation
 DefaultGroupName=CglRegulation
 OutputDir=dist

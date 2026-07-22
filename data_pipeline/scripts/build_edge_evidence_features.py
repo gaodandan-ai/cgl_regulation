@@ -32,6 +32,8 @@ IMODULON_BY_GENE_PATH = DATA_DIR / "reference" / "imodulon" / "imodulon_by_gene.
 TCS_SYSTEMS_PATH      = DATA_DIR / "reference" / "tcs_systems.json"
 SIGMA_ANNOT_PATH      = DATA_DIR / "reference" / "sigma_factor_annotations.json"
 DEFAULT_COMPENDIUM_CORRELATIONS = DATA_DIR / "reference" / "expression_compendium" / "tf_target_compendium_correlations.csv"
+CHIPSEQ_REGULATIONS_PATH = DATA_DIR / "reference" / "chipseq_regulations.csv"
+REGPRECISE_REGULATIONS_PATH = DATA_DIR / "reference" / "regprecise_regulations.csv"
 
 
 FEATURE_COLUMNS = [
@@ -84,12 +86,19 @@ FEATURE_COLUMNS = [
     "expression_sample_count",
     "expression_source",
     "feature_missing_count",
-    # --- iModulon / TCS / Sigma features (new) ---
+    # --- iModulon / TCS / Sigma features ---
     "target_imodulon_count",
     "tf_imodulon_count",
     "imodulon_coactivation_score",
     "tf_is_tcs_regulator",
     "tf_sigma_class",
+    # --- ChIP-seq evidence features ---
+    "has_chipseq_evidence",   # 0/1 numeric: enters RF model
+    "chipseq_source",         # text: audit only, excluded from RF via TEXT_COLUMNS
+    "chipseq_strain_note",    # text: audit only, excluded from RF via TEXT_COLUMNS
+    "chipseq_strain_group",   # text: strain group (ATCC13032, Strain_R, etc.)
+    # --- RegPrecise evidence features ---
+    "has_regprecise_evidence", # 0/1 numeric: enters RF model
 ]
 
 
@@ -512,7 +521,13 @@ def write_csv(path: Path, rows: Iterable[Dict[str, Any]]) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build TF-target edge evidence features for confidence modeling.")
-    parser.add_argument("--regulations", type=Path, default=DATA_DIR / "regulations.csv")
+    parser.add_argument("--regulations", type=Path, default=DATA_DIR / "reference" / "regulations.csv")
+    parser.add_argument("--chipseq-regulations", type=Path, default=CHIPSEQ_REGULATIONS_PATH,
+                        help="Optional ChIP-seq/ChAP-seq regulation CSV to overlay on CoryneRegNet data.")
+    parser.add_argument("--strain-filter", type=str, default="all", choices=["all", "ATCC13032", "Strain_R", "Strain_ATCC14067"],
+                        help="Filter ChIP-seq evidence by strain group.")
+    parser.add_argument("--regprecise-regulations", type=Path, default=REGPRECISE_REGULATIONS_PATH,
+                        help="Optional RegPrecise predicted regulation CSV.")
     parser.add_argument("--gene-mapping", type=Path, default=DATA_DIR / "gene_mapping.csv")
     parser.add_argument("--operons", type=Path, default=DATA_DIR / "operons.csv")
     parser.add_argument("--srna-regulation", type=Path, default=DATA_DIR / "rna_regulation.csv")
@@ -577,6 +592,29 @@ def main() -> int:
     metabolic_features = load_metabolic_features(cg_to_cgl, cgl_to_cg, name_to_cg)
     expression_correlations = read_expression_correlations(args.expression_correlations, cg_to_cgl, cgl_to_cg, name_to_cg)
 
+    # Load ChIP-seq / ChAP-seq overlay data
+    chipseq_pairs: Dict[Tuple[str, str], Dict[str, str]] = {}
+    if args.chipseq_regulations and args.chipseq_regulations.exists():
+        cs_rows = read_regulations(args.chipseq_regulations, cg_to_cgl, cgl_to_cg, name_to_cg)
+        for row in cs_rows:
+            sg = row.get("strain_group", "ATCC13032")
+            if args.strain_filter != "all" and sg != args.strain_filter:
+                continue
+            key = (row["tf_locus"], row["target_locus"])
+            chipseq_pairs[key] = row
+        print(f"ChIP-seq/ChAP-seq pairs loaded: {len(chipseq_pairs)} (strain filter: {args.strain_filter}) from {args.chipseq_regulations}")
+    else:
+        print("Note: no chipseq_regulations file found; has_chipseq_evidence will be all-zero.")
+
+    # Load RegPrecise predicted regulons
+    regprecise_pairs: set = set()
+    if args.regprecise_regulations and args.regprecise_regulations.exists():
+        rp_rows = read_regulations(args.regprecise_regulations, cg_to_cgl, cgl_to_cg, name_to_cg)
+        for row in rp_rows:
+            key = (row["tf_locus"], row["target_locus"])
+            regprecise_pairs.add(key)
+        print(f"RegPrecise regulon pairs loaded: {len(regprecise_pairs)} from {args.regprecise_regulations}")
+
     # Load new integration data
     integ = load_integration_data()
     imod_by_gene  = integ["imodulon_by_gene"]
@@ -590,6 +628,14 @@ def main() -> int:
     positives: Dict[Tuple[str, str], Dict[str, str]] = {}
     for row in regulation_rows:
         positives.setdefault((row["tf_locus"], row["target_locus"]), row)
+    # Merge ChIP-seq pairs that are absent from CoryneRegNet into positives
+    chipseq_new = 0
+    for key, row in chipseq_pairs.items():
+        if key not in positives:
+            positives[key] = row
+            chipseq_new += 1
+    if chipseq_new:
+        print(f"Added {chipseq_new} new TF-target pairs from ChIP-seq data (not in CoryneRegNet).")
 
     tfs = [tf for tf, _target in positives]
     targets = sorted(set(gene_name) | {target for _tf, target in positives} | set(metabolic_features))
@@ -626,6 +672,13 @@ def main() -> int:
             operon_size, srna_features, metabolic_features, expression_correlations
         )
         enrich_with_integration(frow, tf, target)
+        # Inject ChIP-seq and RegPrecise features
+        cs = chipseq_pairs.get((tf, target), {})
+        frow["has_chipseq_evidence"] = 1 if cs else 0
+        frow["chipseq_source"] = cs.get("Source", "")
+        frow["chipseq_strain_note"] = cs.get("strain_note", "")
+        frow["chipseq_strain_group"] = cs.get("strain_group", "")
+        frow["has_regprecise_evidence"] = 1 if (tf, target) in regprecise_pairs else 0
         feature_rows.append(frow)
     for tf, target in negative_pairs:
         frow = build_feature_row(
@@ -633,6 +686,12 @@ def main() -> int:
             operon_size, srna_features, metabolic_features, expression_correlations
         )
         enrich_with_integration(frow, tf, target)
+        # Negatives
+        frow["has_chipseq_evidence"] = 0
+        frow["chipseq_source"] = ""
+        frow["chipseq_strain_note"] = ""
+        frow["chipseq_strain_group"] = ""
+        frow["has_regprecise_evidence"] = 0
         feature_rows.append(frow)
 
     count = write_csv(args.output, feature_rows)

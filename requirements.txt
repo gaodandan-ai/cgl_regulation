@@ -17,6 +17,9 @@ fastapi>=0.95.0
 uvicorn>=0.20.0
 pydantic>=2.0
 
+# Native desktop window (replaces Chrome/Edge --app mode)
+pywebview>=4.4
+
 # Thermodynamics data builder (run offline to regenerate thermo_dgr_data.json)
 equilibrator-api>=0.7.0
 

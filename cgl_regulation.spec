@@ -1,29 +1,60 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
 
-# Only include data dirs that actually exist on the build machine
+# ─── 基础数据文件 ─────────────────────────────────────────────────────────────
 datas = [('web', 'web')]
 
 if os.path.isdir('data/reference'):
-    datas.append(('data/reference', 'data/reference'))
+    datas += Tree(
+        'data/reference',
+        prefix='data/reference',
+        excludes=[
+            '*.prebuild_*.bak',
+            '*.db-wal',
+            '*.db-shm',
+            '*.db-journal',
+        ],
+    )
 
 if os.path.isdir('backend/models'):
     datas.append(('backend/models', 'backend/models'))
 
+# ─── 收集 pywebview 包数据（DLL、JS 资源等）─────────────────────────────────
+from PyInstaller.utils.hooks import collect_all, collect_data_files
+
+wv_datas, wv_bins, wv_hidden = collect_all('webview')
+datas   += wv_datas
+binaries = wv_bins   # webview 在 Windows 上通常包含 WebView2Loader.dll
+
+# ─── Hidden Imports ────────────────────────────────────────────────────────────
 HIDDEN = [
+    # ── uvicorn ──
     'uvicorn.protocols.http.h11_impl',
     'uvicorn.loop.asyncio',
     'uvicorn.lifespan.on',
     'uvicorn.lifespan.off',
     'uvicorn.loop.auto',
+    # ── scikit-learn ──
     'sklearn.ensemble._forest',
     'sklearn.utils._typedefs',
+    # ── fastapi / pydantic ──
     'fastapi',
     'pydantic',
+    # ── biology ──
     'cobra',
     'depinfo',
+    # ── GUI ──
     'tkinter',
     'tkinter.ttk',
+    # ── pywebview (Windows: pythonnet + WinForms WebView2 backend) ──
+    'webview',
+    'webview.platforms.winforms',   # Windows WebView2 via .NET WinForms
+    'webview.platforms.edgechromium',
+    'clr',                          # pythonnet CLR bridge
+    'clr._extra',
+    'System',
+    'System.Windows.Forms',
+    # ── backend modules ──
     'rag_service',
     'backend.app',
     'backend.gene_utils',
@@ -38,6 +69,7 @@ HIDDEN = [
     'backend.objectives',
     'backend.thermodynamics',
     'backend.enzyme_thermal_params',
+    # ── backend (flat-import aliases) ──
     'app',
     'gene_utils',
     'kegg_client',
@@ -53,10 +85,13 @@ HIDDEN = [
     'enzyme_thermal_params',
 ]
 
+HIDDEN += wv_hidden
+
+# ─── Analysis ─────────────────────────────────────────────────────────────────
 a = Analysis(
-    ['launcher.pyw'],          # 入口改为无窗口启动器
+    ['launcher.pyw'],
     pathex=['backend'],
-    binaries=[],
+    binaries=binaries,
     datas=datas,
     hiddenimports=HIDDEN,
     hookspath=[],

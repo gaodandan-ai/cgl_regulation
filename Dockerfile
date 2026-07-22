@@ -32,6 +32,8 @@ EXPOSE 8000
 # HEADLESS: disable browser auto-open in headless cloud deployments
 ENV PORT=8000
 ENV HEADLESS=true
+ENV CGL_HOST=0.0.0.0
+ENV CGL_PUBLIC_DEPLOYMENT=true
 
 # Health check (optional but good practice for orchestration)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \

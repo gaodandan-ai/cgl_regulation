@@ -2,15 +2,17 @@
 """
 launcher.pyw
 ============
-无控制台窗口的启动器 (v2 — 单实例 + 端口复用):
+无控制台窗口的启动器 (v4 — pywebview 原生窗口):
   1. Windows 命名互斥锁确保只运行一个实例
   2. 检测端口是否已被占用 → 直接复用，不重新绑定
   3. 后台启动 FastAPI / Uvicorn 服务器（仅当端口空闲时）
-  4. 显示美化的 tkinter Splash 加载界面
-  5. 服务器就绪后用 Chrome/Edge --app 模式打开（无地址栏）
+  4. 显示美化的 tkinter Splash 加载界面（服务器就绪前）
+  5. 服务器就绪后切换到 pywebview 原生窗口（不依赖任何外部浏览器）
+  6. PID 文件 + atexit + 信号处理，确保进程彻底退出
+  7. pywebview 窗口关闭后自动关闭服务器
 """
 
-import os, sys, time, socket, threading, subprocess, urllib.request
+import os, sys, time, socket, threading, urllib.request, atexit, signal, json, logging, traceback
 
 # ─── 路径 ────────────────────────────────────────────────────────────────────
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
@@ -19,18 +21,62 @@ else:
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 PORT = int(os.environ.get("PORT", 8000))
+_app_data_root = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
+LOG_DIR = os.path.join(_app_data_root, "Cgl Regulation Explorer", "logs")
+LOG_FILE = os.path.join(LOG_DIR, "launcher.log")
+
+# ─── PID 文件路径（用于优雅退出 & 安装程序检测）────────────────────────────────
+PID_FILE = os.path.join(os.path.expanduser("~"), ".cgl_regulation_server.pid")
+
+
+# ─── 0. 优雅退出基础设施 ─────────────────────────────────────────────────────
+
+def _write_pid_file():
+    """将当前 PID 写入文件，供其他进程或安装程序识别"""
+    try:
+        with open(PID_FILE, "w") as f:
+            f.write(str(os.getpid()))
+    except Exception:
+        pass
+
+
+def _remove_pid_file():
+    """退出时清理 PID 文件"""
+    try:
+        if os.path.exists(PID_FILE):
+            os.remove(PID_FILE)
+    except Exception:
+        pass
+
+
+def _graceful_shutdown(signum=None, frame=None):
+    """统一退出入口：清理资源后强制退出，防止 daemon 线程阻塞"""
+    _remove_pid_file()
+    os._exit(0)
+
+
+def _setup_exit_hooks():
+    """注册 atexit 和信号处理器"""
+    atexit.register(_remove_pid_file)
+    try:
+        signal.signal(signal.SIGTERM, _graceful_shutdown)   # kill 命令
+    except (OSError, ValueError):
+        pass
+    try:
+        signal.signal(signal.SIGBREAK, _graceful_shutdown)  # Windows Ctrl+Break
+    except (OSError, AttributeError):
+        pass
 
 
 # ─── 1. 单实例检测（Windows Named Mutex）─────────────────────────────────────
 def acquire_single_instance_lock():
     """
     尝试创建一个 Windows 命名互斥锁。
-    如果锁已存在，说明另一个实例正在运行 → 只打开浏览器，然后退出。
+    如果锁已存在，说明另一个实例正在运行 → 只打开新窗口，然后退出。
     返回 (mutex_handle_or_None, is_first_instance)
     """
     try:
         import ctypes
-        from ctypes import wintypes
         kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
         mutex = kernel32.CreateMutexW(None, True, "CglRegulationExplorer_SingleInstance_Mutex")
         last_err = ctypes.get_last_error()
@@ -39,7 +85,6 @@ def acquire_single_instance_lock():
             return mutex, False   # 已有实例在运行
         return mutex, True        # 第一个实例
     except Exception:
-        # 无法创建 Mutex（非 Windows 环境）→ 允许启动
         return None, True
 
 
@@ -54,19 +99,20 @@ def is_port_in_use(port: int) -> bool:
 
 
 def is_our_server_ready(port: int) -> bool:
-    """检查端口上运行的是否是我们的 FastAPI 服务（能返回 HTTP 响应）"""
+    """Verify the application identity instead of trusting port occupancy."""
     try:
         req = urllib.request.Request(
-            f"http://127.0.0.1:{port}/",
-            headers={"User-Agent": "CglLauncher/2"},
+            f"http://127.0.0.1:{port}/api/health",
+            headers={"User-Agent": "CglLauncher/4"},
         )
         with urllib.request.urlopen(req, timeout=1) as r:
-            return r.status < 500
+            payload = json.loads(r.read().decode("utf-8"))
+            return r.status == 200 and payload.get("app") == "cgl-regulation"
     except Exception:
-        return is_port_in_use(port)
+        return False
 
 
-# ─── 3. Splash 界面 ───────────────────────────────────────────────────────────
+# ─── 3. Splash 界面（tkinter，仅在服务器就绪前显示）────────────────────────────
 def make_splash():
     import tkinter as tk
     from tkinter import ttk
@@ -142,15 +188,18 @@ def make_splash():
 
 # ─── 4. 后台服务器 ─────────────────────────────────────────────────────────────
 def start_server_background(port: int):
-    """在后台线程启动 uvicorn；丢弃所有输出"""
+    """Start the loopback-only API and retain diagnostics in a rotating log."""
     try:
         import uvicorn
-        # 重定向输出避免弹出任何窗口
-        null = open(os.devnull, "w")
-        sys.stdout = null
-        sys.stderr = null
+        from logging.handlers import RotatingFileHandler
 
-        # 确保 backend 可 import
+        os.makedirs(LOG_DIR, exist_ok=True)
+        handler = RotatingFileHandler(LOG_FILE, maxBytes=2_000_000, backupCount=3, encoding="utf-8")
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        root_logger.addHandler(handler)
+
         backend_dir = os.path.join(ROOT_DIR, "backend")
         if backend_dir not in sys.path:
             sys.path.insert(0, backend_dir)
@@ -158,12 +207,17 @@ def start_server_background(port: int):
             sys.path.insert(0, ROOT_DIR)
 
         from backend.app import app as fastapi_app
-        uvicorn.run(fastapi_app, host="0.0.0.0", port=port, log_level="error")
+        uvicorn.run(fastapi_app, host="127.0.0.1", port=port, log_level="info")
     except Exception:
-        pass
+        try:
+            os.makedirs(LOG_DIR, exist_ok=True)
+            with open(LOG_FILE, "a", encoding="utf-8") as stream:
+                stream.write(traceback.format_exc())
+        except Exception:
+            pass
 
 
-def wait_for_server(port: int, timeout: int = 90) -> bool:
+def wait_for_server(port: int, timeout: int = 120) -> bool:
     deadline = time.time() + timeout
     while time.time() < deadline:
         if is_our_server_ready(port):
@@ -172,50 +226,82 @@ def wait_for_server(port: int, timeout: int = 90) -> bool:
     return False
 
 
-# ─── 5. 浏览器（App 模式）────────────────────────────────────────────────────
-CHROME_PATHS = [
-    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-    r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-]
-EDGE_PATHS = [
-    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-]
+# ─── 5. pywebview 原生窗口 ────────────────────────────────────────────────────
+def _app_title() -> str:
+    """读取 version.json 构造窗口标题"""
+    try:
+        import json
+        vf = os.path.join(ROOT_DIR, "web", "version.json")
+        with open(vf, encoding="utf-8") as f:
+            ver = json.load(f).get("version", "")
+        if ver:
+            return f"Cgl Regulation Explorer  v{ver}"
+    except Exception:
+        pass
+    return "Cgl Regulation Explorer"
 
-def find_browser():
-    for p in CHROME_PATHS + EDGE_PATHS:
-        if os.path.exists(p):
-            return p
-    return None
 
-def open_app_window(url: str, browser_path: str):
-    profile_dir = os.path.join(os.path.expanduser("~"), ".cgl_regulation_browser_profile")
-    args = [
-        browser_path,
-        f"--app={url}",
-        f"--user-data-dir={profile_dir}",
-        "--window-size=1400,900",
-        "--window-position=60,40",
-        "--disable-extensions",
-        "--no-first-run",
-        "--disable-default-apps",
-    ]
-    subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+def open_native_window(url: str):
+    """
+    在主线程打开 pywebview 原生窗口，阻塞直到用户关闭。
+    关闭后调用 _graceful_shutdown() 退出整个进程。
+    """
+    import webview
+
+    ico_path = os.path.join(ROOT_DIR, "icon.ico")
+    storage_path = os.path.join(os.path.expanduser("~"), ".cgl_regulation_webview")
+
+    webview.create_window(
+        _app_title(),
+        url,
+        width=1400,
+        height=900,
+        x=60,
+        y=40,
+        min_size=(900, 600),
+        background_color="#0f172a",  # 与 Splash 背景一致，消除白闪
+        confirm_close=False,
+        text_select=True,            # 允许文本选择（论文、基因名等）
+    )
+
+    # private_mode=False → 保持 localStorage / cookie 跨会话
+    # storage_path        → WebView2 数据存放位置（cookie、缓存等）
+    # icon                → 任务栏图标（Windows .ico）
+    webview.start(
+        debug=False,
+        private_mode=False,
+        storage_path=storage_path,
+        icon=ico_path if os.path.exists(ico_path) else None,
+    )
+    # webview.start() 在窗口关闭时返回 → 触发服务器退出
+    _graceful_shutdown()
 
 
 # ─── 主流程 ───────────────────────────────────────────────────────────────────
 def main():
+    # ── 优雅退出基础设施初始化 ────────────────────────────────────────────────
+    _setup_exit_hooks()
+    _write_pid_file()
+
     # ── 单实例检测 ────────────────────────────────────────────────────────────
     mutex, is_first = acquire_single_instance_lock()
 
     url = f"http://127.0.0.1:{PORT}/index.html"
 
     if not is_first:
-        # 另一个实例已在运行 → 只打开浏览器，直接退出
-        browser = find_browser()
-        if browser:
-            open_app_window(url, browser)
-        else:
+        # 已有实例在运行 → 复用现有服务器，打开一个新 pywebview 窗口
+        _remove_pid_file()
+        try:
+            import webview
+            storage_path = os.path.join(os.path.expanduser("~"), ".cgl_regulation_webview")
+            webview.create_window(
+                _app_title(), url,
+                width=1400, height=900,
+                min_size=(900, 600),
+                background_color="#0f172a",
+            )
+            webview.start(debug=False, private_mode=False, storage_path=storage_path)
+        except Exception:
             import webbrowser
             webbrowser.open(url)
         return
@@ -223,14 +309,13 @@ def main():
     # ── 端口占用检测 ──────────────────────────────────────────────────────────
     port_busy = is_port_in_use(PORT)
 
-    # ── Splash ────────────────────────────────────────────────────────────────
+    # ── Phase 1: tkinter Splash（主线程 mainloop）────────────────────────────
     root, pbar, status_var = make_splash()
 
-    def run():
+    def _run_in_bg():
+        """后台线程：启动服务器并等待就绪，就绪后退出 tkinter mainloop"""
         if port_busy:
-            # 端口已被占用 → 复用现有服务器
             status_var.set(f"检测到服务已在运行（端口 {PORT}），正在连接...")
-            # 稍等确保对方完全就绪
             ok = wait_for_server(PORT, timeout=10)
             if not ok:
                 status_var.set(f"端口 {PORT} 被其他程序占用，请先关闭后重试")
@@ -238,7 +323,6 @@ def main():
                 root.quit()
                 return
         else:
-            # 端口空闲 → 正常启动服务器
             status_var.set("正在启动服务器...")
             t = threading.Thread(
                 target=start_server_background,
@@ -254,40 +338,31 @@ def main():
                 root.quit()
                 return
 
-        status_var.set("正在打开界面...")
-        browser = find_browser()
-        if browser:
-            open_app_window(url, browser)
-        else:
-            import webbrowser
-            webbrowser.open(url)
+        status_var.set("正在初始化界面...")
+        time.sleep(0.4)
+        root.quit()   # ← 结束 tkinter mainloop，主线程继续向下执行
 
-        time.sleep(1.0)
-        root.quit()
-
-    threading.Thread(target=run, daemon=True).start()
-    root.mainloop()
+    threading.Thread(target=_run_in_bg, daemon=True).start()
+    root.mainloop()   # 主线程阻塞于此直到 root.quit() 被调用
 
     try:
         root.destroy()
     except Exception:
         pass
 
-    # 保持进程活跃（后台服务器 daemon 线程需要主线程存活）
-    if not port_busy:
-        try:
-            while True:
-                time.sleep(60)
-        except (KeyboardInterrupt, SystemExit):
-            pass
+    # ── Phase 2: pywebview 原生窗口（主线程接管）────────────────────────────
+    if is_our_server_ready(PORT):
+        open_native_window(url)   # 阻塞到窗口关闭 → 内部调用 _graceful_shutdown()
 
-    # 释放 Mutex
+    # ── Mutex 释放 ────────────────────────────────────────────────────────────
     if mutex:
         try:
             import ctypes
             ctypes.WinDLL('kernel32').CloseHandle(mutex)
         except Exception:
             pass
+
+    _graceful_shutdown()
 
 
 if __name__ == "__main__":

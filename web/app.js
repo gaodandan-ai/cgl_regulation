@@ -2867,6 +2867,27 @@ function setActiveWorkflowEntry(workflow) {
         }
     }
 
+    // Toggle condition-specific regulation overlay
+    const conditionRegulationOverlay = document.getElementById('condition-regulation-overlay');
+    if (conditionRegulationOverlay) {
+        if (workflow === 'condition-regulation') {
+            conditionRegulationOverlay.classList.remove('hidden');
+            if (window.ConditionRegulationView) window.ConditionRegulationView.init();
+        } else {
+            conditionRegulationOverlay.classList.add('hidden');
+        }
+    }
+
+    const interventionPriorityOverlay = document.getElementById('intervention-priority-overlay');
+    if (interventionPriorityOverlay) {
+        if (workflow === 'intervention-priority') {
+            interventionPriorityOverlay.classList.remove('hidden');
+            if (window.InterventionPriorityView) window.InterventionPriorityView.init();
+        } else {
+            interventionPriorityOverlay.classList.add('hidden');
+        }
+    }
+
     // Toggle topology overlay container
     const topologyDashboard = document.getElementById('topology-overlay');
     if (topologyDashboard) {
@@ -2935,7 +2956,7 @@ function setActiveWorkflowEntry(workflow) {
     }
 
     // Toggle welcome overlay visibility based on fullscreen views
-    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway', 'imodulon', 'topology', 'engineering', 'ppi', 'advanced', 'simulation', 'hierarchy'];
+    const fullscreenWorkflows = ['quality', 'examples', 'release', 'references', 'glutamate', 'rna-seq', 'pathway', 'imodulon', 'condition-regulation', 'intervention-priority', 'topology', 'engineering', 'ppi', 'advanced', 'simulation', 'hierarchy'];
     const isFullscreen = fullscreenWorkflows.includes(workflow);
     
     if (canvasOverlay) {
@@ -3096,6 +3117,22 @@ function initWorkflowEntrypoints() {
         imodulonEntry.dataset.bound = '1';
         imodulonEntry.addEventListener('click', () => {
             setActiveWorkflowEntry('imodulon');
+        });
+    }
+
+    const conditionRegulationEntry = document.getElementById('workflow-entry-condition-regulation');
+    if (conditionRegulationEntry && !conditionRegulationEntry.dataset.bound) {
+        conditionRegulationEntry.dataset.bound = '1';
+        conditionRegulationEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('condition-regulation');
+        });
+    }
+
+    const interventionPriorityEntry = document.getElementById('workflow-entry-intervention-priority');
+    if (interventionPriorityEntry && !interventionPriorityEntry.dataset.bound) {
+        interventionPriorityEntry.dataset.bound = '1';
+        interventionPriorityEntry.addEventListener('click', () => {
+            setActiveWorkflowEntry('intervention-priority');
         });
     }
 
@@ -4454,6 +4491,9 @@ function buildElements(queryLoci) {
 
     const showOnlyTfTargets = filterOnlyTfTargets ? filterOnlyTfTargets.checked : false;
 
+    const chipSeqOnlyCb = document.getElementById('filter-chipseq-only');
+    const showOnlyChipSeq = chipSeqOnlyCb ? chipSeqOnlyCb.checked : false;
+
     function getNodeMeta(locus, fallbackType = 'Target') {
         const lower = locus.toLowerCase();
         const normalized = normalizedNodes[lower];
@@ -4511,6 +4551,12 @@ function buildElements(queryLoci) {
             const targetMeta = geneIndex[target.toLowerCase()] || normalizedNodes[target.toLowerCase()];
             const isTargetTf = targetMeta && targetMeta.type === 'TF';
             if (!isTargetTf) return;
+        }
+
+        // ChIP evidence filter: skip edges with no ChIP support
+        if (showOnlyChipSeq) {
+            const chipScore = edge.confidenceFactors?.chip || 0;
+            if (chipScore === 0) return;
         }
 
         addNode(source, edge.sourceType === 'sRNA' ? 'sRNA' : 'TF');
@@ -7180,7 +7226,13 @@ function initEventListeners() {
 
     }
 
-    
+    // ChIP-only filter: rebuild graph on toggle
+    const chipOnlyGraphCb = document.getElementById('filter-chipseq-only');
+    if (chipOnlyGraphCb) {
+        chipOnlyGraphCb.addEventListener('change', reRender);
+    }
+
+
 
     srnaRankThreshold.addEventListener('input', (e) => {
 

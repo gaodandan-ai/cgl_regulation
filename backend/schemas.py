@@ -220,3 +220,24 @@ class MFAComparisonResponse(BaseModel):
 
 class PathwayReactionsRequest(BaseModel):
     reactionIds: List[str]
+
+class CascadeEdgeSchema(BaseModel):
+    from_node: str
+    to_node: str
+    role: str = "A"
+    score: float = 1.0
+
+class CascadePathSchema(BaseModel):
+    nodes: List[str]
+    length: int
+    edges: List[Dict]
+
+class GraphCascadeResponse(BaseModel):
+    source: str
+    target: str
+    paths: List[CascadePathSchema] = []
+
+class GraphMotifResponse(BaseModel):
+    motif_type: str
+    count: int
+    items: List[Dict] = []

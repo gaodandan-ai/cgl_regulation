@@ -1,7 +1,10 @@
 {
   "version": 2,
   "env": {
-    "LD_LIBRARY_PATH": "/var/task/backend/lib"
+    "LD_LIBRARY_PATH": "/var/task/backend/lib",
+    "CGL_PUBLIC_DEPLOYMENT": "true",
+    "CGL_DATABASE_PATH": "/var/task/data/deploy/cgl_regulation_public.db",
+    "CGL_ALLOWED_ORIGINS": "https://cgl-regulation.vercel.app"
   },
   "builds": [
     {
@@ -9,22 +12,8 @@
       "use": "@vercel/python",
       "config": {
         "includeFiles": [
-          "data/reference/gene_mapping.csv",
-          "data/reference/kegg_cache/kegg_cgl_cgb.json",
-          "data/reference/regulations.csv",
-          "data/reference/rna_regulation.csv",
-          "data/reference/AllOrganismsFiles/**",
-          "data/reference/model/**",
-          "data/reference/imodulon/**",
-          "data/reference/rna_seq_analysis_results.json",
-          "data/reference/metabolic_models/**",
-          "data/reference/prodoric_pwms.json",
-          "data/reference/essential_genes.json",
-          "data/reference/abasy_roles.json",
-          "data/reference/string_interactions.json",
-          "data/reference/cog_annotations.json",
-          "backend/models/**",
-          "backend/lib/libexpat.so.1"
+          "data/deploy/cgl_regulation_public.db",
+          "web/version.json"
         ]
       }
     },
@@ -38,6 +27,18 @@
     }
   ],
   "routes": [
+    {
+      "src": "/(.*)",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "Content-Security-Policy": "default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https:; worker-src 'self' blob:; form-action 'self'"
+      },
+      "continue": true
+    },
     {
       "src": "/api/(.*)",
       "dest": "api/index.py"
@@ -58,6 +59,30 @@
         {
           "key": "X-Robots-Tag",
           "value": "index, follow"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https:; worker-src 'self' blob:; form-action 'self'"
         }
       ]
     },

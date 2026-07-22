@@ -1,0 +1,31 @@
+name: Deployment smoke test
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Deployment URL to verify
+        required: true
+        default: https://cgl-regulation.vercel.app
+      expected_version:
+        description: Expected application version
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify deployed site and API
+        run: >-
+          python scripts/smoke_deployment.py
+          --base-url "${{ inputs.base_url }}"
+          --expected-version "${{ inputs.expected_version }}"

@@ -70,9 +70,37 @@ data_pipeline/scratch*
 .gemini/
 *.log
 
+# Generated databases and rebuild safety copies
+data/reference/*.prebuild_*.bak
+data/reference/*.db-wal
+data/reference/*.db-shm
+data/reference/*.db-journal
+data/deploy/*.tmp
+
+# Local full database; deploys use the generated data/deploy read-only subset
+data/reference/cgl_regulation.db
+
+# Downloaded primary-source archives (recreated by data-pipeline fetch/import jobs)
+data/reference/expression_compendium/geo/
+data/reference/genome/
+data/reference/proteomics/
+data/reference/transcript_structure/
+
+# Duplicate model outputs; canonical release copies live in data/reference
+data_pipeline/data/edge_confidence/edge_confidence_*
+data_pipeline/data/edge_confidence/tf_gene_edge_scores.csv
+
+# Local reports, diagnostics, and exploratory scratch files
+analysis_output/
+tmp/
+.test-localappdata/
+scripts/_audit_*.py
+scripts/_tmp_*.py
+
 # PyInstaller build directories and configs
 build/
 dist/
 *.spec
 !cgl_regulation.spec
 
+.env*

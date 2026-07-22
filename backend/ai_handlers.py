@@ -11,11 +11,15 @@ import urllib.error
 import urllib.parse
 from collections import Counter
 
+from security import validate_outbound_url
+
 from rag_service import RAGService
 from bio_handlers import handle_pathway_regulation
 from gene_utils import get_absolute_path
 
 rag_service = RAGService()
+
+OUTBOUND_TIMEOUT_SECONDS = float(os.environ.get("CGL_OUTBOUND_TIMEOUT", "30"))
 
 def call_llm_api(prompt, provider, api_key, model_name, base_url, is_json=False):
     if not api_key and provider != 'ollama':
@@ -44,7 +48,7 @@ def call_llm_api(prompt, provider, api_key, model_name, base_url, is_json=False)
                     headers={'Content-Type': 'application/json'},
                     method='POST'
                 )
-                with urllib.request.urlopen(gemini_req) as gemini_resp:
+                with urllib.request.urlopen(gemini_req, timeout=OUTBOUND_TIMEOUT_SECONDS) as gemini_resp:
                     gemini_data = json.loads(gemini_resp.read().decode('utf-8'))
                     return gemini_data['candidates'][0]['content']['parts'][0]['text'].strip()
             except urllib.error.HTTPError as he:
@@ -87,7 +91,7 @@ def call_llm_api(prompt, provider, api_key, model_name, base_url, is_json=False)
             if not model:
                 raise Exception("Custom provider requires a Model name.")
         
-        endpoint_url = url_base.rstrip('/')
+        endpoint_url = validate_outbound_url(url_base, provider)
         if not endpoint_url.endswith('/chat/completions'):
             endpoint_url += '/chat/completions'
             
@@ -114,7 +118,7 @@ def call_llm_api(prompt, provider, api_key, model_name, base_url, is_json=False)
         )
         
         try:
-            with urllib.request.urlopen(req) as resp:
+            with urllib.request.urlopen(req, timeout=OUTBOUND_TIMEOUT_SECONDS) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
                 return data['choices'][0]['message']['content'].strip()
         except urllib.error.HTTPError as he:
@@ -758,7 +762,7 @@ def perform_summarize(gene, name, api_key, provider='google', model_name='', bas
     id_list = []
     try:
         req = urllib.request.Request(search_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=OUTBOUND_TIMEOUT_SECONDS) as resp:
             data = json.loads(resp.read().decode('utf-8'))
             id_list = data.get("esearchresult", {}).get("idlist", [])
     except Exception as e:
@@ -769,7 +773,7 @@ def perform_summarize(gene, name, api_key, provider='google', model_name='', bas
         try:
             fetch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id={','.join(id_list)}&retmode=xml"
             fetch_req = urllib.request.Request(fetch_url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(fetch_req) as fetch_resp:
+            with urllib.request.urlopen(fetch_req, timeout=OUTBOUND_TIMEOUT_SECONDS) as fetch_resp:
                 xml_data = fetch_resp.read().decode('utf-8')
                 articles = re.findall(r'<PubmedArticle>(.*?)</PubmedArticle>', xml_data, re.DOTALL)
                 for art in articles:
