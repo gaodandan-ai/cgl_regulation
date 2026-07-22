@@ -1,13 +1,31 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import fnmatch
 
 # ─── 基础数据文件 ─────────────────────────────────────────────────────────────
 datas = [('web', 'web')]
 
+
+def collect_data_tree(source, target, excludes=()):
+    """Return PyInstaller Analysis-compatible (source, destination) pairs."""
+    collected = []
+    for root, _, filenames in os.walk(source):
+        relative_root = os.path.relpath(root, source)
+        destination = target if relative_root == '.' else os.path.join(target, relative_root)
+        for filename in filenames:
+            relative_path = os.path.relpath(os.path.join(root, filename), source).replace('\\', '/')
+            if any(
+                fnmatch.fnmatch(filename, pattern) or fnmatch.fnmatch(relative_path, pattern)
+                for pattern in excludes
+            ):
+                continue
+            collected.append((os.path.join(root, filename), destination))
+    return collected
+
 if os.path.isdir('data/reference'):
-    datas += Tree(
+    datas += collect_data_tree(
         'data/reference',
-        prefix='data/reference',
+        'data/reference',
         excludes=[
             '*.prebuild_*.bak',
             '*.db-wal',
