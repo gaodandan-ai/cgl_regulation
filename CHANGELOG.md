@@ -4,6 +4,24 @@ All notable changes to the Cgl Regulation Explorer project will be documented in
 
 ---
 
+## [v1.3.0] - 2026-07-22
+### Added
+- **Condition-aware regulation analysis** across iron, carbon, nitrogen, oxygen, and stress response modules, with condition harmonization and edge-level support scoring.
+- **Intervention target priorities** combining cross-module evidence, essentiality risk, and engineering strategy classes.
+- **Centralized SQLite data layer** covering regulatory, genomic, transcriptomic, proteomic, non-coding RNA, pathway, iModulon, and literature resources.
+- **New analysis views** for gene profiles, allosteric feedback, sRNA competition, condition-specific iModulons, and target prioritization.
+- **Lightweight public data API** and generated read-only deployment database for Vercel.
+- **Deployment, security, graph, database, omics, CollecTF, and ncRNA regression tests**.
+
+### Changed
+- Expanded the ATCC 13032 integration and evidence-confidence pipeline with additional public datasets and cross-strain analyses.
+- Reduced the Vercel function bundle by separating public data queries from desktop-only metabolic simulation.
+- Improved desktop startup diagnostics, loopback-only binding, application health checks, and packaging exclusions.
+
+### Security
+- Removed public debug and traceback exposure, restricted CORS, added security response headers, and validated outbound AI endpoints against SSRF.
+- Excluded local credentials, full databases, rebuild backups, raw downloads, and temporary analysis files from releases.
+
 ## [v0.6.0] - 2026-07-21
 ### Added
 - **Auto-update Notification**: App checks for new versions on startup and shows a sky-blue toast in the header when an update is available, with a direct link to GitHub Releases.
