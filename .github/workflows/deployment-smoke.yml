@@ -26,6 +26,6 @@ jobs:
           python-version: "3.11"
       - name: Verify deployed site and API
         run: >-
-          python scripts/smoke_deployment.py
+          python scripts/pipeline/smoke_deployment.py
           --base-url "${{ inputs.base_url }}"
           --expected-version "${{ inputs.expected_version }}"

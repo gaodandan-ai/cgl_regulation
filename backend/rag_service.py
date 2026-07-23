@@ -65,16 +65,16 @@ class RAGService:
             if end >= len(text):
                 chunks.append(text[start:])
                 break
-            
+
             boundary = -1
             for char in ['.', '!', '?', '。', '；', '\n']:
                 pos = text.rfind(char, start + chunk_size - overlap, end)
                 if pos > boundary:
                     boundary = pos
-            
+
             if boundary != -1:
                 end = boundary + 1
-            
+
             chunks.append(text[start:end])
             start = end
         return chunks
@@ -103,7 +103,7 @@ class RAGService:
             url = validate_outbound_url(base_url if base_url else "http://localhost:11434", provider)
             if not url.endswith('/api/embeddings') and not url.endswith('/v1/embeddings'):
                 url = url.rstrip('/') + "/api/embeddings"
-            
+
             payload = {
                 "model": model_name if model_name else "deepseek-r1",
                 "prompt": text
@@ -137,7 +137,7 @@ class RAGService:
             }
             if api_key:
                 headers['Authorization'] = f"Bearer {api_key}"
-            
+
             emb_model = "text-embedding-3-small"
             if provider == 'zhipu':
                 emb_model = "embedding-2"
@@ -170,7 +170,7 @@ class RAGService:
 
         changed = False
         files_in_dir = [f for f in os.listdir(LITERATURE_DIR) if f.endswith(('.txt', '.md')) and f != "README.txt"]
-        
+
         cached_files = list(self.cache["files"].keys())
         for f in cached_files:
             if f not in files_in_dir:
@@ -180,7 +180,7 @@ class RAGService:
         for filename in files_in_dir:
             file_path = os.path.join(LITERATURE_DIR, filename)
             mtime = os.path.getmtime(file_path)
-            
+
             cached = self.cache["files"].get(filename)
             if cached and cached.get("mtime") == mtime:
                 continue
@@ -194,18 +194,18 @@ class RAGService:
 
             chunks = self.chunk_text(text)
             chunk_objs = []
-            
+
             print(f"Indexing RAG file {filename} ({len(chunks)} chunks)...")
             for i, chunk in enumerate(chunks):
                 vector = None
                 if api_key or provider == 'ollama':
                     vector = self.fetch_embedding(chunk, provider, api_key, model_name, base_url)
-                
+
                 chunk_objs.append({
                     "text": chunk,
                     "vector": vector
                 })
-            
+
             self.cache["files"][filename] = {
                 "mtime": mtime,
                 "chunks": chunk_objs
@@ -232,10 +232,10 @@ class RAGService:
             else:
                 words = re.findall(r'\b\w+\b', text.lower())
                 return [w for w in words if len(w) > 1]
-        
+
         q_words = tokenize(query)
         c_words = tokenize(chunk_text)
-        
+
         if not q_words or not c_words:
             return 0.0
 
@@ -257,7 +257,7 @@ class RAGService:
 
         if q_len == 0 or c_len == 0:
             return 0.0
-            
+
         return dot_product / (q_len * c_len)
 
     def query_similarity(self, query, provider, api_key, model_name, base_url, top_n=3):
@@ -296,7 +296,7 @@ class RAGService:
 
         query_vector = None
         has_vectors = any(c["vector"] is not None for c in all_chunks)
-        
+
         if has_vectors and (api_key or provider == 'ollama'):
             query_vector = self.fetch_embedding(query, provider, api_key, model_name, base_url)
 
@@ -327,3 +327,139 @@ class RAGService:
                     "score": score
                 })
         return top_results
+
+    def fetch_europe_pmc_abstracts(self, query: str, max_results: int = 5):
+        """Fetch literature abstracts from Europe PMC REST API."""
+        import urllib.parse
+        clean_query = query.strip()
+        if "glutamicum" not in clean_query.lower():
+            clean_query = f"Corynebacterium glutamicum {clean_query}"
+
+        encoded_query = urllib.parse.quote(clean_query)
+        url = f"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={encoded_query}&format=json&pageSize={max_results}"
+
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={'User-Agent': 'CglRegulationExplorer/1.3.1'},
+                method='GET'
+            )
+            with urllib.request.urlopen(req, timeout=OUTBOUND_TIMEOUT_SECONDS) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                results = data.get("resultList", {}).get("result", [])
+                articles = []
+                for item in results:
+                    abstract = item.get("abstractText", "")
+                    if not abstract:
+                        continue
+                    abstract_clean = re.sub(r'<[^>]+>', '', abstract)
+                    articles.append({
+                        "pmid": item.get("pmid", item.get("id", "")),
+                        "title": item.get("title", "").rstrip('.'),
+                        "authors": item.get("authorString", "Unknown"),
+                        "journal": item.get("journalTitle", ""),
+                        "year": item.get("pubYear", ""),
+                        "doi": item.get("doi", ""),
+                        "abstract": abstract_clean,
+                        "source": "Europe PMC"
+                    })
+                return articles
+        except Exception as e:
+            print(f"Europe PMC fetch failed for query '{query}': {e}")
+            return []
+
+    def fetch_pubmed_abstracts(self, query: str, max_results: int = 5):
+        """Fetch literature abstracts from NCBI PubMed Entrez API (or fallback to Europe PMC)."""
+        import urllib.parse
+        clean_query = query.strip()
+        if "glutamicum" not in clean_query.lower():
+            clean_query = f"Corynebacterium glutamicum {clean_query}"
+
+        encoded_query = urllib.parse.quote(clean_query)
+        search_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term={encoded_query}&retmode=json&retmax={max_results}"
+
+        try:
+            req = urllib.request.Request(
+                search_url,
+                headers={'User-Agent': 'CglRegulationExplorer/1.3.0'},
+                method='GET'
+            )
+            with urllib.request.urlopen(req, timeout=OUTBOUND_TIMEOUT_SECONDS) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                id_list = data.get("esearchresult", {}).get("idlist", [])
+
+            if not id_list:
+                return self.fetch_europe_pmc_abstracts(query, max_results=max_results)
+
+            # Prefer Europe PMC as it provides full text abstracts in JSON
+            epmc_articles = self.fetch_europe_pmc_abstracts(query, max_results=max_results)
+            if epmc_articles:
+                return epmc_articles
+
+            ids_str = ",".join(id_list)
+            summary_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id={ids_str}&retmode=json"
+
+            req_sum = urllib.request.Request(
+                summary_url,
+                headers={'User-Agent': 'CglRegulationExplorer/1.3.0'},
+                method='GET'
+            )
+            with urllib.request.urlopen(req_sum, timeout=OUTBOUND_TIMEOUT_SECONDS) as resp_sum:
+                sum_data = json.loads(resp_sum.read().decode('utf-8'))
+                result_map = sum_data.get("result", {})
+
+            articles = []
+            for pmid in id_list:
+                info = result_map.get(str(pmid), {})
+                if not info or not isinstance(info, dict):
+                    continue
+                title = info.get("title", "")
+                authors_list = info.get("authors", [])
+                author_names = ", ".join([a.get("name", "") for a in authors_list if isinstance(a, dict)])
+                pubdate = info.get("pubdate", "")
+                journal = info.get("source", "")
+                articles.append({
+                    "pmid": str(pmid),
+                    "title": title.rstrip('.'),
+                    "authors": author_names or "Unknown",
+                    "journal": journal,
+                    "year": pubdate.split()[0] if pubdate else "",
+                    "doi": "",
+                    "abstract": f"{title} (Published in {journal}, {pubdate}).",
+                    "source": "PubMed"
+                })
+
+            return articles
+        except Exception as e:
+            print(f"PubMed fetch failed for query '{query}': {e}")
+            return self.fetch_europe_pmc_abstracts(query, max_results=max_results)
+
+    def ingest_fetched_articles(self, articles: list, tag: str = "auto"):
+        """Save fetched articles into data/literature/ directory and update RAG index."""
+        if not articles:
+            return 0
+
+        ingested_count = 0
+        for art in articles:
+            pmid = art.get("pmid") or f"art_{int(time.time())}"
+            filename = f"pubmed_{pmid}.md"
+            file_path = os.path.join(LITERATURE_DIR, filename)
+
+            content = f"# {art.get('title', '')}\n\n"
+            content += f"**PMID**: {art.get('pmid', '')} | **DOI**: {art.get('doi', '')} | **Journal**: {art.get('journal', '')} ({art.get('year', '')})\n"
+            content += f"**Authors**: {art.get('authors', '')}\n\n"
+            content += f"## Abstract\n{art.get('abstract', '')}\n"
+
+            try:
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                ingested_count += 1
+            except Exception as e:
+                print(f"Failed to write article {filename}: {e}")
+
+        try:
+            self.sync_literature(provider="dummy", api_key="", model_name="", base_url="")
+        except Exception as e:
+            print("Error syncing literature post-ingest:", e)
+
+        return ingested_count

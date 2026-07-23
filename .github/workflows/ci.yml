@@ -1,0 +1,85 @@
+name: Continuous integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }} tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CGL_DATABASE_PATH: data/deploy/cgl_regulation_public.db
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+      - name: Check Python syntax
+        run: python -m compileall -q backend api data_pipeline scripts tests
+      - name: Run test suite
+        run: python -m pytest -q
+      - name: Audit scientific output integrity
+        run: >-
+          python scripts/analysis/validate_scientific_outputs.py
+          --database data/deploy/cgl_regulation_public.db
+
+  repository-contracts:
+    name: Repository contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify documented and automated entrypoints
+        shell: bash
+        run: |
+          test -f LICENSE
+          test -f scripts/pipeline/smoke_deployment.py
+          test -f scripts/build/build_app.py
+          test -f data/deploy/cgl_regulation_public.manifest.json
+          legacy_path="scripts/smoke""_deployment.py"
+          ! git grep -n "$legacy_path" -- .github README.md README_zh.md
+      - name: Check browser JavaScript syntax
+        shell: bash
+        run: |
+          node --check web/app.js
+          for file in web/lib/*.js web/lib/bindings/*.js; do
+            node --check "$file"
+          done
+      - name: Test browser modules
+        run: |
+          node tests/frontend_api_client.test.js
+          node tests/frontend_data_loader.test.js
+          node tests/frontend_export_utils.test.js
+          node tests/frontend_evidence_scoring.test.js
+          node tests/frontend_network_normalizer.test.js
+          node tests/frontend_query_navigation.test.js
+          node tests/frontend_gene_identifier_index.test.js
+          node tests/frontend_network_render_session.test.js
+          node tests/frontend_network_interaction_binder.test.js
+          node tests/frontend_network_styles.test.js
+          node tests/frontend_network_graph.test.js
+          node tests/frontend_network_ppi_loader.test.js

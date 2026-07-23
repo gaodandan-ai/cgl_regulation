@@ -94,8 +94,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
         rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FontAwesome Icons (Local vendor copy for offline performance) -->
+    <link rel="stylesheet" href="lib/vendor/fontawesome.min.css">
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="style.css?v=2.2">
 </head>
@@ -128,11 +128,15 @@
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <i class="fa-solid fa-network-wired header-logo-icon"></i>
-                <h1>Cgl Regulation Explorer <span class="badge-v" id="app-version-badge">v1.2.3</span></h1>
+                <h1>Cgl Regulation Explorer <span class="badge-v" id="app-version-badge">v1.3.1</span></h1>
             </div>
             <div class="header-right">
                 <a href="https://github.com/gaodandan-ai" target="_blank" rel="noopener noreferrer" class="header-contact-link">
                     <i class="fa-brands fa-github"></i> <span class="header-github-text">GitHub</span>
+                </a>
+                <a href="https://github.com/gaodandan-ai/cgl_regulation/releases/latest/download/cgl_regulation.exe"
+                   class="header-contact-link" title="Download the latest Windows app">
+                    <i class="fa-solid fa-download"></i> <span class="header-download-text">Download App</span>
                 </a>
                 <!-- Update notification toast (shown only in local app mode) -->
                 <a id="update-toast" href="#" target="_blank" rel="noopener noreferrer"
@@ -179,7 +183,7 @@
                         var closeBtn = document.getElementById('update-toast-close');
                         if (!toast) return;
                         label.textContent = 'v' + data.latest_version + ' available';
-                        toast.href = data.download_url || 'https://github.com/gaodandan-ai/cgl_regulation/releases/latest';
+                        toast.href = data.download_url || 'https://github.com/gaodandan-ai/cgl_regulation/releases/latest/download/cgl_regulation.exe';
                         toast.style.display = 'inline-flex';
                         closeBtn.addEventListener('click', function (e) {
                             e.preventDefault();
@@ -194,7 +198,7 @@
 
 
         <nav id="workflow-entrybar" aria-label="Primary research workflows">
-            <!-- 主级 -->
+            <!-- Primary Workflows -->
             <button class="workflow-entry active" id="workflow-entry-gene" data-workflow="gene">
                 <i class="fa-solid fa-network-wired"></i>
                 <span>Gene / TF Explorer</span>
@@ -217,7 +221,7 @@
             </button>
             <button class="workflow-entry" id="workflow-entry-intervention-priority" data-workflow="intervention-priority">
                 <i class="fa-solid fa-bullseye"></i>
-                <span>Target Priorities</span>
+                <span>Engineering Target Priorities</span>
             </button>
             <button class="workflow-entry" id="workflow-entry-ppi" data-workflow="ppi">
                 <i class="fa-solid fa-share-nodes"></i>
@@ -227,12 +231,9 @@
                 <i class="fa-solid fa-diagram-project"></i>
                 <span>Pathway View</span>
             </button>
-            <!-- 分析类（次级） -->
+
+            <!-- Secondary Analytics Workflows -->
             <div class="nav-secondary-separator" aria-hidden="true"></div>
-            <button class="workflow-entry workflow-entry-secondary" id="workflow-entry-engineering" data-workflow="engineering">
-                <i class="fa-solid fa-bullseye"></i>
-                <span>Engineering Targets</span>
-            </button>
             <button class="workflow-entry workflow-entry-secondary" id="workflow-entry-advanced" data-workflow="advanced">
                 <i class="fa-solid fa-brain"></i>
                 <span>Advanced Analytics</span>
@@ -242,7 +243,7 @@
                 <span>Dynamic Simulation</span>
             </button>
 
-            <!-- 文档类 -->
+            <!-- Documentation & Quality Workflows -->
             <div class="nav-doc-separator" aria-hidden="true"></div>
             <button class="workflow-entry workflow-entry-doc" id="workflow-entry-quality" data-workflow="quality">
                 <i class="fa-solid fa-chart-line"></i>
@@ -4579,7 +4580,19 @@
     <script src="lib/vendor/papaparse.min.js"></script>
     <script src="lib/vendor/jquery-3.6.0.min.js"></script>
     <script src="lib/vendor/3Dmol-min.js"></script>
-    <script src="lib/metabolicModelAdapter.js?v=1.1"></script>
+<script src="lib/apiClient.js?v=1.0"></script>
+<script src="lib/dataLoader.js?v=1.0"></script>
+<script src="lib/exportUtils.js?v=1.0"></script>
+<script src="lib/evidenceScoring.js?v=1.0"></script>
+<script src="lib/networkNormalizer.js?v=1.0"></script>
+<script src="lib/queryNavigation.js?v=1.0"></script>
+<script src="lib/geneIdentifierIndex.js?v=1.0"></script>
+<script src="lib/networkRenderSession.js?v=1.0"></script>
+<script src="lib/networkInteractionBinder.js?v=1.0"></script>
+<script src="lib/networkStyles.js?v=2.0"></script>
+<script src="lib/networkGraph.js?v=1.0"></script>
+<script src="lib/networkPpiLoader.js?v=1.0"></script>
+<script src="lib/metabolicModelAdapter.js?v=1.1"></script>
     <script src="lib/regulationMetabolismBridge.js?v=1.0"></script>
     <script src="lib/tfMetabolicImpactRanking.js?v=1.0"></script>
     <script src="lib/pathwayRegulatoryView.js?v=1.0"></script>
@@ -4598,8 +4611,8 @@
     <script src="lib/interventionPriorityView.js?v=1.0"></script>
     
     <script src="lib/networkTopology.js?v=1.0"></script>
-    <!-- Mermaid.js for regulatory signaling charts -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- Mermaid.js for regulatory signaling charts (Local vendor copy) -->
+    <script src="lib/vendor/mermaid.min.js"></script>
     <script>
         if (window.mermaid) {
             window.mermaid.initialize({
@@ -4613,8 +4626,12 @@
             });
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js?v=4.20"></script>
+    <!-- Chart.js and Zoom/Pan Plugin (Local vendor copies) -->
+    <script src="lib/vendor/chart.min.js"></script>
+    <script src="lib/vendor/hammer.min.js"></script>
+    <script src="lib/vendor/chartjs-plugin-zoom.min.js"></script>
+    <script src="lib/genomicTrackBrowser.js?v=1.0"></script>
+<script src="app.js?v=4.49"></script>
 </body>
 
 </html>

@@ -811,13 +811,20 @@ def perform_summarize(gene, name, api_key, provider='google', model_name='', bas
         prompt = f"你是一个专业的微生物学 AI 助手，专门研究谷氨酸棒状杆菌 (Corynebacterium glutamicum)。\n"
         prompt += f"请为基因 {gene} (显示名/常用名: {name if name and name != '--' else '无'}) 生成一份文献与功能总结。\n\n"
         
+        # Inject Multi-Omics Grounded Context from SQLite
+        try:
+            grounded_context = build_grounded_omics_context(gene)
+            prompt += f"{grounded_context}\n\n"
+        except Exception as ge:
+            print("Grounded context extraction warning:", ge)
+
         if papers:
             prompt += "以下是我们在 PubMed 数据库中检索到的关于该基因的相关研究文献摘要：\n"
             for idx, paper in enumerate(papers):
                 prompt += f"文献 {idx+1}: {paper['title']}\nPMID: {paper['pmid']}\n摘要: {paper['abstract']}\n\n"
-            prompt += "请根据上述文献的摘要，总结该基因的核心功能、调控机制以及在代谢工程/工业生产中的应用。如果文献中没有涉及某些方面，请结合你所掌握的学术知识进行合理的补充与推断。\n"
+            prompt += "请根据上述文献摘要和实测组学硬事实，总结该基因的核心功能、调控机制以及在代谢工程/工业生产中的应用。如果文献中没有涉及某些方面，请结合组学数据进行严谨推理。\n"
         else:
-            prompt += "我们在 PubMed 中未检索到与该基因直接对应的专属文献。请结合你所掌握 of C. glutamicum 学术知识，详细阐述该基因/转录因子/小RNA 的预测功能、调控通路、以及相关生物学特性。\n"
+            prompt += "我们在 PubMed 中未检索到与该基因直接对应的专属文献。请结合上述实测组学硬事实与学术知识，详细阐述该基因/转录因子/小RNA 的预测功能、调控通路、以及相关生物学特性。\n"
         
         if rag_chunks:
             prompt += "\n以下是从我们本地知识库/文献中检索到的最相关研究段落：\n"
@@ -825,7 +832,7 @@ def perform_summarize(gene, name, api_key, provider='google', model_name='', bas
                 prompt += f"本地文献段落 {idx+1} (来源: {chunk['file']}):\n内容: {chunk['text']}\n\n"
             prompt += "请在回答中融合上述本地文献中提到的具体调控机制、定量数据或规则，并注明其出处。\n"
 
-        prompt += "\n总结要求：\n1. 使用条理清晰的中文，按以下结构分段总结：【基因概览】、【文献核心研究】、【调控网络与功能】、【发酵应用/科研价值】。\n2. 语言学术、严谨、排版美观（使用 Markdown 格式展示标题 and 列表）。"
+        prompt += "\n总结要求：\n1. 使用条理清晰的中文，按以下结构分段总结：【基因概览】、【文献核心研究】、【调控网络与功能】、【发酵应用/科研价值】。\n2. 结合上方提供的实测 Promoter 70bp 序列、坐标和转录因子家族，确保数据引用 100% 准确真实。\n3. 语言学术、严谨、排版美观（使用 Markdown 格式展示标题 and 列表）。"
         
         try:
             summary = call_llm_api(prompt, provider, api_key, model_name, base_url, is_json=False)
@@ -838,4 +845,87 @@ def perform_summarize(gene, name, api_key, provider='google', model_name='', bas
         "summary": summary,
         "papers": [{"pmid": p["pmid"], "title": p["title"]} for p in papers],
         "rag_sources": [{"file": r["file"], "score": r["score"]} for r in rag_chunks]
+    }
+
+
+def build_grounded_omics_context(gene_id: str) -> str:
+    """
+    Query 360-degree multi-omics facts from SQLite to ground AI responses with hard data.
+    """
+    from db_manager import get_db_manager
+    db = get_db_manager()
+
+    profile = db.get_full_gene_profile(gene_id) or {}
+    coords = db.get_gene_coordinates(gene_id) or {}
+    effectors = db.get_tf_effector_info(gene_id) or {}
+    tracks = db.get_genomic_track_data(gene_id, window_bp=5000) or {}
+
+    lines = ["[Database 360° Omics Grounded Facts (Hard Empirical Data)]:"]
+    lines.append(f"- Gene locus_tag: {coords.get('locus_tag', gene_id)}, Symbol: {profile.get('gene_name', 'N/A')}")
+    lines.append(f"- Genomic coordinates: {coords.get('start_pos', 'N/A')}..{coords.get('end_pos', 'N/A')} ({coords.get('strand', '+')} strand, length: {coords.get('gene_length', 'N/A')} bp)")
+
+    if profile.get('abasy_role'):
+        lines.append(f"- Abasy regulatory role: {profile.get('abasy_role')}")
+
+    if effectors.get('tf_family'):
+        lines.append(f"- TF Structural Family: {effectors.get('tf_family')}, Effector Molecule: {effectors.get('effector_molecule', 'None')}, Signal: {effectors.get('physiological_signal', 'N/A')}")
+
+    if coords.get('tss_position'):
+        lines.append(f"- TSS (Transcription Start Site): {coords.get('tss_position')} bp")
+
+    if coords.get('promoter_70bp'):
+        lines.append(f"- Promoter (-35/-10 70bp sequence): {coords.get('promoter_70bp')}")
+
+    if tracks.get('peaks'):
+        peaks_str = ", ".join([f"{p['tf_name']}(score: {int(p['score']*100)}%)" for p in tracks['peaks'][:4]])
+        lines.append(f"- ChIP-seq / CollectTF Peaks: {peaks_str}")
+
+    return "\n".join(lines)
+
+
+def handle_ai_engineering_command(command: str, gene: str, provider: str = "openai", api_key: str = "", model_name: str = "", base_url: str = "") -> dict:
+    """
+    Handle specialized AI engineering commands: /design-crispri, /solve-bottleneck, /promoter-engineering.
+    """
+    grounded_facts = build_grounded_omics_context(gene)
+
+    if command == "crispri" or command == "/design-crispri":
+        prompt = f"You are an expert synthetic biology AI assistant specializing in CRISPRi (dCas9) knockdown design for Corynebacterium glutamicum.\n\n"
+        prompt += f"{grounded_facts}\n\n"
+        prompt += f"Please generate a comprehensive CRISPRi knockdown design guide for gene {gene}:\n"
+        prompt += "1. [gRNA Target Selection Window]: Based on the Promoter 70bp sequence and TSS coordinates above, analyze the -35 and -10 box locations and recommend a 20bp gRNA target window on the non-template strand (avoiding core -35/-10 promoter elements).\n"
+        prompt += "2. [PAM (5'-NGG-3') Site Analysis]: Identify 2 valid SpCas9/dCas9 PAM sites and protospacer sequences.\n"
+        prompt += "3. [Repression Efficiency Prediction]: Estimate the fold-repression for this gene and downstream operons based on effector interactions.\n"
+        prompt += "4. [Experimental Plasmid & Primer Design Recommendations]."
+
+    elif command == "bottleneck" or command == "/solve-bottleneck":
+        prompt = f"You are an expert metabolic engineering AI assistant specializing in FBA flux bottleneck analysis for Corynebacterium glutamicum.\n\n"
+        prompt += f"{grounded_facts}\n\n"
+        prompt += f"Please generate an engineering bottleneck diagnosis and overproduction strategy for gene {gene}:\n"
+        prompt += "1. [Metabolic Flux Bottleneck Diagnosis]: Analyze pathway rate-limiting steps and feedback inhibition for this gene.\n"
+        prompt += "2. [Combinatorial Target Selection]: Recommend 2-3 synergistic genetic targets (e.g., Overexpress X + Knock out Y).\n"
+        prompt += "3. [Thermodynamics & Cofactor Balance]: Analyze NADPH/ATP energy & thermodynamic driving force optimizations.\n"
+        prompt += "4. [Bioreactor Fermentation Guidance]."
+
+    elif command == "promoter" or command == "/promoter-engineering":
+        prompt = f"You are an expert promoter engineering AI assistant specializing in C. glutamicum promoter mutagenesis libraries.\n\n"
+        prompt += f"{grounded_facts}\n\n"
+        prompt += f"Please generate a promoter mutagenesis and library design guide for gene {gene}:\n"
+        prompt += "1. [Promoter -35/-10 Box Mutagenesis]: Design point-mutation libraries targeting the -35 (TTGACA) and -10 (TATAAT) consensus regions to tune transcriptional strength.\n"
+        prompt += "2. [Effector-Responsive Elements]: Design cis-element binding site replacements based on effector molecules.\n"
+        prompt += "3. [5'-UTR & SD Sequence Optimization]: Optimize the Shine-Dalgarno (AGGAGG) spacing to tune translation initiation rate."
+
+    else:
+        prompt = f"Using the following C. glutamicum omics facts, answer the research question regarding gene {gene}:\n\n{grounded_facts}\n\nQuestion: {command}"
+
+    try:
+        response_text = call_llm_api(prompt, provider, api_key, model_name, base_url, is_json=False)
+    except Exception as e:
+        response_text = f"AI 工程指令生成失败: {str(e)}"
+
+    return {
+        "command": command,
+        "gene": gene,
+        "grounded_facts": grounded_facts,
+        "result": response_text
     }

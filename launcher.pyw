@@ -14,6 +14,17 @@ launcher.pyw
 
 import os, sys, time, socket, threading, urllib.request, atexit, signal, json, logging, traceback
 
+class NullStream:
+    def write(self, text): pass
+    def flush(self): pass
+    def isatty(self): return False
+
+# Ensure sys.stdout and sys.stderr are non-None and implement isatty in pythonw / windowed mode
+if sys.stdout is None or not hasattr(sys.stdout, "isatty"):
+    sys.stdout = NullStream()
+if sys.stderr is None or not hasattr(sys.stderr, "isatty"):
+    sys.stderr = NullStream()
+
 # ─── 路径 ────────────────────────────────────────────────────────────────────
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     ROOT_DIR = sys._MEIPASS
@@ -68,24 +79,36 @@ def _setup_exit_hooks():
         pass
 
 
-# ─── 1. 单实例检测（Windows Named Mutex）─────────────────────────────────────
+# ─── 1. 单实例检测（Cross-Platform Single Instance Lock）──────────────────────
 def acquire_single_instance_lock():
     """
-    尝试创建一个 Windows 命名互斥锁。
+    Windows 命名互斥锁 / macOS & Linux 文件锁。
     如果锁已存在，说明另一个实例正在运行 → 只打开新窗口，然后退出。
     返回 (mutex_handle_or_None, is_first_instance)
     """
-    try:
-        import ctypes
-        kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
-        mutex = kernel32.CreateMutexW(None, True, "CglRegulationExplorer_SingleInstance_Mutex")
-        last_err = ctypes.get_last_error()
-        ERROR_ALREADY_EXISTS = 183
-        if last_err == ERROR_ALREADY_EXISTS:
-            return mutex, False   # 已有实例在运行
-        return mutex, True        # 第一个实例
-    except Exception:
-        return None, True
+    if sys.platform == 'win32':
+        try:
+            import ctypes
+            kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+            mutex = kernel32.CreateMutexW(None, True, "CglRegulationExplorer_SingleInstance_Mutex")
+            last_err = ctypes.get_last_error()
+            ERROR_ALREADY_EXISTS = 183
+            if last_err == ERROR_ALREADY_EXISTS:
+                return mutex, False   # 已有实例在运行
+            return mutex, True        # 第一个实例
+        except Exception:
+            return None, True
+    else:
+        try:
+            import fcntl
+            lock_file = os.path.join(os.path.expanduser("~"), ".cgl_regulation.lock")
+            lock_fd = open(lock_file, "w")
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return lock_fd, True
+        except (OSError, IOError):
+            return None, False
+        except Exception:
+            return None, True
 
 
 # ─── 2. 端口占用检测 ──────────────────────────────────────────────────────────
@@ -105,7 +128,7 @@ def is_our_server_ready(port: int) -> bool:
             f"http://127.0.0.1:{port}/api/health",
             headers={"User-Agent": "CglLauncher/4"},
         )
-        with urllib.request.urlopen(req, timeout=1) as r:
+        with urllib.request.urlopen(req, timeout=0.2) as r:
             payload = json.loads(r.read().decode("utf-8"))
             return r.status == 200 and payload.get("app") == "cgl-regulation"
     except Exception:
@@ -190,6 +213,11 @@ def make_splash():
 def start_server_background(port: int):
     """Start the loopback-only API and retain diagnostics in a rotating log."""
     try:
+        if sys.stdout is None or not hasattr(sys.stdout, "isatty"):
+            sys.stdout = NullStream()
+        if sys.stderr is None or not hasattr(sys.stderr, "isatty"):
+            sys.stderr = NullStream()
+
         import uvicorn
         from logging.handlers import RotatingFileHandler
 
@@ -207,7 +235,7 @@ def start_server_background(port: int):
             sys.path.insert(0, ROOT_DIR)
 
         from backend.app import app as fastapi_app
-        uvicorn.run(fastapi_app, host="127.0.0.1", port=port, log_level="info")
+        uvicorn.run(fastapi_app, host="127.0.0.1", port=port, log_level="info", log_config={"version": 1, "disable_existing_loggers": False})
     except Exception:
         try:
             os.makedirs(LOG_DIR, exist_ok=True)
@@ -222,7 +250,7 @@ def wait_for_server(port: int, timeout: int = 120) -> bool:
     while time.time() < deadline:
         if is_our_server_ready(port):
             return True
-        time.sleep(0.3)
+        time.sleep(0.05)
     return False
 
 
@@ -243,38 +271,71 @@ def _app_title() -> str:
 
 def open_native_window(url: str):
     """
-    在主线程打开 pywebview 原生窗口，阻塞直到用户关闭。
-    关闭后调用 _graceful_shutdown() 退出整个进程。
+    在独立 Python 进程中打开 pywebview 原生窗口。
+    若原生窗口成功启动并在用户主动关闭后退出，主线程退出整个服务；
+    若 pywebview 无法在当前环境初始化（如缺少 WebView2），自动在默认浏览器中打开应用，
+    并保持后台 Uvicorn 服务器继续运行，确保 Web 应用 100% 可用。
     """
-    import webview
+    import subprocess, webbrowser
 
+    python_exe = sys.executable
+    title = _app_title()
     ico_path = os.path.join(ROOT_DIR, "icon.ico")
     storage_path = os.path.join(os.path.expanduser("~"), ".cgl_regulation_webview")
 
+    code = f"""
+import sys, os
+class NullStream:
+    def write(self, text): pass
+    def flush(self): pass
+    def isatty(self): return False
+if sys.stdout is None or not hasattr(sys.stdout, "isatty"): sys.stdout = NullStream()
+if sys.stderr is None or not hasattr(sys.stderr, "isatty"): sys.stderr = NullStream()
+try:
+    import webview
+    ico = r"{ico_path}"
     webview.create_window(
-        _app_title(),
-        url,
+        "{title}",
+        "{url}",
         width=1400,
         height=900,
         x=60,
         y=40,
         min_size=(900, 600),
-        background_color="#0f172a",  # 与 Splash 背景一致，消除白闪
+        background_color="#0f172a",
         confirm_close=False,
-        text_select=True,            # 允许文本选择（论文、基因名等）
+        text_select=True,
     )
-
-    # private_mode=False → 保持 localStorage / cookie 跨会话
-    # storage_path        → WebView2 数据存放位置（cookie、缓存等）
-    # icon                → 任务栏图标（Windows .ico）
     webview.start(
         debug=False,
         private_mode=False,
-        storage_path=storage_path,
-        icon=ico_path if os.path.exists(ico_path) else None,
+        icon=ico if os.path.exists(ico) else None,
     )
-    # webview.start() 在窗口关闭时返回 → 触发服务器退出
-    _graceful_shutdown()
+    sys.exit(0)
+except Exception:
+    sys.exit(42)
+"""
+
+    use_browser_fallback = False
+    try:
+        proc = subprocess.Popen([python_exe, "-c", code])
+        ret = proc.wait()
+        if ret != 0:
+            use_browser_fallback = True
+    except Exception:
+        use_browser_fallback = True
+
+    if use_browser_fallback:
+        logging.info("pywebview native window unavailable, opening default browser.")
+        webbrowser.open(url)
+        # 保持后台 Uvicorn 服务器持续运行
+        try:
+            while True:
+                time.sleep(1)
+        except (KeyboardInterrupt, SystemExit):
+            _graceful_shutdown()
+    else:
+        _graceful_shutdown()
 
 
 # ─── 主流程 ───────────────────────────────────────────────────────────────────
@@ -339,7 +400,6 @@ def main():
                 return
 
         status_var.set("正在初始化界面...")
-        time.sleep(0.4)
         root.quit()   # ← 结束 tkinter mainloop，主线程继续向下执行
 
     threading.Thread(target=_run_in_bg, daemon=True).start()

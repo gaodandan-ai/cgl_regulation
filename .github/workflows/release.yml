@@ -6,10 +6,120 @@ on:
       - 'v*'
 
 jobs:
-  build:
+  quality:
+    name: Verify release candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CGL_DATABASE_PATH: data/deploy/cgl_regulation_public.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+      - name: Run tests and scientific integrity audit
+        run: |
+          python -m pytest -q
+          python scripts/analysis/validate_scientific_outputs.py --database data/deploy/cgl_regulation_public.db
+          node --check web/app.js
+          node --check web/lib/apiClient.js
+          node --check web/lib/dataLoader.js
+          node --check web/lib/exportUtils.js
+          node --check web/lib/evidenceScoring.js
+          node --check web/lib/networkNormalizer.js
+          node --check web/lib/queryNavigation.js
+          node --check web/lib/geneIdentifierIndex.js
+          node --check web/lib/networkRenderSession.js
+          node --check web/lib/networkInteractionBinder.js
+          node --check web/lib/networkStyles.js
+          node --check web/lib/networkGraph.js
+          node --check web/lib/networkPpiLoader.js
+          node tests/frontend_api_client.test.js
+          node tests/frontend_data_loader.test.js
+          node tests/frontend_export_utils.test.js
+          node tests/frontend_evidence_scoring.test.js
+          node tests/frontend_network_normalizer.test.js
+          node tests/frontend_query_navigation.test.js
+          node tests/frontend_gene_identifier_index.test.js
+          node tests/frontend_network_render_session.test.js
+          node tests/frontend_network_interaction_binder.test.js
+          node tests/frontend_network_styles.test.js
+          node tests/frontend_network_graph.test.js
+          node tests/frontend_network_ppi_loader.test.js
+
+  build-windows:
+    name: Build Windows Release
+    needs: quality
     runs-on: windows-latest
-    permissions:
-      contents: write
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip wheel setuptools
+          pip install -r requirements-desktop.txt
+          pip install pyinstaller pillow
+
+      - name: Build executable
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.VERSION }}
+          RELEASE_NOTES: ${{ github.event.head_commit.message }}
+        run: python scripts/build/build_app.py
+
+      - name: Install Inno Setup via Chocolatey
+        shell: powershell
+        run: |
+          choco install innosetup --no-progress -y --force
+          refreshenv
+
+      - name: Compile Installer
+        shell: powershell
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            $iscc = "C:\Program Files\Inno Setup 6\ISCC.exe"
+          }
+          & $iscc installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: |
+            dist/cgl_setup.exe
+            dist/cgl_regulation.exe
+
+  build-macos:
+    name: Build macOS Release
+    needs: quality
+    runs-on: macos-latest
     timeout-minutes: 60
 
     steps:
@@ -29,52 +139,60 @@ jobs:
         shell: bash
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-      - name: Install runtime dependencies (skip heavy offline tools)
+      - name: Install dependencies
         run: |
           pip install --upgrade pip wheel setuptools
-          pip install fastapi "uvicorn[standard]" pydantic httpx
-          pip install networkx pandas scikit-learn joblib pyvis matplotlib openpyxl
-          pip install depinfo sympy
-          pip install "pywebview>=4.4"
-          pip install cobra || echo "cobra install failed, continuing without it"
+          pip install -r requirements-desktop.txt
+          pip install pyobjc
           pip install pyinstaller pillow
 
-      - name: Build executable
+      - name: Build macOS App
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.VERSION }}
           RELEASE_NOTES: ${{ github.event.head_commit.message }}
-        run: python scripts/build_app.py
+        run: python scripts/build/build_app.py
 
-      - name: Install Inno Setup via Chocolatey
-        shell: powershell
+      - name: Create macOS Zip Package
         run: |
-          choco install innosetup --no-progress -y --force
-          refreshenv
+          cd dist
+          zip -r Cgl_Regulation_Explorer_macOS.zip ./*
+          cd ..
 
-      - name: Compile Installer
-        shell: powershell
-        run: |
-          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-          if (-not (Test-Path $iscc)) {
-            $iscc = "C:\Program Files\Inno Setup 6\ISCC.exe"
-          }
-          & $iscc installer.iss
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-binary
+          path: dist/Cgl_Regulation_Explorer_macOS.zip
 
-      - name: Verify build outputs
-        shell: powershell
-        run: |
-          $exe = "dist\cgl_regulation.exe"
-          $setup = "dist\cgl_setup.exe"
-          if (-not (Test-Path $exe)) { Write-Error "cgl_regulation.exe not found!"; exit 1 }
-          Write-Host "cgl_regulation.exe: $([math]::Round((Get-Item $exe).Length/1MB,1)) MB"
-          if (Test-Path $setup) {
-            Write-Host "cgl_setup.exe: $([math]::Round((Get-Item $setup).Length/1MB,1)) MB"
-          } else {
-            Write-Warning "cgl_setup.exe not found, will upload portable exe only"
-          }
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-      - name: Create Release and Upload Assets
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-binaries
+          path: dist-release/
+
+      - name: Download macOS Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-binary
+          path: dist-release/
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "Cgl Regulation Explorer v${{ steps.version.outputs.VERSION }}"
@@ -84,19 +202,22 @@ jobs:
 
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for full details.
 
-            ## Download
+            ## Downloads
 
-            | File | Description |
-            |------|-------------|
-            | `cgl_setup.exe` | **Recommended** — Windows installer (creates Start Menu & desktop shortcut options) |
-            | `cgl_regulation.exe` | Portable single-file executable (no installation needed) |
+            | Platform | File | Description |
+            |----------|------|-------------|
+            | **Windows** | `cgl_setup.exe` | **Recommended** — Windows installer (creates Start Menu & desktop shortcuts) |
+            | **Windows** | `cgl_regulation.exe` | Portable single-file executable (no installation required) |
+            | **macOS** | `Cgl_Regulation_Explorer_macOS.zip` | Native macOS package (unzip and run) |
 
-            ## How to Update
+            ## How to Install on macOS
 
-            Download and run the new installer. It will replace the previous version automatically.
+            1. Download and unzip `Cgl_Regulation_Explorer_macOS.zip`.
+            2. Run `./start_mac.sh` or launch the app.
           files: |
-            dist/cgl_setup.exe
-            dist/cgl_regulation.exe
+            dist-release/cgl_setup.exe
+            dist-release/cgl_regulation.exe
+            dist-release/Cgl_Regulation_Explorer_macOS.zip
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

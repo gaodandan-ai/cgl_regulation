@@ -2,15 +2,12 @@
 FROM python:3.11-slim AS deps
 
 WORKDIR /app
-COPY requirements.txt .
+COPY requirements-core.txt .
 
 # Install runtime dependencies (exclude dev/build-only packages)
 # equilibrator-api is only needed to rebuild thermo_dgr_data.json offline;
 # the pre-built JSON is already in the repo, so we skip it for the runtime image.
-RUN pip install --no-cache-dir \
-    pandas openpyxl networkx matplotlib pyvis \
-    scikit-learn joblib \
-    "cobra>=0.22.0" "fastapi>=0.95.0" "uvicorn>=0.20.0" "pydantic>=2.0"
+RUN pip install --no-cache-dir -r requirements-core.txt
 
 # ─── Stage 2: Runtime image ───────────────────────────────────────────────────
 FROM python:3.11-slim

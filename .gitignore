@@ -102,5 +102,7 @@ build/
 dist/
 *.spec
 !cgl_regulation.spec
+!scripts/build/
+!scripts/build/*.py
 
 .env*

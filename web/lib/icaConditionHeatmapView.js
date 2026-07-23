@@ -38,9 +38,12 @@ window.IcaConditionHeatmapView = {
                 const score = item.activity_score || 0;
                 const isPos = score >= 0;
                 const colorClass = isPos ? "bg-emerald-950/80 border-emerald-700/50 text-emerald-300" : "bg-sky-950/80 border-sky-700/50 text-sky-300";
+                const tfName = (item.linked_regulator || '').replace(/'/g, '');
 
                 html += `
-                    <div class="${colorClass} p-3 rounded-lg border flex items-center justify-between shadow-sm">
+                    <div class="${colorClass} p-3 rounded-lg border flex items-center justify-between shadow-sm cursor-pointer hover:ring-2 hover:ring-teal-400 transition-all"
+                         onclick="window.setActiveWorkflowEntry && window.setActiveWorkflowEntry('gene'); window.querySingleGene && window.querySingleGene('${tfName}');"
+                         title="Click to query ${tfName} in Gene Network Explorer">
                         <div>
                             <span class="font-bold block">${item.imodulon_name}</span>
                             <span class="text-[11px] opacity-80">${item.linked_regulator} (${item.category})</span>
@@ -60,8 +63,11 @@ window.IcaConditionHeatmapView = {
             `;
 
             overlaps.slice(0, 8).forEach(ov => {
+                const tf = (ov.tf_name || '').replace(/'/g, '');
                 html += `
-                    <div class="bg-slate-950 p-2 rounded border border-slate-800 flex items-center justify-between">
+                    <div class="bg-slate-950 p-2 rounded border border-slate-800 flex items-center justify-between cursor-pointer hover:border-teal-500 transition-all"
+                         onclick="window.setActiveWorkflowEntry && window.setActiveWorkflowEntry('gene'); window.querySingleGene && window.querySingleGene('${tf}');"
+                         title="Click to analyze TF ${tf}">
                         <span class="text-slate-300">${ov.imodulon_id} ➔ ${ov.tf_name}</span>
                         <span class="font-mono text-teal-400 font-bold">${(ov.f1_score * 100).toFixed(0)}%</span>
                     </div>

@@ -13,6 +13,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.db_manager import get_db_manager
+from backend.services.provenance import build_provenance
 
 
 LOGGER = logging.getLogger("cgl.public_api")
@@ -86,6 +87,12 @@ def configure_public_api(app: FastAPI) -> None:
                 "desktop_application": True,
             },
         }
+
+    @app.get("/api/provenance")
+    def provenance():
+        return build_provenance(
+            manager=get_db_manager(), root=ROOT, version=_version(), deployment="public"
+        )
 
     @app.get("/api/gene/coordinates/{gene_id}")
     def gene_coordinates(gene_id: str):
