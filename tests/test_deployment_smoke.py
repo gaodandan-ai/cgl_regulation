@@ -84,6 +84,7 @@ with TestClient(app) as client:
         path: client.get(path).status_code
         for path in (
             "/api/health",
+            "/api/provenance",
             "/api/condition-regulation/runs",
             "/api/intervention-targets?limit=1",
         )
@@ -100,4 +101,5 @@ print(json.dumps({"paths": paths, "statuses": statuses}))
     assert "/docs" not in paths
     assert "/openapi.json" not in paths
     assert "/api/condition-regulation/runs" in paths
+    assert "/api/provenance" in paths
     assert set(output["statuses"].values()) == {200}

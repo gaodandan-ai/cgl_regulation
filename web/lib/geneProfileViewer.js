@@ -71,18 +71,16 @@ window.GeneProfileViewer = {
                     </div>
                 </div>
 
-                <!-- Genomic Track Canvas -->
-                <div>
-                    <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
-                        <span class="font-semibold text-slate-300">Genomic Neighborhood Track (±20kb Window)</span>
-                        <span>${genes.length} neighboring genes</span>
-                    </div>
-                    <canvas id="genomicTrackCanvas" width="700" height="90" class="w-full bg-slate-950 rounded-lg border border-slate-800"></canvas>
-                </div>
+                <!-- 5-Track Interactive Genomic Track Browser -->
+                <div id="genomicTrack5Container" class="mt-3"></div>
             </div>
         `;
 
-        this.drawTrackCanvas(profile, genes);
+        if (window.GenomicTrackBrowser) {
+            window.GenomicTrackBrowser.render('genomicTrack5Container', profile.cg_locus || profile.cgl_locus);
+        } else {
+            this.drawTrackCanvas(profile, genes);
+        }
     },
 
     drawTrackCanvas(centerGene, genes) {

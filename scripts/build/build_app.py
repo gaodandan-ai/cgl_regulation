@@ -13,7 +13,7 @@ import os
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 def get_version():
@@ -44,7 +44,7 @@ def update_version_json(version: str):
     data = {
         "version": version,
         "release_date": datetime.date.today().isoformat(),
-        "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest",
+        "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest/download/cgl_regulation.exe",
         "changelog": os.environ.get("RELEASE_NOTES", "See GitHub release notes for details.")
     }
     with open(path, "w", encoding="utf-8") as f:

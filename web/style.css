@@ -5162,7 +5162,8 @@ tr.selected-row {
         font-size: 18px;
     }
 
-    .header-github-text {
+    .header-github-text,
+    .header-download-text {
         display: none;
     }
 

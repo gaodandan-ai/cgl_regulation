@@ -1,6 +1,6 @@
 import os
 import logging
-import cobra
+import threading
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +20,9 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "iCW773.xml")
 _cached_model = None
 _load_error = None
 _initialized = False
+_loading = False
+_model_condition = threading.Condition()
+_preload_thread = None
 
 def get_model_status():
     """
@@ -84,29 +87,36 @@ def load_model_if_needed():
     Load the model from disk if it hasn't been loaded already.
     Returns the model or raises an Exception if loading fails.
     """
-    global _cached_model, _load_error, _initialized
-    
-    if _initialized:
-        if _load_error:
-            raise Exception(_load_error)
-        return _cached_model
+    global _cached_model, _load_error, _initialized, _loading
 
-    _initialized = True
+    # Model loading can be started by the background warm-up thread while a
+    # simulation request arrives. Make the first load single-flight and let
+    # callers wait for that same result instead of parsing the SBML twice.
+    with _model_condition:
+        while _loading:
+            _model_condition.wait()
+        if _initialized:
+            if _load_error:
+                raise Exception(_load_error)
+            return _cached_model
+        _loading = True
     
-    if not os.path.exists(MODEL_PATH):
-        _load_error = f"Model file missing at backend/models/iCW773.xml"
-        logger.error(_load_error)
-        raise Exception(_load_error)
-        
     try:
+        if not os.path.exists(MODEL_PATH):
+            raise FileNotFoundError("Model file missing at backend/models/iCW773.xml")
+
+        # COBRApy is one of the heaviest imports in the desktop process. Keep it
+        # out of the critical startup path and import it in the warm-up thread.
+        import cobra
+
         logger.info(f"Loading SBML model from {MODEL_PATH}...")
-        _cached_model = cobra.io.read_sbml_model(MODEL_PATH)
+        loaded_model = cobra.io.read_sbml_model(MODEL_PATH)
         logger.info("Model loaded successfully!")
 
         # ── Apply thermodynamic directionality pruning ──────────────────────
         if _THERMO_AVAILABLE:
             logger.info("Applying thermodynamic directionality pruning...")
-            _cached_model, report = apply_thermodynamic_pruning(_cached_model)
+            loaded_model, report = apply_thermodynamic_pruning(loaded_model)
             logger.info(
                 f"Pruning: {report.get('n_pruned', 0)} reactions direction-locked "
                 f"(forward={report.get('n_forward_locked', 0)}, "
@@ -116,9 +126,42 @@ def load_model_if_needed():
         else:
             logger.info("Thermodynamic pruning skipped (thermo_pruner not available).")
 
-        _load_error = None
-        return _cached_model
+        with _model_condition:
+            _cached_model = loaded_model
+            _load_error = None
+            _initialized = True
+        return loaded_model
     except Exception as e:
-        _load_error = f"Failed to parse SBML model: {str(e)}"
-        logger.error(_load_error)
-        raise Exception(_load_error)
+        error = str(e) if isinstance(e, FileNotFoundError) else f"Failed to parse SBML model: {str(e)}"
+        with _model_condition:
+            _load_error = error
+            _initialized = True
+        logger.error(error)
+        raise Exception(error)
+    finally:
+        with _model_condition:
+            _loading = False
+            _model_condition.notify_all()
+
+
+def start_model_preload(delay_seconds=0.01):
+    """Warm the model cache without delaying API and desktop UI readiness."""
+    global _preload_thread
+    with _model_condition:
+        if _initialized or _loading or (_preload_thread and _preload_thread.is_alive()):
+            return _preload_thread
+        _preload_thread = threading.Timer(
+            delay_seconds,
+            _preload_model_safely,
+        )
+        _preload_thread.name = "metabolic-model-preload"
+        _preload_thread.daemon = True
+        _preload_thread.start()
+        return _preload_thread
+
+
+def _preload_model_safely():
+    try:
+        load_model_if_needed()
+    except Exception as exc:
+        logger.warning("Background model preload failed; requests will report the cached error: %s", exc)

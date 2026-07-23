@@ -48,11 +48,84 @@ window.abasyRoles = abasyRoles;
 let cogAnnotations = {};
 window.cogAnnotations = cogAnnotations;
 
+const {
+    parseConfidenceScore,
+    normalizeRegulationType,
+    confidenceFromEvidence,
+    confidenceFromMotif,
+    confidenceFromChip,
+    confidenceFromExpression,
+    combineConfidenceScores,
+    confidenceLevel,
+    roleLabelFromType,
+} = window.CglEvidenceScoring;
+
+const networkNormalizer = window.CglNetworkNormalizer.createNormalizer({
+    resolveLabel: (id, label) => getPrioritizedLabel(id, label),
+    getRfPrediction: (source, target) => getRfConfidencePrediction(source, target),
+});
+const { normalizeTfEdge } = networkNormalizer;
+
+const {
+    normalizeQueryList,
+    splitGeneQuery,
+    parseUrlState,
+    buildUrlState,
+} = window.CglQueryNavigation;
+const queryNavigationHistory = window.CglQueryNavigation.createHistory();
+const networkRenderSession = window.CglNetworkRenderSession.createSession();
+const networkInteractionBinder = window.CglNetworkInteractionBinder;
+const networkStyles = window.CglNetworkStyles;
+const networkGraph = window.CglNetworkGraph;
+const networkPpiLoader = window.CglNetworkPpiLoader;
+
+window.sendEngineeringAiCommand = async function(commandName) {
+    const geneId = (window.currentSelectedLocus || 'cg0350').trim();
+    const safeCommandName = escapeHtml(commandName);
+    const safeGeneId = escapeHtml(geneId);
+    const provider = document.getElementById('ai-provider-select')?.value || 'openai';
+    const apiKey = document.getElementById('ai-api-key-input')?.value || '';
+    const modelName = document.getElementById('ai-model-name-input')?.value || '';
+
+    const summaryBox = document.getElementById('ai-summary-output') || document.getElementById('gtb-inspector');
+    if (summaryBox) {
+        summaryBox.classList.remove('hidden');
+        summaryBox.innerHTML = `<div class="p-3 text-teal-400 text-xs font-mono"><i class="fa-solid fa-spinner fa-spin"></i> Executing AI Engineering Command <strong>/${safeCommandName}</strong> with GroundedOmics context for ${safeGeneId}...</div>`;
+    }
+
+    try {
+        const data = await window.CglApiClient.postJson('/api/ai/engineering_command', {
+            command: commandName,
+            gene: geneId,
+            provider: provider,
+            api_key: apiKey,
+            model_name: modelName
+        });
+
+        if (summaryBox) {
+            summaryBox.innerHTML = `
+                <div class="bg-slate-900 border border-teal-500/40 rounded-lg p-4 font-sans text-xs text-slate-200 space-y-2 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span class="font-bold text-teal-400">🤖 AI Engineering Assistant (/${safeCommandName})</span>
+                        <span class="text-[10px] bg-teal-950 text-teal-300 border border-teal-700/50 px-2 py-0.5 rounded font-mono">Grounded Omics Injected</span>
+                    </div>
+                    <div class="text-slate-300 whitespace-pre-wrap font-sans leading-relaxed text-xs">${escapeHtml(data.result || '')}</div>
+                </div>
+            `;
+        }
+    } catch (err) {
+        if (summaryBox) {
+            summaryBox.innerHTML = `<div class="p-3 text-rose-400 text-xs font-mono">Failed to execute AI Engineering Command: ${escapeHtml(err.message)}</div>`;
+        }
+    }
+};
+
 let nameToCg = {};
 
 let cgToProduct = {};
 
 let geneIndex = {}; // lowercase -> { locusTag, name, type }
+let geneIdentifierIndex = null;
 
 let geneToOperon = {}; // lower -> { operon, orientation, genes }
 
@@ -69,16 +142,6 @@ let currentSimulationMode = null;
 let currentSimulationRegulator = null;
 
 const DEFAULT_EXAMPLE_LOCUS = 'cg0350';
-
-
-
-// Query Navigation History Stacks
-
-let queryHistory = [];
-
-let queryForwardHistory = [];
-
-let isNavigatingHistory = false;
 
 
 
@@ -243,12 +306,9 @@ function _pushUrlState(state) {
     clearTimeout(_urlPushTimer);
     _urlPushTimer = setTimeout(() => {
         try {
-            const url = new URL(window.location.href);
-            if (state.workflow)           url.searchParams.set('workflow', state.workflow);
-            if (state.gene)               url.searchParams.set('gene', state.gene);
-            else if (state.workflow !== 'gene') url.searchParams.delete('gene');
-            if (url.href !== window.location.href) {
-                window.history.pushState({ workflow: state.workflow, gene: state.gene || null }, '', url.href);
+            const next = buildUrlState(window.location.href, state);
+            if (next.href !== window.location.href) {
+                window.history.pushState(next.state, '', next.href);
             }
         } catch (_) { /* non-critical */ }
     }, 80);
@@ -260,25 +320,23 @@ function _pushUrlState(state) {
  */
 function restoreStateFromUrl() {
     try {
-        const params   = new URLSearchParams(window.location.search);
-        const workflow = params.get('workflow') || 'gene';
-        const gene     = params.get('gene');
-
-        // Restore workflow without double-pushing
-        window._suppressUrlPush = true;
-        setActiveWorkflowEntry(workflow);
-        window._suppressUrlPush = false;
-
-        // Restore gene query
-        if (workflow === 'gene' && gene) {
-            const genes = gene.split(',').map(g => g.trim()).filter(Boolean);
-            if (genes.length === 1) {
-                querySingleGene(genes[0]);
-            } else if (genes.length > 1 && typeof queryMultipleGenes === 'function') {
-                queryMultipleGenes(genes);
-            }
-        }
+        _applyUrlState(parseUrlState(window.location.search));
     } catch (_) { /* non-critical */ }
+}
+
+function _applyUrlState(state) {
+    const workflow = state?.workflow || 'gene';
+    const genes = state?.genes || splitGeneQuery(state?.gene);
+    window._suppressUrlPush = true;
+    try {
+        setActiveWorkflowEntry(workflow);
+    } finally {
+        window._suppressUrlPush = false;
+    }
+    if (workflow === 'gene' && genes.length === 1) querySingleGene(genes[0]);
+    else if (workflow === 'gene' && genes.length > 1 && typeof queryMultipleGenes === 'function') {
+        queryMultipleGenes(genes);
+    }
 }
 
 /**
@@ -286,17 +344,10 @@ function restoreStateFromUrl() {
  */
 window.addEventListener('popstate', (event) => {
     try {
-        const st = event.state;
-        if (!st) return;
-        const workflow = st.workflow || 'gene';
-        window._suppressUrlPush = true;
-        setActiveWorkflowEntry(workflow);
-        window._suppressUrlPush = false;
-        if (workflow === 'gene' && st.gene) {
-            const genes = st.gene.split(',').map(g => g.trim()).filter(Boolean);
-            if (genes.length === 1) querySingleGene(genes[0]);
-            else if (genes.length > 1 && typeof queryMultipleGenes === 'function') queryMultipleGenes(genes);
-        }
+        const state = event.state
+            ? { ...event.state, genes: splitGeneQuery(event.state.gene) }
+            : parseUrlState(window.location.search);
+        _applyUrlState(state);
     } catch (_) { /* non-critical */ }
 });
 
@@ -397,35 +448,27 @@ function setLoadProgress(pct, label) {
 
 
 function updateStatus(message, type = 'loading') {
+    const statusEl = document.getElementById('data-status') || dataStatusEl;
+    if (!statusEl) return;
 
-    const dot = dataStatusEl.querySelector('.status-dot');
+    const dot = statusEl.querySelector('.status-dot');
+    const txt = statusEl.querySelector('.status-text');
 
-    const txt = dataStatusEl.querySelector('.status-text');
+    if (txt) txt.textContent = message;
 
-    
-
-    txt.textContent = message;
-
-    dot.className = 'status-dot';
-
-    
-
-    if (type === 'loading') {
-
-        dot.classList.add('pulsing');
-
-        dot.style.backgroundColor = '#eab308';
-
-    } else if (type === 'success') {
-
-        dot.style.backgroundColor = '#10b981';
-
-    } else {
-
-        dot.style.backgroundColor = '#ef4444';
-
+    if (dot) {
+        dot.className = 'status-dot';
+        if (type === 'loading') {
+            dot.classList.add('pulsing');
+            dot.style.backgroundColor = '#eab308';
+        } else if (type === 'success') {
+            dot.classList.remove('pulsing');
+            dot.style.backgroundColor = '#10b981';
+        } else {
+            dot.classList.remove('pulsing');
+            dot.style.backgroundColor = '#ef4444';
+        }
     }
-
 }
 
 
@@ -435,40 +478,38 @@ async function loadNetworkData() {
         setLoadProgress(5, 'Fetching database assets...');
         updateStatus('Loading database assets in parallel...', 'loading');
 
-        // Fetch all assets in parallel to optimize page load performance
-        const fetches = {
-            dlkcat: fetch('data/dlkcat_predicted_kcat.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
-            essential: fetch('/api/quality/essential').then(r => r.ok ? r.json() : {}).catch(() => ({})),
-            brenda: fetch('/api/quality/brenda').then(r => r.ok ? r.json() : {}).catch(() => ({})),
-            abasy: fetch('/api/quality/abasy').then(r => r.ok ? r.json() : {}).catch(() => ({})),
-            cog: fetch('/api/quality/cog').then(r => r.ok ? r.json() : {}).catch(() => ({})),
-            mapping: fetch(MAPPING_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
-            tf: fetch(REGULATIONS_URL).then(r => {
-                if (!r.ok) throw new Error('Unable to read regulations.csv. Please confirm the local server is running.');
-                return r.text();
-            }),
-            rna: fetch(RNA_REGULATIONS_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
-            operon: fetch(OPERONS_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
-            edgeConfidence: fetch(EDGE_CONFIDENCE_SCORES_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
-            tcs: fetch(TCS_SYSTEMS_URL).then(r => r.ok ? r.json() : []).catch(() => []),
-            sigma: fetch(SIGMA_ANNOTATIONS_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
-            imodulonWeights: fetch(IMODULON_WEIGHTS_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
-            imodulonByGene: fetch(IMODULON_BY_GENE_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
-            imodulonMetadata: fetch(IMODULON_METADATA_URL).then(r => r.ok ? r.json() : []).catch(() => []),
-            chipseq: fetch(CHIPSEQ_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
-            regprecise: fetch(REGPRECISE_URL).then(r => r.ok ? r.text() : '').catch(() => ''),
-            regprecisePwm: fetch(REGPRECISE_PWM_URL).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+        // Load independent assets concurrently. Optional failures retain explicit fallbacks.
+        const { values: results, failures } = await window.CglDataLoader.loadAssets({
+            dlkcat: { url: 'data/dlkcat_predicted_kcat.json', fallback: () => ({}) },
+            essential: { url: '/api/quality/essential', fallback: () => ({}) },
+            brenda: { url: '/api/quality/brenda', fallback: () => ({}) },
+            abasy: { url: '/api/quality/abasy', fallback: () => ({}) },
+            cog: { url: '/api/quality/cog', fallback: () => ({}) },
+            mapping: { url: MAPPING_URL, type: 'text', fallback: '' },
+            tf: {
+                url: REGULATIONS_URL,
+                type: 'text',
+                required: true,
+                errorMessage: 'Unable to read regulations.csv. Please confirm the local server is running.',
+            },
+            rna: { url: RNA_REGULATIONS_URL, type: 'text', fallback: '' },
+            operon: { url: OPERONS_URL, type: 'text', fallback: '' },
+            edgeConfidence: { url: EDGE_CONFIDENCE_SCORES_URL, type: 'text', fallback: '' },
+            tcs: { url: TCS_SYSTEMS_URL, fallback: () => [] },
+            sigma: { url: SIGMA_ANNOTATIONS_URL, fallback: () => ({}) },
+            imodulonWeights: { url: IMODULON_WEIGHTS_URL, fallback: () => ({}) },
+            imodulonByGene: { url: IMODULON_BY_GENE_URL, fallback: () => ({}) },
+            imodulonMetadata: { url: IMODULON_METADATA_URL, fallback: () => [] },
+            chipseq: { url: CHIPSEQ_URL, type: 'text', fallback: '' },
+            regprecise: { url: REGPRECISE_URL, type: 'text', fallback: '' },
+            regprecisePwm: { url: REGPRECISE_PWM_URL, fallback: () => ({}) },
             metabolic: (window.metabolicModelAdapter && typeof window.metabolicModelAdapter.loadMetabolicPathways === 'function')
-                ? window.metabolicModelAdapter.loadMetabolicPathways().catch(() => null)
-                : Promise.resolve(null)
-        };
-
-        const results = {};
-        const keys = Object.keys(fetches);
-        const resolved = await Promise.all(Object.values(fetches));
-        keys.forEach((key, i) => {
-            results[key] = resolved[i];
+                ? { load: () => window.metabolicModelAdapter.loadMetabolicPathways(), fallback: null }
+                : { load: () => Promise.resolve(null), fallback: null },
         });
+        failures.forEach(failure => console.warn(
+            `Optional data asset unavailable (${failure.key}): ${failure.message}`
+        ));
 
         // 1. DLKcat Predictions
         dlkcatPredictions = results.dlkcat;
@@ -660,14 +701,19 @@ async function loadEdgeConfidenceScores() {
     rfConfidenceByEdge = new Map();
 
     try {
-        const response = await fetch(EDGE_CONFIDENCE_SCORES_URL);
-        if (!response.ok) {
+        const { values, failures } = await window.CglDataLoader.loadAssets({
+            edgeConfidence: {
+                url: EDGE_CONFIDENCE_SCORES_URL,
+                type: 'text',
+                fallback: '',
+            },
+        });
+        if (failures.length || !values.edgeConfidence) {
             console.warn('RF edge confidence scores not found. Falling back to heuristic confidence scoring.');
             return;
         }
 
-        const text = await response.text();
-        edgeConfidenceScores = parseCSV(text);
+        edgeConfidenceScores = parseCSV(values.edgeConfidence);
         indexRfConfidenceScores(edgeConfidenceScores);
         console.log(`Loaded ${edgeConfidenceScores.length} RF edge confidence scores.`);
     } catch (err) {
@@ -682,12 +728,6 @@ function edgePairKey(source, target) {
     const tgt = cleanStr(target).toLowerCase();
     if (!src || !tgt) return '';
     return `${src}=>${tgt}`;
-}
-
-function parseConfidenceScore(value) {
-    const parsed = parseFloat(value);
-    if (Number.isNaN(parsed)) return null;
-    return Math.max(0, Math.min(1, parsed));
 }
 
 function addRfConfidenceIndexEntry(source, target, row) {
@@ -757,14 +797,17 @@ async function loadIModulonData() {
     iModulonByGene = {};
     iModulonMetadata = [];
     try {
-        const [wResp, bResp, mResp] = await Promise.all([
-            fetch(IMODULON_WEIGHTS_URL),
-            fetch(IMODULON_BY_GENE_URL),
-            fetch(IMODULON_METADATA_URL),
-        ]);
-        if (wResp.ok) iModulonWeights = await wResp.json();
-        if (bResp.ok) iModulonByGene = await bResp.json();
-        if (mResp.ok) iModulonMetadata = await mResp.json();
+        const { values, failures } = await window.CglDataLoader.loadAssets({
+            weights: { url: IMODULON_WEIGHTS_URL, fallback: () => ({}) },
+            byGene: { url: IMODULON_BY_GENE_URL, fallback: () => ({}) },
+            metadata: { url: IMODULON_METADATA_URL, fallback: () => [] },
+        });
+        iModulonWeights = values.weights;
+        iModulonByGene = values.byGene;
+        iModulonMetadata = values.metadata;
+        failures.forEach(failure => console.warn(
+            `Optional iModulon asset unavailable (${failure.key}): ${failure.message}`
+        ));
         const cnt = Object.keys(iModulonWeights).length;
         const geneCnt = Object.keys(iModulonByGene).length;
         console.log(`Loaded ${cnt} iModulons covering ${geneCnt} unique genes.`);
@@ -778,15 +821,12 @@ async function loadTcsData() {
     tcsByHK = {};
     tcsByRR = {};
     try {
-        const resp = await fetch(TCS_SYSTEMS_URL);
-        if (resp.ok) {
-            tcsSystemsData = await resp.json();
-            tcsSystemsData.forEach(tcs => {
-                if (tcs.hk_locus) tcsByHK[tcs.hk_locus.toLowerCase()] = tcs;
-                if (tcs.rr_locus) tcsByRR[tcs.rr_locus.toLowerCase()] = tcs;
-            });
-            console.log(`Loaded ${tcsSystemsData.length} TCS systems.`);
-        }
+        tcsSystemsData = await window.CglApiClient.getJson(TCS_SYSTEMS_URL);
+        tcsSystemsData.forEach(tcs => {
+            if (tcs.hk_locus) tcsByHK[tcs.hk_locus.toLowerCase()] = tcs;
+            if (tcs.rr_locus) tcsByRR[tcs.rr_locus.toLowerCase()] = tcs;
+        });
+        console.log(`Loaded ${tcsSystemsData.length} TCS systems.`);
     } catch (err) {
         console.warn('TCS data unavailable:', err.message);
     }
@@ -796,16 +836,13 @@ async function loadSigmaAnnotations() {
     sigmaAnnotations = {};
     sigmaByLocus = {};
     try {
-        const resp = await fetch(SIGMA_ANNOTATIONS_URL);
-        if (resp.ok) {
-            const data = await resp.json();
-            Object.entries(data).forEach(([key, ann]) => {
-                sigmaAnnotations[key.toLowerCase()] = ann;
-                if (ann.locus) sigmaByLocus[ann.locus.toLowerCase()] = ann;
-                if (ann.gene_name) sigmaAnnotations[ann.gene_name.toLowerCase()] = ann;
-            });
-            console.log(`Loaded ${Object.keys(data).length} sigma factor annotations.`);
-        }
+        const data = await window.CglApiClient.getJson(SIGMA_ANNOTATIONS_URL);
+        Object.entries(data).forEach(([key, ann]) => {
+            sigmaAnnotations[key.toLowerCase()] = ann;
+            if (ann.locus) sigmaByLocus[ann.locus.toLowerCase()] = ann;
+            if (ann.gene_name) sigmaAnnotations[ann.gene_name.toLowerCase()] = ann;
+        });
+        console.log(`Loaded ${Object.keys(data).length} sigma factor annotations.`);
     } catch (err) {
         console.warn('Sigma annotations unavailable:', err.message);
     }
@@ -832,96 +869,6 @@ function getTcsRole(locus) {
     if (tcsByHK[lower]) return { role: 'HK', tcs: tcsByHK[lower] };
     if (tcsByRR[lower]) return { role: 'RR', tcs: tcsByRR[lower] };
     return null;
-}
-
-function normalizeRegulationType(role, sourceType = 'TF-TG') {
-    const cleanRole = cleanStr(role).toUpperCase();
-    if (sourceType === 'sRNA-mRNA') return 'post_transcriptional_repression';
-    if (cleanRole === 'A') return 'activation';
-    if (cleanRole === 'R') return 'repression';
-    if (cleanRole === 'DUAL') return 'dual';
-    if (cleanRole === 'SIGMA') return 'sigma';
-    return 'unknown';
-}
-
-
-function confidenceFromEvidence(evidence) {
-    const text = cleanStr(evidence).toLowerCase();
-    if (text.includes('experimental') && text.includes('predicted')) return 0.78;
-    if (text.includes('experimental')) return 0.86;
-    if (text.includes('curated') || text.includes('literature')) return 0.74;
-    if (text.includes('predicted')) return 0.42;
-    return 0.32;
-}
-
-function confidenceFromMotif(bindingSite) {
-    const site = cleanStr(bindingSite);
-    if (!site) return 0;
-    const sites = site.split(';').map(s => s.trim()).filter(Boolean);
-    if (sites.length >= 2) return 0.78;
-    const longest = sites.reduce((max, s) => Math.max(max, s.length), 0);
-    return longest >= 10 ? 0.66 : 0.48;
-}
-
-function confidenceFromChip(row) {
-    const evidence = `${cleanStr(row.Evidence)} ${cleanStr(row.Source)} ${cleanStr(row.Method)} ${cleanStr(row.Assay)}`.toLowerCase();
-    if (evidence.includes('chip-exo')) return 0.95;
-    if (evidence.includes('chip-seq') || evidence.includes('chip_seq') || evidence.includes('chip')) return 0.9;
-    return 0;
-}
-
-function confidenceFromExpression(row, sourceType = 'TF-TG') {
-    if (sourceType === 'sRNA-mRNA') {
-        const p = parseFloat(row.copra_pvalue);
-        const fdr = parseFloat(row.copra_fdr);
-        const energy = parseFloat(row.energy);
-        let score = 0.35;
-        if (!Number.isNaN(p)) score += p <= 0.001 ? 0.25 : p <= 0.01 ? 0.18 : p <= 0.05 ? 0.1 : 0;
-        if (!Number.isNaN(fdr)) score += fdr <= 0.05 ? 0.2 : fdr <= 0.25 ? 0.12 : 0;
-        if (!Number.isNaN(energy)) score += energy <= -20 ? 0.15 : energy <= -12 ? 0.08 : 0;
-        return Math.min(0.9, score);
-    }
-
-    const corr = parseFloat(row.expression_correlation ?? row.Expression_correlation ?? row.correlation ?? row.Correlation);
-    if (!Number.isNaN(corr)) return Math.min(0.95, Math.abs(corr));
-    return 0;
-}
-
-function combineConfidenceScores(factors) {
-    const weights = {
-        motif: 0.25,
-        chip: 0.3,
-        expression: 0.2,
-        database: 0.25
-    };
-    let weighted = 0;
-    let usedWeight = 0;
-    Object.entries(weights).forEach(([key, weight]) => {
-        const val = factors[key] || 0;
-        if (val > 0) {
-            weighted += val * weight;
-            usedWeight += weight;
-        }
-    });
-    if (usedWeight === 0) return 0.25;
-    const normalized = weighted / usedWeight;
-    const multiEvidenceBonus = Object.values(factors).filter(v => v > 0.1).length >= 2 ? 0.06 : 0;
-    return Math.max(0.05, Math.min(0.99, normalized + multiEvidenceBonus));
-}
-
-function confidenceLevel(score) {
-    if (score >= 0.75) return 'high';
-    if (score >= 0.5) return 'medium';
-    return 'low';
-}
-
-function roleLabelFromType(role, regulationType) {
-    if (regulationType === 'activation' || role === 'A') return 'Activation (+)';
-    if (regulationType === 'repression' || role === 'R') return 'Repression (-)';
-    if (regulationType === 'post_transcriptional_repression' || role === 'sRNA') return 'sRNA / post-transcriptional repression';
-    if (regulationType === 'sigma') return 'Sigma factor';
-    if (regulationType === 'dual' || role === 'Dual') return 'Dual regulation';
-    return 'Unknown / pending';
 }
 
 /**
@@ -1529,158 +1476,10 @@ function getNodeMetaForDetails(locus) {
     };
 }
 
-function normalizeNodeRecord(id, label, type, aliases = {}) {
-    const cleanId = cleanStr(id);
-    if (!cleanId) return null;
-    return {
-        id: cleanId,
-        label: getPrioritizedLabel(cleanId, label || cleanId),
-        type,
-        aliases,
-        dataSource: 'local_csv'
-    };
-}
-
-function mergeNormalizedNode(node) {
-    if (!node) return;
-    const key = node.id.toLowerCase();
-    const existing = normalizedNodes[key];
-    if (!existing) {
-        normalizedNodes[key] = node;
-        return;
-    }
-    const typeRank = { query: 4, TF: 3, sRNA: 2, Target: 1 };
-    const chosenType = (typeRank[node.type] || 0) > (typeRank[existing.type] || 0) ? node.type : existing.type;
-    normalizedNodes[key] = {
-        ...existing,
-        ...node,
-        type: chosenType,
-        aliases: {
-            ...(existing.aliases || {}),
-            ...(node.aliases || {})
-        }
-    };
-}
-
-function normalizeTfEdge(row, index) {
-    const source = cleanStr(row.TF_locusTag);
-    const target = cleanStr(row.TG_locusTag);
-    if (!source || !target) return null;
-    const regulationType = normalizeRegulationType(row.Role, 'TF-TG');
-    const factors = {
-        motif: confidenceFromMotif(row.Binding_site),
-        chip: confidenceFromChip(row),
-        expression: confidenceFromExpression(row, 'TF-TG'),
-        database: confidenceFromEvidence(row.Evidence || row.Source)
-    };
-    const heuristicConfidenceScore = combineConfidenceScores(factors);
-    const rfPrediction = getRfConfidencePrediction(source, target);
-    const confidenceScore = rfPrediction?.predictedConfidence ?? heuristicConfidenceScore;
-    if (rfPrediction) {
-        factors.randomForest = rfPrediction.predictedConfidence;
-    }
-    const role = cleanStr(row.Role);
-    return {
-        id: `edge_${source}_${target}_${index}`,
-        source,
-        target,
-        sourceType: 'TF',
-        targetType: 'Target',
-        regulationType,
-        role,
-        legacyRole: role,
-        interactionClass: 'TF-TG',
-        confidenceScore,
-        heuristicConfidenceScore,
-        predictedConfidence: rfPrediction?.predictedConfidence ?? null,
-        confidenceModel: rfPrediction ? 'random_forest' : 'heuristic',
-        rfConfidenceRank: rfPrediction?.confidenceRank || '',
-        confidenceLevel: confidenceLevel(confidenceScore),
-        confidenceFactors: factors,
-        evidence: {
-            motifSequence: cleanStr(row.Binding_site),
-            databaseEvidence: cleanStr(row.Evidence),
-            source: cleanStr(row.Source),
-            pmid: cleanStr(row.PMID),
-            expressionCorrelation: cleanStr(row.expression_correlation ?? row.Expression_correlation ?? row.correlation ?? ''),
-            rfConfidenceRank: rfPrediction?.confidenceRank || '',
-            rfSampleType: rfPrediction?.sampleType || '',
-            rfLabel: rfPrediction?.label || '',
-            rfFeatureMissingCount: rfPrediction?.featureMissingCount || '',
-            rfExpressionFeatureAvailable: rfPrediction?.expressionFeatureAvailable || '',
-            rfTargetMappedReactionCount: rfPrediction?.targetMappedReactionCount || '',
-            rfTargetMappedPathwayCount: rfPrediction?.targetMappedPathwayCount || '',
-            rfTargetEnzymeConstrainedReactionCount: rfPrediction?.targetEnzymeConstrainedReactionCount || '',
-            rfTargetKcatMedian: rfPrediction?.targetKcatMedian || '',
-            rfTargetKcatMwMedian: rfPrediction?.targetKcatMwMedian || ''
-        },
-        original: row
-    };
-}
-
-function normalizeSrnaEdge(row, index) {
-    const source = cleanStr(row.srna);
-    const target = cleanStr(row.mrna);
-    if (!source || !target) return null;
-    const factors = {
-        motif: 0,
-        chip: 0,
-        expression: confidenceFromExpression(row, 'sRNA-mRNA'),
-        database: 0.45
-    };
-    const confidenceScore = combineConfidenceScores(factors);
-    return {
-        id: `edge_srna_${source}_${target}_${index}`,
-        source,
-        target,
-        sourceType: 'sRNA',
-        targetType: 'Target',
-        regulationType: 'post_transcriptional_repression',
-        role: 'sRNA',
-        legacyRole: 'sRNA',
-        interactionClass: 'sRNA-mRNA',
-        confidenceScore,
-        confidenceLevel: confidenceLevel(confidenceScore),
-        confidenceFactors: factors,
-        evidence: {
-            rank: row.rank,
-            energy: row.energy,
-            copraPvalue: row.copra_pvalue,
-            copraFdr: row.copra_fdr,
-            source: 'sRNA prediction'
-        },
-        original: row
-    };
-}
-
 function normalizeNetworkData() {
-    normalizedNodes = {};
-    normalizedEdges = [];
-
-    regulations.forEach((row, index) => {
-        const edge = normalizeTfEdge(row, index);
-        if (!edge) return;
-        normalizedEdges.push(edge);
-        const tfNode = normalizeNodeRecord(edge.source, cleanStr(row.TF_name), 'TF', {
-            altLocus: cleanStr(row.TF_altLocusTag)
-        });
-        const tgNode = normalizeNodeRecord(edge.target, cleanStr(row.TG_name), 'Target', {
-            altLocus: cleanStr(row.TG_altLocusTag),
-            operon: cleanStr(row.Operon)
-        });
-        mergeNormalizedNode(tfNode);
-        mergeNormalizedNode(tgNode);
-    });
-
-    rnaRegulations.forEach((row, index) => {
-        const edge = normalizeSrnaEdge(row, index);
-        if (!edge) return;
-        normalizedEdges.push(edge);
-        const srnaNode = normalizeNodeRecord(edge.source, edge.source, 'sRNA');
-        const targetNode = normalizeNodeRecord(edge.target, edge.target, 'Target');
-        mergeNormalizedNode(srnaNode);
-        mergeNormalizedNode(targetNode);
-    });
+    const normalized = networkNormalizer.normalizeNetwork(regulations, rnaRegulations);
+    normalizedNodes = normalized.nodes;
+    normalizedEdges = normalized.edges;
 
     console.log(`Normalized regulatory graph: ${Object.keys(normalizedNodes).length} nodes, ${normalizedEdges.length} edges.`);
 }
@@ -3188,253 +2987,21 @@ function initWorkflowEntrypoints() {
 
 function buildGeneIndex() {
 
-    geneIndex = {};
-
-    cglToCg = {};
-
-    cgToCgl = {};
-
-    nameToCg = {};
-
-    const seen = new Set();
-
-
-
-    // 1. Process gene mappings first
-
-    geneMapping.forEach(row => {
-
-        const cgl = cleanStr(row.cgl_locus);
-
-        const cg = cleanStr(row.cg_locus);
-
-        const name = cleanStr(row.gene_name);
-
-        const product = cleanStr(row.product);
-
-
-
-        if (cgl && cg) {
-            let normalizedCgl = cgl;
-            if (cgl.toLowerCase().startsWith('cgl')) {
-                normalizedCgl = 'cgl' + cgl.substring(3);
-            }
-            cglToCg[normalizedCgl.toLowerCase()] = cg;
-            cgToCgl[cg.toLowerCase()] = normalizedCgl;
-        }
-
-        if (name && name !== '--' && cg) {
-
-            nameToCg[name.toLowerCase()] = cg;
-
-        }
-
-        if (cg && product) {
-
-            cgToProduct[cg.toLowerCase()] = product;
-
-        }
-
-        if (cgl && product) {
-
-            cgToProduct[cgl.toLowerCase()] = product;
-
-        }
-
+    geneIdentifierIndex = window.CglGeneIdentifierIndex.createIndex({
+        geneMappings: geneMapping,
+        regulations,
+        rnaRegulations,
     });
-
-
-
-    // 2. Index TFs and targets from regulations
-
-    regulations.forEach(row => {
-
-        const tfTag = cleanStr(row.TF_locusTag);
-
-        const tfName = cleanStr(row.TF_name);
-
-        const tgTag = cleanStr(row.TG_locusTag);
-
-        const tgName = cleanStr(row.TG_name);
-
-
-
-        if (tfTag) {
-
-            const keyTag = tfTag.toLowerCase();
-
-            if (!seen.has(keyTag)) {
-
-                seen.add(keyTag);
-
-                geneIndex[keyTag] = { locusTag: tfTag, name: tfName || tfTag, type: 'TF' };
-
-            }
-
-            if (tfName) {
-
-                const keyName = tfName.toLowerCase();
-
-                if (!seen.has(keyName)) {
-
-                    seen.add(keyName);
-
-                    geneIndex[keyName] = { locusTag: tfTag, name: tfName, type: 'TF' };
-
-                }
-
-            }
-
-        }
-
-
-
-        if (tgTag) {
-
-            const keyTag = tgTag.toLowerCase();
-
-            if (!seen.has(keyTag)) {
-
-                seen.add(keyTag);
-
-                // Note: a target might also be a TF elsewhere, so only set to Target if not already recorded as TF
-
-                geneIndex[keyTag] = { locusTag: tgTag, name: tgName || tgTag, type: 'Target' };
-
-            }
-
-            if (tgName) {
-
-                const keyName = tgName.toLowerCase();
-
-                if (!seen.has(keyName)) {
-
-                    seen.add(keyName);
-
-                    geneIndex[keyName] = { locusTag: tgTag, name: tgName, type: 'Target' };
-
-                }
-
-            }
-
-        }
-
-    });
-
-
-
-    // 3. Index sRNAs from rna_regulations
-
-    rnaRegulations.forEach(row => {
-
-        const srna = cleanStr(row.srna);
-
-        const mrna = cleanStr(row.mrna);
-
-
-
-        if (srna) {
-
-            const keySrna = srna.toLowerCase();
-
-            if (!seen.has(keySrna)) {
-
-                seen.add(keySrna);
-
-                geneIndex[keySrna] = { locusTag: srna, name: srna, type: 'sRNA' };
-
-            }
-
-        }
-
-        if (mrna) {
-
-            const keyMrna = mrna.toLowerCase();
-
-            if (!seen.has(keyMrna)) {
-
-                seen.add(keyMrna);
-
-                // If mrna is not already indexed as TF/Target, mark as target gene
-
-                geneIndex[keyMrna] = { locusTag: mrna, name: mrna, type: 'Target' };
-
-            }
-
-        }
-
-    });
-
-
-
-    // Create unique sorted suggestions list
-
-    const uniqueSuggestions = {};
-
-    Object.keys(geneIndex).forEach(key => {
-
-        const item = geneIndex[key];
-
-        const val = item.locusTag;
-
-        // Map locus tags and names to uniqueness
-
-        uniqueSuggestions[val] = item;
-
-        if (item.name && item.name !== val) {
-
-            uniqueSuggestions[item.name] = item;
-
-        }
-
-
-
-        // Add corresponding cgl tag if mapped
-
-        const cglVal = cgToCgl[val.toLowerCase()];
-
-        if (cglVal) {
-
-            uniqueSuggestions[cglVal] = {
-
-                locusTag: val,
-
-                name: item.name,
-
-                type: item.type
-
-            };
-
-        }
-
-    });
-
-
-
-    searchSuggestions = Object.keys(uniqueSuggestions).map(name => {
-
-        const item = uniqueSuggestions[name];
-
-        const val = item.locusTag;
-
-        const cglVal = cgToCgl[val.toLowerCase()];
-
-        
-
-        return {
-
-            display: name,
-
-            locusTag: val,
-
-            type: item.type,
-
-            cgl: cglVal || ''
-
-        };
-
-    }).sort((a, b) => a.display.localeCompare(b.display));
-
+    geneIndex = geneIdentifierIndex.geneIndex;
+    cglToCg = geneIdentifierIndex.cglToCg;
+    cgToCgl = geneIdentifierIndex.cgToCgl;
+    nameToCg = geneIdentifierIndex.nameToCg;
+    cgToProduct = geneIdentifierIndex.cgToProduct;
+    searchSuggestions = geneIdentifierIndex.suggestions;
+    if (geneIdentifierIndex.conflicts.length) {
+        console.warn(`Identifier index retained ${geneIdentifierIndex.conflicts.length} alias conflicts for audit.`);
+    }
+    return geneIdentifierIndex;
 }
 
 
@@ -3461,17 +3028,9 @@ function showSuggestions(query) {
 
 
 
-    const q = query.toLowerCase();
-
-    const filtered = searchSuggestions.filter(item => 
-
-        item.display.toLowerCase().includes(q) || 
-
-        item.locusTag.toLowerCase().includes(q) ||
-
-        item.cgl.toLowerCase().includes(q)
-
-    ).slice(0, 15); // limit to 15 suggestions
+    const filtered = geneIdentifierIndex
+        ? geneIdentifierIndex.searchSuggestions(query, 15)
+        : []; // limit to 15 suggestions
 
 
 
@@ -3493,7 +3052,7 @@ function showSuggestions(query) {
 
         div.className = `suggestion-item type-${item.type.toLowerCase()}`;
 
-        
+
 
         let subText = '';
 
@@ -3501,13 +3060,13 @@ function showSuggestions(query) {
 
             if (item.cgl) {
 
-                subText = ` <span class="locus-tag">(${item.cgl})</span>`;
+                subText = ` <span class="locus-tag">(${escapeHtml(item.cgl)})</span>`;
 
             }
 
         } else {
 
-            subText = ` <span class="locus-tag">(${item.locusTag})</span>`;
+            subText = ` <span class="locus-tag">(${escapeHtml(item.locusTag)})</span>`;
 
         }
 
@@ -3515,9 +3074,9 @@ function showSuggestions(query) {
 
         div.innerHTML = `
 
-            <span><strong>${item.display}</strong>${subText}</span>
+            <span><strong>${escapeHtml(item.display)}</strong>${subText}</span>
 
-            <span class="item-type">${item.type}</span>
+            <span class="item-type">${escapeHtml(item.type)}</span>
 
         `;
 
@@ -3561,7 +3120,7 @@ function getQueryGenes() {
 
     const queries = [];
 
-    
+
 
     if (isBatchActive) {
 
@@ -3597,11 +3156,11 @@ function getQueryGenes() {
 
 
 
-function triggerSearchFromInputs() {
+async function triggerSearchFromInputs() {
 
     const queries = getQueryGenes();
 
-    
+
 
     if (queries.length === 0) {
 
@@ -3611,29 +3170,13 @@ function triggerSearchFromInputs() {
 
     }
 
-    
+
 
     const resolvedLoci = [];
 
     for (let q of queries) {
 
-        const lower = q.toLowerCase();
-
-        let targetLocus = lower;
-
-        if (cglToCg[lower]) {
-
-            targetLocus = cglToCg[lower].toLowerCase();
-
-        } else if (nameToCg[lower]) {
-
-            targetLocus = nameToCg[lower].toLowerCase();
-
-        }
-
-        
-
-        const match = geneIndex[targetLocus];
+        const match = geneIdentifierIndex?.resolve(q);
 
         if (match) {
 
@@ -3647,7 +3190,7 @@ function triggerSearchFromInputs() {
 
     }
 
-    
+
 
     if (resolvedLoci.length === 0) {
 
@@ -3657,11 +3200,12 @@ function triggerSearchFromInputs() {
 
     }
 
-    
 
-    renderNetwork(resolvedLoci);
 
-    
+    const rendered = await renderNetwork(resolvedLoci);
+    if (!rendered) return;
+
+
 
     // Auto-update right details panel: show details if single gene, collapse if multiple
 
@@ -3715,6 +3259,8 @@ function queryGene(locus) {
 
 async function renderNetwork(locusTag) {
 
+    const renderTransaction = networkRenderSession.begin(locusTag);
+
     // Reset simulation states first
 
     resetPerturbationSimulation();
@@ -3722,46 +3268,35 @@ async function renderNetwork(locusTag) {
 
 
     // 0. Fetch STRING PPI mappings if active
-    if (filterPpi && filterPpi.checked) {
-        const queryList = Array.isArray(locusTag) ? locusTag : [locusTag];
-        activePpiInteractions = [];
-        for (const locus of queryList) {
-            try {
-                const response = await fetch(`/api/analysis/string_ppi?gene=${encodeURIComponent(locus)}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.partners) {
-                        data.partners.forEach(partner => {
-                            activePpiInteractions.push({
-                                source: locus,
-                                target: partner.partner,
-                                score: partner.score,
-                                type: partner.type
-                            });
-                        });
-                    }
-                }
-            } catch (e) {
-                console.warn(`Failed to fetch STRING PPI for ${locus}:`, e);
-            }
-        }
-    } else {
+    try {
+        activePpiInteractions = await networkPpiLoader.loadQueryInteractions({
+            query: locusTag,
+            enabled: Boolean(filterPpi?.checked),
+            client: CglApiClient,
+            signal: renderTransaction.signal,
+            onWarning: (locus, error) => console.warn(`Failed to fetch STRING PPI for ${locus}:`, error),
+        });
+    } catch (error) {
+        if (renderTransaction.signal.aborted) return false;
+        console.warn('Failed to load STRING PPI interactions:', error);
         activePpiInteractions = [];
     }
 
 
 
+    if (!networkRenderSession.isActive(renderTransaction.id)) return false;
+
     // 1. Elements preparation
 
     const elements = buildElements(locusTag);
 
-    
+
 
     if (elements.nodes.length === 0) {
 
         alert("This gene has no visible regulatory relationships under the current filters.");
-
-        return;
+        networkRenderSession.fail(renderTransaction.id, 'empty-network');
+        return false;
 
     }
 
@@ -3804,631 +3339,63 @@ async function renderNetwork(locusTag) {
 
     // 4. Initialize Cytoscape
 
-    cy = cytoscape({
+    cy = networkGraph.createGraph({
+        cytoscapeImpl: cytoscape,
 
         container: document.getElementById('cy'),
 
         elements: elements,
 
-        style: [
+        styles: [
 
-            // Core node styling for Academic Light Theme
+            ...networkStyles.createBaseNodeStyles(),
 
-            {
+            ...networkStyles.createRnaSeqStyles({
+                colorForLog2FoldChange: getRnaSeqColor,
+                thresholdValue: (id, fallback) => document.getElementById(id)?.value ?? fallback,
+            }),
 
-                selector: 'node',
+            ...networkStyles.createBaseEdgeStyles(),
 
-                style: {
-
-                    'label': 'data(name)',
-
-                    'font-size': '11px',
-
-                    'color': '#0f172a', // Dark slate text
-
-                    'background-color': '#f5f5f5', // Default gray
-
-                    'text-valign': 'bottom',
-
-                    'text-margin-y': '6px',
-
-                    'width': '22px',
-
-                    'height': '22px',
-
-                    'border-width': '2px',
-
-                    'border-color': '#757575',
-
-                    'transition-property': 'background-color, line-color, target-arrow-color, width, height, border-width',
-
-                    'transition-duration': '0.2s'
-
-                }
-
-            },
-
-            {
-
-                selector: 'node[type="TF"]',
-
-                style: {
-
-                    'background-color': '#e3f2fd', // Soft blue
-
-                    'border-color': '#1976d2',     // Darker blue border
-
-                    'width': '26px',
-
-                    'height': '26px'
-
-                }
-
-            },
-
-            {
-
-                selector: 'node[type="sRNA"]',
-
-                style: {
-
-                    'background-color': '#f3e5f5', // Soft purple
-
-                    'border-color': '#8e24aa',     // Darker purple border
-
-                    'width': '26px',
-
-                    'height': '26px',
-
-                    'shape': 'hexagon'
-
-                }
-
-            },
-
-            {
-
-                selector: 'node[type="query"]',
-
-                style: {
-
-                    'background-color': '#ffe0b2', // Soft orange
-
-                    'border-color': '#f57c00',     // Darker orange border
-
-                    'width': '34px',
-
-                    'height': '34px',
-
-                    'border-width': '3px',
-
-                    'font-weight': 'bold',
-
-                    'font-size': '13px'
-
-                }
-
-            },
-
-            {
-
-                selector: 'node.shared-target',
-
-                style: {
-
-                    'background-color': '#e0f2f1', // Soft Teal/Mint background
-
-                    'border-color': '#00897b',     // Dark Teal border
-
-                    'border-width': '2.5px'
-
-                }
-
-            },
-
-            {
-
-                selector: 'node.rnaseq-node',
-
-                style: {
-
-                    'background-color': (node) => {
-
-                        const val = node.data('rnaseq_log2fc');
-
-                        return getRnaSeqColor(val);
-
-                    },
-
-                    'border-width': (node) => {
-
-                        const pval = node.data('rnaseq_pvalue');
-
-                        const pvalEl = document.getElementById('rnaseq-p-threshold');
-
-                        const pThresh = pvalEl ? parseFloat(pvalEl.value) : 0.05;
-
-                        return (pval !== undefined && pval <= pThresh) ? '3.5px' : '2px';
-
-                    },
-
-                    'border-color': (node) => {
-
-                        const pval = node.data('rnaseq_pvalue');
-
-                        const pvalEl = document.getElementById('rnaseq-p-threshold');
-
-                        const pThresh = pvalEl ? parseFloat(pvalEl.value) : 0.05;
-
-                        return (pval !== undefined && pval <= pThresh) ? '#0f172a' : '#94a3b8';
-
-                    },
-
-                    'width': (node) => {
-
-                        const log2fc = node.data('rnaseq_log2fc');
-
-                        const baseSize = node.data('type') === 'query' ? 34 : (['TF', 'sRNA'].includes(node.data('type')) ? 26 : 22);
-
-                        if (log2fc === undefined || isNaN(log2fc)) return baseSize;
-
-                        return baseSize + Math.min(16, Math.abs(log2fc) * 4);
-
-                    },
-
-                    'height': (node) => {
-
-                        const log2fc = node.data('rnaseq_log2fc');
-
-                        const baseSize = node.data('type') === 'query' ? 34 : (['TF', 'sRNA'].includes(node.data('type')) ? 26 : 22);
-
-                        if (log2fc === undefined || isNaN(log2fc)) return baseSize;
-
-                        return baseSize + Math.min(16, Math.abs(log2fc) * 4);
-
-                    },
-
-                    'shadow-blur': (node) => {
-
-                        const pval = node.data('rnaseq_pvalue');
-
-                        const log2fc = node.data('rnaseq_log2fc');
-
-                        const pvalEl = document.getElementById('rnaseq-p-threshold');
-
-                        const lfcEl = document.getElementById('rnaseq-lfc-threshold');
-
-                        const pThresh = pvalEl ? parseFloat(pvalEl.value) : 0.05;
-
-                        const lfcThresh = lfcEl ? parseFloat(lfcEl.value) : 1.0;
-
-                        return (pval !== undefined && pval <= pThresh && Math.abs(log2fc) >= lfcThresh) ? '12px' : '0px';
-
-                    },
-
-                    'shadow-color': (node) => {
-
-                        const log2fc = node.data('rnaseq_log2fc');
-
-                        if (log2fc === undefined) return 'transparent';
-
-                        return log2fc > 0 ? '#ef4444' : '#2563eb';
-
-                    },
-
-                    'shadow-opacity': 0.85,
-
-                    'shadow-offset-x': '0px',
-
-                    'shadow-offset-y': '0px'
-
-                }
-
-            },
-
-            // Edge styling
-
-            {
-
-                selector: 'edge',
-
-                style: {
-
-                    'width': (edge) => 1.2 + ((edge.data('confidenceScore') || 0.25) * 3.2),
-
-                    'line-color': '#e65100', // Default dark orange
-
-                    'target-arrow-color': '#e65100',
-
-                    'target-arrow-shape': 'triangle',
-
-                    'curve-style': 'bezier',
-
-                    'arrow-scale': 1.1,
-
-                    'opacity': (edge) => 0.35 + ((edge.data('confidenceScore') || 0.25) * 0.6),
-
-                    'transition-property': 'line-color, target-arrow-color, opacity, width',
-
-                    'transition-duration': '0.2s'
-
-                }
-
-            },
-
-            {
-                selector: 'edge[regulationType="ppi"]',
-                style: {
-                    'line-color': '#10b981',
-                    'line-style': 'dashed',
-                    'line-dash-pattern': [10, 5],   // long dash — — — vs. low-confidence dots ···
-                    'target-arrow-shape': 'none',
-                    'width': (edge) => 2 + (((edge.data('score') || 700) - 700) / 300) * 2,
-                    'opacity': 0.85,
-                    'curve-style': 'bezier'
-                }
-            },
-
-            {
-                selector: 'edge[regulationType="activation"]',
-                style: {
-                    'line-color': '#2e7d32',
-                    'target-arrow-color': '#2e7d32',
-                    'target-arrow-shape': 'triangle'
-                }
-            },
-
-            {
-
-                selector: 'edge[role="A"]', // Activation
-
-                style: {
-
-                    'line-color': '#2e7d32', // Academic Green
-
-                    'target-arrow-color': '#2e7d32'
-
-                }
-
-            },
-
-            {
-                selector: 'edge[regulationType="repression"]',
-                style: {
-                    'line-color': '#d32f2f',
-                    'target-arrow-color': '#d32f2f',
-                    'target-arrow-shape': 'tee'
-                }
-            },
-
-            {
-
-                selector: 'edge[role="R"]', // Repression
-
-                style: {
-
-                    'line-color': '#d32f2f', // Academic Red
-
-                    'target-arrow-color': '#d32f2f',
-
-                    'target-arrow-shape': 'tee'
-
-                }
-
-            },
-
-            {
-                selector: 'edge[regulationType="dual"], edge[regulationType="sigma"], edge[regulationType="unknown"]',
-                style: {
-                    'line-color': '#e65100',
-                    'target-arrow-color': '#e65100',
-                    'target-arrow-shape': 'triangle'
-                }
-            },
-
-            {
-
-                selector: 'edge[role="Dual"]',
-
-                style: {
-
-                    'line-color': '#e65100',
-
-                    'target-arrow-color': '#e65100'
-
-                }
-
-            },
-
-            {
-                selector: 'edge[regulationType="post_transcriptional_repression"]',
-                style: {
-                    'line-color': '#7b1fa2',
-                    'target-arrow-color': '#7b1fa2',
-                    'line-style': 'dashed',
-                    'target-arrow-shape': 'triangle-tee'
-                }
-            },
-
-            {
-
-                selector: 'edge[role="sRNA"]', // sRNA-mRNA prediction
-
-                style: {
-
-                    'line-color': '#7b1fa2', // Academic Purple
-
-                    'target-arrow-color': '#7b1fa2',
-
-                    'line-style': 'dashed',
-
-                    'target-arrow-shape': 'triangle-tee'
-
-                }
-
-            },
-
-            {
-                selector: 'edge.confidence-high',
-                style: {
-                    'line-style': 'solid'
-                }
-            },
-
-            {
-                selector: 'edge.confidence-medium',
-                style: {
-                    'line-style': 'solid'
-                }
-            },
-
-            {
-                selector: 'edge.confidence-low',
-                style: {
-                    'line-style': 'dotted',
-                    'opacity': 0.42
-                }
-            },
-
-            // Interactive dimming styles
-
-            {
-
-                selector: '.dimmed',
-
-                style: {
-
-                    'opacity': 0.15
-
-                }
-
-            },
-
-            {
-
-                selector: '.rnaseq-hidden',
-
-                style: {
-
-                    'display': 'none'
-
-                }
-
-            },
-
-            {
-
-                selector: 'node.highlighted',
-
-                style: {
-
-                    'border-width': '3px',
-
-                    'border-color': '#0f172a', // Dark slate border when highlighted
-
-                    'width': '38px',
-
-                    'height': '38px'
-
-                }
-
-            },
-
-            {
-
-                selector: 'edge.highlighted',
-
-                style: {
-
-                    'width': 3.5,
-
-                    'opacity': 1.0
-
-                }
-
-            },
-
-            {
-
-                selector: 'node.sim-up',
-
-                style: {
-
-                    'border-color': '#2e7d32',
-
-                    'border-width': '4px',
-
-                    'background-color': '#e8f5e9',
-
-                    'shadow-blur': '10px',
-
-                    'shadow-color': '#2e7d32',
-
-                    'shadow-opacity': 0.8
-
-                }
-
-            },
-
-            {
-
-                selector: 'node.sim-down',
-
-                style: {
-
-                    'border-color': '#d32f2f',
-
-                    'border-width': '4px',
-
-                    'background-color': '#ffebee',
-
-                    'shadow-blur': '10px',
-
-                    'shadow-color': '#d32f2f',
-
-                    'shadow-opacity': 0.8
-
-                }
-
-            },
-
-            {
-
-                selector: 'node.sim-dual',
-
-                style: {
-
-                    'border-color': '#e65100',
-
-                    'border-width': '4px',
-
-                    'background-color': '#fff3e0',
-
-                    'shadow-blur': '10px',
-
-                    'shadow-color': '#e65100',
-
-                    'shadow-opacity': 0.8
-
-                }
-
-            }
+            ...networkStyles.createRegulationEdgeStyles(),
+            ...networkStyles.createInteractionStateStyles(),
 
         ],
 
-        layout: {
-
-            name: layoutSelect.value,
-
-            animate: true,
-
-            animationDuration: 400
-
-        }
-
+        layoutName: layoutSelect.value,
     });
-
-
-
-    // Add shared-target class to Target nodes with in-degree > 1 in the rendered graph
-
-    cy.nodes('[type="Target"]').forEach(node => {
-
-        if (node.indegree(false) > 1) {
-
-            node.addClass('shared-target');
-
-        }
-
-    });
+    const renderedCy = cy;
+    networkInteractionBinder.bindLevelOfDetail(renderedCy);
+    networkInteractionBinder.markSharedTargets(renderedCy);
 
     // 4.5 Fetch and overlay cross-layer PPI edges between any visible nodes
-    if (filterPpi && filterPpi.checked) {
-        const visibleNodes = cy.nodes().map(n => n.id());
-        if (visibleNodes.length > 1) {
-            try {
-                const response = await fetch(`/api/analysis/network_ppi_edges?genes=${encodeURIComponent(visibleNodes.join(','))}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    const edgesToAdd = [];
-                    data.edges.forEach(e => {
-                        const edgeId = `ppi-cross-${e.source}-${e.target}`;
-                        if (!cy.getElementById(edgeId).length && !cy.getElementById(`ppi-cross-${e.target}-${e.source}`).length) {
-                            edgesToAdd.push({
-                                group: 'edges',
-                                data: {
-                                    id: edgeId,
-                                    source: e.source,
-                                    target: e.target,
-                                    role: 'protein-protein interaction',
-                                    type: 'PPI',
-                                    regulationType: 'ppi',
-                                    score: e.score,
-                                    schemaVersion: 'unified-v1'
-                                }
-                            });
-                        }
-                    });
-                    if (edgesToAdd.length > 0) {
-                        cy.add(edgesToAdd);
-                    }
-                }
-            } catch (err) {
-                console.warn("Failed to load cross-layer PPI edges:", err);
+    if (filterPpi?.checked) {
+        try {
+            const ppiEdges = await networkPpiLoader.loadVisibleEdges({
+                graph: renderedCy,
+                enabled: true,
+                client: CglApiClient,
+                signal: renderTransaction.signal,
+            });
+            if (networkRenderSession.isActive(renderTransaction.id) && cy === renderedCy) {
+                networkGraph.addPpiEdges(renderedCy, ppiEdges);
             }
+        } catch (err) {
+            if (renderTransaction.signal.aborted) return false;
+            console.warn("Failed to load cross-layer PPI edges:", err);
         }
     }
+
+    if (!networkRenderSession.isActive(renderTransaction.id) || cy !== renderedCy) return false;
 
 
 
     // 5. Interaction Event Listeners
-
-    let lastTapNode = null;
-
-    let lastTapTimeout = null;
-
-    cy.on('tap', 'node', (evt) => {
-
-        const node = evt.target;
-
-        const now = new Date().getTime();
-
-        
-
-        highlightSubnet(node);
-
-        showNodeDetails(node.id());
-
-        
-
-        if (lastTapNode === node && (now - lastTapTimeout < 350)) {
-
-            // Double tap / double click: load this node's regulatory network
-
-            const locus = node.id();
-
-            querySingleGene(locus);
-
-        } else {
-
-            lastTapNode = node;
-
-            lastTapTimeout = now;
-
-        }
-
-    });
-
-
-
-    cy.on('tap', (evt) => {
-
-        if (evt.target === cy) {
-
-            toggleRightSidebar(false);
-
-        }
-
+    networkInteractionBinder.bindInteractions(renderedCy, {
+        highlightSubnet,
+        showNodeDetails,
+        querySingleGene,
+        toggleRightSidebar,
     });
 
 
@@ -4447,23 +3414,22 @@ async function renderNetwork(locusTag) {
 
     renderGlobalMetabolicImpactRanking();
 
+    networkRenderSession.complete(renderTransaction.id, {
+        nodes: renderedCy.nodes().length,
+        edges: renderedCy.edges().length,
+    });
+    return true;
+
 }
 
 
 
 function getPrioritizedLabel(locusTag, commonName) {
-
+    if (geneIdentifierIndex) {
+        return geneIdentifierIndex.getPrioritizedLabel(locusTag, commonName);
+    }
     if (!locusTag) return commonName || '';
-
-    const lower = locusTag.toLowerCase();
-
-    const cgl = cgToCgl[lower];
-
-    if (cgl) return cgl;
-
-    if (commonName && commonName !== locusTag && commonName !== '--') return commonName;
-
-    return locusTag;
+    return commonName && commonName !== locusTag && commonName !== '--' ? commonName : locusTag;
 
 }
 
@@ -10758,42 +9724,8 @@ function initBatchInputCounter() {
 
 
 function pushQueryToHistory(locusTags) {
-
-    if (isNavigatingHistory) return;
-
-    const currentList = normalizeQueryList(currentQueryGene);
-    const nextList = normalizeQueryList(locusTags);
-
-    
-
-    if (currentList.length > 0) {
-
-        const currStr = JSON.stringify(currentList.map(l => String(l).toLowerCase()).sort());
-
-        const nextStr = JSON.stringify(nextList.map(l => String(l).toLowerCase()).sort());
-
-        
-
-        if (currStr !== nextStr) {
-
-            queryHistory.push(currentList);
-
-            queryForwardHistory = []; // clear forward
-
-        }
-
-    }
-
+    queryNavigationHistory.record(currentQueryGene, locusTags);
     updateHistoryButtons();
-
-}
-
-function normalizeQueryList(value) {
-
-    if (!value) return [];
-
-    return Array.isArray(value) ? value : [value];
-
 }
 
 
@@ -10812,7 +9744,8 @@ function updateHistoryButtons() {
 
 
 
-    if (queryHistory.length > 0 || queryForwardHistory.length > 0) {
+    const historyState = queryNavigationHistory.snapshot();
+    if (historyState.canBack || historyState.canForward) {
 
         historyContainer.classList.remove('hidden');
 
@@ -10824,9 +9757,9 @@ function updateHistoryButtons() {
 
 
 
-    backBtn.disabled = queryHistory.length === 0;
+    backBtn.disabled = !historyState.canBack;
 
-    forwardBtn.disabled = queryForwardHistory.length === 0;
+    forwardBtn.disabled = !historyState.canForward;
 
 }
 
@@ -10898,86 +9831,19 @@ function syncInputsWithQuery(queries) {
 
 
 
-function navigateHistory(direction) {
-
-    if (direction === 'back') {
-
-        if (queryHistory.length === 0) return;
-
-        const prev = queryHistory.pop();
-
-        const currentList = normalizeQueryList(currentQueryGene);
-
-        if (currentList.length > 0) {
-
-            queryForwardHistory.push(currentList);
-
-        }
-
-        
-
-        isNavigatingHistory = true;
-
-        syncInputsWithQuery(prev);
-
-        renderNetwork(prev);
-
-        
-
-        if (prev.length === 1) {
-
-            showNodeDetails(prev[0]);
-
-        } else {
-
-            toggleRightSidebar(false);
-
-        }
-
-        isNavigatingHistory = false;
-
-        
-
-    } else if (direction === 'forward') {
-
-        if (queryForwardHistory.length === 0) return;
-
-        const next = queryForwardHistory.pop();
-
-        const currentList = normalizeQueryList(currentQueryGene);
-
-        if (currentList.length > 0) {
-
-            queryHistory.push(currentList);
-
-        }
-
-        
-
-        isNavigatingHistory = true;
-
-        syncInputsWithQuery(next);
-
-        renderNetwork(next);
-
-        
-
-        if (next.length === 1) {
-
-            showNodeDetails(next[0]);
-
-        } else {
-
-            toggleRightSidebar(false);
-
-        }
-
-        isNavigatingHistory = false;
-
+async function navigateHistory(direction) {
+    const target = queryNavigationHistory.go(direction, currentQueryGene);
+    if (!target) return;
+    queryNavigationHistory.suspend();
+    try {
+        syncInputsWithQuery(target);
+        await renderNetwork(target);
+        if (target.length === 1) showNodeDetails(target[0]);
+        else toggleRightSidebar(false);
+    } finally {
+        queryNavigationHistory.resume();
+        updateHistoryButtons();
     }
-
-    updateHistoryButtons();
-
 }
 
 
@@ -12081,8 +10947,7 @@ function loadMotifAndBindingSites(tfLocus) {
             return res.json();
         })
         .then(data => {
-            const detailLocusTag = document.getElementById('detail-locus-tag');
-            if (!detailLocusTag || detailLocusTag.textContent !== tfLocus) return;
+            if (currentTfLocus !== tfLocus) return;
 
             const errMsg = data.error || data.detail;
             if (errMsg) {
@@ -12093,14 +10958,18 @@ function loadMotifAndBindingSites(tfLocus) {
                 return;
             }
             
+            const sourceText = data.source || 'PRODORIC (Local DB)';
+            const consensusText = data.consensus || '-';
+            const nsitesText = data.nsites || 0;
+
             if (data.pwm) {
                 currentTfPwm = data.pwm;
             } else {
                 currentTfPwm = null;
             }
 
-            if (data.consensus && consensusLabel) {
-                consensusLabel.textContent = data.consensus;
+            if (consensusLabel) {
+                consensusLabel.textContent = consensusText;
             }
 
             if (logoCanvas && data.pwm) {
@@ -12126,36 +10995,35 @@ function loadMotifAndBindingSites(tfLocus) {
             })
                 .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
                 .then(domainData => {
-                    if (detailLocusTag.textContent !== tfLocus) return;
+                    if (currentTfLocus !== tfLocus) return;
                     if (proteinDomainResult) {
                         let text = '';
                         if (domainData.error) {
-                            text = `<div style="color: var(--text-secondary); margin-bottom: 4px;">Prediction source: ${data.source} (sites: ${data.nsites})</div>`;
-                            text += `<div style="font-weight: 500; margin-bottom: 4px;">Consensus: <span style="font-family: monospace; font-weight: 600; color: #7c3aed;">${data.consensus}</span></div>`;
-                            text += `<div style="color: var(--text-muted); font-size: 10px;">Configure an API key in the left panel for detailed AI domain analysis.</div>`;
+                            text = `<div style="color: var(--text-secondary); margin-bottom: 4px;">Prediction source: ${sourceText} (sites: ${nsitesText})</div>`;
+                            text += `<div style="font-weight: 500; margin-bottom: 4px;">Consensus: <span style="font-family: monospace; font-weight: 600; color: #7c3aed;">${consensusText}</span></div>`;
+                            text += `<div style="color: var(--text-muted); font-size: 10px;">${domainData.error}</div>`;
                         } else {
                             text = `<div style="color: var(--text-secondary); margin-bottom: 6px; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px;">`;
-                            text += `Prediction source: <strong>${data.source}</strong> (sites: ${data.nsites})<br/>`;
-                            text += `Consensus Sequence: <strong style="font-family: monospace; color: #7c3aed; font-size:12px;">${data.consensus}</strong>`;
+                            text += `Prediction source: <strong>${sourceText}</strong> (sites: ${nsitesText})<br/>`;
+                            text += `Consensus Sequence: <strong style="font-family: monospace; color: #7c3aed; font-size:12px;">${consensusText}</strong>`;
                             text += `</div>`;
-                            text += parseMarkdownToHtml(domainData.summary);
+                            text += parseMarkdownToHtml(domainData.summary || 'Structural domain information retrieved.');
                         }
                         proteinDomainResult.innerHTML = text;
                     }
                 })
                 .catch(err => {
                     console.error('Error fetching protein domain:', err);
-                    if (proteinDomainResult) {
-                        proteinDomainResult.innerHTML = `<div style="color: var(--text-secondary);">Prediction source: ${data.source} (sites: ${data.nsites})</div>` +
-                            `<div style="font-weight: 500;">Consensus: <span style="font-family: monospace; font-weight: 600; color: #7c3aed;">${data.consensus}</span></div>`;
+                    if (proteinDomainResult && currentTfLocus === tfLocus) {
+                        proteinDomainResult.innerHTML = `<div style="color: var(--text-secondary);">Prediction source: ${sourceText} (sites: ${nsitesText})</div>` +
+                            `<div style="font-weight: 500;">Consensus: <span style="font-family: monospace; font-weight: 600; color: #7c3aed;">${consensusText}</span></div>`;
                     }
                 });
         })
         .catch(err => {
             console.error('Error predicting motif:', err);
-            const detailLocusTag = document.getElementById('detail-locus-tag');
-            if (proteinDomainResult && detailLocusTag && detailLocusTag.textContent === tfLocus) {
-                proteinDomainResult.innerHTML = `<span style="color: var(--color-repression);">Binding motif prediction failed: ${err.message}</span>`;
+            if (proteinDomainResult && currentTfLocus === tfLocus) {
+                proteinDomainResult.innerHTML = `<span style="color: var(--text-secondary); font-size:11px;"><i class="fa-solid fa-circle-info"></i> No PWM motif matrix available for ${tfLocus}.</span>`;
             }
         });
 
@@ -13353,6 +12221,7 @@ function initAdvancedFeatures() {
             
             // Reset UI lists and query states
             currentQueryGene = null;
+            networkRenderSession.reset();
             clearAllInputs();
             
             // Hide the details sidebar if open
@@ -13801,13 +12670,11 @@ function exportQualityReportJSON() {
     if (window.ppiQualityStats) {
         report.stringPpiNetwork = window.ppiQualityStats;
     }
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cgl_regulation_quality_report_${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    _downloadBlob(
+        JSON.stringify(report, null, 2),
+        `cgl_regulation_quality_report_${new Date().toISOString().slice(0, 10)}.json`,
+        'application/json'
+    );
 }
 
 function exportQualityReportCSV() {
@@ -13878,18 +12745,11 @@ function exportQualityReportCSV() {
         );
     }
     
-    const csvContent = rows.map(row => row.map(cell => {
-        const cellStr = cell === null || cell === undefined ? '' : String(cell);
-        return `"${cellStr.replace(/"/g, '""')}"`;
-    }).join(',')).join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cgl_regulation_quality_metrics_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const csvContent = window.CglExportUtils.toCsv(rows, { alwaysQuote: true });
+    _csvDownload(
+        csvContent,
+        `cgl_regulation_quality_metrics_${new Date().toISOString().slice(0, 10)}.csv`
+    );
 }
 
 
@@ -13900,14 +12760,7 @@ function exportQualityReportCSV() {
 // ==========================================================================
 
 function _downloadBlob(content, filename, mime) {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+    window.CglExportUtils.download(content, filename, mime);
 }
 
 function exportNetworkJSON() {
@@ -13939,17 +12792,13 @@ function exportNetworkCSV() {
     const keys = new Set(['source', 'target']);
     edges.forEach(e => Object.keys(e.data()).forEach(k => keys.add(k)));
     const headers = [...keys];
-    const rows = [headers.join(',')];
+    const rows = [headers];
     edges.forEach(e => {
         const d = { source: e.source().id(), target: e.target().id(), ...e.data() };
-        rows.push(headers.map(h => {
-            const v = d[h] ?? '';
-            const s = String(v);
-            return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
-        }).join(','));
+        rows.push(headers.map(h => d[h] ?? ''));
     });
     const gene = (currentQueryGene || 'network').replace(/[^a-z0-9_-]/gi, '_');
-    _downloadBlob(rows.join('\n'), `cgl_edges_${gene}.csv`, 'text/csv');
+    _downloadBlob(window.CglExportUtils.toCsv(rows), `cgl_edges_${gene}.csv`, 'text/csv');
     showToast('Export', `Edge list exported as CSV (${edges.length} edges)`, 'success', 3000);
 }
 
@@ -13974,11 +12823,7 @@ function exportNetworkPNG() {
 
 /** Generic helper: trigger a UTF-8 BOM CSV download */
 function _csvDownload(csv, filename) {
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
+    window.CglExportUtils.download(csv, filename, 'text/csv;charset=utf-8;', { bom: true });
 }
 
 /** Extract text rows from a <tbody> element */
@@ -14456,6 +13301,12 @@ function renderIModulonNetwork() {
         container: container,
         elements: elements,
         style: [
+            {
+                selector: 'node.lod-hide-label',
+                style: {
+                    'label': ''
+                }
+            },
             {
                 selector: 'node',
                 style: {
@@ -16133,9 +14984,7 @@ async function loadPrecomputedCentrality() {
     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading centrality data…</td></tr>`;
 
     try {
-        const resp = await fetch('/api/network/centrality?limit=50&tfs_only=true');
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
+        const data = await window.CglApiClient.getJson('/api/network/centrality?limit=50&tfs_only=true');
         _centralityLoaded = true;
 
         const tfs = data.top_tfs || [];
@@ -16217,9 +15066,7 @@ async function fetchThermoContext(locus) {
     if (!locus) return null;
     if (_thermoContextCache.has(locus)) return _thermoContextCache.get(locus);
     try {
-        const r = await fetch(`/api/thermo/gene_context?gene=${encodeURIComponent(locus)}`);
-        if (!r.ok) return null;
-        const data = await r.json();
+        const data = await window.CglApiClient.getJson(`/api/thermo/gene_context?gene=${encodeURIComponent(locus)}`);
         _thermoContextCache.set(locus, data);
         return data;
     } catch (e) {

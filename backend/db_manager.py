@@ -382,6 +382,78 @@ class CglDatabaseManager:
         )
         return [dict(r) for r in cursor.fetchall()]
 
+    def get_genomic_track_data(self, locus_tag: str, window_bp: int = 10000):
+        """
+        Query 5-track genomic data (CDS genes, TSS promoter sites, TFBS/ChIP-seq binding peaks, sRNAs)
+        within +/- window_bp of locus_tag.
+        """
+        target_coords = self.get_gene_coordinates(locus_tag)
+        if not target_coords or not target_coords.get("start_pos"):
+            return None
+
+        conn = self.get_connection()
+        if not conn:
+            return None
+        cursor = conn.cursor()
+
+        center = target_coords["start_pos"]
+        min_pos = max(1, center - window_bp)
+        max_pos = center + window_bp
+
+        # 1. Neighboring CDS genes
+        cursor.execute(
+            """
+            SELECT locus_tag, gene_name, start_pos, end_pos, strand, gene_length, tss_position, promoter_70bp
+            FROM gene_coordinates
+            WHERE (start_pos BETWEEN ? AND ?) OR (end_pos BETWEEN ? AND ?)
+            ORDER BY start_pos ASC
+            """,
+            (min_pos, max_pos, min_pos, max_pos)
+        )
+        genes = [dict(r) for r in cursor.fetchall()]
+
+        # 2. CollectTF / TFBS binding peaks in window
+        peaks = []
+        try:
+            cursor.execute(
+                """
+                SELECT tf_name, locus_tag, score, site_seq, rel_pos
+                FROM collectf_tfbs
+                WHERE locus_tag = ? OR LOWER(tf_name) = ?
+                """,
+                (locus_tag.lower().strip(), locus_tag.lower().strip())
+            )
+            for r in cursor.fetchall():
+                d = dict(r)
+                d["pos"] = center + (d.get("rel_pos") or 0)
+                peaks.append(d)
+        except Exception:
+            pass
+
+        # 3. sRNA / ncRNA annotations in window
+        rnas = []
+        try:
+            cursor.execute(
+                """
+                SELECT rna_id, rna_name, rna_type, start_pos, end_pos, strand
+                FROM rfam_ncrna
+                WHERE start_pos BETWEEN ? AND ?
+                """,
+                (min_pos, max_pos)
+            )
+            rnas = [dict(r) for r in cursor.fetchall()]
+        except Exception:
+            pass
+
+        return {
+            "query_locus": locus_tag,
+            "window": {"min_pos": min_pos, "max_pos": max_pos, "center_pos": center},
+            "target": target_coords,
+            "genes": genes,
+            "peaks": peaks,
+            "rnas": rnas
+        }
+
     def get_allosteric_feedback_loops(self, tf_or_metabolite: str = None):
         """
         Query v_metabolite_tf_feedback for closed-loop metabolite-TF allosteric regulation.

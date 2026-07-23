@@ -142,14 +142,27 @@
         return payload;
     }
 
+    let pathwayMappingPromise = null;
+
     async function loadMetabolicPathways(query = '') {
         if (!query && pathwayMappingCache) return pathwayMappingCache;
+        if (!query && pathwayMappingPromise) return pathwayMappingPromise;
         const suffix = query ? `?query=${encodeURIComponent(query)}` : '';
-        const response = await fetch(`/api/metabolic_pathways${suffix}`);
-        if (!response.ok) {
-            throw new Error(`Metabolic pathway request failed: ${response.status}`);
+        const request = (async () => {
+            const response = await fetch(`/api/metabolic_pathways${suffix}`);
+            if (!response.ok) {
+                throw new Error(`Metabolic pathway request failed: ${response.status}`);
+            }
+            return response.json();
+        })();
+        if (!query) pathwayMappingPromise = request;
+
+        let payload;
+        try {
+            payload = await request;
+        } finally {
+            if (!query) pathwayMappingPromise = null;
         }
-        const payload = await response.json();
         if (!query) {
             pathwayMappingCache = payload;
             // Pre-populate impactCache with all gene-reaction mappings from the pathways payload

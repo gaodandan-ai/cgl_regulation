@@ -1,0 +1,11 @@
+{
+  "evidence_scoring": "heuristic-confidence-v1.0.0",
+  "network_normalization": "normalized-network-v1.0.0",
+  "query_navigation": "query-navigation-v1.0.0",
+  "gene_identifier_index": "gene-identifier-index-v1.0.0",
+  "network_render_session": "network-render-session-v1.0.0",
+  "network_interaction_binder": "network-interaction-binder-v1.0.0",
+  "network_styles": "network-styles-v2.0.0",
+  "network_graph": "network-graph-v1.0.0",
+  "network_ppi_loader": "network-ppi-loader-v1.0.0"
+}

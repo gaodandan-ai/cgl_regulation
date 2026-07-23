@@ -1,0 +1,4 @@
+-r requirements-core.txt
+
+# Used only to regenerate thermodynamic reference artifacts.
+equilibrator-api>=0.7,<1

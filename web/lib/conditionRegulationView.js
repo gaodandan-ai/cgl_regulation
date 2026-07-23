@@ -170,7 +170,7 @@
             if (!seen.has(targetId)) { elements.push({data:{id:targetId,label:edge.target_name || edge.target_locus,type:'gene',locus:edge.target_locus,state:edge.support_state}}); seen.add(targetId); }
             elements.push({data:{id:`${tfId}>${targetId}`,source:tfId,target:targetId,role:edge.regulation_role,state:edge.support_state,score:edge.condition_score}});
         });
-        state.network = window.cytoscape({container, elements, style:[
+        state.network = window.cytoscape({container, elements, textureOnViewport: true, hideEdgesOnViewport: elements.length > 100, pixelRatio: 'auto', style:[
             {selector:'node',style:{'label':'data(label)','font-size':8,'text-valign':'center','text-halign':'center','width':28,'height':28,'background-color':'#94a3b8','color':'#334155'}},
             {selector:'node[type="tf"]',style:{'shape':'round-rectangle','width':58,'height':34,'background-color':'#0f766e','color':'#fff','font-weight':700}},
             {selector:'node[state="condition_supported"]',style:{'background-color':'#22c55e'}},{selector:'node[state="direction_conflict"]',style:{'background-color':'#ef4444'}},{selector:'node[state="weak_context_support"]',style:{'background-color':'#f59e0b'}},
