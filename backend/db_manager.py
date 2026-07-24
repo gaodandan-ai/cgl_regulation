@@ -412,7 +412,7 @@ class CglDatabaseManager:
         )
         genes = [dict(r) for r in cursor.fetchall()]
 
-        # 2. CollectTF / TFBS binding peaks in window
+        # 2. CollectTF / TFBS & Experimental ChIP-seq binding peaks in window
         peaks = []
         try:
             cursor.execute(
@@ -426,6 +426,29 @@ class CglDatabaseManager:
             for r in cursor.fetchall():
                 d = dict(r)
                 d["pos"] = center + (d.get("rel_pos") or 0)
+                d["source"] = "CollectTF"
+                peaks.append(d)
+        except Exception:
+            pass
+
+        try:
+            cursor.execute(
+                """
+                SELECT peak_id, tf_id, tf_name, peak_start, peak_end, peak_center,
+                       peak_score, peak_signal, neglog10q, strength_tier, nearest_gene_locus,
+                       rel_pos_to_tss, spatial_confidence, genomic_region_chip
+                FROM chipseq_peaks
+                WHERE (peak_start BETWEEN ? AND ?) OR (peak_end BETWEEN ? AND ?)
+                   OR nearest_gene_locus = ? OR LOWER(tf_name) = ?
+                ORDER BY peak_start ASC
+                """,
+                (min_pos, max_pos, min_pos, max_pos, locus_tag, locus_tag.lower())
+            )
+            for r in cursor.fetchall():
+                d = dict(r)
+                d["pos"] = d.get("peak_center") or d.get("peak_start")
+                d["score"] = d.get("peak_score") or d.get("peak_signal") or 1.0
+                d["source"] = "ChIP-seq (Internal/Experimental)"
                 peaks.append(d)
         except Exception:
             pass
@@ -453,6 +476,44 @@ class CglDatabaseManager:
             "peaks": peaks,
             "rnas": rnas
         }
+
+    def get_gene_chipseq_peaks(self, locus_tag: str):
+        """Query all ChIP-seq binding peaks mapped to target locus_tag."""
+        conn = self.get_connection()
+        if not conn:
+            return []
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT * FROM chipseq_peaks
+                WHERE nearest_gene_locus = ? OR gene_list LIKE ?
+                ORDER BY peak_score DESC
+                """,
+                (locus_tag, f"%{locus_tag}%")
+            )
+            return [dict(r) for r in cursor.fetchall()]
+        except Exception:
+            return []
+
+    def get_tf_chipseq_peaks(self, tf_identifier: str):
+        """Query all ChIP-seq binding peaks for a given TF (locus_tag or name)."""
+        conn = self.get_connection()
+        if not conn:
+            return []
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT * FROM chipseq_peaks
+                WHERE LOWER(tf_id) = ? OR LOWER(tf_name) = ?
+                ORDER BY peak_score DESC
+                """,
+                (tf_identifier.lower().strip(), tf_identifier.lower().strip())
+            )
+            return [dict(r) for r in cursor.fetchall()]
+        except Exception:
+            return []
 
     def get_allosteric_feedback_loops(self, tf_or_metabolite: str = None):
         """

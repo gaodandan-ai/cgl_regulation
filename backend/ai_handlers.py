@@ -878,7 +878,29 @@ def build_grounded_omics_context(gene_id: str) -> str:
 
     if tracks.get('peaks'):
         peaks_str = ", ".join([f"{p['tf_name']}(score: {int(p['score']*100)}%)" for p in tracks['peaks'][:4]])
-        lines.append(f"- ChIP-seq / CollectTF Peaks: {peaks_str}")
+        lines.append(f"- ChIP-seq / CollectTF Tracks: {peaks_str}")
+
+    # Query full real experimental ChIP-seq peak details
+    try:
+        gene_peaks = db.get_gene_chipseq_peaks(gene_id)
+        if gene_peaks:
+            peak_summary = []
+            for p in gene_peaks[:4]:
+                tf_name = p.get('tf_name') or p.get('tf_id') or 'TF'
+                score = p.get('peak_score') or p.get('peak_signal') or 1.0
+                negq = p.get('neglog10q') or 0.0
+                spatial = p.get('spatial_confidence') or 'PROMOTER_DIRECT'
+                tss_off = p.get('rel_pos_to_tss')
+                tss_str = f"{tss_off:+d}bp from TSS" if tss_off is not None else "distal"
+                peak_summary.append(f"{tf_name} (signal: {score:.1f}x, -log10q: {negq:.1f}, {spatial}, {tss_str})")
+            lines.append(f"- Experimental ChIP-seq Binding Peaks on Promoter: {'; '.join(peak_summary)}")
+
+        tf_peaks = db.get_tf_chipseq_peaks(gene_id)
+        if tf_peaks:
+            top_tgs = list(dict.fromkeys([p.get('nearest_gene_name') or p.get('nearest_gene_locus') for p in tf_peaks if p.get('nearest_gene_locus')]))[:5]
+            lines.append(f"- TF Experimental ChIP-seq Direct Binding Targets: {', '.join(top_tgs)} (total {len(tf_peaks)} peak summits across genome)")
+    except Exception:
+        pass
 
     return "\n".join(lines)
 

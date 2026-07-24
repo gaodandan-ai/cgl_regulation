@@ -862,6 +862,10 @@ button {
     background-color: #10b981;
 }
 
+.custom-checkbox input:checked~.chk-chipseq {
+    background-color: #059669;
+}
+
 .checkmark:after {
     content: "";
     position: absolute;

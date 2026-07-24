@@ -65,6 +65,42 @@ def get_genomic_tracks_api(gene_id: str, window_bp: int = 10000):
     return data
 
 
+try:
+    from security import PUBLIC_DEPLOYMENT
+except ImportError:
+    try:
+        from backend.security import PUBLIC_DEPLOYMENT
+    except ImportError:
+        PUBLIC_DEPLOYMENT = False
+
+
+@router.get("/api/chipseq_peaks/{gene_id}")
+def get_chipseq_peaks_api(gene_id: str):
+    """Retrieve all experimental ChIP-seq binding peaks associated with target gene or TF."""
+    if PUBLIC_DEPLOYMENT:
+        return {
+            "query": gene_id,
+            "as_target_count": 0,
+            "as_target_peaks": [],
+            "as_tf_count": 0,
+            "as_tf_peaks": [],
+            "is_public_deployment": True,
+            "message": "Full experimental ChIP-seq peak datasets are available exclusively on the laboratory intranet server (172.16.2.105:8010)."
+        }
+
+    db = get_db_manager()
+    gene_peaks = db.get_gene_chipseq_peaks(gene_id)
+    tf_peaks = db.get_tf_chipseq_peaks(gene_id)
+    return {
+        "query": gene_id,
+        "as_target_count": len(gene_peaks),
+        "as_target_peaks": gene_peaks,
+        "as_tf_count": len(tf_peaks),
+        "as_tf_peaks": tf_peaks,
+        "is_public_deployment": False
+    }
+
+
 @router.get("/api/quality/essential")
 def get_essential_genes(response: Response):
     """Return the database of C. glutamicum essential genes."""

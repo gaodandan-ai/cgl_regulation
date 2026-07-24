@@ -60,8 +60,8 @@
         }
 
         function normalizeTfEdge(row = {}, index = 0) {
-            const source = cleanString(row.TF_locusTag);
-            const target = cleanString(row.TG_locusTag);
+            const source = cleanString(row.TF_locusTag || row.TF_altLocusTag || row.TF_name);
+            const target = cleanString(row.TG_locusTag || row.TG_altLocusTag || row.TG_name);
             if (!source || !target) return null;
             const regulationType = scoringApi.normalizeRegulationType(row.Role, 'TF-TG');
             const factors = {

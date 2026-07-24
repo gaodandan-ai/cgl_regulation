@@ -12,6 +12,9 @@ def test_build_grounded_omics_context():
     assert context is not None
     assert "Hard Empirical Data" in context
     assert "cg0350" in context
+    # Check that TF experimental ChIP-seq facts are populated
+    context_dtxr = build_grounded_omics_context("cg2103") # dtxR
+    assert "ChIP-seq" in context_dtxr
 
 def test_handle_ai_engineering_command_dummy():
     res = handle_ai_engineering_command(

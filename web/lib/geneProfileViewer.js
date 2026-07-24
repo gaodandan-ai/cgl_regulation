@@ -73,13 +73,111 @@ window.GeneProfileViewer = {
 
                 <!-- 5-Track Interactive Genomic Track Browser -->
                 <div id="genomicTrack5Container" class="mt-3"></div>
+
+                <!-- ChIP-seq Peak & Promoter Inspector Card -->
+                <div id="chipseqPeakInspectorCard" class="mt-4 bg-slate-950/90 border border-sky-800/60 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sky-400">🎯</span>
+                            <h4 class="text-sm font-bold text-slate-100">ChIP-seq 结合峰与启动子调控全景 (Peak & Promoter Inspector)</h4>
+                        </div>
+                        <span class="text-[11px] bg-sky-950 text-sky-300 border border-sky-700 px-2 py-0.5 rounded font-mono" id="chipseq-peak-badge-count">Querying peaks...</span>
+                    </div>
+                    <div id="chipseq-peak-table-wrap" class="overflow-x-auto text-xs">
+                        <div class="text-center py-4 text-slate-400 font-mono"><i class="fa-solid fa-spinner fa-spin"></i> Loading experimental ChIP-seq binding summits...</div>
+                    </div>
+                </div>
             </div>
         `;
 
+        const locus = profile.cg_locus || profile.cgl_locus;
         if (window.GenomicTrackBrowser) {
-            window.GenomicTrackBrowser.render('genomicTrack5Container', profile.cg_locus || profile.cgl_locus);
+            window.GenomicTrackBrowser.render('genomicTrack5Container', locus);
         } else {
             this.drawTrackCanvas(profile, genes);
+        }
+
+        this.loadChipSeqPeaksForProfile(locus);
+    },
+
+    async loadChipSeqPeaksForProfile(locus) {
+        const wrap = document.getElementById("chipseq-peak-table-wrap");
+        const countBadge = document.getElementById("chipseq-peak-badge-count");
+        if (!wrap) return;
+
+        try {
+            const resp = await fetch(`/api/chipseq_peaks/${encodeURIComponent(locus)}`);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+
+            if (data.is_public_deployment) {
+                if (countBadge) {
+                    countBadge.textContent = "🔒 实验室内网保护";
+                    countBadge.className = "text-[11px] bg-amber-950 text-amber-300 border border-amber-700 px-2 py-0.5 rounded font-mono";
+                }
+                wrap.innerHTML = `
+                    <div class="p-3 bg-amber-950/40 border border-amber-800/60 rounded-lg text-amber-200 text-xs font-sans space-y-1">
+                        <div class="font-bold flex items-center gap-1.5 text-amber-300">
+                            <span>🔒</span> <span>实验室内网未发布数据保护 (Lab Intranet Server 172.16.2.105)</span>
+                        </div>
+                        <p class="text-[11px] text-amber-200/80">13,673 条实测高分辨率 ChIP-seq Binding Summits 与空间定位轨迹仅在课题组内网服务器 (172.16.2.105:8010) 上提供展示。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const peaks = (data.as_target_peaks || []).concat(data.as_tf_peaks || []);
+            if (countBadge) {
+                countBadge.textContent = `${peaks.length} Peaks Mapped (🧪 内网版 172.16.2.105)`;
+            }
+
+            if (peaks.length === 0) {
+                wrap.innerHTML = `<div class="text-center py-4 text-slate-500 font-mono">No direct experimental ChIP-seq peak summits mapped for ${locus}</div>`;
+                return;
+            }
+
+            let html = `
+                <table class="w-full text-left border-collapse font-sans">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
+                            <th class="py-1.5 px-2">TF Name</th>
+                            <th class="py-1.5 px-2">Peak Summit (bp)</th>
+                            <th class="py-1.5 px-2">Signal Enrichment</th>
+                            <th class="py-1.5 px-2">-log10(q)</th>
+                            <th class="py-1.5 px-2">TSS Offset</th>
+                            <th class="py-1.5 px-2">Spatial Category</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]">
+            `;
+
+            peaks.slice(0, 10).forEach(p => {
+                const tf = p.tf_name || p.tf_id || 'TF';
+                const center = p.peak_center || p.peak_start || 'N/A';
+                const score = (p.peak_score || p.peak_signal || 1.0).toFixed(2);
+                const negq = (p.neglog10q || 0.0).toFixed(1);
+                const relTss = p.rel_pos_to_tss != null ? (p.rel_pos_to_tss >= 0 ? `+${p.rel_pos_to_tss}` : `${p.rel_pos_to_tss}`) + ' bp' : 'distal';
+                const spatial = p.spatial_confidence || 'PROMOTER_DIRECT';
+
+                const badgeClass = spatial === 'PROMOTER_DIRECT' ? 'bg-emerald-950 text-emerald-300 border-emerald-700'
+                    : (spatial === 'INTERGENIC_PROMOTER' ? 'bg-teal-950 text-teal-300 border-teal-700' : 'bg-slate-800 text-slate-300 border-slate-700');
+
+                html += `
+                    <tr class="hover:bg-slate-800/40 transition-colors">
+                        <td class="py-1.5 px-2 text-sky-400 font-bold font-sans">${tf}</td>
+                        <td class="py-1.5 px-2 text-amber-300">${typeof center === 'number' ? center.toLocaleString() : center}</td>
+                        <td class="py-1.5 px-2 text-slate-200 font-bold">${score}x</td>
+                        <td class="py-1.5 px-2 text-indigo-300">${negq}</td>
+                        <td class="py-1.5 px-2 text-emerald-400">${relTss}</td>
+                        <td class="py-1.5 px-2"><span class="px-1.5 py-0.5 rounded border ${badgeClass} text-[10px]">${spatial}</span></td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            wrap.innerHTML = html;
+        } catch (err) {
+            wrap.innerHTML = `<div class="text-center py-3 text-slate-500">Failed to load peak details: ${err.message}</div>`;
         }
     },
 

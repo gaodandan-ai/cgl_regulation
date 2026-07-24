@@ -22,25 +22,54 @@
         layoutName,
         largeNetworkThreshold = 250,
     }) {
+        const count = elementCount(elements);
         return {
             container,
             elements,
             style: styles,
             textureOnViewport: true,
-            hideEdgesOnViewport: elementCount(elements) > largeNetworkThreshold,
+            hideEdgesOnViewport: count > largeNetworkThreshold,
             pixelRatio: 'auto',
             wheelSensitivity: 0.2,
+            minZoom: 0.15,
+            maxZoom: 2.0,
             layout: {
                 name: layoutName,
                 animate: true,
                 animationDuration: 400,
+                fit: count > 3,
+                padding: count <= 3 ? 120 : 40,
             },
         };
     }
 
+    function safeFit(graph, padding = 40) {
+        if (!graph) return;
+        const nodes = graph.nodes();
+        if (nodes.length <= 3) {
+            graph.center();
+            graph.zoom(1.0);
+            graph.center();
+        } else {
+            graph.fit(undefined, padding);
+            if (graph.zoom() > 2.0) {
+                graph.zoom(2.0);
+                graph.center();
+            }
+        }
+    }
+
     function createGraph({ cytoscapeImpl, ...options }) {
         if (typeof cytoscapeImpl !== 'function') throw new TypeError('cytoscapeImpl must be a function');
-        return cytoscapeImpl(createOptions(options));
+        const graph = cytoscapeImpl(createOptions(options));
+
+        const clampZoom = () => safeFit(graph);
+
+        graph.on('layoutstop', clampZoom);
+        setTimeout(clampZoom, 50);
+        setTimeout(clampZoom, 450);
+
+        return graph;
     }
 
     function ppiEdge(record) {
@@ -81,5 +110,5 @@
         return pending.length;
     }
 
-    return { GRAPH_VERSION, elementCount, createOptions, createGraph, ppiEdge, addPpiEdges };
+    return { GRAPH_VERSION, elementCount, createOptions, createGraph, ppiEdge, addPpiEdges, safeFit };
 });

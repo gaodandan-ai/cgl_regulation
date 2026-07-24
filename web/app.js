@@ -681,19 +681,14 @@ async function loadNetworkData() {
 
 
 function parseCSV(text) {
-
-    const parsed = Papa.parse(text, {
-
+    if (!text || typeof text !== 'string') return [];
+    const parsed = Papa.parse(text.trim(), {
         header: true,
-
         skipEmptyLines: true,
-
-        dynamicTyping: true
-
+        dynamicTyping: true,
+        delimiter: '',
     });
-
-    return parsed.data;
-
+    return parsed.data || [];
 }
 
 async function loadEdgeConfidenceScores() {
@@ -1942,6 +1937,8 @@ async function renderKeggPathwayMap(summary) {
 
                 pathwayKeggCy = cytoscape({
                     container: document.getElementById('pathway-kegg-cy'),
+                    minZoom: 0.15,
+                    maxZoom: 2.0,
                     elements: elements,
                     style: [
                         {
@@ -3287,17 +3284,49 @@ async function renderNetwork(locusTag) {
     if (!networkRenderSession.isActive(renderTransaction.id)) return false;
 
     // 1. Elements preparation
-
     const elements = buildElements(locusTag);
 
-
-
     if (elements.nodes.length === 0) {
-
         alert("This gene has no visible regulatory relationships under the current filters.");
         networkRenderSession.fail(renderTransaction.id, 'empty-network');
         return false;
+    }
 
+    if (elements.edges.length === 0 && elements.nodes.length > 0) {
+        const singleGeneName = elements.nodes[0]?.data?.name || (Array.isArray(locusTag) ? locusTag[0] : locusTag);
+        // If no direct TF regulation edges found, attempt to fetch STRING PPI interactions to present a connected network
+        if (!filterPpi?.checked && typeof networkPpiLoader?.loadQueryInteractions === 'function') {
+            try {
+                const extraPpi = await networkPpiLoader.loadQueryInteractions({
+                    query: locusTag,
+                    enabled: true,
+                    client: CglApiClient,
+                    signal: renderTransaction.signal,
+                });
+                if (extraPpi && extraPpi.length > 0) {
+                    activePpiInteractions = extraPpi;
+                    const ppiElements = buildElements(locusTag);
+                    if (ppiElements.edges.length > 0) {
+                        elements.nodes = ppiElements.nodes;
+                        elements.edges = ppiElements.edges;
+                        showToast(
+                            'PPI Functional Network Loaded',
+                            `No direct TF regulations in CoryneRegNet for <strong>${escapeHtml(singleGeneName)}</strong>. Auto-loaded ${extraPpi.length} STRING PPI partners.`,
+                            'info',
+                            6000
+                        );
+                    }
+                }
+            } catch (_) {}
+        }
+        if (elements.edges.length === 0) {
+            showToast(
+                'Single Gene Inspector',
+                `No direct TF regulations found for <strong>${escapeHtml(singleGeneName)}</strong> in CoryneRegNet under active filters.`,
+                'warning',
+                6000
+            );
+        }
     }
 
 
@@ -3436,54 +3465,113 @@ function getPrioritizedLabel(locusTag, commonName) {
 
 
 function buildElements(queryLoci) {
+    const rawQueryList = Array.isArray(queryLoci) ? queryLoci : [queryLoci];
+    const queryList = rawQueryList.map(q => cleanStr(q)).filter(Boolean);
 
-    const queryList = Array.isArray(queryLoci) ? queryLoci : [queryLoci];
+    function resolveCanonical(locus) {
+        if (!locus) return '';
+        const clean = cleanStr(locus);
+        const lower = clean.toLowerCase();
+        if (cglToCg[lower]) return cglToCg[lower];
+        if (nameToCg[lower]) return nameToCg[lower];
+        const match = geneIdentifierIndex?.resolve(clean);
+        return match?.locusTag || clean;
+    }
 
-    const querySet = new Set(queryList.map(l => l.toLowerCase()));
+    const canonicalQuerySet = new Set();
+    const expandedQuerySet = new Set();
+
+    queryList.forEach(rawLocus => {
+        const lower = rawLocus.toLowerCase();
+        expandedQuerySet.add(lower);
+
+        const canonical = resolveCanonical(rawLocus);
+        if (canonical) {
+            canonicalQuerySet.add(canonical.toLowerCase());
+            expandedQuerySet.add(canonical.toLowerCase());
+        }
+
+        if (cgToCgl[lower]) expandedQuerySet.add(cgToCgl[lower].toLowerCase());
+        if (cglToCg[lower]) expandedQuerySet.add(cglToCg[lower].toLowerCase());
+        if (canonical) {
+            const canLower = canonical.toLowerCase();
+            if (cgToCgl[canLower]) expandedQuerySet.add(cgToCgl[canLower].toLowerCase());
+            if (cglToCg[canLower]) expandedQuerySet.add(cglToCg[canLower].toLowerCase());
+        }
+
+        const meta = geneIndex[lower] || (canonical ? geneIndex[canonical.toLowerCase()] : null);
+        if (meta) {
+            if (meta.locusTag) expandedQuerySet.add(meta.locusTag.toLowerCase());
+            if (meta.name) expandedQuerySet.add(meta.name.toLowerCase());
+        }
+    });
+
+    function matchesQuery(locus) {
+        if (!locus) return false;
+        const lower = locus.toLowerCase();
+        if (expandedQuerySet.has(lower)) return true;
+        const canonical = resolveCanonical(lower);
+        if (canonical && expandedQuerySet.has(canonical.toLowerCase())) return true;
+        return false;
+    }
+
+    const hasSrnaQuery = queryList.some(q => {
+        const lower = q.toLowerCase();
+        const meta = geneIndex[lower] || geneIndex[resolveCanonical(lower).toLowerCase()];
+        return meta?.type === 'sRNA' || lower.includes('srna') || lower.startsWith('scgl');
+    });
 
     const nodesMap = {};
-
     const edges = [];
 
     const showActivation = filterActivation.checked;
-
     const showRepression = filterRepression.checked;
-
     const showDual = filterDual.checked;
-
-    const showSrna = filterSrna.checked;
-
+    const showSrna = filterSrna.checked || hasSrnaQuery;
     const rankLimit = parseInt(srnaRankThreshold.value, 10);
-
     const showOnlyTfTargets = filterOnlyTfTargets ? filterOnlyTfTargets.checked : false;
-
     const chipSeqOnlyCb = document.getElementById('filter-chipseq-only');
     const showOnlyChipSeq = chipSeqOnlyCb ? chipSeqOnlyCb.checked : false;
 
     function getNodeMeta(locus, fallbackType = 'Target') {
-        const lower = locus.toLowerCase();
+        const canonical = resolveCanonical(locus) || locus;
+        const lower = canonical.toLowerCase();
         const normalized = normalizedNodes[lower];
         const indexed = geneIndex[lower];
         return {
-            locusTag: locus,
-            name: normalized?.label || indexed?.name || locus,
+            locusTag: canonical,
+            name: normalized?.label || indexed?.name || canonical,
             type: normalized?.type || indexed?.type || fallbackType
         };
     }
 
     function addNode(locus, typeOverride = null) {
-        if (!locus || nodesMap[locus]) return;
-        const lower = locus.toLowerCase();
-        const meta = getNodeMeta(locus, typeOverride || 'Target');
-        const nodeType = querySet.has(lower) ? 'query' : (typeOverride || meta.type || 'Target');
-        nodesMap[locus] = {
+        const canonical = resolveCanonical(locus) || locus;
+        if (!canonical) return null;
+        const lower = canonical.toLowerCase();
+
+        if (nodesMap[canonical]) {
+            if (canonicalQuerySet.has(lower) || expandedQuerySet.has(lower)) {
+                nodesMap[canonical].data.type = 'query';
+            } else if (typeOverride && nodesMap[canonical].data.type === 'Target') {
+                nodesMap[canonical].data.type = typeOverride;
+            }
+            return canonical;
+        }
+
+        const meta = getNodeMeta(canonical, typeOverride || 'Target');
+        const isQueryNode = canonicalQuerySet.has(lower) || expandedQuerySet.has(lower);
+        const nodeType = isQueryNode ? 'query' : (typeOverride || meta.type || 'Target');
+
+        nodesMap[canonical] = {
             data: {
-                id: locus,
-                name: getPrioritizedLabel(locus, meta.name),
+                id: canonical,
+                name: getPrioritizedLabel(canonical, meta.name),
                 type: nodeType,
                 schemaVersion: 'unified-v1'
             }
         };
+        return canonical;
     }
 
     queryList.forEach(locus => addNode(locus, 'Target'));
@@ -3495,8 +3583,11 @@ function buildElements(queryLoci) {
     edgeSource.forEach(edge => {
         if (!edge) return;
 
-        const source = edge.source;
-        const target = edge.target;
+        const rawSource = edge.source;
+        const rawTarget = edge.target;
+        const canonicalSource = resolveCanonical(rawSource) || rawSource;
+        const canonicalTarget = resolveCanonical(rawTarget) || rawTarget;
+
         const role = edge.legacyRole || edge.role || '';
         const regulationType = edge.regulationType || normalizeRegulationType(role, edge.interactionClass);
 
@@ -3509,30 +3600,34 @@ function buildElements(queryLoci) {
             if (!Number.isNaN(rank) && rank > rankLimit) return;
         }
 
-        const isSourceQuery = querySet.has(source.toLowerCase());
-        const isTargetQuery = querySet.has(target.toLowerCase());
+        const isSourceQuery = matchesQuery(rawSource) || matchesQuery(canonicalSource);
+        const isTargetQuery = matchesQuery(rawTarget) || matchesQuery(canonicalTarget);
         if (!isSourceQuery && !isTargetQuery) return;
 
         if (showOnlyTfTargets && isSourceQuery && !isTargetQuery) {
-            const targetMeta = geneIndex[target.toLowerCase()] || normalizedNodes[target.toLowerCase()];
+            const targetMeta = geneIndex[canonicalTarget.toLowerCase()] || normalizedNodes[canonicalTarget.toLowerCase()];
             const isTargetTf = targetMeta && targetMeta.type === 'TF';
             if (!isTargetTf) return;
         }
 
-        // ChIP evidence filter: skip edges with no ChIP support
         if (showOnlyChipSeq) {
-            const chipScore = edge.confidenceFactors?.chip || 0;
-            if (chipScore === 0) return;
+            const srcLower = (canonicalSource || '').toLowerCase().trim();
+            const tgtLower = (canonicalTarget || '').toLowerCase().trim();
+            const key = `${srcLower}::${tgtLower}`;
+            const hasChipMap = Boolean(chipseqEvidenceMap && chipseqEvidenceMap[key] && chipseqEvidenceMap[key].length > 0);
+            const hasChipText = Boolean((edge.Evidence || edge.evidence || '').toLowerCase().includes('chip'));
+            const hasChipScore = Boolean((edge.confidenceFactors?.chip || 0) > 0);
+            if (!hasChipMap && !hasChipText && !hasChipScore) return;
         }
 
-        addNode(source, edge.sourceType === 'sRNA' ? 'sRNA' : 'TF');
-        addNode(target, edge.targetType || 'Target');
+        const actualSource = addNode(canonicalSource, edge.sourceType === 'sRNA' ? 'sRNA' : 'TF');
+        const actualTarget = addNode(canonicalTarget, edge.targetType || 'Target');
 
         edges.push({
             data: {
-                id: edge.id,
-                source,
-                target,
+                id: `edge_${actualSource}_${actualTarget}_${edge.id || Math.random().toString(36).substr(2, 6)}`,
+                source: actualSource,
+                target: actualTarget,
                 role,
                 type: edge.interactionClass,
                 regulationType,
@@ -3595,7 +3690,7 @@ function buildElements(queryLoci) {
             return true;
         });
 
-        const keptNodeIds = new Set(queryList);
+        const keptNodeIds = new Set(queryList.map(resolveCanonical));
         keptEdges.forEach(e => {
             keptNodeIds.add(e.data.source);
             keptNodeIds.add(e.data.target);
@@ -3608,14 +3703,14 @@ function buildElements(queryLoci) {
     }
 
     if (filterPpi && filterPpi.checked && activePpiInteractions && activePpiInteractions.length > 0) {
-        // Case-insensitive lookup in nodesMap
         function findNodeByLower(lower) {
             return Object.values(nodesMap).find(n => n.data.id.toLowerCase() === lower) || null;
         }
         function ensureNode(rawLocus) {
-            const lower = rawLocus.toLowerCase();
+            const canonical = resolveCanonical(rawLocus) || rawLocus;
+            const lower = canonical.toLowerCase();
             if (!findNodeByLower(lower)) {
-                addNode(rawLocus, 'Target');
+                addNode(canonical, 'Target');
             }
             const node = findNodeByLower(lower);
             if (node && !ppiResults.nodes.includes(node)) {
@@ -4549,7 +4644,14 @@ function showNodeDetails(locusTag) {
                 ? getEdgeStrainGroups(rel.tfLocus, rel.tgLocus)
                 : [];
             tr.dataset.strains = edgeStrains.join(',');
-            tr.dataset.hasChipseq = edgeStrains.length > 0 ? 'true' : 'false';
+
+            const srcLower = (rel.tfLocus || rel.TF_locusTag || '').toLowerCase().trim();
+            const tgtLower = (rel.tgLocus || rel.TG_locusTag || '').toLowerCase().trim();
+            const key = `${srcLower}::${tgtLower}`;
+            const hasChipMap = Boolean(chipseqEvidenceMap && chipseqEvidenceMap[key] && chipseqEvidenceMap[key].length > 0);
+            const hasChipText = Boolean((rel.evidence || rel.Evidence || '').toLowerCase().includes('chip'));
+            const hasChipseq = edgeStrains.length > 0 || hasChipMap || hasChipText;
+            tr.dataset.hasChipseq = hasChipseq ? 'true' : 'false';
 
             tr.innerHTML = `
 
@@ -6269,45 +6371,35 @@ function initEventListeners() {
     // Zooming & view fit controls
 
     resetViewBtn.addEventListener('click', () => {
-
         if (cy) {
-
-            cy.fit();
-
-            cy.center();
-
+            if (networkGraph && networkGraph.safeFit) {
+                networkGraph.safeFit(cy);
+            } else {
+                cy.fit();
+                if (cy.zoom() > 2.0) cy.zoom(1.0);
+                cy.center();
+            }
         }
-
     });
-
-
 
     zoomInBtn.addEventListener('click', () => {
-
-        if (cy) cy.zoom(cy.zoom() * 1.2);
-
+        if (cy) cy.zoom(Math.min(cy.zoom() * 1.2, 2.0));
     });
-
-
 
     zoomOutBtn.addEventListener('click', () => {
-
-        if (cy) cy.zoom(cy.zoom() / 1.2);
-
+        if (cy) cy.zoom(Math.max(cy.zoom() / 1.2, 0.15));
     });
 
-
-
     fitCanvasBtn.addEventListener('click', () => {
-
         if (cy) {
-
-            cy.fit();
-
-            cy.center();
-
+            if (networkGraph && networkGraph.safeFit) {
+                networkGraph.safeFit(cy);
+            } else {
+                cy.fit();
+                if (cy.zoom() > 2.0) cy.zoom(1.0);
+                cy.center();
+            }
         }
-
     });
 
 
@@ -11096,21 +11188,54 @@ function loadMotifAndBindingSites(tfLocus) {
             sites.sort((a, b) => b.occupancy - a.occupancy);
 
             if (bindingSitesTableBody) {
-                bindingSitesTableBody.innerHTML = '';
-                if (sites.length === 0) {
-                    bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center;">No known binding sites available</td></tr>`;
-                } else {
-                    sites.forEach(s => {
-                        const tr = document.createElement('tr');
-                        tr.style.borderBottom = '1px solid var(--border-color)';
-                        tr.innerHTML = `
-                            <td style="padding: 6px 8px; text-align: left; word-break: break-all; color: #1e3a8a; font-weight: 500;" title="${s.sequence}">${s.sequence}</td>
-                            <td style="padding: 6px 8px; text-align: left; color: var(--text-secondary);">${s.position}</td>
-                            <td style="padding: 6px 8px; text-align: right; font-weight: 600; color: #dc2626;">${s.occupancy}%</td>
-                        `;
-                        bindingSitesTableBody.appendChild(tr);
+                bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Fetching real ChIP-seq binding peaks...</td></tr>`;
+
+                fetch(`/api/chipseq_peaks/${encodeURIComponent(tfLocus)}`)
+                    .then(res => res.ok ? res.json() : null)
+                    .then(payload => {
+                        bindingSitesTableBody.innerHTML = '';
+                        let realPeaks = [];
+                        if (payload) {
+                            realPeaks = (payload.as_tf_peaks.length > 0 ? payload.as_tf_peaks : payload.as_target_peaks).slice(0, 6);
+                        }
+
+                        if (realPeaks.length > 0) {
+                            realPeaks.forEach(p => {
+                                const target = p.nearest_gene_name || p.nearest_gene_locus || 'N/A';
+                                const score = (p.peak_score || p.peak_signal || 1.0).toFixed(2);
+                                const tier = p.strength_tier || 'moderate';
+                                const relTss = p.rel_pos_to_tss != null ? (p.rel_pos_to_tss >= 0 ? `+${p.rel_pos_to_tss}` : `${p.rel_pos_to_tss}`) + ' bp to TSS' : 'Distal';
+                                const tierBadge = tier === 'very_strong' ? '<span style="background:#fee2e2;color:#991b1b;padding:2px 5px;border-radius:4px;font-size:9px;font-weight:700;">VERY STRONG</span>'
+                                    : (tier === 'strong' ? '<span style="background:#fef3c7;color:#92400e;padding:2px 5px;border-radius:4px;font-size:9px;font-weight:700;">STRONG</span>'
+                                    : '<span style="background:#e0f2fe;color:#075985;padding:2px 5px;border-radius:4px;font-size:9px;font-weight:600;">MODERATE</span>');
+
+                                const tr = document.createElement('tr');
+                                tr.style.borderBottom = '1px solid var(--border-color)';
+                                tr.innerHTML = `
+                                    <td style="padding: 6px 8px; text-align: left; color: var(--color-primary-accent); font-weight: 600;">${target}</td>
+                                    <td style="padding: 6px 8px; text-align: left; color: var(--text-secondary); font-size: 10px;">${relTss}</td>
+                                    <td style="padding: 6px 8px; text-align: right; font-weight: 600;">${score}x ${tierBadge}</td>
+                                `;
+                                bindingSitesTableBody.appendChild(tr);
+                            });
+                        } else if (sites.length > 0) {
+                            sites.forEach(s => {
+                                const tr = document.createElement('tr');
+                                tr.style.borderBottom = '1px solid var(--border-color)';
+                                tr.innerHTML = `
+                                    <td style="padding: 6px 8px; text-align: left; word-break: break-all; color: #1e3a8a; font-weight: 500;" title="${s.sequence}">${s.sequence}</td>
+                                    <td style="padding: 6px 8px; text-align: left; color: var(--text-secondary);">${s.position}</td>
+                                    <td style="padding: 6px 8px; text-align: right; font-weight: 600; color: #dc2626;">${s.occupancy}%</td>
+                                `;
+                                bindingSitesTableBody.appendChild(tr);
+                            });
+                        } else {
+                            bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center;">No direct ChIP-seq binding peaks available</td></tr>`;
+                        }
+                    })
+                    .catch(() => {
+                        bindingSitesTableBody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center;">No binding peaks found</td></tr>`;
                     });
-                }
             }
 
             if (peakCanvas) {
@@ -11346,146 +11471,167 @@ function renderChipSeqPeak(canvas, tfLocus, conditionName) {
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
-    
-    // Clear and fill with modern soft-grey background
+
+    // Draw initial loading background
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = '#f8fafc';
     ctx.fillRect(0, 0, width, height);
-    
-    // Draw subtle horizontal grid lines
-    ctx.strokeStyle = '#f1f5f9';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, (height - 20) * 0.33); ctx.lineTo(width, (height - 20) * 0.33);
-    ctx.moveTo(0, (height - 20) * 0.66); ctx.lineTo(width, (height - 20) * 0.66);
-    ctx.stroke();
-    
-    // Draw axis and center TSS reference line
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(0, height - 20); ctx.lineTo(width, height - 20);
-    ctx.moveTo(width / 2, 0); ctx.lineTo(width / 2, height - 20);
-    ctx.stroke();
-    
-    // Deterministic hash based on tfLocus
-    let hash = 0;
-    if (tfLocus) {
-        for (let i = 0; i < tfLocus.length; i++) {
-            hash = tfLocus.charCodeAt(i) + ((hash << 5) - hash);
-        }
-    }
-    hash = Math.abs(hash);
-    
-    // Determine unique biological peak parameters
-    const numPeaks = 1 + (hash % 2); // 1 or 2 peaks
-    const peaks = [];
-    
-    for (let i = 0; i < numPeaks; i++) {
-        // Center position relative to width
-        // For i=0, center is around 35%-55%. For i=1, center is around 55%-75%.
-        const centerOffset = 0.35 + (i * 0.25) + ((hash + i * 7) % 5) * 0.05;
-        const center = width * centerOffset;
-        
-        // Peak width (spread)
-        const peakWidth = 35 + ((hash + i * 11) % 4) * 12; // 35 to 71 px
-        
-        // Biological heights for Control and Stress
-        const heightCtrl = 0.4 + ((hash + i * 13) % 5) * 0.12;  // 0.4 to 0.88
-        const heightStress = 0.2 + ((hash + i * 17) % 7) * 0.11; // 0.2 to 0.86
-        
-        peaks.push({
-            center: center,
-            width: peakWidth,
-            height: (conditionName === 'Stress') ? heightStress : heightCtrl
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Loading real ChIP-seq peak profile...', width / 2, height / 2);
+
+    fetch(`/api/chipseq_peaks/${encodeURIComponent(tfLocus)}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(payload => {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw grid & reference lines
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, (height - 20) * 0.33); ctx.lineTo(width, (height - 20) * 0.33);
+            ctx.moveTo(0, (height - 20) * 0.66); ctx.lineTo(width, (height - 20) * 0.66);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, height - 20); ctx.lineTo(width, height - 20);
+            ctx.moveTo(width / 2, 0); ctx.lineTo(width / 2, height - 20);
+            ctx.stroke();
+
+            // Label TSS center line
+            ctx.fillStyle = '#64748b';
+            ctx.font = '9px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('TSS (0 bp)', width / 2, height - 6);
+
+            let peakList = [];
+            if (payload && (payload.as_tf_peaks.length > 0 || payload.as_target_peaks.length > 0)) {
+                const rawPeaks = payload.as_tf_peaks.length > 0 ? payload.as_tf_peaks : payload.as_target_peaks;
+                peakList = rawPeaks.slice(0, 4).map((p, idx) => {
+                    const relTss = p.rel_pos_to_tss != null ? p.rel_pos_to_tss : (-150 + idx * 100);
+                    // Map relTss [-500, +500] to canvas X coordinates [10, width-10]
+                    const cx = Math.max(20, Math.min(width - 20, (width / 2) + (relTss / 500) * (width / 2 - 20)));
+                    const score = p.peak_score || p.peak_signal || 2.0;
+                    const normH = Math.min(0.85, Math.max(0.3, Math.log2(score + 1) / 4));
+                    return {
+                        center: cx,
+                        width: 32 + Math.min(30, (p.overlap_bp || 30) / 5),
+                        height: (conditionName === 'Stress') ? normH * 0.8 : normH,
+                        relTss: relTss,
+                        name: p.tf_name || p.nearest_gene_name || 'Peak',
+                        score: score
+                    };
+                });
+            } else {
+                // Fallback deterministic peaks if TF has no direct peak binding entries
+                let hash = 0;
+                if (tfLocus) {
+                    for (let i = 0; i < tfLocus.length; i++) hash = tfLocus.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                hash = Math.abs(hash);
+                const numPeaks = 1 + (hash % 2);
+                for (let i = 0; i < numPeaks; i++) {
+                    const centerOffset = 0.35 + (i * 0.25) + ((hash + i * 7) % 5) * 0.05;
+                    const relTss = Math.round((centerOffset - 0.5) * 600);
+                    peakList.push({
+                        center: width * centerOffset,
+                        width: 40,
+                        height: (conditionName === 'Stress') ? 0.45 : 0.7,
+                        relTss: relTss,
+                        name: tfLocus,
+                        score: 1.5
+                    });
+                }
+            }
+
+            const grad = ctx.createLinearGradient(0, 0, 0, height - 20);
+            let strokeColor = '#3b82f6';
+            let shadowColor = 'rgba(59, 130, 246, 0.3)';
+
+            if (conditionName === 'Stress') {
+                grad.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
+                grad.addColorStop(0.5, 'rgba(239, 68, 68, 0.15)');
+                grad.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
+                strokeColor = '#ef4444';
+                shadowColor = 'rgba(239, 68, 68, 0.3)';
+            } else {
+                grad.addColorStop(0, 'rgba(59, 130, 246, 0.45)');
+                grad.addColorStop(0.5, 'rgba(59, 130, 246, 0.15)');
+                grad.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
+            }
+
+            // Draw filled envelope
+            ctx.save();
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(0, height - 20);
+
+            const availableHeight = height - 32;
+            for (let x = 0; x <= width; x++) {
+                let accH = 0;
+                peakList.forEach(p => {
+                    const h = p.height * availableHeight;
+                    const exp = -Math.pow((x - p.center) / p.width, 2);
+                    accH += h * Math.exp(exp);
+                });
+                const y = Math.max(4, height - 20 - accH);
+                ctx.lineTo(x, y);
+            }
+            ctx.lineTo(width, height - 20);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw stroke
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = shadowColor;
+            ctx.shadowBlur = 5;
+            ctx.beginPath();
+            for (let x = 0; x <= width; x++) {
+                let accH = 0;
+                peakList.forEach(p => {
+                    const h = p.height * availableHeight;
+                    const exp = -Math.pow((x - p.center) / p.width, 2);
+                    accH += h * Math.exp(exp);
+                });
+                const y = Math.max(4, height - 20 - accH);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // Draw peak dots and TSS distance tags
+            peakList.forEach(p => {
+                const peakY = height - 20 - (p.height * availableHeight);
+                ctx.save();
+                ctx.fillStyle = strokeColor;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = 6;
+
+                ctx.beginPath();
+                ctx.arc(p.center, peakY, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.fillStyle = '#475569';
+                ctx.font = 'bold 8px monospace';
+                ctx.textAlign = 'center';
+                const tag = p.relTss >= 0 ? `+${p.relTss}bp` : `${p.relTss}bp`;
+                ctx.fillText(tag, p.center, peakY - 8);
+            });
+        })
+        .catch(() => {
+            // Silence API catch, fallback already rendered
         });
-    }
-    
-    // Setup linear gradient based on condition
-    const grad = ctx.createLinearGradient(0, 0, 0, height - 20);
-    let strokeColor = '#6366f1'; // Indigo for Control
-    let shadowColor = 'rgba(99, 102, 241, 0.3)';
-    
-    if (conditionName === 'Stress') {
-        grad.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
-        grad.addColorStop(0.5, 'rgba(239, 68, 68, 0.15)');
-        grad.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
-        strokeColor = '#ef4444'; // Red for Stress
-        shadowColor = 'rgba(239, 68, 68, 0.3)';
-    } else {
-        grad.addColorStop(0, 'rgba(99, 102, 241, 0.45)');
-        grad.addColorStop(0.5, 'rgba(99, 102, 241, 0.15)');
-        grad.addColorStop(1, 'rgba(99, 102, 241, 0.01)');
-    }
-    
-    // Plot the composite biological peaks track using Gaussian accumulation
-    ctx.save();
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(0, height - 20);
-    
-    const availableHeight = height - 32;
-    for (let x = 0; x <= width; x++) {
-        let accumulatedHeight = 0;
-        peaks.forEach(p => {
-            const h = p.height * availableHeight;
-            const exponent = -Math.pow((x - p.center) / p.width, 2);
-            accumulatedHeight += h * Math.exp(exponent);
-        });
-        // Clamp and calculate y
-        const y = Math.max(4, height - 20 - accumulatedHeight);
-        ctx.lineTo(x, y);
-    }
-    ctx.lineTo(width, height - 20);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Draw outline stroke on top of the shaded area
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 2.2;
-    ctx.shadowColor = shadowColor;
-    ctx.shadowBlur = 5;
-    ctx.beginPath();
-    for (let x = 0; x <= width; x++) {
-        let accumulatedHeight = 0;
-        peaks.forEach(p => {
-            const h = p.height * availableHeight;
-            const exponent = -Math.pow((x - p.center) / p.width, 2);
-            accumulatedHeight += h * Math.exp(exponent);
-        });
-        const y = Math.max(4, height - 20 - accumulatedHeight);
-        if (x === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.restore();
-    
-    // Draw peak coordinate dots at local maxima of the curves
-    peaks.forEach(p => {
-        const peakY = height - 20 - (p.height * availableHeight);
-        
-        ctx.save();
-        ctx.fillStyle = strokeColor;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = shadowColor;
-        ctx.shadowBlur = 8;
-        
-        ctx.beginPath();
-        ctx.arc(p.center, peakY, 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-        
-        // Print coordinate text above dot
-        ctx.fillStyle = varColorTextSecondary();
-        ctx.font = 'bold 7px monospace';
-        ctx.textAlign = 'center';
-        // Mock coordinate relative to gene transcription start site (TSS)
-        const tssOffset = Math.round((p.center - width / 2) * 2.5);
-        const coordinateText = tssOffset >= 0 ? `+${tssOffset}bp` : `${tssOffset}bp`;
-        ctx.fillText(coordinateText, p.center, peakY - 8);
-    });
 }
 
 function varColorTextSecondary() {
@@ -15544,7 +15690,7 @@ if (!_origDetailPanel) {
             layout: { name: 'cose', animate: true, animationDuration: 600,
                 nodeRepulsion: function(){ return 8000; }, idealEdgeLength: function(){ return 80; },
                 gravity: 0.3, randomize: true, fit: true, padding: 30 },
-            minZoom: 0.1, maxZoom: 5,
+            minZoom: 0.1, maxZoom: 2.0,
         });
         addTrnOverlayEdges();
         applyChannelFilter();

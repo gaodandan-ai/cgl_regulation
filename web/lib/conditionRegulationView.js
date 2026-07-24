@@ -170,13 +170,13 @@
             if (!seen.has(targetId)) { elements.push({data:{id:targetId,label:edge.target_name || edge.target_locus,type:'gene',locus:edge.target_locus,state:edge.support_state}}); seen.add(targetId); }
             elements.push({data:{id:`${tfId}>${targetId}`,source:tfId,target:targetId,role:edge.regulation_role,state:edge.support_state,score:edge.condition_score}});
         });
-        state.network = window.cytoscape({container, elements, textureOnViewport: true, hideEdgesOnViewport: elements.length > 100, pixelRatio: 'auto', style:[
+        state.network = window.cytoscape({container, elements, minZoom: 0.15, maxZoom: 2.0, textureOnViewport: true, hideEdgesOnViewport: elements.length > 100, pixelRatio: 'auto', style:[
             {selector:'node',style:{'label':'data(label)','font-size':8,'text-valign':'center','text-halign':'center','width':28,'height':28,'background-color':'#94a3b8','color':'#334155'}},
             {selector:'node[type="tf"]',style:{'shape':'round-rectangle','width':58,'height':34,'background-color':'#0f766e','color':'#fff','font-weight':700}},
             {selector:'node[state="condition_supported"]',style:{'background-color':'#22c55e'}},{selector:'node[state="direction_conflict"]',style:{'background-color':'#ef4444'}},{selector:'node[state="weak_context_support"]',style:{'background-color':'#f59e0b'}},
             {selector:'edge',style:{'width':'mapData(score,0,1,1,4)','curve-style':'bezier','target-arrow-shape':'triangle','line-color':'#8b5cf6','target-arrow-color':'#8b5cf6','opacity':.72}},
             {selector:'edge[role="A"]',style:{'line-color':'#16a34a','target-arrow-color':'#16a34a'}},{selector:'edge[role="R"]',style:{'line-color':'#dc2626','target-arrow-color':'#dc2626'}},{selector:'edge[state="direction_conflict"]',style:{'line-style':'dashed','opacity':.45}},
-        ], layout:{name:'cose',animate:false,fit:true,padding:24,nodeRepulsion:7000,idealEdgeLength:75}});
+        ], layout:{name:'cose',animate:false,fit:true,padding:elements.length <= 3 ? 120 : 24,nodeRepulsion:7000,idealEdgeLength:75}});
         state.network.on('tap', 'node[type="gene"]', event => { window.setActiveWorkflowEntry?.('gene'); window.querySingleGene?.(event.target.data('locus')); });
     }
 

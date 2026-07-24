@@ -41,6 +41,8 @@ def cmd_build_db():
         from data_pipeline.scripts.import_rfam_ncrna import import_rfam_ncrna
         from data_pipeline.scripts.import_ica_condition_regulons import import_ica_condition_regulons
         from data_pipeline.scripts.import_integrated_omics import import_integrated_omics
+        from data_pipeline.scripts.process_chipseq_peaks_integration import process_and_ingest
+        from data_pipeline.scripts.cross_validate_chipseq_expression import run_cross_validation
         from data_pipeline.scripts.build_condition_harmonization import build_condition_harmonization
         from data_pipeline.scripts.build_condition_regulatory_scores import build_condition_regulatory_scores
         from data_pipeline.scripts.build_oxygen_regulatory_scores import build_oxygen_regulatory_scores
@@ -61,6 +63,7 @@ def cmd_build_db():
         import_integrated_omics()
         build_condition_harmonization()
         finalize_database()
+        run_cross_validation(DB_PATH)
         build_condition_regulatory_scores()
         build_oxygen_regulatory_scores()
         build_carbon_regulatory_scores()

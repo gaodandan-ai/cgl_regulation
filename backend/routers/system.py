@@ -58,6 +58,8 @@ def health():
         "version": APP_VERSION,
         "database": "available" if db_path and os.path.isfile(db_path) else "unavailable",
         "deployment": "public" if PUBLIC_DEPLOYMENT else "local",
+        "is_intranet": not PUBLIC_DEPLOYMENT or os.environ.get("CGL_INTRANET_SERVER") == "172.16.2.105",
+        "has_experimental_chipseq": not PUBLIC_DEPLOYMENT
     }
 
 

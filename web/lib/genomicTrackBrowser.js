@@ -192,26 +192,52 @@ window.GenomicTrackBrowser = {
 
                 <!-- TRACK 4: ChIP-seq / TFBS Binding Peak Signal Density -->
                 <g id="track-peaks">
-                    <text x="8" y="170" fill="#64748b" font-size="10" font-weight="bold">TRACK 4: Binding Peak Signal Density (ChIP-seq / TFBS Score Curve)</text>
+                    <text x="8" y="170" fill="#64748b" font-size="10" font-weight="bold">TRACK 4: Binding Peak Signal Density (ChIP-seq Peak Envelopes) <tspan fill="#38bdf8">🧪 实验室内网版 (172.16.2.105)</tspan></text>
                     <line x1="0" y1="210" x2="${width}" y2="210" stroke="#1e293b" stroke-width="1" />
         `;
 
-        // Render Gaussian curve peaks
+        // Render real continuous ChIP-seq peak envelopes
         if ((data.peaks || []).length > 0) {
             data.peaks.forEach(p => {
-                const px = posToX(p.pos || data.target.start_pos);
-                const score = p.score || 0.85;
-                const peakH = Math.min(32, score * 30);
+                const center = p.peak_center || p.pos || (data.target ? data.target.start_pos : 0);
+                const pxCenter = posToX(center);
+                const pStart = p.peak_start ? posToX(p.peak_start) : pxCenter - 18;
+                const pEnd = p.peak_end ? posToX(p.peak_end) : pxCenter + 18;
+                const halfW = Math.max(12, (pEnd - pStart) / 2);
+
+                const score = p.peak_score || p.score || 1.0;
+                const negq = p.neglog10q || 0;
+                const tier = p.strength_tier || 'moderate';
+                const spatialConf = p.spatial_confidence || 'PROMOTER_DIRECT';
+                const relTss = p.rel_pos_to_tss != null ? p.rel_pos_to_tss : null;
+
+                let color = '#38bdf8';
+                let stroke = '#0284c7';
+                let fillGrad = '#0284c7';
+
+                if (tier === 'very_strong') {
+                    color = '#f87171'; stroke = '#dc2626'; fillGrad = '#ef4444';
+                } else if (tier === 'strong') {
+                    color = '#fbbf24'; stroke = '#d97706'; fillGrad = '#f59e0b';
+                } else if (tier === 'moderate') {
+                    color = '#38bdf8'; stroke = '#0284c7'; fillGrad = '#0284c7';
+                } else {
+                    color = '#94a3b8'; stroke = '#64748b'; fillGrad = '#64748b';
+                }
+
+                const peakH = Math.min(38, Math.max(14, Math.log2(score + 1) * 8 + (negq > 0 ? Math.log10(negq + 1) * 4 : 0)));
+
                 svg += `
-                    <g class="cursor-pointer" onmouseenter="GenomicTrackBrowser.inspectPeak('${p.tf_name || 'TF'}', ${p.pos}, ${score}, '${(p.site_seq || '').replace(/'/g, '')}')">
-                        <path d="M ${px - 16} 210 Q ${px} ${210 - peakH} ${px + 16} 210 Z" fill="#38bdf8" opacity="0.65" stroke="#0284c7" stroke-width="1" />
-                        <circle cx="${px}" cy="${210 - peakH}" r="3" fill="#0284c7" />
-                        <text x="${px}" y="${195 - peakH}" fill="#7dd3fc" font-size="9" text-anchor="middle" font-weight="bold">${p.tf_name} (${(score*100).toFixed(0)}%)</text>
+                    <g class="cursor-pointer hover:opacity-90 transition-all"
+                       onmouseenter="GenomicTrackBrowser.inspectPeakDetails('${(p.tf_name||'TF').replace(/'/g,'')}', '${(p.peak_id||'').replace(/'/g,'')}', ${center}, ${score}, ${negq}, '${tier}', '${spatialConf}', ${relTss}, '${(p.nearest_gene_locus||'').replace(/'/g,'')}')">
+                        <path d="M ${pxCenter - halfW} 210 Q ${pxCenter} ${210 - peakH} ${pxCenter + halfW} 210 Z" fill="${color}" opacity="0.65" stroke="${stroke}" stroke-width="1.5" />
+                        <circle cx="${pxCenter}" cy="${210 - peakH}" r="3.5" fill="${fillGrad}" stroke="#ffffff" stroke-width="0.8" />
+                        <text x="${pxCenter}" y="${194 - peakH}" fill="${color}" font-size="9" text-anchor="middle" font-weight="bold">${p.tf_name || 'TF'}</text>
                     </g>
                 `;
             });
         } else {
-            svg += `<text x="${width/2}" y="195" fill="#475569" font-size="10" text-anchor="middle">No experimentally verified binding peaks in this 10kb window</text>`;
+            svg += `<text x="${width/2}" y="195" fill="#475569" font-size="10" text-anchor="middle">No experimentally verified binding peaks in this window</text>`;
         }
 
         svg += `</g>
@@ -259,12 +285,35 @@ window.GenomicTrackBrowser = {
     },
 
     inspectPeak(tf, pos, score, seq) {
+        this.inspectPeakDetails(tf, '', pos, score, 0, 'moderate', 'PROMOTER_DIRECT', 0, '');
+    },
+
+    inspectPeakDetails(tf, peakId, center, score, negq, tier, spatialConf, relTss, nearestGene) {
         const insp = document.getElementById("gtb-inspector");
         if (!insp) return;
         insp.classList.remove("hidden");
+
+        const tierBadge = tier === 'very_strong' ? '<span class="bg-rose-950 text-rose-300 stroke-rose-700 px-1.5 py-0.5 rounded text-[10px] border border-rose-700">VERY STRONG</span>'
+            : (tier === 'strong' ? '<span class="bg-amber-950 text-amber-300 border border-amber-700 px-1.5 py-0.5 rounded text-[10px]">STRONG</span>'
+            : '<span class="bg-sky-950 text-sky-300 border border-sky-700 px-1.5 py-0.5 rounded text-[10px]">MODERATE</span>');
+
+        const confBadge = spatialConf === 'PROMOTER_DIRECT' ? '<span class="bg-emerald-950 text-emerald-300 border border-emerald-700 px-1.5 py-0.5 rounded text-[10px]">🎯 PROMOTER DIRECT</span>'
+            : (spatialConf === 'INTERGENIC_PROMOTER' ? '<span class="bg-teal-950 text-teal-300 border border-teal-700 px-1.5 py-0.5 rounded text-[10px]">🧬 INTERGENIC PROMOTER</span>'
+            : '<span class="bg-slate-800 text-slate-300 border border-slate-700 px-1.5 py-0.5 rounded text-[10px]">GENE BODY INTERNAL</span>');
+
+        const tssStr = relTss != null ? `${relTss > 0 ? '+' : ''}${relTss} bp to TSS` : 'Distal';
+
         insp.innerHTML = `
-            <div><strong class="text-sky-400">ChIP-seq / TFBS Peak:</strong> ${tf} @ ${pos.toLocaleString()} bp | <strong>Confidence Score:</strong> ${(score*100).toFixed(0)}%</div>
-            ${seq ? `<div class="mt-1 text-slate-400"><strong>Binding Motif Motif:</strong> <span class="text-sky-300 font-mono">${seq}</span></div>` : ''}
+            <div class="flex items-center gap-2 flex-wrap">
+                <strong class="text-sky-400">ChIP-seq Binding Peak:</strong> <span class="text-slate-100 font-bold">${tf}</span> (${peakId || 'Peak'}) @ <span class="text-amber-300 font-mono">${center.toLocaleString()} bp</span>
+                ${tierBadge} ${confBadge}
+            </div>
+            <div class="mt-1 text-slate-300 flex items-center gap-4 text-[11px] flex-wrap font-mono">
+                <span>Signal Enrichment: <strong class="text-sky-300">${score.toFixed(2)}x</strong></span>
+                <span>-log10(q): <strong class="text-indigo-300">${negq.toFixed(1)}</strong></span>
+                <span>TSS Offset: <strong class="text-emerald-300">${tssStr}</strong></span>
+                <span>Target: <strong class="text-amber-300">${nearestGene}</strong></span>
+            </div>
         `;
     }
 };

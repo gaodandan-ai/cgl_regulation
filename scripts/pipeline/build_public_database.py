@@ -16,6 +16,8 @@ PUBLIC_TABLES = {
     "brenda_kcat",
     "canonical_locus_map",
     "chebi_mappings",
+    "chipseq_peaks",
+    "chipseq_regulations",
     "cog_annotations",
     "collectf_tfbs",
     "condition_analysis_runs",

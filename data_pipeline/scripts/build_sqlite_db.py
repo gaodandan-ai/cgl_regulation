@@ -14,6 +14,7 @@ import sys
 import json
 import sqlite3
 import pandas as pd
+from pathlib import Path
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 REF_DIR = os.path.join(ROOT_DIR, "data", "reference")
@@ -372,8 +373,22 @@ def build_database():
 
         cursor.executemany("INSERT INTO literature_fts (doc_id, gene_locus, title, abstract, pmid) VALUES (?, ?, ?, ?, ?)", lit_rows)
 
-    # 13. Final Commit & Optimization
-    print("[13/13] Committing changes & optimizing DB...")
+    # 13. ChIP-seq Peaks & Regulations Ingestion
+    print("[13/14] Processing ChIP-seq peaks and regulations...")
+    try:
+        from data_pipeline.scripts.process_chipseq_peaks_integration import process_and_ingest
+    except ImportError:
+        from process_chipseq_peaks_integration import process_and_ingest
+    conn.commit()
+    conn.close()
+    process_and_ingest(Path(DB_PATH))
+
+    # Re-open connection for final optimization
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # 14. Final Commit & Optimization
+    print("[14/14] Committing changes & optimizing DB...")
     conn.commit()
     cursor.execute("VACUUM;")
     cursor.execute("ANALYZE;")
