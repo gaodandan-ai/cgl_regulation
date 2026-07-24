@@ -393,18 +393,7 @@
                                     <span class="label-text" style="font-size: 11px;">ChIP evidence only</span>
                                 </label>
                             </div>
-                            <!-- Strain Filter -->
-                            <div style="margin-top: 10px;">
-                                <label style="font-size: 10.5px; font-weight: 600; color: var(--text-secondary); display:block; margin-bottom: 4px;">
-                                    <i class="fa-solid fa-microscope" style="color:#6366f1;"></i> Strain Filter
-                                </label>
-                                <select id="filter-strain" style="width:100%; font-size:11px; padding:4px 6px; border:1px solid var(--border-color); border-radius:5px; background:var(--bg-primary); color:var(--text-primary); cursor:pointer;">
-                                    <option value="all">All strains</option>
-                                    <option value="ATCC13032">ATCC 13032 only</option>
-                                    <option value="Strain_R">Strain R only</option>
-                                    <option value="Strain_ATCC14067">ATCC 14067 only</option>
-                                </select>
-                            </div>
+
                         <div class="edge-schema-legend" style="margin-top:10px;padding:8px 10px;border:1px solid var(--border-color);border-radius:6px;background:#fff;font-size:10px;color:var(--text-secondary);line-height:1.6;">
                             <div style="font-weight:700;color:var(--text-primary);margin-bottom:5px;font-size:10.5px;">Edge Schema</div>
                             <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
@@ -442,6 +431,144 @@
 
                     </div>
 
+                </div>
+
+                <!-- AI API configuration -->
+                <div class="sidebar-section ai-config-section">
+                    <h2><i class="fa-solid fa-gear"></i> AI Provider Settings</h2>
+
+                    <!-- API key configuration -->
+                    <div id="ai-key-config-panel" class="ai-key-config"
+                        style="margin-bottom: 12px; background-color: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
+                            Configure an AI provider for literature summaries and discovery assistance. Keys are stored
+                            locally in this browser.
+                        </p>
+                        <!-- Provider selection -->
+                        <div style="margin-bottom: 8px;">
+                            <label
+                                style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Provider</label>
+                            <select id="ai-provider-select" class="custom-select"
+                                style="padding: 4px 8px; font-size: 11px; height: 28px; line-height: 18px; border-radius: 6px;">
+                                <option value="google">Google Gemini</option>
+                                <option value="openai">OpenAI</option>
+                                <option value="deepseek">DeepSeek</option>
+                                <option value="qwen">Qwen</option>
+                                <option value="kimi">Moonshot Kimi</option>
+                                <option value="zhipu">Zhipu GLM</option>
+                                <option value="ollama">Ollama (local)</option>
+                                <option value="custom">Custom (OpenAI-compatible)</option>
+                            </select>
+                        </div>
+
+                        <!-- Custom Base URL -->
+                        <div id="ai-custom-url-wrapper" class="hidden" style="margin-bottom: 8px;">
+                            <label
+                                style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Base
+                                URL</label>
+                            <input type="text" id="ai-base-url-input" placeholder="Example: https://api.openai.com/v1"
+                                style="width: 100%; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                        </div>
+
+                        <!-- Model name -->
+                        <div id="ai-model-wrapper" class="hidden" style="margin-bottom: 8px;">
+                            <label
+                                style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Model</label>
+                            <input type="text" id="ai-model-input" placeholder="Example: deepseek-chat"
+                                style="width: 100%; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                        </div>
+
+                        <!-- API Key -->
+                        <div>
+                            <label id="ai-key-label"
+                                style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">API
+                                Key</label>
+                            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                <input type="password" id="gemini-api-key-input" placeholder="Enter API key..."
+                                    style="flex: 1; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
+                                <button id="btn-save-key" class="primary-btn"
+                                    style="height: 28px; width: 64px; font-size: 11px; padding: 0; flex-shrink: 0;"
+                                    title="Save settings locally">Save</button>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="btn-test-ai" class="secondary-btn"
+                                    style="flex: 1; height: 28px; font-size: 11px; padding: 0;"
+                                    title="Test the current AI connection">Test API connection</button>
+                            </div>
+                            <div id="ai-test-result" class="hidden"
+                                style="margin-top: 8px; font-size: 10px; padding: 6px 8px; border-radius: 6px; line-height: 1.4; word-break: break-all; max-height: 120px; overflow-y: auto; font-family: monospace;">
+                            </div>
+                        </div>
+
+                        <!-- API key links -->
+                        <p id="ai-key-hint-google" style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
+                                    class="fa-solid fa-circle-question"></i> Get a Gemini API key <i
+                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                        </p>
+                        <p id="ai-key-hint-openai" class="hidden"
+                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
+                            <a href="https://platform.openai.com/api-keys" target="_blank"
+                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
+                                    class="fa-solid fa-circle-question"></i> Get an OpenAI API key <i
+                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                        </p>
+                        <p id="ai-key-hint-deepseek" class="hidden"
+                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
+                            <a href="https://platform.deepseek.com/" target="_blank"
+                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
+                                    class="fa-solid fa-circle-question"></i> Get a DeepSeek API key <i
+                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                        </p>
+                        <p id="ai-key-hint-qwen" class="hidden"
+                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
+                            <a href="https://dashscope.console.aliyun.com/apiKey" target="_blank"
+                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
+                                    class="fa-solid fa-circle-question"></i> Get a Qwen API key <i
+                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                        </p>
+                        <p id="ai-key-hint-kimi" class="hidden"
+                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
+                            <a href="https://platform.moonshot.cn/console/api-keys" target="_blank"
+                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
+                                    class="fa-solid fa-circle-question"></i> Get a Moonshot Kimi API key <i
+                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                        </p>
+                        <p id="ai-key-hint-zhipu" class="hidden"
+                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
+                            <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank"
+                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
+                                    class="fa-solid fa-circle-question"></i> Get a Zhipu GLM API key <i
+                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
+                        </p>
+                        <p id="ai-key-hint-ollama" class="hidden"
+                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0; color: var(--text-secondary); line-height: 1.4;">
+                            <i class="fa-solid fa-circle-info"></i> Ollama runs local models. Make sure the Ollama
+                            service is running on port 11434 and the selected model has been pulled. No API key is
+                            required for local use.
+                        </p>
+                    </div>
+
+                    <!-- Saved key status -->
+                    <div id="ai-key-active-panel" class="ai-key-active hidden"
+                        style="font-size: 11px; background-color: rgba(99, 102, 241, 0.05); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2); margin-bottom: 12px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span id="ai-active-status-text" style="color: #6366f1; font-weight: 600;"><i
+                                    class="fa-solid fa-circle-check"></i> AI provider ready</span>
+                            <button id="btn-clear-key"
+                                style="background: transparent; color: #ef4444; font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 6px; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; background-color: #fff5f5;">Clear</button>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="btn-test-ai-active" class="secondary-btn"
+                                style="flex: 1; height: 26px; font-size: 11px; padding: 0;"
+                                title="Test the saved AI connection">Test API connection</button>
+                        </div>
+                        <div id="ai-test-result-active" class="hidden"
+                            style="margin-top: 8px; font-size: 10px; padding: 6px 8px; border-radius: 6px; line-height: 1.4; word-break: break-all; max-height: 120px; overflow-y: auto; font-family: monospace;">
+                        </div>
+                    </div>
                 </div>
 
 
@@ -702,143 +829,7 @@
                     </div>
                 </div>
 
-                <!-- AI API configuration -->
-                <div class="sidebar-section ai-config-section">
-                    <h2><i class="fa-solid fa-gear"></i> AI Provider Settings</h2>
 
-                    <!-- API key configuration -->
-                    <div id="ai-key-config-panel" class="ai-key-config"
-                        style="margin-bottom: 12px; background-color: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
-                            Configure an AI provider for literature summaries and discovery assistance. Keys are stored
-                            locally in this browser.
-                        </p>
-                        <!-- Provider selection -->
-                        <div style="margin-bottom: 8px;">
-                            <label
-                                style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Provider</label>
-                            <select id="ai-provider-select" class="custom-select"
-                                style="padding: 4px 8px; font-size: 11px; height: 28px; line-height: 18px; border-radius: 6px;">
-                                <option value="google">Google Gemini</option>
-                                <option value="openai">OpenAI</option>
-                                <option value="deepseek">DeepSeek</option>
-                                <option value="qwen">Qwen</option>
-                                <option value="kimi">Moonshot Kimi</option>
-                                <option value="zhipu">Zhipu GLM</option>
-                                <option value="ollama">Ollama (local)</option>
-                                <option value="custom">Custom (OpenAI-compatible)</option>
-                            </select>
-                        </div>
-
-                        <!-- Custom Base URL -->
-                        <div id="ai-custom-url-wrapper" class="hidden" style="margin-bottom: 8px;">
-                            <label
-                                style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Base
-                                URL</label>
-                            <input type="text" id="ai-base-url-input" placeholder="Example: https://api.openai.com/v1"
-                                style="width: 100%; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
-                        </div>
-
-                        <!-- Model name -->
-                        <div id="ai-model-wrapper" class="hidden" style="margin-bottom: 8px;">
-                            <label
-                                style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">Model</label>
-                            <input type="text" id="ai-model-input" placeholder="Example: deepseek-chat"
-                                style="width: 100%; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
-                        </div>
-
-                        <!-- API Key -->
-                        <div>
-                            <label id="ai-key-label"
-                                style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500;">API
-                                Key</label>
-                            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                <input type="password" id="gemini-api-key-input" placeholder="Enter API key..."
-                                    style="flex: 1; font-size: 11px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; outline: none; background-color: var(--bg-input);">
-                                <button id="btn-save-key" class="primary-btn"
-                                    style="height: 28px; width: 64px; font-size: 11px; padding: 0; flex-shrink: 0;"
-                                    title="Save settings locally">Save</button>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button id="btn-test-ai" class="secondary-btn"
-                                    style="flex: 1; height: 28px; font-size: 11px; padding: 0;"
-                                    title="Test the current AI connection">Test API connection</button>
-                            </div>
-                            <div id="ai-test-result" class="hidden"
-                                style="margin-top: 8px; font-size: 10px; padding: 6px 8px; border-radius: 6px; line-height: 1.4; word-break: break-all; max-height: 120px; overflow-y: auto; font-family: monospace;">
-                            </div>
-                        </div>
-
-                        <!-- API key links -->
-                        <p id="ai-key-hint-google" style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank"
-                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
-                                    class="fa-solid fa-circle-question"></i> Get a Gemini API key <i
-                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
-                        </p>
-                        <p id="ai-key-hint-openai" class="hidden"
-                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://platform.openai.com/api-keys" target="_blank"
-                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
-                                    class="fa-solid fa-circle-question"></i> Get an OpenAI API key <i
-                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
-                        </p>
-                        <p id="ai-key-hint-deepseek" class="hidden"
-                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://platform.deepseek.com/" target="_blank"
-                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
-                                    class="fa-solid fa-circle-question"></i> Get a DeepSeek API key <i
-                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
-                        </p>
-                        <p id="ai-key-hint-qwen" class="hidden"
-                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://dashscope.console.aliyun.com/apiKey" target="_blank"
-                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
-                                    class="fa-solid fa-circle-question"></i> Get a Qwen API key <i
-                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
-                        </p>
-                        <p id="ai-key-hint-kimi" class="hidden"
-                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://platform.moonshot.cn/console/api-keys" target="_blank"
-                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
-                                    class="fa-solid fa-circle-question"></i> Get a Moonshot Kimi API key <i
-                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
-                        </p>
-                        <p id="ai-key-hint-zhipu" class="hidden"
-                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0;">
-                            <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank"
-                                style="color: #6366f1; text-decoration: none; font-weight: 500;"><i
-                                    class="fa-solid fa-circle-question"></i> Get a Zhipu GLM API key <i
-                                    class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8px;"></i></a>
-                        </p>
-                        <p id="ai-key-hint-ollama" class="hidden"
-                            style="font-size: 10px; margin-top: 8px; margin-bottom: 0; color: var(--text-secondary); line-height: 1.4;">
-                            <i class="fa-solid fa-circle-info"></i> Ollama runs local models. Make sure the Ollama
-                            service is running on port 11434 and the selected model has been pulled. No API key is
-                            required for local use.
-                        </p>
-                    </div>
-
-                    <!-- Saved key status -->
-                    <div id="ai-key-active-panel" class="ai-key-active hidden"
-                        style="font-size: 11px; background-color: rgba(99, 102, 241, 0.05); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2); margin-bottom: 12px;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span id="ai-active-status-text" style="color: #6366f1; font-weight: 600;"><i
-                                    class="fa-solid fa-circle-check"></i> AI provider ready</span>
-                            <button id="btn-clear-key"
-                                style="background: transparent; color: #ef4444; font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 6px; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; background-color: #fff5f5;">Clear</button>
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button id="btn-test-ai-active" class="secondary-btn"
-                                style="flex: 1; height: 26px; font-size: 11px; padding: 0;"
-                                title="Test the saved AI connection">Test API connection</button>
-                        </div>
-                        <div id="ai-test-result-active" class="hidden"
-                            style="margin-top: 8px; font-size: 10px; padding: 6px 8px; border-radius: 6px; line-height: 1.4; word-break: break-all; max-height: 120px; overflow-y: auto; font-family: monospace;">
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Actions -->
                 <div class="sidebar-section action-section">
