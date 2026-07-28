@@ -19730,3 +19730,26 @@ function scrollToHierMatch(index) {
         statusEl.innerHTML = `<span style="color:#7c3aed;font-weight:700;">${_hierSearchMatchIdx + 1} / ${_hierSearchMatches.length}</span> matches`;
     }
 }
+
+// ── Global Responsive Window Resize Handler ──────────────────────────────────
+let appResizeTimeout = null;
+window.addEventListener('resize', () => {
+    if (appResizeTimeout) clearTimeout(appResizeTimeout);
+    appResizeTimeout = setTimeout(() => {
+        if (typeof imodulonCy !== 'undefined' && imodulonCy) {
+            imodulonCy.resize();
+            imodulonCy.fit();
+        }
+        if (typeof imodulonWeightsChartInstance !== 'undefined' && imodulonWeightsChartInstance) {
+            imodulonWeightsChartInstance.resize();
+        }
+        if (typeof imodulonPathwayChartInstance !== 'undefined' && imodulonPathwayChartInstance) {
+            imodulonPathwayChartInstance.resize();
+        }
+        if (typeof window.mainCy !== 'undefined' && window.mainCy) {
+            window.mainCy.resize();
+            window.mainCy.fit();
+        }
+    }, 150);
+});
+

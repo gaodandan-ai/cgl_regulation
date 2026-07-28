@@ -5906,3 +5906,145 @@ details[open] .conf-chevron { transform: rotate(180deg); }
     color: #4f46e5;
     border-color: #a5b4fc;
 }
+
+/* ==========================================================================
+   Responsive & Small Screen Optimization Rules (Laptop / Low-Res Displays)
+   ========================================================================== */
+
+/* ── 1. Standard Laptop Screens (<= 1400px width) ────────────────────────── */
+@media screen and (max-width: 1400px) {
+    :root {
+        --right-sidebar-width: 320px;
+        --left-sidebar-width: 200px;
+        --header-height: 56px;
+        --workflow-height: 92px;
+    }
+
+    #app-header {
+        padding: 0 16px;
+    }
+
+    .workflow-entry {
+        padding: 6px 10px;
+        font-size: 11.5px;
+    }
+
+    .dashboard-title-area h2 {
+        font-size: 18px;
+    }
+
+    .dashboard-subtitle {
+        font-size: 11px;
+    }
+
+    #imodulon-overlay .imodulon-sidebar {
+        width: 270px;
+    }
+}
+
+/* ── 2. Small Laptops & Tablets (<= 1120px width) ────────────────────────── */
+@media screen and (max-width: 1120px) {
+    :root {
+        --right-sidebar-width: 280px;
+        --left-sidebar-width: 180px;
+        --workflow-height: 84px;
+    }
+
+    #imodulon-overlay .imodulon-layout {
+        flex-direction: column;
+    }
+
+    #imodulon-overlay .imodulon-sidebar {
+        width: 100%;
+        max-height: 180px;
+    }
+
+    #imodulon-overlay .imodulon-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    #imodulon-overlay .imodulon-item {
+        flex: 1 1 200px;
+        margin-bottom: 0;
+    }
+
+    .imodulon-tab-bar {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 4px;
+    }
+
+    .imodulon-tab-btn {
+        flex-shrink: 0;
+    }
+}
+
+/* ── 3. Short Vertical Screens (<= 820px height) ─────────────────────────── */
+@media screen and (max-height: 820px) {
+    :root {
+        --header-height: 50px;
+        --workflow-height: 72px;
+    }
+
+    #app-header {
+        height: 50px;
+    }
+
+    #workflow-bar {
+        padding: 4px 12px;
+    }
+
+    .workflow-entry {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    #imodulon-overlay {
+        padding: 12px !important;
+        gap: 10px !important;
+    }
+
+    .dashboard-header {
+        margin-bottom: 6px;
+    }
+
+    #imodulon-overlay .imodulon-content {
+        padding: 10px 14px !important;
+    }
+
+    #imodulon-tab-network {
+        min-height: 320px !important;
+    }
+
+    #imodulon-network-container {
+        min-height: 280px !important;
+    }
+
+    #imodulon-cy {
+        min-height: 280px !important;
+    }
+}
+
+/* ── 4. High-Density Compact Overlays & Utility Classes ──────────────────── */
+.imodulon-tab-bar {
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+}
+
+.imodulon-tab-btn {
+    white-space: nowrap;
+    font-size: 11px !important;
+    padding: 5px 10px !important;
+}
+
+@media screen and (max-width: 900px) {
+    #imodulon-tab-overview > div {
+        grid-template-columns: 1fr !important;
+    }
+}
