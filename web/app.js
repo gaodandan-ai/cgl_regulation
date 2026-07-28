@@ -13139,17 +13139,28 @@ async function initIModulonDashboard() {
     // Setup tab buttons
     document.querySelectorAll('#imodulon-overlay .imodulon-tab-btn').forEach(btn => {
         btn.onclick = (e) => {
+            const targetBtn = e.target.closest('.imodulon-tab-btn');
+            if (!targetBtn) return;
             document.querySelectorAll('#imodulon-overlay .imodulon-tab-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            activeIModulonTab = e.target.getAttribute('data-tab');
+            targetBtn.classList.add('active');
+            activeIModulonTab = targetBtn.getAttribute('data-tab');
             updateIModulonTabContent();
         };
     });
 
-    // Setup simulation run button
-    const runSimBtn = document.getElementById('btn-run-imodulon-sim');
-    if (runSimBtn) {
-        runSimBtn.onclick = runIModulonSimulation;
+    // Setup network layout and slider listeners
+    const layoutSelect = document.getElementById('imodulon-net-layout-select');
+    if (layoutSelect) {
+        layoutSelect.onchange = () => renderIModulonNetwork();
+    }
+    const weightSlider = document.getElementById('imodulon-net-weight-slider');
+    const weightValSpan = document.getElementById('imodulon-net-weight-val');
+    if (weightSlider) {
+        weightSlider.oninput = (e) => {
+            const val = parseFloat(e.target.value);
+            if (weightValSpan) weightValSpan.textContent = `>= ${val.toFixed(2)}`;
+            renderIModulonNetwork();
+        };
     }
 }
 
@@ -13204,9 +13215,6 @@ function showIModulonDetails() {
     const weights = imodulonsWeights[selectedIModulonId];
     if (!im || !weights) return;
 
-    const simResults = document.getElementById('imodulon-sim-results');
-    if (simResults) simResults.classList.add('hidden');
-
     document.getElementById('imodulon-detail-title').textContent = im.name;
     const badge = document.getElementById('imodulon-detail-badge');
     badge.textContent = im.category;
@@ -13219,34 +13227,44 @@ function showIModulonDetails() {
 
     const overlap = weights.regulon_overlap;
     if (overlap) {
-        document.getElementById('imodulon-stat-regulator').innerHTML = `<span style="font-weight:700; color:#4f46e5; cursor:pointer;" onclick="searchAndExploreGene('${overlap.regulator}')"><i class="fa-solid fa-square-arrow-up-right"></i> ${overlap.regulator}</span>`;
+        const regName = window.GENE_NAMES ? (window.GENE_NAMES[overlap.regulator] || overlap.regulator) : overlap.regulator;
+        const regDisplay = `${overlap.regulator} (${regName})`;
+        document.getElementById('imodulon-stat-regulator').innerHTML = `<span style="font-weight:700; color:#0284c7; cursor:pointer;" onclick="searchAndExploreGene('${overlap.regulator}')"><i class="fa-solid fa-square-arrow-up-right"></i> ${regDisplay}</span>`;
         document.getElementById('imodulon-stat-precision').textContent = `${(overlap.precision * 100).toFixed(1)}%`;
         document.getElementById('imodulon-stat-recall').textContent = `${(overlap.recall * 100).toFixed(1)}%`;
         document.getElementById('imodulon-stat-f1').textContent = overlap.f1_score.toFixed(3);
     } else {
-        document.getElementById('imodulon-stat-regulator').textContent = im.linked_regulator || 'None';
+        document.getElementById('imodulon-stat-regulator').textContent = im.linked_regulator || 'Orphan / Unassigned';
         document.getElementById('imodulon-stat-precision').textContent = '-';
         document.getElementById('imodulon-stat-recall').textContent = '-';
         document.getElementById('imodulon-stat-f1').textContent = '-';
     }
 
-    const engRationale = document.getElementById('imodulon-engineering-rationale');
-    if (engRationale) {
-        if (im.linked_regulator) {
+    const trnRationale = document.getElementById('imodulon-engineering-rationale');
+    if (trnRationale) {
+        const genes = weights.genes || {};
+        const geneEntries = Object.entries(genes);
+        const posCount = geneEntries.filter(([, w]) => w > 0).length;
+        const negCount = geneEntries.filter(([, w]) => w < 0).length;
+        
+        if (im.linked_regulator || overlap) {
+            const tfName = overlap ? overlap.regulator : im.linked_regulator;
+            const tfSymbol = window.GENE_NAMES ? (window.GENE_NAMES[tfName] || tfName) : tfName;
             const f1 = overlap ? overlap.f1_score : 0.0;
-            const score = f1 * 50 + (im.gene_count / 10);
-            let priority = 'Low';
-            let priorityColor = '#64748b';
-            if (score > 40) { priority = 'High'; priorityColor = '#ef4444'; }
-            else if (score > 15) { priority = 'Medium'; priorityColor = '#f59e0b'; }
+            const prec = overlap ? (overlap.precision * 100).toFixed(1) : '-';
+            const rec = overlap ? (overlap.recall * 100).toFixed(1) : '-';
             
-            engRationale.innerHTML = `
-                Regulator <strong>${im.linked_regulator}</strong> regulates ${im.gene_count} genes in this iModulon.<br/>
-                Engineering Priority Score: <strong style="color:${priorityColor}; font-size:12px;">${score.toFixed(1)} (${priority} Priority)</strong><br/>
-                <span style="font-size:10px; color:#4b5563;">Rationale: Overlap with known regulon targets is ${(f1 * 100).toFixed(1)}% (F1: ${f1.toFixed(3)}). Targeted metabolic engineerings of this regulator may perturb downstream fluxes in metabolic pathway: ${im.top_pathways.join(', ') || 'Unassigned'}.</span>
+            trnRationale.innerHTML = `
+                Regulator <strong>${tfSymbol} (${tfName})</strong> governs ${im.gene_count} member genes in this module (${posCount} positively weighted, ${negCount} negatively weighted).<br/>
+                Regulon Alignment: Overlap precision is <strong>${prec}%</strong>, recall is <strong>${rec}%</strong> (F1 Score: ${f1.toFixed(3)}).<br/>
+                <span style="font-size:10.5px; color:#475569;">Functional Scope: Key pathways governed include <strong>${im.top_pathways.join(', ') || 'General Metabolism'}</strong>. Direct TF binding or co-regulation drives coordinated expression.</span>
             `;
         } else {
-            engRationale.innerHTML = `No linked regulator identified for this iModulon. Direct metabolic engineering of target genes inside the membership list is recommended.`;
+            trnRationale.innerHTML = `
+                <strong>Orphan Transcriptional Module:</strong> No single verified TF identified in curated DB for this module.<br/>
+                Controls <strong>${im.gene_count}</strong> co-expressed genes (${posCount} positive / ${negCount} negative ICA weights).<br/>
+                <span style="font-size:10.5px; color:#475569;">Candidate TF search or promoter motif discovery is recommended for these enriched pathways: <strong>${im.top_pathways.join(', ') || 'Uncharacterized'}</strong>.</span>
+            `;
         }
     }
 
@@ -13304,6 +13322,9 @@ function updateIModulonTabContent() {
         const genes = weights.genes || {};
         const sortedGenes = Object.entries(genes).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
         
+        const im = imodulonsMetadata.find(i => i.id === selectedIModulonId);
+        const overlapRegulator = (weights.regulon_overlap && weights.regulon_overlap.regulator) || im?.linked_regulator;
+        
         sortedGenes.forEach(([locus, val]) => {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid var(--border-color)';
@@ -13313,49 +13334,48 @@ function updateIModulonTabContent() {
             const geneName = window.GENE_NAMES ? (window.GENE_NAMES[locus] || locus) : locus;
             const nameDisplay = formatGeneName(locus, geneName);
             
+            // Determine regulon status & mode
+            let isRegulonMember = false;
+            let regModeText = 'Unspecified';
+            let regModeBadgeStyle = 'background:#f1f5f9; color:#475569;';
+            
+            if (overlapRegulator) {
+                const tfLower = overlapRegulator.toLowerCase();
+                const matchedEdge = normalizedEdges.find(e => 
+                    e.source.toLowerCase() === tfLower && e.target.toLowerCase() === locusLower
+                );
+                if (matchedEdge) {
+                    isRegulonMember = true;
+                    const mode = (matchedEdge.regulationType || matchedEdge.role || '').toLowerCase();
+                    if (mode.includes('activation') || mode === '+') {
+                        regModeText = 'Activation (+)';
+                        regModeBadgeStyle = 'background:#dcfce7; color:#15803d; border:1px solid #86efac;';
+                    } else if (mode.includes('repression') || mode === '-') {
+                        regModeText = 'Repression (-)';
+                        regModeBadgeStyle = 'background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;';
+                    } else if (mode.includes('dual')) {
+                        regModeText = 'Dual (+/-)';
+                        regModeBadgeStyle = 'background:#f3e8ff; color:#7e22ce; border:1px solid #d8b4fe;';
+                    }
+                }
+            }
+            
+            const regulonBadge = isRegulonMember 
+                ? `<span class="badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; font-size:9.5px; padding:2px 6px;"><i class="fa-solid fa-circle-check"></i> Regulon Member</span>`
+                : `<span class="badge" style="background:#f8fafc; color:#64748b; border:1px solid #cbd5e1; font-size:9.5px; padding:2px 6px;"><i class="fa-solid fa-sparkles"></i> Module Discovery</span>`;
+
+            const modeBadge = `<span class="badge" style="${regModeBadgeStyle} font-size:9.5px; padding:2px 6px;">${regModeText}</span>`;
+            
             tr.innerHTML = `
-                <td style="padding:6px;"><span style="font-weight:700; color:#4f46e5; cursor:pointer;" onclick="searchAndExploreGene('${locus}')"><i class="fa-solid fa-magnifying-glass"></i> ${cglLocus}</span></td>
+                <td style="padding:6px;"><span style="font-weight:700; color:#0284c7; cursor:pointer;" onclick="searchAndExploreGene('${locus}')"><i class="fa-solid fa-magnifying-glass"></i> ${cglLocus}</span></td>
                 <td style="padding:6px; font-weight:600;">${nameDisplay}</td>
-                <td style="padding:6px; text-align:right; font-family:monospace; color:${val >= 0 ? '#10b981' : '#ef4444'}; font-weight:700;">${val.toFixed(4)}</td>
-                <td style="padding:6px; color:#64748b; font-size:10px;">Catalyzes metabolic functions in Corynebacterium glutamicum.</td>
+                <td style="padding:6px; text-align:right; font-family:monospace; color:${val >= 0 ? '#059669' : '#dc2626'}; font-weight:700;">${val >= 0 ? '+' : ''}${val.toFixed(4)}</td>
+                <td style="padding:6px; text-align:center;">${regulonBadge}</td>
+                <td style="padding:6px; text-align:center;">${modeBadge}</td>
+                <td style="padding:6px; color:#64748b; font-size:10.5px;">Catalyzes metabolic & transcriptomic functions in Corynebacterium glutamicum.</td>
             `;
             tbody.appendChild(tr);
         });
-    } else if (activeIModulonTab === 'reactions') {
-        const tbody = document.getElementById('imodulon-reactions-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading reaction mapping...</td></tr>';
-        
-        fetch(`/api/imodulon/reactions?imodulon=${encodeURIComponent(selectedIModulonId)}`)
-            .then(r => r.json())
-            .then(data => {
-                tbody.innerHTML = '';
-                const rxns = data.reactions || [];
-                if (rxns.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:10px; color:var(--text-secondary); font-style:italic;">No associated GEM reactions mapped for this module</td></tr>';
-                    return;
-                }
-                rxns.forEach(r => {
-                    const tr = document.createElement('tr');
-                    tr.style.borderBottom = '1px solid var(--border-color)';
-                    
-                    const kcatVal = r.kcat_MW ? r.kcat_MW.toFixed(2) : '-';
-                    const modelBadgeColor = r.model === 'iCW773' ? '#0f766e' : '#4f46e5';
-                    
-                    tr.innerHTML = `
-                        <td style="padding:6px;"><strong style="font-family:monospace; color:var(--text-primary);">${r.reactionId}</strong></td>
-                        <td style="padding:6px; font-size:10px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
-                        <td style="padding:6px;"><span class="badge" style="background:${modelBadgeColor}; color:white; font-size:9px; padding:2px 6px;">${r.model}</span></td>
-                        <td style="padding:6px; color:#64748b; font-size:10px;">${r.pathway_name || 'Unassigned'}</td>
-                        <td style="padding:6px; text-align:right; font-family:monospace; font-weight:600;">${kcatVal}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            })
-            .catch(err => {
-                console.error(err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:10px; color:#ef4444;"><i class="fa-solid fa-circle-exclamation"></i> Error loading mappings: ${err.message}</td></tr>`;
-            });
     } else if (activeIModulonTab === 'network') {
         renderIModulonNetwork();
     }
@@ -13378,11 +13398,12 @@ function renderIModulonNetwork() {
 
     const genes = weights.genes || {};
     const regulator = im.linked_regulator || (weights.regulon_overlap && weights.regulon_overlap.regulator);
+    const minWeightThreshold = parseFloat(document.getElementById('imodulon-net-weight-slider')?.value || '0');
 
     const elements = { nodes: [], edges: [] };
     const addedNodes = new Set();
 
-    function addNode(id, label, type, weight = null) {
+    function addNode(id, label, type, weight = null, isKnownRegulon = false) {
         const lowerId = id.toLowerCase();
         if (addedNodes.has(lowerId)) return;
         addedNodes.add(lowerId);
@@ -13396,7 +13417,8 @@ function renderIModulonNetwork() {
                 name: label || mappedLocus,
                 displayName: displayName,
                 type: type,
-                weight: weight
+                weight: weight,
+                isKnownRegulon: isKnownRegulon
             }
         });
     }
@@ -13404,19 +13426,32 @@ function renderIModulonNetwork() {
     if (regulator) {
         const regLower = regulator.toLowerCase();
         const mappedReg = cgToCgl[regLower] || regulator;
-        addNode(regulator, mappedReg, 'TF');
+        addNode(regulator, mappedReg, 'TF', null, true);
     }
 
+    const regLower = regulator ? regulator.toLowerCase() : null;
+
     Object.entries(genes).forEach(([locus, weight]) => {
+        if (Math.abs(weight) < minWeightThreshold) return;
+        
         const lowerLocus = locus.toLowerCase();
         const mappedLocus = cgToCgl[lowerLocus] || locus;
-        if (regulator && lowerLocus === regulator.toLowerCase()) {
-            const existing = elements.nodes.find(n => n.data.id.toLowerCase() === regulator.toLowerCase());
+        
+        let isKnownRegulon = false;
+        if (regLower) {
+            const hasEdge = normalizedEdges.some(e => 
+                e.source.toLowerCase() === regLower && e.target.toLowerCase() === lowerLocus
+            );
+            if (hasEdge) isKnownRegulon = true;
+        }
+
+        if (regulator && lowerLocus === regLower) {
+            const existing = elements.nodes.find(n => n.data.id.toLowerCase() === regLower);
             if (existing) {
                 existing.data.weight = weight;
             }
         } else {
-            addNode(locus, mappedLocus, 'gene', weight);
+            addNode(locus, mappedLocus, 'gene', weight, isKnownRegulon);
         }
     });
 
@@ -13437,22 +13472,70 @@ function renderIModulonNetwork() {
         }
     });
 
+    // If regulator exists but no direct edge was found in normalizedEdges, synthesize direct edges from TF to all member genes
+    if (regulator && elements.nodes.length > 1) {
+        elements.nodes.forEach(n => {
+            if (n.data.type === 'gene') {
+                const sId = regulator;
+                const tId = n.data.id;
+                const edgeExists = elements.edges.some(e => 
+                    e.data.source.toLowerCase() === sId.toLowerCase() && e.data.target.toLowerCase() === tId.toLowerCase()
+                );
+                if (!edgeExists) {
+                    elements.edges.push({
+                        data: {
+                            id: `synth_${sId}_${tId}`,
+                            source: sId,
+                            target: tId,
+                            regulationType: (n.data.weight >= 0) ? 'activation' : 'repression',
+                            role: 'iModulon co-expression'
+                        }
+                    });
+                }
+            }
+        });
+    }
+
     const cyInstance = window.cytoscape || cytoscape;
     if (!cyInstance) {
         console.error('Cytoscape.js is not loaded.');
         return;
     }
 
+    const selectedLayoutName = document.getElementById('imodulon-net-layout-select')?.value || 'concentric';
+    let layoutConfig = {
+        name: 'cose',
+        animate: false,
+        fit: true,
+        padding: 30,
+        nodeRepulsion: () => 5000,
+        idealEdgeLength: () => 60
+    };
+
+    if (selectedLayoutName === 'concentric') {
+        layoutConfig = {
+            name: 'concentric',
+            animate: false,
+            fit: true,
+            padding: 40,
+            concentric: function(node) {
+                return node.data('type') === 'TF' ? 2 : 1;
+            },
+            levelWidth: function() { return 1; }
+        };
+    } else if (selectedLayoutName === 'circle') {
+        layoutConfig = {
+            name: 'circle',
+            animate: false,
+            fit: true,
+            padding: 40
+        };
+    }
+
     imodulonCy = cyInstance({
         container: container,
         elements: elements,
         style: [
-            {
-                selector: 'node.lod-hide-label',
-                style: {
-                    'label': ''
-                }
-            },
             {
                 selector: 'node',
                 style: {
@@ -13463,9 +13546,9 @@ function renderIModulonNetwork() {
                     'text-valign': 'bottom',
                     'text-halign': 'center',
                     'text-margin-y': '4px',
-                    'width': '22px',
-                    'height': '22px',
-                    'border-width': '1.5px',
+                    'width': '24px',
+                    'height': '24px',
+                    'border-width': '2px',
                     'transition-property': 'background-color, border-color, width, height',
                     'transition-duration': '0.2s'
                 }
@@ -13476,10 +13559,12 @@ function renderIModulonNetwork() {
                     'shape': 'round-rectangle',
                     'background-color': '#e0f2fe',
                     'border-color': '#0284c7',
-                    'border-width': '2.5px',
-                    'width': '26px',
-                    'height': '26px',
-                    'font-weight': 'bold'
+                    'border-width': '3px',
+                    'width': '32px',
+                    'height': '32px',
+                    'font-weight': 'bold',
+                    'font-size': '11px',
+                    'color': '#0369a1'
                 }
             },
             {
@@ -13488,11 +13573,11 @@ function renderIModulonNetwork() {
                     'shape': 'ellipse',
                     'width': function(ele) {
                         const w = Math.abs(ele.data('weight') || 0);
-                        return Math.max(18, Math.min(36, 18 + w * 70)) + 'px';
+                        return Math.max(20, Math.min(42, 20 + w * 80)) + 'px';
                     },
                     'height': function(ele) {
                         const w = Math.abs(ele.data('weight') || 0);
-                        return Math.max(18, Math.min(36, 18 + w * 70)) + 'px';
+                        return Math.max(20, Math.min(42, 20 + w * 80)) + 'px';
                     },
                     'background-color': function(ele) {
                         const w = ele.data('weight') || 0;
@@ -13501,6 +13586,9 @@ function renderIModulonNetwork() {
                     'border-color': function(ele) {
                         const w = ele.data('weight') || 0;
                         return w >= 0 ? '#059669' : '#dc2626';
+                    },
+                    'border-style': function(ele) {
+                        return ele.data('isKnownRegulon') ? 'solid' : 'dashed';
                     }
                 }
             },
@@ -13508,10 +13596,10 @@ function renderIModulonNetwork() {
                 selector: 'edge',
                 style: {
                     'width': '1.5px',
-                    'line-color': '#cbd5e1',
+                    'line-color': '#94a3b8',
                     'curve-style': 'bezier',
                     'target-arrow-shape': 'triangle',
-                    'target-arrow-color': '#cbd5e1'
+                    'target-arrow-color': '#94a3b8'
                 }
             },
             {
@@ -13537,24 +13625,29 @@ function renderIModulonNetwork() {
                     'target-arrow-shape': 'triangle',
                     'target-arrow-color': '#a855f7'
                 }
-            },
-            {
-                selector: 'edge[regulationType="sigma"]',
-                style: {
-                    'line-color': '#a855f7',
-                    'target-arrow-shape': 'triangle',
-                    'target-arrow-color': '#a855f7'
-                }
             }
         ],
-        layout: {
-            name: 'cose',
-            animate: false,
-            fit: true,
-            padding: 30,
-            nodeRepulsion: function() { return 5000; },
-            idealEdgeLength: function() { return 60; }
+        layout: layoutConfig
+    });
+
+    const infoCard = document.getElementById('imodulon-node-hover-info');
+    const infoTitle = document.getElementById('imodulon-node-info-title');
+    const infoBody = document.getElementById('imodulon-node-info-body');
+
+    imodulonCy.on('mouseover', 'node', function(evt) {
+        const node = evt.target;
+        const d = node.data();
+        if (infoCard && infoTitle && infoBody) {
+            infoTitle.textContent = `${d.displayName} (${d.name})`;
+            const weightText = d.weight !== null ? `ICA Weight: <strong>${d.weight >= 0 ? '+' : ''}${d.weight.toFixed(4)}</strong>` : 'Linked Regulator (TF)';
+            const statusText = d.type === 'TF' ? 'Transcription Factor' : (d.isKnownRegulon ? 'Confirmed Regulon Target' : 'Module Novel Discovery');
+            infoBody.innerHTML = `<div>${statusText}</div><div>${weightText}</div>`;
+            infoCard.style.display = 'block';
         }
+    });
+
+    imodulonCy.on('mouseout', 'node', function() {
+        if (infoCard) infoCard.style.display = 'none';
     });
 
     imodulonCy.on('tap', 'node', function(evt) {

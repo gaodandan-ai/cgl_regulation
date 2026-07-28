@@ -4,6 +4,17 @@ All notable changes to the Cgl Regulation Explorer project will be documented in
 
 ---
 
+## [v1.4.0] - 2026-07-28
+### Added
+- **Enhanced iModulon Transcriptional Regulatory Network**: Interactive subnetwork view with layout selector (Concentric, COSE, Circular), weight threshold filter, and hover node detail card.
+- **Visual Regulon Alignment & Mechanism Analysis**: Visual metrics for precision, recall, F1 score, and automatic transcriptional regulatory rationale summary.
+- **Regulon & Mode Details in Gene Membership**: Added TRN membership status badges (Regulon Member vs Module Discovery) and explicit TF regulation mode badges (Activation `+` / Repression `-` / Dual `+/-`).
+
+### Removed
+- **Redundant Non-Regulatory Features**: Removed GEM FBA metabolic reaction map (`imodulon-tab-reactions`) and knockout flux simulation / multi-iModulon comparison (`imodulon-tab-simulation`) from the iModulon Explorer modal to streamline user focus on transcriptional regulation.
+
+---
+
 ## [v1.3.0] - 2026-07-22
 ### Added
 - **Condition-aware regulation analysis** across iron, carbon, nitrogen, oxygen, and stress response modules, with condition harmonization and edge-level support scoring.

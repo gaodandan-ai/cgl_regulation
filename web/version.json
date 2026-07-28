@@ -1,6 +1,6 @@
 {
-  "version": "1.3.1",
-  "release_date": "2026-07-23",
+  "version": "1.4.0",
+  "release_date": "2026-07-28",
   "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest/download/cgl_regulation.exe",
-  "changelog": "Improved startup reliability, provenance, frontend modularity, scientific validation, and direct Windows app download."
+  "changelog": "Enhanced iModulon Explorer with TF regulatory subnetwork controls, Regulon alignment metrics, and streamlined UI for transcriptional regulation."
 }

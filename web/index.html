@@ -2171,12 +2171,10 @@
                             <p id="imodulon-detail-desc" style="margin:0 0 12px 0; font-size:11.5px; color:#64748b; line-height:1.4;">Description goes here.</p>
                             
                             <div class="imodulon-tab-bar">
-                                <button class="imodulon-tab-btn active" data-tab="overview">Overview & Regulon</button>
-                                <button class="imodulon-tab-btn" data-tab="network">Module Network</button>
-                                <button class="imodulon-tab-btn" data-tab="pathway">Pathway Enrichment</button>
-                                <button class="imodulon-tab-btn" data-tab="membership">Gene Membership</button>
-                                <button class="imodulon-tab-btn" data-tab="reactions">Metabolic Reaction Map</button>
-                                <button class="imodulon-tab-btn" data-tab="simulation">FBA & ecFBA Consequence</button>
+                                <button class="imodulon-tab-btn active" data-tab="overview"><i class="fa-solid fa-circle-info"></i> Overview & Regulon Alignment</button>
+                                <button class="imodulon-tab-btn" data-tab="network"><i class="fa-solid fa-diagram-project"></i> Module Network</button>
+                                <button class="imodulon-tab-btn" data-tab="pathway"><i class="fa-solid fa-chart-pie"></i> Pathway Enrichment</button>
+                                <button class="imodulon-tab-btn" data-tab="membership"><i class="fa-solid fa-list-check"></i> Gene Membership & TRN</button>
                             </div>
                             
                             <div class="imodulon-tab-content">
@@ -2185,7 +2183,7 @@
                                     <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:12px; margin-bottom:12px; align-items: stretch;">
                                         <div style="display:flex; flex-direction:column; gap:12px;">
                                             <div style="background:#f8fafc; border:1px solid var(--border-color); padding:10px; border-radius:6px; flex:1;">
-                                                <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);">Variance & Stimulus</div>
+                                                <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);"><i class="fa-solid fa-chart-pie"></i> Variance & Module Properties</div>
                                                 <table style="width:100%; font-size:10.5px;">
                                                     <tr><td style="color:#64748b; padding:3px 0;">Explained Variance:</td><td id="imodulon-stat-variance" style="font-weight:600; text-align:right;">0%</td></tr>
                                                     <tr><td style="color:#64748b; padding:3px 0;">Gene Count:</td><td id="imodulon-stat-genes" style="font-weight:600; text-align:right;">0</td></tr>
@@ -2193,7 +2191,7 @@
                                                 </table>
                                             </div>
                                             <div style="background:#f8fafc; border:1px solid var(--border-color); padding:10px; border-radius:6px; flex:1;">
-                                                <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);">Regulon Association</div>
+                                                <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--text-primary);"><i class="fa-solid fa-link"></i> Regulon Alignment & TRN Support</div>
                                                 <table style="width:100%; font-size:10.5px;">
                                                     <tr><td style="color:#64748b; padding:3px 0;">Linked Regulator:</td><td id="imodulon-stat-regulator" style="font-weight:600; text-align:right;">None</td></tr>
                                                     <tr><td style="color:#64748b; padding:3px 0;">Overlap Precision:</td><td id="imodulon-stat-precision" style="font-weight:600; text-align:right;">-</td></tr>
@@ -2209,28 +2207,52 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:10px;">
-                                        <div style="font-weight:700; font-size:11px; color:#1e40af; margin-bottom:4px;"><i class="fa-solid fa-circle-info"></i> Candidate Engineering Priority Ranking</div>
-                                        <p id="imodulon-engineering-rationale" style="margin:0; font-size:11px; color:#1e3a8a; line-height:1.4;">Ranking details...</p>
+                                    <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:10px;">
+                                        <div style="font-weight:700; font-size:11px; color:#0369a1; margin-bottom:4px;"><i class="fa-solid fa-circle-info"></i> Transcriptional Regulatory Mechanism & Scope Analysis</div>
+                                        <p id="imodulon-engineering-rationale" style="margin:0; font-size:11px; color:#0c4a6e; line-height:1.4;">Analyzing module regulatory context...</p>
                                     </div>
                                 </div>
                                 
                                 <!-- Module Network Tab -->
-                                <div id="imodulon-tab-network" class="imodulon-subtab-panel hidden" style="height: 100%; min-height: 400px; display: flex; flex-direction: column; gap: 10px;">
-                                    <div style="font-size:11px; color:#64748b;">
-                                        Interactive regulatory subnetwork for this module. Shows the linked regulator (if any) and member genes. Node sizes reflect their weights in this iModulon (emerald green for positive weight, coral/red for negative weight). Edges are colored by role (Activation = green, Repression = red, Dual = purple).
+                                <div id="imodulon-tab-network" class="imodulon-subtab-panel hidden" style="height: 100%; min-height: 420px; display: flex; flex-direction: column; gap: 10px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border-color); padding:6px 12px; border-radius:6px; font-size:11px;">
+                                        <div style="display:flex; align-items:center; gap:12px;">
+                                            <div>
+                                                <label style="font-weight:600; color:var(--text-secondary); margin-right:4px;">Layout:</label>
+                                                <select id="imodulon-net-layout-select" style="font-size:11px; padding:3px 8px; border:1px solid var(--border-color); border-radius:4px; background:white;">
+                                                    <option value="concentric">Concentric (Regulator Center)</option>
+                                                    <option value="cose">COSE (Force Directed)</option>
+                                                    <option value="circle">Circular</option>
+                                                </select>
+                                            </div>
+                                            <div style="display:flex; align-items:center; gap:6px;">
+                                                <label style="font-weight:600; color:var(--text-secondary);">Min Weight Filter:</label>
+                                                <input type="range" id="imodulon-net-weight-slider" min="0" max="0.3" step="0.01" value="0" style="width:90px; vertical-align:middle;" />
+                                                <span id="imodulon-net-weight-val" style="font-family:monospace; font-weight:600; color:#0284c7;">>= 0.00</span>
+                                            </div>
+                                        </div>
+                                        <button class="secondary-btn" onclick="renderIModulonNetwork()" style="padding:3px 8px; font-size:10.5px;"><i class="fa-solid fa-rotate"></i> Reset View</button>
                                     </div>
-                                    <div id="imodulon-network-container" style="flex:1; min-height: 350px; position:relative; background:#ffffff; border:1px solid var(--border-color); border-radius:8px; overflow:hidden;">
-                                        <div id="imodulon-cy" style="width:100%; height:100%; min-height: 350px;"></div>
-                                        <div class="network-legend" style="position:absolute; bottom:10px; left:10px; background:rgba(255,255,255,0.9); padding:6px 10px; border:1px solid var(--border-color); border-radius:6px; font-size:9.5px; pointer-events:none; display:flex; flex-direction:column; gap:4px; z-index:10; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                    <div id="imodulon-network-container" style="flex:1; min-height: 360px; position:relative; background:#ffffff; border:1px solid var(--border-color); border-radius:8px; overflow:hidden;">
+                                        <div id="imodulon-cy" style="width:100%; height:100%; min-height: 360px;"></div>
+                                        
+                                        <!-- Hover / Tap Details Card -->
+                                        <div id="imodulon-node-hover-info" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); padding:8px 12px; border:1px solid var(--border-color); border-radius:6px; font-size:10.5px; display:none; max-width:240px; box-shadow:0 2px 8px rgba(0,0,0,0.08); z-index:10;">
+                                            <div id="imodulon-node-info-title" style="font-weight:700; color:#1e293b;">Gene Name</div>
+                                            <div id="imodulon-node-info-body" style="color:#64748b; margin-top:2px;">Details...</div>
+                                        </div>
+                                        
+                                        <!-- Enhanced Network Legend -->
+                                        <div class="network-legend" style="position:absolute; bottom:10px; left:10px; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); padding:8px 12px; border:1px solid var(--border-color); border-radius:6px; font-size:10px; pointer-events:none; display:flex; flex-direction:column; gap:4px; z-index:10; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
                                             <div style="font-weight:700; color:var(--text-primary);">Nodes</div>
                                             <div><span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:#e0f2fe; border:1.5px solid #0284c7; vertical-align:middle; margin-right:4px;"></span>TF (Regulator)</div>
-                                            <div><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#34d399; border:1px solid #059669; vertical-align:middle; margin-right:4px;"></span>Gene Weight &gt; 0</div>
-                                            <div><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f87171; border:1px solid #dc2626; vertical-align:middle; margin-right:4px;"></span>Gene Weight &lt; 0</div>
-                                            <div style="font-weight:700; color:var(--text-primary); margin-top:4px;">Edges</div>
+                                            <div><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#34d399; border:1.5px solid #059669; vertical-align:middle; margin-right:4px;"></span>Positive ICA Weight (> 0)</div>
+                                            <div><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f87171; border:1.5px solid #dc2626; vertical-align:middle; margin-right:4px;"></span>Negative ICA Weight (< 0)</div>
+                                            <div><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f1f5f9; border:1.5px dashed #475569; vertical-align:middle; margin-right:4px;"></span>Module Novel Discovery</div>
+                                            <div style="font-weight:700; color:var(--text-primary); margin-top:4px;">Edges & Regulation</div>
                                             <div><span style="display:inline-block; width:15px; height:2px; background:#10b981; vertical-align:middle; margin-right:4px;"></span>Activation (+)</div>
                                             <div><span style="display:inline-block; width:15px; height:2px; background:#ef4444; vertical-align:middle; margin-right:4px;"></span>Repression (-)</div>
-                                            <div><span style="display:inline-block; width:15px; height:2px; background:#a855f7; border-top:1px dashed #a855f7; vertical-align:middle; margin-right:4px;"></span>Dual / Sigma</div>
+                                            <div><span style="display:inline-block; width:15px; height:2px; background:#a855f7; border-top:1px dashed #a855f7; vertical-align:middle; margin-right:4px;"></span>Dual / Unspecified</div>
                                         </div>
                                     </div>
                                 </div>
@@ -2270,128 +2292,16 @@
                                     <table style="width:100%; font-size:11px; border-collapse:collapse;">
                                         <thead>
                                             <tr style="border-bottom:2px solid var(--border-color); text-align:left;">
-                                                <th style="padding:4px 6px;">Locus Tag</th>
-                                                <th style="padding:4px 6px;">Gene Name</th>
-                                                <th style="padding:4px 6px; text-align:right;">Weight in iModulon</th>
-                                                <th style="padding:4px 6px;">Product / Annotation</th>
+                                                <th style="padding:6px;">Locus Tag</th>
+                                                <th style="padding:6px;">Gene Name</th>
+                                                <th style="padding:6px; text-align:right;">ICA Weight</th>
+                                                <th style="padding:6px; text-align:center;">Regulon Status</th>
+                                                <th style="padding:6px; text-align:center;">Regulation Mode</th>
+                                                <th style="padding:6px;">Product / Annotation</th>
                                             </tr>
                                         </thead>
                                         <tbody id="imodulon-membership-tbody"></tbody>
                                     </table>
-                                </div>
-                                
-                                <!-- Reactions Tab -->
-                                <div id="imodulon-tab-reactions" class="imodulon-subtab-panel hidden">
-                                    <div style="font-size:10px; color:#64748b; margin-bottom:8px;">Metabolic reactions catalyzed by the member enzymes of this module. Resolves both standard model <strong>iCW773</strong> and the newly loaded <strong>iCBG21FR</strong> model.</div>
-                                    <table style="width:100%; font-size:11px; border-collapse:collapse;">
-                                        <thead>
-                                            <tr style="border-bottom:2px solid var(--border-color); text-align:left;">
-                                                <th style="padding:4px 6px;">Reaction ID</th>
-                                                <th style="padding:4px 6px;">Name</th>
-                                                <th style="padding:4px 6px;">Model</th>
-                                                <th style="padding:4px 6px;">Subsystem / Pathway</th>
-                                                <th style="padding:4px 6px; text-align:right;">kcat/MW (s⁻¹/kDa)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="imodulon-reactions-tbody"></tbody>
-                                    </table>
-                                </div>
-                                
-                                <!-- Simulation Tab -->
-                                <div id="imodulon-tab-simulation" class="imodulon-subtab-panel hidden">
-                                    <!-- Run Controls -->
-                                    <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:12px;">
-                                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-                                            <div>
-                                                <div style="font-weight:700; font-size:11.5px; color:var(--text-primary); margin-bottom:2px;"><i class="fa-solid fa-play"></i> iModulon Knockout FBA</div>
-                                                <p style="margin:0; font-size:11px; color:var(--text-secondary); line-height:1.4;">Simulates gene-set deletion on iCW773 (FBA) and enzyme-constrained ecFBA. Tracks growth, lysine, and glutamate fluxes.</p>
-                                            </div>
-                                            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                                                <button class="primary-btn" id="btn-run-imodulon-sim" style="font-weight:600; height:34px; padding:0 14px; font-size:11.5px;"><i class="fa-solid fa-play"></i> Run Simulation</button>
-                                                <button id="btn-add-imodulon-compare" style="height:34px; padding:0 12px; font-size:11px; font-weight:600; border:1.5px solid #6366f1; background:#f5f3ff; color:#4f46e5; border-radius:8px; cursor:pointer; display:none; gap:5px; align-items:center; white-space:nowrap;">
-                                                    <i class="fa-solid fa-plus"></i> Add to Compare
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Results Panel -->
-                                    <div id="imodulon-sim-results" class="hidden">
-                                        <!-- KPI Summary Row -->
-                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-                                            <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:8px; padding:10px;">
-                                                <div style="font-weight:700; font-size:11px; color:#0f766e; margin-bottom:6px; display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-dna"></i> Standard FBA (iCW773)</div>
-                                                <table style="width:100%; font-size:10.5px;">
-                                                    <tr><td style="color:#64748b; padding:4px 0;">Growth rate change:</td><td id="imodulon-sim-fba-growth" style="font-weight:600; text-align:right;">0%</td></tr>
-                                                    <tr><td style="color:#64748b; padding:4px 0;">Lysine flux change:</td><td id="imodulon-sim-fba-lysine" style="font-weight:600; text-align:right;">0%</td></tr>
-                                                    <tr><td style="color:#64748b; padding:4px 0;">Glutamate flux change:</td><td id="imodulon-sim-fba-glutamate" style="font-weight:600; text-align:right;">0%</td></tr>
-                                                </table>
-                                            </div>
-                                            <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:8px; padding:10px;">
-                                                <div style="font-weight:700; font-size:11px; color:#4f46e5; margin-bottom:6px; display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-flask"></i> Enzyme-Constrained ecFBA</div>
-                                                <table style="width:100%; font-size:10.5px;">
-                                                    <tr><td style="color:#64748b; padding:4px 0;">Growth flux (Knockout):</td><td id="imodulon-sim-ec-growth" style="font-weight:600; text-align:right;">0.00</td></tr>
-                                                    <tr><td style="color:#64748b; padding:4px 0;">Lysine flux (Knockout):</td><td id="imodulon-sim-ec-lysine" style="font-weight:600; text-align:right;">0.00</td></tr>
-                                                    <tr><td style="color:#64748b; padding:4px 0;">Glutamate flux (Knockout):</td><td id="imodulon-sim-ec-glutamate" style="font-weight:600; text-align:right;">0.00</td></tr>
-                                                </table>
-                                            </div>
-                                        </div>
-
-                                        <!-- Flux Bar Chart: WT vs KO absolute comparison -->
-                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:12px;">
-                                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                                                <div style="font-weight:700; font-size:11px; color:var(--text-primary);"><i class="fa-solid fa-chart-bar" style="color:#10b981;"></i> Flux Profile: Wild-Type vs Knockout</div>
-                                                <div style="display:flex; align-items:center; gap:6px; font-size:10px; color:var(--text-muted);">
-                                                    <span style="display:inline-block;width:10px;height:10px;background:#6366f1;border-radius:2px;"></span>Wild-Type
-                                                    <span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:2px;margin-left:4px;"></span>Knockout
-                                                </div>
-                                            </div>
-                                            <div style="height:200px; position:relative;">
-                                                <canvas id="imodulon-flux-bar-chart"></canvas>
-                                            </div>
-                                        </div>
-
-                                        <!-- Legacy line chart (kept for consistency) -->
-                                        <div style="background:#ffffff; border:1px solid var(--border-color); border-radius:6px; padding:12px; margin-bottom:12px; display:flex; flex-direction:column;">
-                                            <div style="font-weight:700; font-size:11px; margin-bottom:8px; color:var(--text-primary);"><i class="fa-solid fa-chart-line"></i> Flux Change % (FBA)</div>
-                                            <div style="height:150px; position:relative;">
-                                                <canvas id="imodulon-simulation-chart"></canvas>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- ──── Multi-iModulon Comparison Panel ──── -->
-                                    <div id="imodulon-compare-panel" style="display:none; margin-top:4px; background:#faf5ff; border:1.5px solid #c4b5fd; border-radius:10px; padding:12px;">
-                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                                            <div>
-                                                <div style="font-weight:700; font-size:12px; color:#5b21b6;"><i class="fa-solid fa-code-compare"></i> Multi-iModulon Flux Comparison</div>
-                                                <div id="imodulon-compare-subtitle" style="font-size:10px; color:#7c3aed; margin-top:2px;">Compare knockout flux changes across different iModulons</div>
-                                            </div>
-                                            <div style="display:flex; gap:6px; align-items:center;">
-                                                <select id="imodulon-compare-metric" style="font-size:10.5px; padding:4px 8px; border:1px solid #c4b5fd; border-radius:6px; background:white; color:#5b21b6; cursor:pointer;">
-                                                    <option value="growth">Growth Rate Δ%</option>
-                                                    <option value="lysine">Lysine Flux Δ%</option>
-                                                    <option value="glutamate">Glutamate Flux Δ%</option>
-                                                    <option value="all">All Metrics</option>
-                                                </select>
-                                                <button id="btn-clear-imodulon-compare" style="padding:4px 10px; font-size:10.5px; font-weight:600; border:1px solid #c4b5fd; background:white; color:#7c3aed; border-radius:6px; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Clear</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Compare Chips Row -->
-                                        <div id="imodulon-compare-chips" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"></div>
-
-                                        <!-- Grouped Bar Chart -->
-                                        <div style="background:white; border:1px solid #e9d5ff; border-radius:8px; padding:10px;">
-                                            <div style="height:230px; position:relative;">
-                                                <canvas id="imodulon-compare-chart"></canvas>
-                                            </div>
-                                        </div>
-
-                                        <div style="font-size:9.5px; color:#a78bfa; text-align:center; margin-top:6px;">
-                                            <i class="fa-solid fa-circle-info"></i> Each bar = FBA flux change (%) when that iModulon's gene set is knocked out
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>

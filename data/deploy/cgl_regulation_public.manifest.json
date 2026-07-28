@@ -1,8 +1,8 @@
 {
   "source": "cgl_regulation.db",
   "destination": "data/deploy/cgl_regulation_public.db",
-  "bytes": 45363200,
-  "tables": 33,
+  "bytes": 51154944,
+  "tables": 35,
   "views": 6,
   "rows": {
     "abasy_roles": 12,
@@ -10,6 +10,8 @@
     "brenda_kcat": 1850,
     "canonical_locus_map": 11066,
     "chebi_mappings": 817,
+    "chipseq_peaks": 13673,
+    "chipseq_regulations": 2410,
     "cog_annotations": 2873,
     "collectf_tfbs": 18,
     "condition_analysis_runs": 5,
