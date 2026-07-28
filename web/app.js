@@ -13126,12 +13126,17 @@ async function initIModulonDashboard() {
     if (searchInput) {
         searchInput.oninput = (e) => {
             const query = e.target.value.toLowerCase().trim();
-            const filtered = imodulonsMetadata.filter(im => 
-                (im.name || '').toLowerCase().includes(query) ||
-                (im.linked_regulator || '').toLowerCase().includes(query) ||
-                (im.category || '').toLowerCase().includes(query) ||
-                (im.description || '').toLowerCase().includes(query)
-            );
+            const filtered = imodulonsMetadata.filter(im => {
+                const topP = (im.top_pathways || []).join(' ').toLowerCase();
+                const weights = imodulonsWeights ? imodulonsWeights[im.id] : null;
+                const genesStr = weights && weights.genes ? Object.keys(weights.genes).join(' ').toLowerCase() : '';
+                return (im.name || '').toLowerCase().includes(query) ||
+                       (im.linked_regulator || '').toLowerCase().includes(query) ||
+                       (im.category || '').toLowerCase().includes(query) ||
+                       (im.description || '').toLowerCase().includes(query) ||
+                       topP.includes(query) ||
+                       genesStr.includes(query);
+            });
             renderIModulonList(filtered);
         };
     }
@@ -13180,6 +13185,24 @@ function renderIModulonList(items) {
         div.setAttribute('data-id', im.id);
         
         const regText = im.linked_regulator ? ` | Reg: ${im.linked_regulator}` : '';
+        const topPathways = im.top_pathways || [];
+        
+        // Get top gene preview for uncharacterized modules
+        let genePreview = '';
+        if (imodulonsWeights && imodulonsWeights[im.id] && imodulonsWeights[im.id].genes) {
+            const topGenes = Object.entries(imodulonsWeights[im.id].genes)
+                .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+                .slice(0, 3)
+                .map(([locus]) => window.GENE_NAMES ? (window.GENE_NAMES[locus] || locus) : locus);
+            if (topGenes.length > 0) genePreview = topGenes.join(', ');
+        }
+
+        let pathwaySubline = '';
+        if (topPathways.length > 0) {
+            pathwaySubline = `<div style="font-size:9px; color:#0284c7; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-layer-group"></i> ${topPathways.slice(0, 2).join(' | ')}</div>`;
+        } else if (genePreview) {
+            pathwaySubline = `<div style="font-size:9px; color:#64748b; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fa-solid fa-dna"></i> Top: ${genePreview}</div>`;
+        }
         
         div.innerHTML = `
             <div style="font-weight:700; font-size:11.5px; display:flex; justify-content:space-between; align-items:center;">
@@ -13190,6 +13213,7 @@ function renderIModulonList(items) {
                 <span>${im.category}</span>
                 <span>Genes: ${im.gene_count}${regText}</span>
             </div>
+            ${pathwaySubline}
         `;
         
         div.onclick = () => {
@@ -13219,7 +13243,16 @@ function showIModulonDetails() {
     const badge = document.getElementById('imodulon-detail-badge');
     badge.textContent = im.category;
     badge.style.background = getCategoryColor(im.category);
-    document.getElementById('imodulon-detail-desc').textContent = im.description || 'No functional description provided.';
+    
+    const descEl = document.getElementById('imodulon-detail-desc');
+    const topPathways = im.top_pathways || [];
+    if (im.description && im.description.trim() !== '') {
+        descEl.textContent = im.description;
+    } else if (topPathways.length > 0) {
+        descEl.innerHTML = `<strong>Orphan Transcriptional Module:</strong> Co-expression component identified via ICA transcriptomic decomposition. Enriched in pathway(s): <span style="color:#0284c7; font-weight:600;">${topPathways.join(', ')}</span>.`;
+    } else {
+        descEl.textContent = 'Orphan Transcriptional Module: Functional co-expression module identified via ICA transcriptomic decomposition.';
+    }
 
     document.getElementById('imodulon-stat-variance').textContent = `${im.variance_explained.toFixed(2)}%`;
     document.getElementById('imodulon-stat-genes').textContent = im.gene_count;
@@ -13247,6 +13280,12 @@ function showIModulonDetails() {
         const posCount = geneEntries.filter(([, w]) => w > 0).length;
         const negCount = geneEntries.filter(([, w]) => w < 0).length;
         
+        // Get top 3 member genes
+        const topGeneList = geneEntries.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 3).map(([locus]) => {
+            const sym = window.GENE_NAMES ? (window.GENE_NAMES[locus] || locus) : locus;
+            return `<strong>${sym}</strong> (${locus})`;
+        }).join(', ');
+
         if (im.linked_regulator || overlap) {
             const tfName = overlap ? overlap.regulator : im.linked_regulator;
             const tfSymbol = window.GENE_NAMES ? (window.GENE_NAMES[tfName] || tfName) : tfName;
@@ -13257,13 +13296,13 @@ function showIModulonDetails() {
             trnRationale.innerHTML = `
                 Regulator <strong>${tfSymbol} (${tfName})</strong> governs ${im.gene_count} member genes in this module (${posCount} positively weighted, ${negCount} negatively weighted).<br/>
                 Regulon Alignment: Overlap precision is <strong>${prec}%</strong>, recall is <strong>${rec}%</strong> (F1 Score: ${f1.toFixed(3)}).<br/>
-                <span style="font-size:10.5px; color:#475569;">Functional Scope: Key pathways governed include <strong>${im.top_pathways.join(', ') || 'General Metabolism'}</strong>. Direct TF binding or co-regulation drives coordinated expression.</span>
+                <span style="font-size:10.5px; color:#475569;">Functional Scope: Key pathways governed include <strong>${im.top_pathways.join(', ') || 'General Metabolism'}</strong> (Top Genes: ${topGeneList}). Direct TF binding or co-regulation drives coordinated expression.</span>
             `;
         } else {
             trnRationale.innerHTML = `
-                <strong>Orphan Transcriptional Module:</strong> No single verified TF identified in curated DB for this module.<br/>
-                Controls <strong>${im.gene_count}</strong> co-expressed genes (${posCount} positive / ${negCount} negative ICA weights).<br/>
-                <span style="font-size:10.5px; color:#475569;">Candidate TF search or promoter motif discovery is recommended for these enriched pathways: <strong>${im.top_pathways.join(', ') || 'Uncharacterized'}</strong>.</span>
+                <strong>Orphan Transcriptional Module:</strong> Data-driven co-expressed gene set with no single verified TF assigned in curated DB.<br/>
+                Controls <strong>${im.gene_count}</strong> genes (${posCount} positive / ${negCount} negative ICA weights; Top Genes: ${topGeneList}).<br/>
+                <span style="font-size:10.5px; color:#475569;">Biological Functions & Pathways: <strong>${im.top_pathways.join(', ') || 'Uncharacterized'}</strong>. Candidate TF search via promoter motif enrichment or ChIP-seq binding analysis is recommended for these target promoters.</span>
             `;
         }
     }
