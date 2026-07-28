@@ -13268,7 +13268,137 @@ function showIModulonDetails() {
         }
     }
 
+    renderIModulonWeightsChart(weights);
     updateIModulonTabContent();
+}
+
+let imodulonWeightsChartInstance = null;
+function renderIModulonWeightsChart(weightsData) {
+    const canvas = document.getElementById('imodulon-weights-chart');
+    if (!canvas) return;
+
+    if (imodulonWeightsChartInstance) {
+        imodulonWeightsChartInstance.destroy();
+        imodulonWeightsChartInstance = null;
+    }
+
+    const genes = weightsData?.genes || {};
+    const sorted = Object.entries(genes)
+        .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+        .slice(0, 12);
+
+    if (sorted.length === 0) return;
+
+    const labels = sorted.map(([locus]) => {
+        const lower = locus.toLowerCase();
+        const cgl = cgToCgl[lower] || locus;
+        const name = window.GENE_NAMES ? (window.GENE_NAMES[locus] || locus) : locus;
+        return name !== locus ? `${name} (${cgl})` : cgl;
+    });
+
+    const values = sorted.map(([, val]) => val);
+    const bgColors = values.map(val => val >= 0 ? 'rgba(52, 211, 153, 0.85)' : 'rgba(248, 113, 113, 0.85)');
+    const borderColors = values.map(val => val >= 0 ? '#059669' : '#dc2626');
+
+    const ctx = canvas.getContext('2d');
+    const ChartClass = window.Chart || Chart;
+    if (!ChartClass) return;
+
+    imodulonWeightsChartInstance = new ChartClass(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'ICA Weight',
+                data: values,
+                backgroundColor: bgColors,
+                borderColor: borderColors,
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => ` ICA Weight: ${ctx.parsed.x >= 0 ? '+' : ''}${ctx.parsed.x.toFixed(4)}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: '#f1f5f9' },
+                    ticks: { font: { size: 9.5 } }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10, weight: '600' } }
+                }
+            }
+        }
+    });
+}
+
+let imodulonPathwayChartInstance = null;
+function renderIModulonPathwayChart(pathways) {
+    const canvas = document.getElementById('imodulon-pathway-chart');
+    if (!canvas) return;
+
+    if (imodulonPathwayChartInstance) {
+        imodulonPathwayChartInstance.destroy();
+        imodulonPathwayChartInstance = null;
+    }
+
+    if (!pathways || pathways.length === 0) return;
+
+    const topPathways = pathways.slice(0, 8);
+    const labels = topPathways.map(p => p.pathway_name);
+    const foldEnrichment = topPathways.map(p => p.fold_enrichment);
+
+    const ctx = canvas.getContext('2d');
+    const ChartClass = window.Chart || Chart;
+    if (!ChartClass) return;
+
+    imodulonPathwayChartInstance = new ChartClass(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Fold Enrichment',
+                data: foldEnrichment,
+                backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                borderColor: '#1d4ed8',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => ` Fold Enrichment: ${ctx.parsed.x.toFixed(2)}x`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Fold Enrichment (x)', font: { size: 10 } },
+                    ticks: { font: { size: 9.5 } }
+                },
+                y: {
+                    ticks: { font: { size: 9.5 } }
+                }
+            }
+        }
+    });
 }
 
 function getCategoryColor(cat) {
@@ -13298,6 +13428,7 @@ function updateIModulonTabContent() {
         if (!tbody) return;
         tbody.innerHTML = '';
         const pathways = weights.enriched_pathways || [];
+        renderIModulonPathwayChart(pathways);
         if (pathways.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:10px; color:var(--text-secondary); font-style:italic;">No significantly enriched pathways found</td></tr>';
             return;
