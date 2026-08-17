@@ -1,2 +1,3 @@
-# Refer to shared core server requirements in root directory
--r ../requirements-core.txt
+fastapi>=0.115,<1
+pydantic>=2.7,<3
+httpx>=0.27,<1
