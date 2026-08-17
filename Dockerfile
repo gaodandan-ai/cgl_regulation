@@ -34,7 +34,7 @@ ENV CGL_PUBLIC_DEPLOYMENT=true
 
 # Health check (optional but good practice for orchestration)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/api/model/status')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/api/health')" || exit 1
 
 # Command to run the application
 CMD ["python", "run_server.py"]

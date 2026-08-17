@@ -4821,13 +4821,22 @@ function showNodeDetails(locusTag) {
         renderGenomicLocusMap(resolvedLocus);
     }
 
+    // Render 5-Track Multi-Track Browser in its own dedicated module
+    const genomicTracksSection = document.getElementById('detail-genomic-tracks-section');
+    if (genomicTracksSection) {
+        genomicTracksSection.style.display = 'block';
+        if (window.GenomicTrackBrowser && typeof window.GenomicTrackBrowser.render === 'function') {
+            window.GenomicTrackBrowser.render('genomic-tracks-5track-container', resolvedLocus);
+        }
+    }
+
     // Setup protein domain and binding site sections
     const proteinDomainSection = document.getElementById('detail-protein-domain-section');
     const bindingSiteSection = document.getElementById('detail-binding-site-section');
-    if (proteinDomainSection && bindingSiteSection) {
+    if (bindingSiteSection) bindingSiteSection.style.display = 'none';
+    if (proteinDomainSection) {
         if (meta.type === 'TF') {
             proteinDomainSection.style.display = 'block';
-            bindingSiteSection.style.display = 'block';
             loadMotifAndBindingSites(meta.locusTag);
             // Fetch regulon pathway enrichment
             fetchRegulonPathwayEnrichment(meta.locusTag);
@@ -4838,12 +4847,15 @@ function showNodeDetails(locusTag) {
             if (scanInput) scanInput.value = '';
         } else {
             proteinDomainSection.style.display = 'none';
-            bindingSiteSection.style.display = 'none';
         }
     }
 
     // Slide open sidebar
     toggleRightSidebar(true);
+    const sidebarElement = document.getElementById('right-sidebar');
+    if (sidebarElement && sidebarElement.classList.contains('is-fullscreen')) {
+        initOrSyncPipNetwork();
+    }
 
     // Initialize FBA simulation
     const fbaTargetInput = document.getElementById('fba-target-search');
@@ -6335,11 +6347,33 @@ function initEventListeners() {
 
 
     // Detail Panel closer
-
     closeDetailBtn.addEventListener('click', () => {
-
         toggleRightSidebar(false);
+    });
 
+    const fsBtn = document.getElementById('btn-toggle-sidebar-fullscreen');
+    if (fsBtn) {
+        fsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleRightSidebarFullscreen();
+        });
+    }
+
+    const sideFsBtn = document.getElementById('right-sidebar-fullscreen-toggle');
+    if (sideFsBtn) {
+        sideFsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleRightSidebarFullscreen();
+        });
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const sidebar = document.getElementById('right-sidebar');
+            if (sidebar && sidebar.classList.contains('is-fullscreen')) {
+                toggleRightSidebarFullscreen(false);
+            }
+        }
     });
 
     if (rightSidebarToggle) {
@@ -9071,70 +9105,134 @@ function toggleLeftSidebar(open) {
 
 
 function syncRightSidebarToggleState(isOpen) {
-
     const toggleBtn = document.getElementById('right-sidebar-toggle');
+    const fsToggleBtn = document.getElementById('right-sidebar-fullscreen-toggle');
 
-    if (!toggleBtn) return;
-
-    toggleBtn.classList.toggle('collapsed', !isOpen);
-
-    toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-
-    toggleBtn.setAttribute('title', isOpen ? 'Hide detail panel' : 'Show detail panel');
-
-    toggleBtn.setAttribute('aria-label', isOpen ? 'Hide detail panel' : 'Show detail panel');
-
+    if (toggleBtn) {
+        toggleBtn.classList.toggle('collapsed', !isOpen);
+        toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        toggleBtn.setAttribute('title', isOpen ? 'Hide detail panel' : 'Show detail panel');
+        toggleBtn.setAttribute('aria-label', isOpen ? 'Hide detail panel' : 'Show detail panel');
+    }
+    if (fsToggleBtn) {
+        fsToggleBtn.classList.toggle('collapsed', !isOpen);
+    }
 }
 
+function initOrSyncPipNetwork() {
+    if (!cy) return;
 
+    // 1. Fixed Top-Left Network Card in Fullscreen Dashboard
+    const fsContainer = document.getElementById('fullscreen-network-canvas-container');
+    if (fsContainer) {
+        if (!window.fsCy) {
+            try {
+                window.fsCy = cytoscape({
+                    container: fsContainer,
+                    elements: cy.elements().jsons(),
+                    style: cy.style().json(),
+                    layout: { name: 'preset' },
+                    userZoomingEnabled: true,
+                    userPanningEnabled: true,
+                    boxSelectionEnabled: false
+                });
 
-function toggleRightSidebar(open) {
+                window.fsCy.on('tap', 'node', (evt) => {
+                    const locus = evt.target.id();
+                    if (locus && window.querySingleGene) window.querySingleGene(locus);
+                });
 
-    const rightSidebar = document.getElementById('right-sidebar');
+                const btnFit = document.getElementById('btn-fullscreen-net-fit');
+                if (btnFit) {
+                    btnFit.onclick = () => window.fsCy && window.fsCy.fit(undefined, 18);
+                }
+            } catch (err) {
+                console.error('Error initializing Fullscreen Network Card:', err);
+            }
+        } else {
+            try {
+                window.fsCy.json({ elements: cy.elements().jsons() });
+                window.fsCy.style(cy.style().json());
+                window.fsCy.resize();
+                window.fsCy.fit(undefined, 18);
+            } catch (err) {
+                console.error('Error syncing Fullscreen Network Card:', err);
+            }
+        }
+    }
+}
 
-    const searchContainer = document.getElementById('canvas-search-container');
+function toggleRightSidebarFullscreen(enable) {
+    const sidebar = document.getElementById('right-sidebar');
+    const btn = document.getElementById('btn-toggle-sidebar-fullscreen');
+    const sideFsBtn = document.getElementById('right-sidebar-fullscreen-toggle');
+    if (!sidebar) return;
 
-    const statsContainer = document.getElementById('canvas-stats-container');
+    const isFS = enable !== undefined ? Boolean(enable) : !sidebar.classList.contains('is-fullscreen');
 
-    
-
-    if (!rightSidebar) return;
-
-
-    if (open) {
-
-        rightSidebar.classList.remove('collapsed');
-
-        syncRightSidebarToggleState(true);
-
-        searchContainer?.classList.add('sidebar-open');
-
-        statsContainer?.classList.add('sidebar-open');
-
-        localStorage.setItem('right-sidebar-collapsed', 'false');
-
+    if (isFS) {
+        sidebar.classList.remove('collapsed');
+        sidebar.classList.add('is-fullscreen');
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-compress"></i>';
+            btn.title = '退出全屏 (Exit Full Screen)';
+        }
+        if (sideFsBtn) {
+            sideFsBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
+            sideFsBtn.title = '退出全屏 (Exit Full Screen)';
+            sideFsBtn.classList.remove('collapsed');
+        }
+        document.body.style.overflow = 'hidden';
+        initOrSyncPipNetwork();
     } else {
-
-        rightSidebar.classList.add('collapsed');
-
-        syncRightSidebarToggleState(false);
-
-        searchContainer?.classList.remove('sidebar-open');
-
-        statsContainer?.classList.remove('sidebar-open');
-
-        resetHighlight();
-
-        localStorage.setItem('right-sidebar-collapsed', 'true');
-
+        sidebar.classList.remove('is-fullscreen');
+        const pipWindow = document.getElementById('pip-network-window');
+        if (pipWindow) pipWindow.classList.add('hidden');
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+            btn.title = '全屏显示右侧面板 (Toggle Full Screen)';
+        }
+        if (sideFsBtn) {
+            sideFsBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+            sideFsBtn.title = '全屏显示右侧面板 (Toggle Full Screen)';
+            sideFsBtn.classList.toggle('collapsed', sidebar.classList.contains('collapsed'));
+        }
+        document.body.style.overflow = '';
     }
 
     if (cy) {
-
         window.setTimeout(() => cy.resize(), 260);
+    }
+}
 
+function toggleRightSidebar(open) {
+    const rightSidebar = document.getElementById('right-sidebar');
+    const searchContainer = document.getElementById('canvas-search-container');
+    const statsContainer = document.getElementById('canvas-stats-container');
+
+    if (!rightSidebar) return;
+
+    if (open) {
+        rightSidebar.classList.remove('collapsed');
+        syncRightSidebarToggleState(true);
+        searchContainer?.classList.add('sidebar-open');
+        statsContainer?.classList.add('sidebar-open');
+        localStorage.setItem('right-sidebar-collapsed', 'false');
+    } else {
+        if (rightSidebar.classList.contains('is-fullscreen')) {
+            toggleRightSidebarFullscreen(false);
+        }
+        rightSidebar.classList.add('collapsed');
+        syncRightSidebarToggleState(false);
+        searchContainer?.classList.remove('sidebar-open');
+        statsContainer?.classList.remove('sidebar-open');
+        resetHighlight();
+        localStorage.setItem('right-sidebar-collapsed', 'true');
     }
 
+    if (cy) {
+        window.setTimeout(() => cy.resize(), 260);
+    }
 }
 
 
@@ -10686,24 +10784,34 @@ function renderReal3DStructure(pdbData) {
     
     if (!container) return;
     
-    // Clear previous elements
+    container.style.display = 'block';
+    if (img) img.style.display = 'none';
     container.innerHTML = '';
     
     try {
-        // Initialize 3Dmol.js viewer
-        const viewer = $3Dmol.createViewer($(container), {
-            defaultcolors: $3Dmol.elementColors.rasmol
+        const mol3D = window.$3Dmol || (typeof $3Dmol !== 'undefined' ? $3Dmol : null);
+        if (!mol3D) {
+            throw new Error("3Dmol.js library not available");
+        }
+
+        // Pass native DOM element or jQuery wrapper safely
+        const viewerTarget = (typeof $ !== 'undefined') ? $(container) : container;
+        const viewer = mol3D.createViewer(viewerTarget, {
+            defaultcolors: mol3D.elementColors ? mol3D.elementColors.rasmol : undefined
         });
         activeViewer = viewer;
         
         viewer.addModel(pdbData, "pdb");
         
-        // Ribbon cartoon with beautiful spectrum colors
+        // Ribbon cartoon with spectrum rainbow coloring
         viewer.setStyle({}, {
             cartoon: {
                 color: 'spectrum',
                 style: 'oval',
                 thickness: 0.6
+            },
+            stick: {
+                radius: 0.15
             }
         });
         
@@ -10711,26 +10819,18 @@ function renderReal3DStructure(pdbData) {
         viewer.zoomTo();
         viewer.render();
 
-        // Resize and fit model once DOM is stable/sidebar is moving
-        setTimeout(() => {
-            if (activeViewer === viewer) {
-                viewer.resize();
-                viewer.zoomTo();
-                viewer.render();
-            }
-        }, 150);
-
-        // Resize again once sidebar transition (300ms) has fully finished
-        setTimeout(() => {
-            if (activeViewer === viewer) {
-                viewer.resize();
-                viewer.zoomTo();
-                viewer.render();
-            }
-        }, 400);
+        // Progressive auto-fit calls to guarantee proper canvas dimensions
+        [50, 150, 350, 600].forEach(delay => {
+            setTimeout(() => {
+                if (activeViewer === viewer && typeof viewer.resize === 'function') {
+                    viewer.resize();
+                    viewer.zoomTo();
+                    viewer.render();
+                }
+            }, delay);
+        });
     } catch (e) {
         console.error("Failed to initialize 3Dmol viewer:", e);
-        // Viewer init failed, hide container and show mock fallback
         container.style.display = 'none';
         if (img) img.style.display = 'block';
     }
@@ -10817,22 +10917,34 @@ function fetchReal3DStructure(tfLocus) {
                     return res.json();
                 })
                 .then(predictions => {
-                    if (!predictions || predictions.length === 0 || !predictions[0].pdbUrl) {
-                        // Fallback to hardcoded v6/v4 if API call returns no results
-                        return `https://alphafold.ebi.ac.uk/files/AF-${accession}-F1-model_v6.pdb`;
+                    let urls = [];
+                    if (predictions && predictions.length > 0 && predictions[0].pdbUrl) {
+                        urls.push(predictions[0].pdbUrl);
                     }
-                    return predictions[0].pdbUrl;
-                })
-                .then(pdbUrl => {
-                    console.log(`Fetching PDB structure from: ${pdbUrl}`);
-                    return fetch(pdbUrl);
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error("AlphaFold PDB model not found");
-                    return res.text();
+                    urls.push(`https://alphafold.ebi.ac.uk/files/AF-${accession}-F1-model_v4.pdb`);
+                    urls.push(`https://alphafold.ebi.ac.uk/files/AF-${accession}-F1-model_v6.pdb`);
+
+                    function tryFetchPdb(index) {
+                        if (index >= urls.length) {
+                            return Promise.reject(new Error("All AlphaFold PDB URLs failed"));
+                        }
+                        const url = urls[index];
+                        console.log(`Trying PDB structure fetch (${index + 1}/${urls.length}): ${url}`);
+                        return fetch(url)
+                            .then(res => {
+                                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                                return res.text();
+                            })
+                            .catch(() => tryFetchPdb(index + 1));
+                    }
+
+                    return tryFetchPdb(0);
                 })
                 .then(pdbText => {
-                    // Update HUD labels to show real details
+                    if (!pdbText || !pdbText.includes("ATOM")) {
+                        throw new Error("Invalid or empty PDB content received");
+                    }
+
                     if (hudText) {
                         hudText.innerHTML = `
                             <i class="fa-expand fa-solid fa-xs" style="color:#7c3aed;"></i> VIEW: 3D_ROTATE<br>
@@ -10844,7 +10956,6 @@ function fetchReal3DStructure(tfLocus) {
                         hudBadge.textContent = `ACC: ${accession}`;
                     }
                     
-                    // Render 3D mol structure
                     renderReal3DStructure(pdbText);
                 });
         })
@@ -12072,11 +12183,11 @@ function renderGenomicLocusMap(locusTag) {
     const container = document.getElementById('genomic-map-container');
     if (!container) return;
 
-    container.innerHTML = ''; // Clear previous
-
     if (!locusTag) return;
     const cleanLocus = String(Array.isArray(locusTag) ? locusTag[0] : locusTag).trim();
     if (!cleanLocus) return;
+
+    container.innerHTML = ''; // Clear previous
     const locusLower = cleanLocus.toLowerCase();
 
     // Extract the numeric part of RefSeq locus tag, e.g. cg0279 -> 279
@@ -12318,7 +12429,8 @@ function initAdvancedFeatures() {
                 }
                 
                 orgSelect.innerHTML = '';
-                data.forEach(org => {
+                const orgList = Array.isArray(data) ? data : (data.organisms || data.items || []);
+                orgList.forEach(org => {
                     const opt = document.createElement('option');
                     opt.value = org.id;
                     opt.textContent = org.name;
@@ -18867,13 +18979,13 @@ const _hier = {
     showTfTf:     true,
 };
 
-/** Layer config: label, color, nodeHeight */
+/** Layer config: label, icon, gradientId, border, textColor, nodeHeight */
 const HIER_LAYERS = [
-    { key: 'sigma',    label: 'Sigma Factors',                   color: '#f59e0b', textColor: '#78350f', h: 32 },
-    { key: 'globalTf', label: 'Global Regulators (≥10 targets)', color: '#7c3aed', textColor: '#ede9fe', h: 30 },
-    { key: 'localTf',  label: 'Local TF (1–9 targets)',          color: '#3b82f6', textColor: '#dbeafe', h: 28 },
-    { key: 'srna',     label: 'sRNA (post-transcriptional)',      color: '#0d9488', textColor: '#ccfbf1', h: 28 },
-    { key: 'target',   label: 'Target Genes',                    color: '#94a3b8', textColor: '#f8fafc', h: 24 },
+    { key: 'sigma',    label: 'Tier 0 · Sigma Factors',             icon: '⚡', grad: 'url(#hier-grad-sigma)',  border: '#d97706', badgeBg: '#fef3c7', badgeColor: '#b45309', textColor: '#ffffff', h: 36 },
+    { key: 'globalTf', label: 'Tier 1 · Master TFs (≥10 targets)',  icon: '👑', grad: 'url(#hier-grad-global)', border: '#4338ca', badgeBg: '#ede9fe', badgeColor: '#4338ca', textColor: '#ffffff', h: 34 },
+    { key: 'localTf',  label: 'Tier 2 · Local TFs (1–9 targets)',   icon: '🎯', grad: 'url(#hier-grad-local)',  border: '#0284c7', badgeBg: '#e0f2fe', badgeColor: '#0369a1', textColor: '#ffffff', h: 32 },
+    { key: 'srna',     label: 'Tier 3 · Regulatory sRNAs',          icon: '🧬', grad: 'url(#hier-grad-srna)',   border: '#0f766e', badgeBg: '#ccfbf1', badgeColor: '#0f766e', textColor: '#ffffff', h: 32 },
+    { key: 'target',   label: 'Tier 4 · Target Operons & Genes',    icon: '📦', grad: 'url(#hier-grad-target)', border: '#cbd5e1', badgeBg: '#f1f5f9', badgeColor: '#475569', textColor: '#1e293b', h: 28 },
 ];
 
 const GLOBAL_TF_THRESHOLD = 10;   // out-degree >= this => Global TF
@@ -18885,10 +18997,8 @@ function initHierarchyView() {
         computeHierarchyLayers();
         _hier.built = true;
     }
-    // Read control values
     const slider = document.getElementById('hier-conf-slider');
     if (slider) _hier.confThresh = parseFloat(slider.value) || 0;
-    // Auto-collapse right sidebar for more canvas space
     toggleRightSidebar(false);
     renderHierarchy();
 }
@@ -18902,15 +19012,18 @@ function updateHierConfLabel(val) {
 // ── Layer computation ───────────────────────────────────────────────────────
 
 function computeHierarchyLayers() {
-    const nodes   = normalizedNodes  || {};
-    const edges   = normalizedEdges  || [];
+    const nodes = normalizedNodes || {};
+    const edges = normalizedEdges || [];
 
-    // Count out-degree for TF nodes
+    // Count out-degree and in-degree
     const outDeg = {};
+    const inDeg = {};
     edges.forEach(e => {
-        if (!e || !e.source) return;
+        if (!e || !e.source || !e.target) return;
         const src = e.source.toLowerCase();
+        const tgt = e.target.toLowerCase();
         outDeg[src] = (outDeg[src] || 0) + 1;
+        inDeg[tgt] = (inDeg[tgt] || 0) + 1;
     });
 
     const sigma    = [];
@@ -18920,17 +19033,41 @@ function computeHierarchyLayers() {
     const target   = [];
     const placed   = new Set();
 
-    // Classify each node
+    // Classify each node with clean biological gene names
     Object.values(nodes).forEach(node => {
         if (!node || !node.id) return;
-        const id    = node.id.toLowerCase();
-        const type  = (node.type || '').toLowerCase();
-        const name  = node.label || node.name || node.id;
+        const id       = (node.id || '').trim().toLowerCase();
+        const type     = (node.type || '').toLowerCase();
+        const rawName  = (node.label || node.name || node.id || '').trim();
         const isSigma  = !!(sigmaByLocus[id] || sigmaAnnotations[id] ||
-                            sigmaByLocus[node.id] || sigmaAnnotations[name?.toLowerCase()]);
-        const deg   = outDeg[id] || 0;
+                            sigmaByLocus[node.id] || sigmaAnnotations[rawName?.toLowerCase()]);
+        const deg      = outDeg[id] || 0;
+        const inDegree = inDeg[id] || 0;
 
-        const rec = { id, name, deg, locusTag: node.id };
+        // Clean biological gene symbol vs locus tag formatting
+        const isLocusOnly = /^cg\d+([-_]cg\d+)?$/i.test(rawName) || /^cg\d+$/i.test(rawName);
+        let displayName = rawName;
+        let geneSymbol = '';
+        let locusTag = node.id || rawName;
+
+        if (/^cgb_\d+$/i.test(rawName)) {
+            // Full sRNA ID like cgb_20715 -> preserve complete name
+            displayName = rawName;
+        } else if (/^ncgl\d+/i.test(rawName)) {
+            // sRNA ID like ncgl1747.1 -> preserve complete name
+            displayName = rawName;
+        } else if (/^cg\d+[-_]cg\d+$/i.test(rawName)) {
+            // Operon range like cg0767-cg0876 -> cg0767–cg0876
+            const parts = rawName.split(/[-_]/);
+            displayName = `${parts[0]}–${parts[1]}`;
+        } else if (!isLocusOnly && rawName.toLowerCase() !== id) {
+            geneSymbol = rawName;
+            displayName = rawName;
+        } else {
+            displayName = rawName || node.id;
+        }
+
+        const rec = { id, name: displayName, symbol: geneSymbol, locusTag, deg, inDeg: inDegree };
 
         if (isSigma) {
             sigma.push(rec); placed.add(id);
@@ -18947,8 +19084,11 @@ function computeHierarchyLayers() {
 
     // Sort by degree descending within each layer
     const byDeg = (a, b) => b.deg - a.deg;
-    sigma.sort(byDeg); globalTf.sort(byDeg);
-    localTf.sort(byDeg); srna.sort(byDeg);
+    const byTotalDeg = (a, b) => (b.deg + b.inDeg) - (a.deg + a.inDeg);
+    sigma.sort(byDeg);
+    globalTf.sort(byDeg);
+    localTf.sort(byDeg);
+    srna.sort(byTotalDeg); // sort sRNAs by active connections
     target.sort((a, b) => a.name.localeCompare(b.name));
 
     _hier.layers = { sigma, globalTf, localTf, srna, target };
@@ -18968,15 +19108,6 @@ function renderHierarchy() {
 
     const layers = _hier.layers;
 
-    // Layout constants — generously spaced for readability
-    const PAD_X     = 48;     // horizontal padding from edge
-    const NODE_GAP  = 14;     // horizontal gap between nodes in same layer
-    const LAYER_GAP = 130;    // vertical gap between layers (was 80)
-    const MIN_W     = 72;     // minimum node width
-    const CHAR_W    = 7.2;    // px per character
-    const CORNER    = 6;
-    const PAD_IN    = 14;     // horizontal inner padding per node
-
     // Collect all edges that pass filter
     const activeEdges = (normalizedEdges || []).filter(e => {
         if (!e || !e.source || !e.target) return false;
@@ -18993,7 +19124,7 @@ function renderHierarchy() {
     });
     _hier.allEdges = activeEdges;
 
-    // Determine which targets are visible (only expanded TF children)
+    // Determine which targets are visible
     const visibleTargetIds = new Set();
     _hier.expandedTf.forEach(tfId => {
         activeEdges.forEach(e => {
@@ -19004,44 +19135,111 @@ function renderHierarchy() {
         });
     });
 
-    // Build ordered layer arrays for rendering
+    // Intelligent sRNA filter: show active/connected sRNAs by default, or all if expanded
+    const connectedSrnaIds = new Set();
+    activeEdges.forEach(e => {
+        const src = e.source.toLowerCase();
+        const tgt = e.target.toLowerCase();
+        if ((normalizedNodes[src]?.type || '').toLowerCase() === 'srna') connectedSrnaIds.add(src);
+        if ((normalizedNodes[tgt]?.type || '').toLowerCase() === 'srna') connectedSrnaIds.add(tgt);
+    });
+
+    const visibleSrnas = _hier.showAllSrna
+        ? layers.srna
+        : (connectedSrnaIds.size > 0
+            ? layers.srna.filter(n => connectedSrnaIds.has(n.id) || n.deg > 0 || n.inDeg > 0)
+            : layers.srna.slice(0, 36));
+
     const renderLayers = [
         { ...HIER_LAYERS[0], nodes: layers.sigma    },
         { ...HIER_LAYERS[1], nodes: layers.globalTf },
         { ...HIER_LAYERS[2], nodes: layers.localTf  },
-        { ...HIER_LAYERS[3], nodes: layers.srna     },
-        { ...HIER_LAYERS[4], nodes: layers.target.filter(n => visibleTargetIds.has(n.id)) },
+        { ...HIER_LAYERS[3], nodes: visibleSrnas, totalNodes: layers.srna.length },
+        { ...HIER_LAYERS[4], nodes: layers.target.filter(n => visibleTargetIds.has(n.id)), totalNodes: layers.target.length },
     ];
 
-    // Calculate node widths and adaptive SVG width
-    const nodeW = n => Math.max(MIN_W, n.name.length * CHAR_W + PAD_IN * 2);
-    const maxLayerW = renderLayers.reduce((mx, layer) => {
-        if (!layer.nodes.length) return mx;
-        const total = layer.nodes.reduce((s, n) => s + nodeW(n) + NODE_GAP, -NODE_GAP);
-        return Math.max(mx, total + PAD_X * 2);
-    }, 900);
-    const canvasWrap = document.getElementById('hier-canvas-wrap');
-    const viewW = canvasWrap?.clientWidth || 900;
-    const svgWidth = Math.max(viewW, maxLayerW);
+    // Layout configuration for balanced 16:9 proportions
+    const NODE_H      = 28;     // compact balanced height
+    const SUBROW_GAP  = 10;     // vertical gap between subrows inside same layer
+    const TIER_GAP    = 66;     // vertical gap between different tiers
+    const CORNER      = 7;      // sleek corner
+    const NODE_GAP    = 10;     // horizontal gap between nodes
 
-    // Calculate positions
+    const canvasWrap = document.getElementById('hier-canvas-wrap');
+    const viewW      = canvasWrap?.clientWidth || 1200;
+    const maxRowW    = Math.max(viewW, 1160);
+
+    // Compute compact node width (ensuring cgb_20715 fits perfectly)
+    const nodeW = n => {
+        const textLen = (n.name || '').length;
+        const baseW = Math.max(84, Math.min(115, textLen * 7.4 + 22));
+        return n.deg > 0 ? baseW + 18 : baseW;
+    };
+
+    // Calculate maximum nodes per row based on canvas width
+    const usableW = maxRowW - 220; // reserve 220px for left badges
+    const maxNodesPerRow = Math.max(9, Math.floor(usableW / (92 + NODE_GAP)));
+
+    // Calculate positions with multi-row balancing
     _hier.nodePos = {};
-    let y = 70;
+    const layerBounds = [];
+    let y = 60;
 
     renderLayers.forEach((layer, li) => {
         if (layer.nodes.length === 0) return;
-        const totalW = layer.nodes.reduce((s, n) => s + nodeW(n) + NODE_GAP, -NODE_GAP);
-        let x = Math.max(PAD_X, (svgWidth - totalW) / 2);
 
-        layer.nodes.forEach(n => {
-            const w = nodeW(n);
-            _hier.nodePos[n.id] = { x, y, w, h: layer.h, color: layer.color, textColor: layer.textColor, layer: li, name: n.name, locusTag: n.locusTag, deg: n.deg };
-            x += w + NODE_GAP;
+        // Split dense layer nodes into balanced subrows
+        const totalNodes = layer.nodes.length;
+        const numSubrows = Math.max(1, Math.ceil(totalNodes / maxNodesPerRow));
+        const nodesPerSubrow = Math.ceil(totalNodes / numSubrows);
+
+        const subrows = [];
+        for (let r = 0; r < numSubrows; r++) {
+            subrows.push(layer.nodes.slice(r * nodesPerSubrow, (r + 1) * nodesPerSubrow));
+        }
+
+        const layerStartY = y;
+
+        subrows.forEach((subrow) => {
+            if (subrow.length === 0) return;
+            const subrowTotalW = subrow.reduce((acc, n) => acc + nodeW(n) + NODE_GAP, -NODE_GAP);
+            let x = Math.max(190, (maxRowW + 190 - subrowTotalW) / 2);
+
+            subrow.forEach(n => {
+                const w = nodeW(n);
+                _hier.nodePos[n.id] = {
+                    x, y, w, h: NODE_H,
+                    grad: layer.grad,
+                    border: layer.border,
+                    badgeBg: layer.badgeBg,
+                    badgeColor: layer.badgeColor,
+                    textColor: layer.textColor,
+                    layer: li,
+                    name: n.name,
+                    symbol: n.symbol,
+                    locusTag: n.locusTag,
+                    deg: n.deg,
+                    inDeg: n.inDeg
+                };
+                x += w + NODE_GAP;
+            });
+            y += NODE_H + SUBROW_GAP;
         });
-        y += layer.h + LAYER_GAP;
+
+        const layerEndY = y - SUBROW_GAP + NODE_H;
+        layerBounds.push({
+            layer,
+            li,
+            startY: layerStartY,
+            endY: layerEndY,
+            midY: (layerStartY + layerEndY) / 2
+        });
+
+        y += TIER_GAP;
     });
 
-    const svgHeight = y + 30;
+    const svgWidth  = maxRowW;
+    const svgHeight = y + 20;
 
     // Render SVG elements
     const svg       = document.getElementById('hier-svg');
@@ -19054,41 +19252,100 @@ function renderHierarchy() {
     svg.setAttribute('height', svgHeight);
     svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
 
-    // Draw layer background bands + separator lines + labels
+    // Ensure <defs> exists
+    if (!svg.querySelector('defs')) {
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.innerHTML = `
+            <linearGradient id="hier-grad-sigma" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#d97706"/></linearGradient>
+            <linearGradient id="hier-grad-global" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#4338ca"/></linearGradient>
+            <linearGradient id="hier-grad-local" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#0284c7"/></linearGradient>
+            <linearGradient id="hier-grad-srna" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#0f766e"/></linearGradient>
+            <linearGradient id="hier-grad-target" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#f8fafc"/></linearGradient>
+            <marker id="arrow-act" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#10b981"/></marker>
+            <marker id="arrow-rep" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ef4444"/></marker>
+            <marker id="arrow-dbl" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#f59e0b"/></marker>
+            <marker id="arrow-srna" markerWidth="7" markerHeight="7" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#0d9488"/></marker>
+        `;
+        svg.appendChild(defs);
+    }
+
+    // Draw layer floating header cards & background tracks
     labelsG.innerHTML = '';
-    let yLabel = 70;
-    renderLayers.forEach((layer, li) => {
-        if (layer.nodes.length === 0) return;
-        // Subtle band background for this layer
-        const band = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        band.setAttribute('x', 0); band.setAttribute('y', yLabel - 22);
-        band.setAttribute('width', svgWidth); band.setAttribute('height', layer.h + 22);
-        band.setAttribute('fill', layer.color + '09');
-        labelsG.appendChild(band);
-        // Horizontal separator above
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', 0); line.setAttribute('y1', yLabel - 22);
-        line.setAttribute('x2', svgWidth); line.setAttribute('y2', yLabel - 22);
-        line.setAttribute('stroke', layer.color + '40'); line.setAttribute('stroke-width', '1');
-        labelsG.appendChild(line);
-        // Layer label on left
-        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        txt.setAttribute('x', PAD_X - 10); txt.setAttribute('y', yLabel - 6);
-        txt.setAttribute('font-size', '9.5'); txt.setAttribute('fill', layer.color);
-        txt.setAttribute('font-weight', '800'); txt.setAttribute('letter-spacing', '0.06em');
-        txt.textContent = layer.label.toUpperCase();
-        labelsG.appendChild(txt);
-        yLabel += layer.h + LAYER_GAP;
+    layerBounds.forEach(b => {
+        const { layer, startY, endY, midY } = b;
+
+        // Subtle guide track for this tier
+        const track = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        track.setAttribute('x1', 24);
+        track.setAttribute('y1', midY);
+        track.setAttribute('x2', svgWidth - 24);
+        track.setAttribute('y2', midY);
+        track.setAttribute('stroke', layer.border);
+        track.setAttribute('stroke-width', '1');
+        track.setAttribute('stroke-opacity', '0.12');
+        track.setAttribute('stroke-dasharray', '4,4');
+        labelsG.appendChild(track);
+
+        // Floating layer badge on the left
+        const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const cardBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        cardBg.setAttribute('x', 24);
+        cardBg.setAttribute('y', startY - 2);
+        cardBg.setAttribute('width', 156);
+        cardBg.setAttribute('height', Math.max(34, endY - startY + 4));
+        cardBg.setAttribute('rx', 8);
+        cardBg.setAttribute('fill', '#ffffff');
+        cardBg.setAttribute('stroke', layer.border);
+        cardBg.setAttribute('stroke-width', '1.5');
+        cardBg.setAttribute('filter', 'drop-shadow(0 2px 6px rgba(15,23,42,0.05))');
+        badgeG.appendChild(cardBg);
+
+        const cardTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        cardTxt.setAttribute('x', 34);
+        cardTxt.setAttribute('y', startY + 18);
+        cardTxt.setAttribute('font-size', '10.5');
+        cardTxt.setAttribute('font-weight', '800');
+        cardTxt.setAttribute('fill', layer.border);
+        cardTxt.setAttribute('font-family', 'var(--font-heading)');
+        cardTxt.textContent = `${layer.icon} ${layer.label.split('·')[1]?.trim() || layer.label}`;
+        badgeG.appendChild(cardTxt);
+
+        const cardSub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        cardSub.setAttribute('x', 34);
+        cardSub.setAttribute('y', startY + 30);
+        cardSub.setAttribute('font-size', '9');
+        cardSub.setAttribute('font-weight', '600');
+        cardSub.setAttribute('fill', '#64748b');
+        if (layer.key === 'srna') {
+            cardSub.textContent = _hier.showAllSrna ? `All ${layer.nodes.length} sRNAs (click to compact)` : `${layer.nodes.length} connected (click to expand)`;
+            badgeG.setAttribute('cursor', 'pointer');
+            badgeG.addEventListener('click', () => hierToggleSrnaView());
+        } else if (layer.totalNodes && layer.totalNodes > layer.nodes.length) {
+            cardSub.textContent = `${layer.nodes.length} / ${layer.totalNodes} nodes`;
+        } else {
+            cardSub.textContent = `${layer.nodes.length} nodes`;
+        }
+        badgeG.appendChild(cardSub);
+
+        labelsG.appendChild(badgeG);
     });
 
-    // Build node→edge index for hover highlighting
-    const nodeEdgeMap = {};  // nodeId -> [pathElement, ...]
-    _hier._edgePaths = [];   // store for later hover logic
+function hierToggleSrnaView() {
+    _hier.showAllSrna = !_hier.showAllSrna;
+    renderHierarchy();
+    if (typeof showToast === 'function') {
+        showToast('Hierarchy View', _hier.showAllSrna ? 'Showing all 412 sRNA nodes' : 'Showing connected sRNAs only', 'info', 1800);
+    }
+}
 
-    // Draw edges — default very faint, highlighted on hover
+    // Build node→edge index for hover illumination
+    const nodeEdgeMap = {};
+    _hier._edgePaths = [];
+
+    // Draw edges — clean low baseline opacity (0.04) to avoid spaghetti
     edgesG.innerHTML = '';
     const edgePaths = [];
-    activeEdges.forEach((e, ei) => {
+    activeEdges.forEach((e) => {
         const srcId = e.source.toLowerCase();
         const tgtId = e.target.toLowerCase();
         const sp = _hier.nodePos[srcId];
@@ -19105,27 +19362,27 @@ function renderHierarchy() {
 
         const x1 = sp.x + sp.w / 2, y1 = sp.y + sp.h;
         const x2 = tp.x + tp.w / 2, y2 = tp.y;
-        // Gentler S-curve with less extreme control points
         const dy = y2 - y1;
-        const cy1 = y1 + dy * 0.35, cy2 = y2 - dy * 0.35;
+        const cy1 = y1 + dy * 0.42, cy2 = y2 - dy * 0.42;
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', `M${x1},${y1} C${x1},${cy1} ${x2},${cy2} ${x2},${y2}`);
         path.setAttribute('stroke', stroke);
-        path.setAttribute('stroke-width', isTfTf ? '1.2' : '0.9');
+        path.setAttribute('stroke-width', isTfTf ? '1.4' : '1.0');
         path.setAttribute('fill', 'none');
-        // Default: very subtle — will highlight on hover
-        const baseOpacity = Math.min(0.18, (e.confidenceScore || 0.3) * 0.25);
+        // Baseline opacity: TF-TF backbone is visible (0.28), massive targets are ultra-calm (0.04)
+        const baseOpacity = isTfTf ? 0.28 : 0.04;
         path.setAttribute('stroke-opacity', baseOpacity.toFixed(3));
         path.setAttribute('marker-end', marker);
         path.setAttribute('data-src', srcId);
         path.setAttribute('data-tgt', tgtId);
-        path.setAttribute('data-op', (Math.min(0.85, (e.confidenceScore || 0.5) * 0.95)).toFixed(3));
-        path.setAttribute('data-edge-src', srcId);  // for Focus Mode
-        path.setAttribute('data-edge-tgt', tgtId);  // for Focus Mode
+        path.setAttribute('data-edge-src', srcId);
+        path.setAttribute('data-edge-tgt', tgtId);
+        path.setAttribute('data-stroke', stroke);
         path.classList.add('hier-edge');
         edgesG.appendChild(path);
         edgePaths.push(path);
+
         if (!nodeEdgeMap[srcId]) nodeEdgeMap[srcId] = [];
         if (!nodeEdgeMap[tgtId]) nodeEdgeMap[tgtId] = [];
         nodeEdgeMap[srcId].push(path);
@@ -19134,139 +19391,186 @@ function renderHierarchy() {
     _hier._edgePaths  = edgePaths;
     _hier._nodeEdgeMap = nodeEdgeMap;
 
-    // Draw nodes with hover-highlight edge logic
+    // Draw Modern Card Nodes
     nodesG.innerHTML = '';
     const tooltip = document.getElementById('hier-tooltip');
 
-    // Helper: highlight edges connected to a node
-    const highlightNode = (id) => {
-        const connected = new Set();
+    // Cascade Illumination Function
+    const highlightNodeCascade = (id) => {
+        const connectedNodes = new Set([id]);
+        const incomingEdges = [];
+        const outgoingEdges = [];
+
         (_hier._nodeEdgeMap[id] || []).forEach(p => {
-            connected.add(p.getAttribute('data-src'));
-            connected.add(p.getAttribute('data-tgt'));
+            const src = p.getAttribute('data-src');
+            const tgt = p.getAttribute('data-tgt');
+            connectedNodes.add(src);
+            connectedNodes.add(tgt);
+            if (src === id) outgoingEdges.push(p);
+            if (tgt === id) incomingEdges.push(p);
         });
+
+        // Illuminate connected edges & dim unrelated
         _hier._edgePaths.forEach(p => {
-            const isConn = p.getAttribute('data-src') === id || p.getAttribute('data-tgt') === id;
-            if (isConn) {
-                p.setAttribute('stroke-opacity', p.getAttribute('data-op'));
-                p.setAttribute('stroke-width', parseFloat(p.getAttribute('stroke-width') || 1) * 2);
+            const isConnected = p.getAttribute('data-src') === id || p.getAttribute('data-tgt') === id;
+            if (isConnected) {
+                p.setAttribute('stroke-opacity', '0.95');
+                p.setAttribute('stroke-width', '2.4');
             } else {
-                p.setAttribute('stroke-opacity', '0.04');
+                p.setAttribute('stroke-opacity', '0.02');
+            }
+        });
+
+        // Illuminate connected nodes & dim unrelated
+        nodesG.querySelectorAll('.hier-node-g').forEach(g => {
+            const nid = g.dataset.nodeId;
+            if (connectedNodes.has(nid)) {
+                g.style.opacity = '1';
+                if (nid === id) {
+                    g.style.transform = 'scale(1.05)';
+                    g.style.transformOrigin = 'center';
+                }
+            } else {
+                g.style.opacity = '0.12';
+                g.style.transform = 'none';
             }
         });
     };
-    const resetEdges = () => {
+
+    const resetNodeCascade = () => {
         _hier._edgePaths.forEach(p => {
-            const base = Math.min(0.18, parseFloat(p.getAttribute('data-op') || 0.3) * 0.25);
-            p.setAttribute('stroke-opacity', base.toFixed(3));
-            // Reset to original width stored in data-op
-            const isWide = p.getAttribute('data-wide') === '1';
-            p.setAttribute('stroke-width', isWide ? '1.2' : '0.9');
+            const src = p.getAttribute('data-src');
+            const tgt = p.getAttribute('data-tgt');
+            const sp = _hier.nodePos[src];
+            const tp = _hier.nodePos[tgt];
+            const isTfTf = sp && tp && sp.layer <= 2 && tp.layer <= 2;
+            p.setAttribute('stroke-opacity', isTfTf ? '0.28' : '0.04');
+            p.setAttribute('stroke-width', isTfTf ? '1.4' : '1.0');
+        });
+        nodesG.querySelectorAll('.hier-node-g').forEach(g => {
+            g.style.opacity = '';
+            g.style.transform = 'none';
         });
     };
-    // Tag edges with their base width
-    _hier._edgePaths.forEach(p => {
-        p.setAttribute('data-wide', p.getAttribute('stroke-width') === '1.2' ? '1' : '0');
-    });
 
     Object.entries(_hier.nodePos).forEach(([id, pos]) => {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         g.setAttribute('cursor', 'pointer');
         g.classList.add('hier-node-g');
-        g.dataset.hierid = id;   // used by highlightHierSearch()
+        g.dataset.hierid = id;
+        g.dataset.nodeId = id;
 
-        // Node rectangle
+        // Node card background with modern gradient + drop shadow
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', pos.x); rect.setAttribute('y', pos.y);
-        rect.setAttribute('width', pos.w); rect.setAttribute('height', pos.h);
-        rect.setAttribute('rx', CORNER); rect.setAttribute('ry', CORNER);
-        rect.setAttribute('fill', pos.color);
-        rect.setAttribute('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.18))');
+        rect.classList.add('node-card-bg');
+        rect.setAttribute('x', pos.x);
+        rect.setAttribute('y', pos.y);
+        rect.setAttribute('width', pos.w);
+        rect.setAttribute('height', pos.h);
+        rect.setAttribute('rx', CORNER);
+        rect.setAttribute('ry', CORNER);
+        rect.setAttribute('fill', pos.grad);
+        rect.setAttribute('stroke', pos.border);
+        rect.setAttribute('stroke-width', '1.5');
+        rect.setAttribute('filter', 'drop-shadow(0 3px 8px rgba(15,23,42,0.12))');
         g.appendChild(rect);
 
-        // Badge: out-degree
+        // Gene Symbol / Locus Label
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('x', pos.x + (pos.deg > 0 ? (pos.w - 18) / 2 : pos.w / 2));
+        txt.setAttribute('y', pos.y + pos.h / 2 + 3.5);
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('font-size', pos.layer === 3 ? '10' : (pos.layer === 4 ? '9.5' : '10.5'));
+        txt.setAttribute('font-weight', '700');
+        txt.setAttribute('fill', pos.textColor);
+        txt.setAttribute('pointer-events', 'none');
+        txt.setAttribute('font-family', 'var(--font-primary)');
+
+        const displayName = pos.symbol || pos.name;
+        txt.textContent = displayName;
+        g.appendChild(txt);
+
+        // Out-degree badge pill
         if (pos.deg > 0 && pos.layer < 4) {
-            const BADGE_W = pos.deg > 99 ? 22 : 18;
+            const BADGE_W = pos.deg > 99 ? 24 : 20;
             const badge = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            badge.setAttribute('x', pos.x + pos.w - BADGE_W + 2);
-            badge.setAttribute('y', pos.y - 8);
+            badge.setAttribute('x', pos.x + pos.w - BADGE_W + 3);
+            badge.setAttribute('y', pos.y - 7);
             badge.setAttribute('width', BADGE_W);
-            badge.setAttribute('height', 14);
-            badge.setAttribute('rx', 7); badge.setAttribute('fill', 'white');
-            badge.setAttribute('stroke', pos.color); badge.setAttribute('stroke-width', '1.2');
+            badge.setAttribute('height', 15);
+            badge.setAttribute('rx', 7.5);
+            badge.setAttribute('fill', pos.badgeBg);
+            badge.setAttribute('stroke', pos.border);
+            badge.setAttribute('stroke-width', '1.2');
             g.appendChild(badge);
+
             const badgeTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            badgeTxt.setAttribute('x', pos.x + pos.w - BADGE_W / 2 + 2);
-            badgeTxt.setAttribute('y', pos.y - 1);
+            badgeTxt.setAttribute('x', pos.x + pos.w - BADGE_W / 2 + 3);
+            badgeTxt.setAttribute('y', pos.y + 4);
             badgeTxt.setAttribute('text-anchor', 'middle');
-            badgeTxt.setAttribute('font-size', '8');
-            badgeTxt.setAttribute('font-weight', '700');
-            badgeTxt.setAttribute('fill', pos.color);
+            badgeTxt.setAttribute('font-size', '8.5');
+            badgeTxt.setAttribute('font-weight', '800');
+            badgeTxt.setAttribute('fill', pos.badgeColor);
             badgeTxt.setAttribute('pointer-events', 'none');
             badgeTxt.textContent = pos.deg > 99 ? '99+' : pos.deg;
             g.appendChild(badgeTxt);
         }
 
-        // Label — truncate longer names
-        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        txt.setAttribute('x', pos.x + pos.w / 2);
-        txt.setAttribute('y', pos.y + pos.h / 2 + 4);
-        txt.setAttribute('text-anchor', 'middle');
-        txt.setAttribute('font-size', '10');
-        txt.setAttribute('font-weight', '600');
-        txt.setAttribute('fill', pos.textColor);
-        txt.setAttribute('pointer-events', 'none');
-        const maxChars = Math.floor((pos.w - 8) / 6.5);
-        txt.textContent = pos.name.length > maxChars ? pos.name.slice(0, maxChars - 1) + '…' : pos.name;
-        g.appendChild(txt);
-
-        // Expand indicator for TF nodes (layer 1 or 2)
+        // Expand indicator for TF nodes (layer 1/2)
         if (pos.layer === 1 || pos.layer === 2) {
             const isExpanded = _hier.expandedTf.has(id);
             const expandIcon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            expandIcon.setAttribute('x', pos.x + 9);
-            expandIcon.setAttribute('y', pos.y + pos.h / 2 + 4);
-            expandIcon.setAttribute('font-size', '9');
-            expandIcon.setAttribute('fill', pos.textColor + 'cc');
+            expandIcon.setAttribute('x', pos.x + 8);
+            expandIcon.setAttribute('y', pos.y + pos.h / 2 + 3.5);
+            expandIcon.setAttribute('font-size', '10');
+            expandIcon.setAttribute('fill', pos.textColor + 'dd');
             expandIcon.setAttribute('pointer-events', 'none');
-            expandIcon.textContent = isExpanded ? '▴' : '▾';
+            expandIcon.textContent = isExpanded ? '▾' : '▸';
             g.appendChild(expandIcon);
         }
 
-        // Tag node group for Focus Mode
-        g.dataset.nodeId = id;
-
-        // Hover: show tooltip + highlight connected edges
+        // Hover events
         g.addEventListener('mouseenter', evt => {
-            highlightNode(id);
-            // Scale up node slightly
-            rect.setAttribute('filter', 'drop-shadow(0 4px 10px rgba(0,0,0,0.28))');
+            if (!_hierFocusMode) highlightNodeCascade(id);
             if (!tooltip) return;
+
             const nodeInEdges  = activeEdges.filter(e => e.target.toLowerCase() === id).length;
             const nodeOutEdges = activeEdges.filter(e => e.source.toLowerCase() === id).length;
-            const isTfNode = pos.layer === 1 || pos.layer === 2 || pos.layer === 0;
-            const ctrlHint = (pos.layer === 1 || pos.layer === 2)
-                ? `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-sidebar"></i> Click → Details &nbsp;|&nbsp; <i class="fa-solid fa-arrow-right"></i> Ctrl+Click → Gene Explorer</div>`
-                : (pos.layer === 0)
-                ? `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-sidebar"></i> Click → Details &nbsp;|&nbsp; <i class="fa-solid fa-arrow-right"></i> Ctrl+Click → Gene Explorer</div>`
-                : `<div style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-size:9.5px;color:#a5b4fc;"><i class="fa-solid fa-sidebar"></i> Click → Details &nbsp;|&nbsp; <i class="fa-solid fa-arrow-right"></i> Ctrl+Click → Gene Explorer</div>`;
-            tooltip.innerHTML = `<strong>${pos.name}</strong><br>Locus: ${pos.locusTag}<br>Out-degree: ${pos.deg}<br>↑ Regulates: ${nodeOutEdges} edges<br>↓ Regulated by: ${nodeInEdges} edges${ctrlHint}`;
+            const tierNames = ['⚡ Sigma Factor', '👑 Global Master TF', '🎯 Local TF', '🧬 Regulatory sRNA', '📦 Target Gene'];
+
+            tooltip.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:4px;">
+                    <strong style="font-size:13px; color:#fff;">${pos.symbol || pos.name}</strong>
+                    <span style="font-size:9.5px; background:rgba(255,255,255,0.15); padding:2px 6px; border-radius:10px;">${tierNames[pos.layer]}</span>
+                </div>
+                <div style="font-size:11px; line-height:1.5;">
+                    <div>Locus Tag: <strong>${pos.locusTag}</strong></div>
+                    <div>Out-degree (Targets): <strong style="color:#34d399;">${pos.deg}</strong></div>
+                    <div>In-degree (Regulators): <strong style="color:#60a5fa;">${nodeInEdges}</strong></div>
+                </div>
+                <div style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.15); font-size:9.5px; color:#c7d2fe;">
+                    <i class="fa-solid fa-arrow-pointer"></i> Click → Details &nbsp;|&nbsp; <i class="fa-solid fa-bolt"></i> Ctrl+Click → Gene Explorer
+                </div>
+            `;
             tooltip.style.display = 'block';
             tooltip.style.left = (evt.clientX + 14) + 'px';
             tooltip.style.top  = (evt.clientY - 10) + 'px';
         });
+
         g.addEventListener('mousemove', evt => {
-            if (tooltip) { tooltip.style.left = (evt.clientX + 14) + 'px'; tooltip.style.top = (evt.clientY - 10) + 'px'; }
+            if (tooltip) {
+                tooltip.style.left = (evt.clientX + 14) + 'px';
+                tooltip.style.top  = (evt.clientY - 10) + 'px';
+            }
         });
+
         g.addEventListener('mouseleave', () => {
-            resetEdges();
-            rect.setAttribute('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.18))');
+            if (!_hierFocusMode) resetNodeCascade();
             if (tooltip) tooltip.style.display = 'none';
         });
 
-        // Click: show right-side detail panel; Ctrl+Click → Gene Explorer
+        // Click handler
         g.addEventListener('click', (evt) => {
-            // Focus Mode: intercept click → apply focus on clicked node
             if (_hierFocusMode) {
                 if (_hierFocusedTf === id) {
                     _hierFocusedTf = null;
@@ -19278,7 +19582,6 @@ function renderHierarchy() {
             }
 
             if (evt.ctrlKey || evt.metaKey) {
-                // Ctrl+Click → always jump to Gene Explorer
                 if (pos.locusTag) {
                     querySingleGene(pos.locusTag);
                     setActiveWorkflowEntry('gene');
@@ -19286,13 +19589,11 @@ function renderHierarchy() {
                 return;
             }
 
-            // Plain click → show right sidebar with gene details
             if (pos.locusTag) {
                 showNodeDetails(pos.locusTag);
                 toggleRightSidebar(true);
             }
 
-            // For TF nodes (layer 1/2): also toggle expand/collapse
             if (pos.layer === 1 || pos.layer === 2) {
                 if (_hier.expandedTf.has(id)) {
                     _hier.expandedTf.delete(id);
@@ -19303,32 +19604,17 @@ function renderHierarchy() {
             }
         });
 
-        // Double-click on TF also jumps (alternative shortcut)
-        if (pos.layer === 1 || pos.layer === 2) {
-            g.addEventListener('dblclick', (evt) => {
-                evt.stopPropagation();
-                if (pos.locusTag) {
-                    querySingleGene(pos.locusTag);
-                    setActiveWorkflowEntry('gene');
-                }
-            });
-        }
-
         nodesG.appendChild(g);
     });
 
-    // Update stats bar
     _updateHierStats(activeEdges);
 
-    // Init minimap (first time) and update it
     requestAnimationFrame(() => {
         initHierMinimap();
         updateHierMinimap();
     });
 
-    // Center the canvas horizontally after render (scroll to middle of SVG width)
     if (canvasWrap) {
-        // Double rAF: first frame paints, second frame measures real clientWidth
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 const wrapW   = canvasWrap.clientWidth  || canvasWrap.offsetWidth  || viewW;
@@ -19340,7 +19626,6 @@ function renderHierarchy() {
             });
         });
     }
-
 }
 
 /** Update bottom statistics bar */
@@ -19375,25 +19660,54 @@ function exportHierarchySvg() {
     document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
-// ── Hierarchy Zoom ────────────────────────────────────────────────────────────
+// ── Hierarchy Zoom & Fit to Screen ──────────────────────────────────────────
 
 let _hierZoom = 1.0;
 
 function hierZoom(delta) {
-    _hierZoom = Math.min(3.0, Math.max(0.25, _hierZoom + delta));
+    _hierZoom = Math.min(3.0, Math.max(0.15, _hierZoom + delta));
     _applyHierZoom();
 }
 
 function hierZoomReset() {
     _hierZoom = 1.0;
     _applyHierZoom();
-    // Re-center after reset
     const canvasWrap = document.getElementById('hier-canvas-wrap');
     const svg = document.getElementById('hier-svg');
     if (canvasWrap && svg) {
         const svgW = parseInt(svg.getAttribute('width') || 0, 10);
         const centerX = (svgW * _hierZoom - canvasWrap.clientWidth) / 2;
         if (centerX > 0) canvasWrap.scrollLeft = centerX;
+    }
+}
+
+function hierFitToScreen() {
+    const wrap = document.getElementById('hier-canvas-wrap');
+    const svg  = document.getElementById('hier-svg');
+    if (!wrap || !svg) return;
+
+    const svgW = parseInt(svg.getAttribute('width') || 1100, 10);
+    const svgH = parseInt(svg.getAttribute('height') || 700, 10);
+    const availW = wrap.clientWidth - 40;
+    const availH = wrap.clientHeight - 40;
+
+    if (svgW <= 0 || svgH <= 0 || availW <= 0 || availH <= 0) return;
+
+    const fitRatio = Math.min(availW / svgW, availH / svgH);
+    _hierZoom = Math.min(2.0, Math.max(0.15, Math.round(fitRatio * 100) / 100));
+    _applyHierZoom();
+
+    // Center viewport horizontally and vertically
+    requestAnimationFrame(() => {
+        const scaledW = svgW * _hierZoom;
+        const scaledH = svgH * _hierZoom;
+        const targetScrollX = Math.max(0, (scaledW - wrap.clientWidth) / 2);
+        const targetScrollY = Math.max(0, (scaledH - wrap.clientHeight) / 2);
+        wrap.scrollTo({ left: targetScrollX, top: targetScrollY, behavior: 'smooth' });
+    });
+
+    if (typeof showToast === 'function') {
+        showToast('Hierarchy View', `Auto-fit to screen (${Math.round(_hierZoom * 100)}%)`, 'info', 1800);
     }
 }
 
@@ -19405,21 +19719,133 @@ function _applyHierZoom() {
     svg.style.transform = `scale(${_hierZoom})`;
     svg.style.transformOrigin = 'top left';
     if (label) label.textContent = pct + '%';
-    // Update minimap viewport rect after zoom
     requestAnimationFrame(updateHierMinimap);
 }
 
-// Mouse-wheel zoom on the canvas
-(function _bindHierWheelZoom() {
+// ── Immersive Fullscreen Controller ──────────────────────────────────────────
+
+let _hierIsFullscreen = false;
+
+function hierToggleFullscreen() {
+    const overlay = document.getElementById('hierarchy-overlay');
+    const icon = document.getElementById('hier-fullscreen-icon');
+    const txt  = document.getElementById('hier-fullscreen-txt');
+    if (!overlay) return;
+
+    _hierIsFullscreen = !_hierIsFullscreen;
+
+    if (_hierIsFullscreen) {
+        overlay.classList.add('is-hierarchy-fullscreen');
+        if (icon) { icon.className = 'fa-solid fa-compress'; }
+        if (txt)  { txt.textContent = 'Exit Fullscreen'; }
+        
+        // Try native HTML5 Fullscreen API on the overlay or root
+        try {
+            if (overlay.requestFullscreen) {
+                overlay.requestFullscreen().catch(() => {});
+            } else if (overlay.webkitRequestFullscreen) {
+                overlay.webkitRequestFullscreen();
+            }
+        } catch (_) {}
+
+        if (typeof showToast === 'function') {
+            showToast('Fullscreen Mode', 'Press Esc or F to toggle fullscreen.', 'info', 2500);
+        }
+    } else {
+        overlay.classList.remove('is-hierarchy-fullscreen');
+        if (icon) { icon.className = 'fa-solid fa-expand'; }
+        if (txt)  { txt.textContent = 'Fullscreen'; }
+
+        if (document.fullscreenElement) {
+            try { document.exitFullscreen().catch(() => {}); } catch (_) {}
+        }
+    }
+
+    // Auto fit to screen after layout recalculation
+    setTimeout(() => {
+        hierFitToScreen();
+    }, 180);
+}
+
+// Sync fullscreen change from browser Escape key
+document.addEventListener('fullscreenchange', () => {
+    const overlay = document.getElementById('hierarchy-overlay');
+    const icon = document.getElementById('hier-fullscreen-icon');
+    const txt  = document.getElementById('hier-fullscreen-txt');
+    if (!document.fullscreenElement && _hierIsFullscreen) {
+        _hierIsFullscreen = false;
+        if (overlay) overlay.classList.remove('is-hierarchy-fullscreen');
+        if (icon) icon.className = 'fa-solid fa-expand';
+        if (txt) txt.textContent = 'Fullscreen';
+        setTimeout(() => { hierFitToScreen(); }, 180);
+    }
+});
+
+// Canvas Grab & Pan dragging + Wheel Zoom + Hotkeys
+(function _initHierCanvasInteractions() {
     document.addEventListener('DOMContentLoaded', () => {
         const wrap = document.getElementById('hier-canvas-wrap');
         if (!wrap) return;
+
+        let isDown = false;
+        let startX, startY, scrollLeft, scrollTop;
+
+        wrap.addEventListener('mousedown', (e) => {
+            // Ignore if clicked on node card, button, or input
+            if (e.target.closest('.hier-node-g') || e.target.closest('button') || e.target.closest('input') || e.target.closest('#hier-minimap-wrap')) {
+                return;
+            }
+            isDown = true;
+            wrap.classList.add('is-dragging');
+            startX = e.pageX - wrap.offsetLeft;
+            startY = e.pageY - wrap.offsetTop;
+            scrollLeft = wrap.scrollLeft;
+            scrollTop  = wrap.scrollTop;
+        });
+
+        wrap.addEventListener('mouseleave', () => {
+            isDown = false;
+            wrap.classList.remove('is-dragging');
+        });
+
+        wrap.addEventListener('mouseup', () => {
+            isDown = false;
+            wrap.classList.remove('is-dragging');
+        });
+
+        wrap.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - wrap.offsetLeft;
+            const y = e.pageY - wrap.offsetTop;
+            const walkX = (x - startX) * 1.2;
+            const walkY = (y - startY) * 1.2;
+            wrap.scrollLeft = scrollLeft - walkX;
+            wrap.scrollTop  = scrollTop - walkY;
+        });
+
+        // Mouse-wheel zoom
         wrap.addEventListener('wheel', (e) => {
-            // Only zoom when Ctrl/Cmd is held, to not conflict with native scroll
             if (!e.ctrlKey && !e.metaKey) return;
             e.preventDefault();
             hierZoom(e.deltaY < 0 ? 0.1 : -0.1);
         }, { passive: false });
+
+        // Global hotkey 'F' to toggle fullscreen & 'Fit' hotkey
+        document.addEventListener('keydown', (e) => {
+            const overlay = document.getElementById('hierarchy-overlay');
+            if (!overlay || overlay.classList.contains('hidden')) return;
+            const tag = e.target.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                hierToggleFullscreen();
+            } else if (e.key === '0' || e.key === 'r' || e.key === 'R') {
+                if (e.ctrlKey || e.metaKey) return;
+                hierFitToScreen();
+            }
+        });
     });
 })();
 
@@ -19543,7 +19969,7 @@ function updateHierMinimap() {
             const y = pos.y * scaleY;
             const w = pos.w * scaleX;
             const h = pos.h * scaleY;
-            ctx.fillStyle = pos.color + 'cc';
+            ctx.fillStyle = (pos.border || '#7c3aed') + 'cc';
             ctx.beginPath();
             ctx.roundRect(x, y, Math.max(w, 2), Math.max(h, 2), 1);
             ctx.fill();
@@ -19731,25 +20157,177 @@ function scrollToHierMatch(index) {
     }
 }
 
-// ── Global Responsive Window Resize Handler ──────────────────────────────────
+// ── Global Responsive Window Resize & Auto-Reflow Engine ──────────────────────
+window.reflowAllVisualizations = function() {
+    // 1. Main Cytoscape Graph
+    try {
+        if (typeof cy !== 'undefined' && cy) {
+            cy.resize();
+        }
+    } catch(e) {}
+
+    // 2. Fullscreen Detail Graph
+    try {
+        if (typeof window.fsCy !== 'undefined' && window.fsCy) {
+            window.fsCy.resize();
+        }
+    } catch(e) {}
+
+    // 3. PPI Cytoscape Graph
+    try {
+        if (typeof _ppiCy !== 'undefined' && _ppiCy) {
+            _ppiCy.resize();
+        }
+    } catch(e) {}
+
+    // 4. iModulon Cytoscape Graph
+    try {
+        if (typeof imodulonCy !== 'undefined' && imodulonCy) {
+            imodulonCy.resize();
+        }
+    } catch(e) {}
+
+    // 5. Pathway KEGG Cytoscape Graph
+    try {
+        if (typeof pathwayKeggCy !== 'undefined' && pathwayKeggCy) {
+            pathwayKeggCy.resize();
+        }
+    } catch(e) {}
+
+    // 6. Chart.js instances auto-resize
+    const charts = [
+        typeof imodulonWeightsChartInstance !== 'undefined' ? imodulonWeightsChartInstance : null,
+        typeof imodulonPathwayChartInstance !== 'undefined' ? imodulonPathwayChartInstance : null,
+        typeof _imodFluxBarChart !== 'undefined' ? _imodFluxBarChart : null,
+        typeof _imodCompareChart !== 'undefined' ? _imodCompareChart : null,
+        typeof engineeringTopChart !== 'undefined' ? engineeringTopChart : null,
+        typeof engineeringRiskChart !== 'undefined' ? engineeringRiskChart : null,
+        typeof engineeringSimChart !== 'undefined' ? engineeringSimChart : null,
+        typeof advCentralityChart !== 'undefined' ? advCentralityChart : null,
+        typeof advGnnAttributionChart !== 'undefined' ? advGnnAttributionChart : null,
+        typeof biomassChart !== 'undefined' ? biomassChart : null,
+        typeof metaboliteChart !== 'undefined' ? metaboliteChart : null,
+        typeof fluxChart !== 'undefined' ? fluxChart : null,
+        typeof scanProfileChart !== 'undefined' ? scanProfileChart : null
+    ];
+    charts.forEach(chart => {
+        if (chart && typeof chart.resize === 'function') {
+            try { chart.resize(); } catch(e) {}
+        }
+    });
+
+    // 7. 3Dmol.js viewer
+    try {
+        if (window._3dmolViewer && typeof window._3dmolViewer.resize === 'function') {
+            window._3dmolViewer.resize();
+            window._3dmolViewer.render();
+        }
+    } catch(e) {}
+};
+
 let appResizeTimeout = null;
 window.addEventListener('resize', () => {
     if (appResizeTimeout) clearTimeout(appResizeTimeout);
     appResizeTimeout = setTimeout(() => {
-        if (typeof imodulonCy !== 'undefined' && imodulonCy) {
-            imodulonCy.resize();
-            imodulonCy.fit();
-        }
-        if (typeof imodulonWeightsChartInstance !== 'undefined' && imodulonWeightsChartInstance) {
-            imodulonWeightsChartInstance.resize();
-        }
-        if (typeof imodulonPathwayChartInstance !== 'undefined' && imodulonPathwayChartInstance) {
-            imodulonPathwayChartInstance.resize();
-        }
-        if (typeof window.mainCy !== 'undefined' && window.mainCy) {
-            window.mainCy.resize();
-            window.mainCy.fit();
-        }
-    }, 150);
+        window.reflowAllVisualizations();
+    }, 120);
 });
+
+// Setup ResizeObserver on key containers for zero-lag layout adaptation
+if (typeof ResizeObserver !== 'undefined') {
+    const layoutObserver = new ResizeObserver((entries) => {
+        if (appResizeTimeout) clearTimeout(appResizeTimeout);
+        appResizeTimeout = setTimeout(() => {
+            window.reflowAllVisualizations();
+        }, 100);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        ['canvas-container', 'cy', 'ppi-cy', 'imodulon-cy', 'pathway-kegg-cy-container', 'right-sidebar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) layoutObserver.observe(el);
+        });
+    });
+}
+
+// ── Global Helper Utilities (Debounce & Glassmorphism Toast) ─────────────────
+window.debounce = function (fn, delay = 150) {
+    let timer = null;
+    return function (...args) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+};
+
+window.showToast = function (message, type = 'info', duration = 3500) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast-message toast-${type}`;
+    
+    const iconMap = {
+        info: 'fa-circle-info',
+        success: 'fa-circle-check',
+        warning: 'fa-triangle-exclamation',
+        error: 'fa-circle-exclamation'
+    };
+    const icon = iconMap[type] || 'fa-circle-info';
+    
+    const safeText = String(message ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${safeText}</span>`;
+    container.appendChild(toast);
+    
+    requestAnimationFrame(() => toast.classList.add('show'));
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 250);
+    }, duration);
+};
+
+// ── Central Direct Hero Search & Launchpad Controller ───────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const heroInput = document.getElementById('hero-direct-search-input');
+    const heroBtn = document.getElementById('hero-direct-search-btn');
+
+    function executeHeroSearch(term) {
+        const query = (term || (heroInput ? heroInput.value : '')).trim();
+        if (!query) {
+            if (typeof window.showToast === 'function') {
+                window.showToast('Please enter a gene symbol or locus tag (e.g. sigH, cg0350)', 'warning');
+            }
+            return;
+        }
+        if (typeof window.setActiveWorkflowEntry === 'function') {
+            window.setActiveWorkflowEntry('gene');
+        }
+        if (typeof window.querySingleGene === 'function') {
+            window.querySingleGene(query);
+        }
+    }
+
+    if (heroBtn) {
+        heroBtn.addEventListener('click', () => executeHeroSearch());
+    }
+    if (heroInput) {
+        heroInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') executeHeroSearch();
+        });
+    }
+
+    document.querySelectorAll('.hero-tag').forEach(tag => {
+        tag.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const gene = tag.dataset.gene || tag.innerText.trim();
+            if (heroInput) heroInput.value = gene;
+            executeHeroSearch(gene);
+        });
+    });
+});
+
+
 

@@ -2,6 +2,13 @@
 
 All notable changes to the Cgl Regulation Explorer project will be documented in this file.
 
+## [v1.5.0] - 2026-08-17
+### Added
+- **16:9 Multi-Row Proportional Hierarchy View**: Balanced multi-row layout for dense regulatory tiers, eliminating horizontal stretch and fitting widescreen displays naturally.
+- **Intelligent sRNA Density Control & Full Locus Formatting**: Fixed locus ID regex truncation (`cgb_20715`, `ncgl1747.1`), added interactive active/connected sRNA filter with one-click full library expansion.
+- **3-Column Seamless Gene Detail Fullscreen Workspace**: Restructured right-sidebar fullscreen portal into a structured 3-column composite dashboard (Identity & Annotations, Regulatory Core, Genomics & Proteomics) with zero empty whitespace gaps.
+- **Containerized Intranet & Production Deployment Pipelines**: Added one-click intranet deployment scripts and Docker compose orchestrations.
+
 ---
 
 ## [v1.4.0] - 2026-07-28

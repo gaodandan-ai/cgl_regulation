@@ -44,7 +44,7 @@
     }
 
     function safeFit(graph, padding = 40) {
-        if (!graph) return;
+        if (!graph || typeof graph.nodes !== 'function') return;
         const nodes = graph.nodes();
         if (nodes.length <= 3) {
             graph.center();
@@ -65,7 +65,9 @@
 
         const clampZoom = () => safeFit(graph);
 
-        graph.on('layoutstop', clampZoom);
+        if (graph && typeof graph.on === 'function') {
+            graph.on('layoutstop', clampZoom);
+        }
         setTimeout(clampZoom, 50);
         setTimeout(clampZoom, 450);
 

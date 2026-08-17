@@ -234,5 +234,5 @@ async def serve_static(path: str, request: Request):
     if os.path.basename(full) in ("version.json", "version_local.json"):
         return _file_response(full, cache_seconds=0, request=request)
     if full.endswith((".js", ".css", ".ico", ".png", ".svg", ".woff", ".woff2")):
-        return _file_response(full, cache_seconds=604800, request=request)
+        return _file_response(full, cache_seconds=0, request=request)
     return _file_response(full, cache_seconds=3600, request=request)

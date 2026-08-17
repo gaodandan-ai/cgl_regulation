@@ -59,7 +59,7 @@ def configure_public_api(app: FastAPI) -> None:
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+            "default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
         )
         return response
 

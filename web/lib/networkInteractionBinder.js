@@ -45,6 +45,7 @@
             const tappedAt = now();
             highlightSubnet(node);
             showNodeDetails(node.id());
+            if (typeof toggleRightSidebar === 'function') toggleRightSidebar(true);
             if (lastTapNode === node && lastTapAt !== null && tappedAt - lastTapAt < doubleTapWindowMs) {
                 querySingleGene(node.id());
             } else {

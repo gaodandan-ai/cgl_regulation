@@ -48,8 +48,8 @@ handlers['tap:node']({ target: node });
 handlers['tap:node']({ target: node });
 handlers['tap:canvas']({ target: graph });
 assert.deepEqual(calls, [
-    'highlight:cg0001', 'details:cg0001',
-    'highlight:cg0001', 'details:cg0001', 'query:cg0001',
+    'highlight:cg0001', 'details:cg0001', 'sidebar:true',
+    'highlight:cg0001', 'details:cg0001', 'sidebar:true', 'query:cg0001',
     'sidebar:false',
 ]);
 

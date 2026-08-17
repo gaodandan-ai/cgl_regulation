@@ -23,7 +23,22 @@ except ImportError:
     except ImportError:
         get_graph_engine = None
 
-from schemas import GraphCascadeResponse, GraphMotifResponse
+try:
+    from schemas import (
+        GraphCascadeResponse,
+        GraphMotifResponse,
+        InterventionTargetsResponse,
+        InterventionTargetSchema,
+        HTTPError
+    )
+except ImportError:
+    from backend.schemas import (
+        GraphCascadeResponse,
+        GraphMotifResponse,
+        InterventionTargetsResponse,
+        InterventionTargetSchema,
+        HTTPError
+    )
 from services.reference_data import STRING_INTERACTIONS
 
 try:
@@ -911,7 +926,11 @@ def get_condition_regulation_edges_api(
     }
 
 
-@router.get("/api/intervention-targets")
+@router.get(
+    "/api/intervention-targets",
+    response_model=InterventionTargetsResponse,
+    responses={400: {"model": HTTPError}}
+)
 def get_intervention_targets_api(
     q: str = None,
     strategy: str = None,
@@ -930,10 +949,14 @@ def get_intervention_targets_api(
         evidence_grade=grade, include_known_essential=include_known_essential,
         limit=limit, offset=offset,
     )
-    return {"total": result["total"], "count": len(result["targets"]), "targets": result["targets"]}
+    return {"total": result["total"], "limit": limit, "targets": result["targets"]}
 
 
-@router.get("/api/intervention-targets/{locus}")
+@router.get(
+    "/api/intervention-targets/{locus}",
+    response_model=InterventionTargetSchema,
+    responses={404: {"model": HTTPError}}
+)
 def get_intervention_target_detail_api(locus: str):
     db = get_db_manager()
     target = db.get_intervention_target_detail(locus)

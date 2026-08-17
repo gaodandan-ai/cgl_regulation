@@ -66,6 +66,7 @@ data/reference/rna_seq_analysis_results.json
 # Scratch and pipeline temp folders
 data_pipeline/scratch/
 data_pipeline/scratch*
+scratch/
 .agents/
 .gemini/
 *.log
@@ -79,6 +80,8 @@ data/deploy/*.tmp
 
 # Local full database; deploys use the generated data/deploy read-only subset
 data/reference/cgl_regulation.db
+data/*.db
+*.db
 
 # Downloaded primary-source archives (recreated by data-pipeline fetch/import jobs)
 data/reference/expression_compendium/geo/

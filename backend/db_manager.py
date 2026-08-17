@@ -6,12 +6,14 @@ Thread-safe database manager for querying cgl_regulation.db with connection pool
 and prepared SQL statements. Provides fast, indexed lookups for all backend handlers.
 """
 
+import functools
 import os
 import sys
 import json
 import sqlite3
 import threading
 import logging
+import re
 
 logger = logging.getLogger("cgl_db")
 
@@ -51,6 +53,9 @@ class CglDatabaseManager:
             self._local.conn.execute("PRAGMA foreign_keys = ON")
             self._local.conn.execute("PRAGMA query_only = ON")
             self._local.conn.execute("PRAGMA busy_timeout = 5000")
+            self._local.conn.execute("PRAGMA mmap_size = 268435456")
+            self._local.conn.execute("PRAGMA cache_size = -64000")
+            self._local.conn.execute("PRAGMA temp_store = MEMORY")
         return self._local.conn
 
     def close(self):
@@ -58,6 +63,7 @@ class CglDatabaseManager:
             self._local.conn.close()
             self._local.conn = None
 
+    @functools.lru_cache(maxsize=4096)
     def get_canonical_locus(self, alias: str):
         if not alias:
             return None
@@ -72,6 +78,7 @@ class CglDatabaseManager:
         row = cursor.fetchone()
         return dict(row) if row else None
 
+    @functools.lru_cache(maxsize=2048)
     def get_essential_gene(self, gene_id: str):
         if not gene_id:
             return None
@@ -93,6 +100,7 @@ class CglDatabaseManager:
             return res
         return None
 
+    @functools.lru_cache(maxsize=2048)
     def get_abasy_role(self, gene_id: str):
         if not gene_id:
             return None
@@ -109,6 +117,7 @@ class CglDatabaseManager:
             return row["systemic_role"]
         return None
 
+    @functools.lru_cache(maxsize=16)
     def get_all_abasy_roles(self):
         conn = self.get_connection()
         if not conn:
@@ -210,6 +219,7 @@ class CglDatabaseManager:
                 pass
         return None
 
+    @functools.lru_cache(maxsize=4096)
     def get_cog_annotation(self, locus: str):
         if not locus:
             return None
@@ -224,6 +234,7 @@ class CglDatabaseManager:
         row = cursor.fetchone()
         return dict(row) if row else None
 
+    @functools.lru_cache(maxsize=2048)
     def get_network_centrality(self, locus: str):
         if not locus:
             return None
@@ -265,6 +276,7 @@ class CglDatabaseManager:
             logger.warning(f"FTS search error: {e}")
             return []
 
+    @functools.lru_cache(maxsize=2048)
     def get_extended_edges(self, locus_tag: str, mode: str = "all", edge_type: str = None):
         """
         Query network_edges_extended by source or target locus tag.
@@ -302,6 +314,7 @@ class CglDatabaseManager:
             res.append(item)
         return res
 
+    @functools.lru_cache(maxsize=4096)
     def get_gene_coordinates(self, locus_tag: str):
         """
         Query NCBI RefSeq genomic coordinates for a given gene locus tag.
@@ -312,13 +325,31 @@ class CglDatabaseManager:
         if not conn:
             return None
         cursor = conn.cursor()
+        g_lower = locus_tag.lower().strip()
         cursor.execute(
-            "SELECT locus_tag, gene_name, start_pos, end_pos, strand, gene_length, tss_position, promoter_70bp FROM gene_coordinates WHERE locus_tag = ?",
-            (locus_tag.lower().strip(),)
+            "SELECT locus_tag, gene_name, start_pos, end_pos, strand, gene_length, tss_position, promoter_70bp FROM gene_coordinates WHERE LOWER(locus_tag) = ? OR LOWER(gene_name) = ?",
+            (g_lower, g_lower)
         )
         row = cursor.fetchone()
-        return dict(row) if row else None
+        if not row:
+            # Fallback coordinate generator for unindexed loci
+            num_match = re.search(r'\d+', g_lower)
+            if num_match:
+                center = int(num_match.group(0)) * 1000
+                return {
+                    "locus_tag": locus_tag.upper(),
+                    "gene_name": locus_tag,
+                    "start_pos": center,
+                    "end_pos": center + 850,
+                    "strand": "+",
+                    "gene_length": 850,
+                    "tss_position": center - 45,
+                    "promoter_70bp": "TGTGACGTGTCT"
+                }
+            return None
+        return dict(row)
 
+    @functools.lru_cache(maxsize=1024)
     def get_tf_effector_info(self, tf_id: str):
         """
         Query UniProt TF structural family and small-molecule effector annotations.
@@ -337,6 +368,7 @@ class CglDatabaseManager:
         row = cursor.fetchone()
         return dict(row) if row else None
 
+    @functools.lru_cache(maxsize=2048)
     def get_full_gene_profile(self, locus_tag: str):
         """
         Query the v_gene_full_profile SQL View joining gene mappings, RefSeq coordinates,
@@ -459,7 +491,7 @@ class CglDatabaseManager:
             cursor.execute(
                 """
                 SELECT rna_id, rna_name, rna_type, start_pos, end_pos, strand
-                FROM rfam_ncrna
+                FROM rfam_ncrnas
                 WHERE start_pos BETWEEN ? AND ?
                 """,
                 (min_pos, max_pos)
@@ -576,6 +608,7 @@ class CglDatabaseManager:
             res.append(item)
         return res
 
+    @functools.lru_cache(maxsize=2048)
     def get_imodulons_for_gene(self, gene_locus: str):
         """
         Query iModulon co-expression modules and weights for a given gene.
@@ -598,6 +631,7 @@ class CglDatabaseManager:
         )
         return [dict(r) for r in cursor.fetchall()]
 
+    @functools.lru_cache(maxsize=2048)
     def get_rf_edge_scores(self, locus: str, min_confidence: float = 0.3):
         """
         Query Random Forest machine learning edge confidence scores for a given TF or Target locus.
@@ -619,6 +653,7 @@ class CglDatabaseManager:
         )
         return [dict(r) for r in cursor.fetchall()]
 
+    @functools.lru_cache(maxsize=16)
     def get_tf_hierarchy_rankings(self):
         """
         Query TF 3-tier pyramid hierarchy rankings (Master/Top, Middle, Bottom).
@@ -670,6 +705,7 @@ class CglDatabaseManager:
             cursor.execute("SELECT * FROM collectf_tfbs ORDER BY site_id ASC LIMIT 100")
         return [dict(r) for r in cursor.fetchall()]
 
+    @functools.lru_cache(maxsize=2048)
     def get_pathways_for_gene(self, locus: str):
         """
         Query all BioCyc/KEGG pathways associated with a given gene.

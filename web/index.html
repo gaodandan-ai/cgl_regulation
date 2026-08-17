@@ -97,7 +97,7 @@
     <!-- FontAwesome Icons (Local vendor copy for offline performance) -->
     <link rel="stylesheet" href="lib/vendor/fontawesome.min.css">
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css?v=2.2">
+    <link rel="stylesheet" href="style.css?v=12.0">
 </head>
 
 <body class="light-theme">
@@ -128,7 +128,7 @@
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <i class="fa-solid fa-network-wired header-logo-icon"></i>
-                <h1>Cgl Regulation Explorer <span class="badge-v" id="app-version-badge">v1.3.1</span></h1>
+                <h1>Cgl Regulation Explorer <span class="badge-v" id="app-version-badge">v1.5.0</span></h1>
             </div>
             <div class="header-right">
                 <a href="https://github.com/gaodandan-ai" target="_blank" rel="noopener noreferrer" class="header-contact-link">
@@ -148,6 +148,10 @@
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </a>
+                <!-- Interactive Guided Tour Launch Button -->
+                <button id="btn-start-tour" class="secondary-btn" onclick="if(window.OnboardingTour) window.OnboardingTour.start(); return false;" style="height: 32px; padding: 0 12px; border-radius: 16px; font-size: 12px; font-weight: 600; background: rgba(99, 102, 241, 0.08); color: #4f46e5; border: 1px solid rgba(99, 102, 241, 0.25); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="Start 1-minute Interactive Guided Tour">
+                    <i class="fa-solid fa-compass" style="font-size: 13px;"></i> 快速上手
+                </button>
                 <div class="header-status" id="data-status">
                     <span class="status-dot pulsing"></span>
                     <span class="status-text">Loading local data...</span>
@@ -332,30 +336,45 @@
 
                     <!-- Regulation type filters -->
                     <div class="checkbox-group" style="margin-bottom: 16px;">
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="filter-activation" checked>
-                            <span class="checkmark chk-activation"></span>
-                            <span class="label-text">Activation (+)</span>
+                        <label class="custom-checkbox" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <input type="checkbox" id="filter-activation" checked>
+                                <span class="checkmark chk-activation"></span>
+                                <span class="label-text">Activation (+)</span>
+                            </div>
+                            <svg width="24" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="16" y2="5" stroke="#2e7d32" stroke-width="2.5"/><polygon points="16,2 24,5 16,8" fill="#2e7d32"/></svg>
                         </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="filter-repression" checked>
-                            <span class="checkmark chk-repression"></span>
-                            <span class="label-text">Repression (-)</span>
+                        <label class="custom-checkbox" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <input type="checkbox" id="filter-repression" checked>
+                                <span class="checkmark chk-repression"></span>
+                                <span class="label-text">Repression (-)</span>
+                            </div>
+                            <svg width="24" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="18" y2="5" stroke="#d32f2f" stroke-width="2.5"/><line x1="18" y1="2" x2="18" y2="8" stroke="#d32f2f" stroke-width="2.5"/></svg>
                         </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="filter-dual" checked>
-                            <span class="checkmark chk-dual"></span>
-                            <span class="label-text">Dual regulation / sigma factor</span>
+                        <label class="custom-checkbox" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <input type="checkbox" id="filter-dual" checked>
+                                <span class="checkmark chk-dual"></span>
+                                <span class="label-text">Dual regulation / sigma factor</span>
+                            </div>
+                            <svg width="24" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="16" y2="5" stroke="#e65100" stroke-width="2.5"/><polygon points="16,2 24,5 16,8" fill="#e65100"/></svg>
                         </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="filter-srna">
-                            <span class="checkmark chk-srna"></span>
-                            <span class="label-text">Predicted sRNA regulation</span>
+                        <label class="custom-checkbox" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <input type="checkbox" id="filter-srna">
+                                <span class="checkmark chk-srna"></span>
+                                <span class="label-text">Predicted sRNA regulation</span>
+                            </div>
+                            <svg width="24" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="15" y2="5" stroke="#7b1fa2" stroke-width="2" stroke-dasharray="3,2"/><polygon points="15,2 21,5 15,8" fill="none" stroke="#7b1fa2" stroke-width="1.5"/><line x1="21" y1="2" x2="21" y2="8" stroke="#7b1fa2" stroke-width="1.5"/></svg>
                         </label>
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="filter-ppi">
-                            <span class="checkmark chk-ppi"></span>
-                            <span class="label-text">Show STRING PPI Links</span>
+                        <label class="custom-checkbox" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <input type="checkbox" id="filter-ppi">
+                                <span class="checkmark chk-ppi"></span>
+                                <span class="label-text">Show STRING PPI Links</span>
+                            </div>
+                            <svg width="24" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="22" y2="5" stroke="#10b981" stroke-width="2.5" stroke-dasharray="6,3"/></svg>
                         </label>
 
                         <!-- sRNA prediction filter -->
@@ -395,35 +414,15 @@
                             </div>
 
                         <div class="edge-schema-legend" style="margin-top:10px;padding:8px 10px;border:1px solid var(--border-color);border-radius:6px;background:#fff;font-size:10px;color:var(--text-secondary);line-height:1.6;">
-                            <div style="font-weight:700;color:var(--text-primary);margin-bottom:5px;font-size:10.5px;">Edge Schema</div>
-                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
-                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="18" y2="5" stroke="#2e7d32" stroke-width="2.5"/><polygon points="18,2 26,5 18,8" fill="#2e7d32"/></svg>
-                                <span>Activation</span>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
-                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="20" y2="5" stroke="#d32f2f" stroke-width="2.5"/><line x1="20" y1="2" x2="20" y2="8" stroke="#d32f2f" stroke-width="2.5"/></svg>
-                                <span>Repression</span>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
-                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="18" y2="5" stroke="#e65100" stroke-width="2.5"/><polygon points="18,2 26,5 18,8" fill="#e65100"/></svg>
-                                <span>Dual / Unknown</span>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
-                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="17" y2="5" stroke="#7b1fa2" stroke-width="2" stroke-dasharray="3,2"/><polygon points="17,2 23,5 17,8" fill="none" stroke="#7b1fa2" stroke-width="1.5"/><line x1="23" y1="2" x2="23" y2="8" stroke="#7b1fa2" stroke-width="1.5"/></svg>
-                                <span>sRNA / post-transcriptional</span>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
-                                <svg width="26" height="10" style="flex-shrink:0"><line x1="2" y1="5" x2="24" y2="5" stroke="#10b981" stroke-width="2.5" stroke-dasharray="7,3"/></svg>
-                                <span>PPI (STRING)</span>
-                            </div>
-                            <div style="border-top:1px dashed var(--border-color);padding-top:4px;display:flex;flex-direction:column;gap:2px;">
-                                <div style="display:flex;align-items:center;gap:5px;">
-                                    <svg width="26" height="6" style="flex-shrink:0"><line x1="2" y1="3" x2="24" y2="3" stroke="#555" stroke-width="2.5"/></svg>
+                            <div style="font-weight:700;color:var(--text-primary);margin-bottom:4px;font-size:10.5px;">Edge Confidence Schema</div>
+                            <div style="display:flex;flex-direction:column;gap:2px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
                                     <span>High / Medium confidence</span>
+                                    <svg width="24" height="6" style="flex-shrink:0"><line x1="2" y1="3" x2="22" y2="3" stroke="#555" stroke-width="2.5"/></svg>
                                 </div>
-                                <div style="display:flex;align-items:center;gap:5px;">
-                                    <svg width="26" height="6" style="flex-shrink:0"><line x1="2" y1="3" x2="24" y2="3" stroke="#aaa" stroke-width="1.5" stroke-dasharray="2,2"/></svg>
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
                                     <span>Low confidence</span>
+                                    <svg width="24" height="6" style="flex-shrink:0"><line x1="2" y1="3" x2="22" y2="3" stroke="#aaa" stroke-width="1.5" stroke-dasharray="2,2"/></svg>
                                 </div>
                                 <div style="margin-top:2px;color:var(--text-muted,#94a3b8)">Edge thickness ∝ confidence score</div>
                             </div>
@@ -958,47 +957,6 @@
                             </div>
                         </div>
 
-                        <!-- Citation & Limitations Section -->
-                        <div class="landing-grid-about">
-                            <div class="about-card citation-card">
-                                <h4><i class="fa-solid fa-quote-left"></i> How to Cite</h4>
-                                <p>If you use Cgl Regulation Explorer in your research, please cite:</p>
-                                <div class="citation-text">Cgl Regulation Explorer: an interactive regulatory-metabolic analysis platform for <em>Corynebacterium glutamicum</em>. Version 0.5.0. Available at: https://cgl-regulation.vercel.app/</div>
-
-                            </div>
-                            <div class="about-card attribution-card">
-                                <h4><i class="fa-solid fa-database"></i> Data Attribution</h4>
-                                <p>This platform integrates public databases and models. Please cite the original
-                                    resources:</p>
-                                <ul
-                                    style="padding-left: 14px; font-size: 11px; display: flex; flex-direction: column; gap: 4px; line-height: 1.4; color: var(--text-secondary);">
-                                    <li><strong>TRNs</strong>: CoryneRegNet 7 / Extended regulatory network &
-                                        sRNA-mediated regulation</li>
-                                    <li><strong>Metabolic Models</strong>: <em>iCW773</em> genome-scale model (and <em>iCGB21FR</em>
-                                        support context)</li>
-                                    <li><strong>Enzyme Constraints</strong>: <em>ecCGL1</em> parameter annotations</li>
-                                    <li><strong>Pathway maps</strong>: KEGG-compatible pathway mapping</li>
-                                    <li><strong>Methods</strong>: RF edge confidence, reaction-pathway mapping,
-                                        engineering target ranking</li>
-                                </ul>
-                            </div>
-                            <div class="about-card limitations-card">
-                                <h4><i class="fa-solid fa-circle-exclamation"></i> Current Limitations & Capabilities
-                                </h4>
-                                <ul>
-                                    <li><strong>Biophysical Affinity:</strong> Support thermodynamic binding constants
-                                        (binding free energy ΔG and dissociation constant Kd) in motif scan.</li>
-                                    <li><strong>Active Simulations:</strong> Full support for Flux Balance Analysis
-                                        (FBA), Flux Variability Analysis (FVA), and dynamic rFBA.</li>
-                                    <li><strong>ecFBA Simulations:</strong> Supports active enzyme-constrained
-                                        simulations with temperature scaling of kcat and macromolecular pool limit
-                                        constraints.</li>
-                                    <li><strong>Validation:</strong> All prioritizations are hypothesis-generating;
-                                        experimental wet-lab validation is required before drawing biological
-                                        conclusions.</li>
-                                </ul>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -3004,102 +2962,126 @@
                 <!-- ═══════════════════════════════════════════════════════
                      Regulatory Hierarchy View Overlay
                      ═══════════════════════════════════════════════════════ -->
-                <div id="hierarchy-overlay" class="release-notes-container hidden" style="background:#f8fafc;">
-                    <div class="dashboard-header" style="border-bottom:1px solid var(--border-color);">
-                        <div class="dashboard-title-area">
-                            <h2><i class="fa-solid fa-layer-group" style="color:#7c3aed;"></i> Regulatory Hierarchy View</h2>
-                            <p class="dashboard-subtitle">Multi-layer view of the <em>C. glutamicum</em> regulatory network — from Sigma factors at the top to target genes at the bottom.</p>
+                <div id="hierarchy-overlay" class="release-notes-container hidden" style="background:#f8fafc; padding: 0; display: flex; flex-direction: column;">
+                    <div class="dashboard-header" style="border-bottom:1px solid var(--border-color); padding: 14px 24px; margin-bottom: 0; background: #ffffff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div class="dashboard-title-area" style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 16px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <div>
+                                <h2 style="font-size: 17px; font-weight: 800; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                                    Regulatory Hierarchy Explorer
+                                    <span style="font-size: 10px; font-weight: 700; background: rgba(124, 58, 237, 0.1); color: #7c3aed; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(124, 58, 237, 0.2);">Cascade Flow</span>
+                                </h2>
+                                <p class="dashboard-subtitle" style="font-size: 11.5px; color: var(--text-secondary); margin: 2px 0 0 0;">
+                                    Multi-tiered transcriptional architecture — hover any node to illuminate its upstream & downstream cascade.
+                                </p>
+                            </div>
                         </div>
-                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                            <!-- Confidence threshold -->
-                            <label style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;">
-                                Conf &ge;
-                                <input type="range" id="hier-conf-slider" min="0" max="1" step="0.05" value="0"
-                                    style="width:80px;accent-color:#7c3aed;" oninput="updateHierConfLabel(this.value); renderHierarchy();">
-                                <span id="hier-conf-label" style="font-weight:700;color:#7c3aed;min-width:28px;">0.0</span>
-                            </label>
-                            <!-- Regulation type filter -->
-                            <select id="hier-type-filter" onchange="renderHierarchy()"
-                                style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-secondary);">
-                                <option value="all">All types</option>
-                                <option value="activation">Activation only</option>
-                                <option value="repression">Repression only</option>
-                                <option value="tf-tf">TF–TF only</option>
-                            </select>
-                            <!-- Edge density -->
-                            <label style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">
-                                <input type="checkbox" id="hier-show-tf-tf" checked onchange="renderHierarchy()"
-                                    style="accent-color:#7c3aed;">
-                                TF–TF edges
-                            </label>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                             <!-- Gene Search -->
-                            <div style="display:flex;align-items:center;gap:4px;background:white;border:1px solid #c4b5fd;border-radius:8px;padding:3px 8px;min-width:180px;">
-                                <i class="fa-solid fa-magnifying-glass" style="font-size:10px;color:#7c3aed;flex-shrink:0;"></i>
-                                <input type="text" id="hier-search-input" placeholder="Search gene / locus…"
-                                    style="border:none;outline:none;font-size:11px;width:100%;background:transparent;color:var(--text-primary);"
+                            <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:4px 10px; min-width:190px; transition: all 0.2s;">
+                                <i class="fa-solid fa-magnifying-glass" style="font-size:11px; color:#7c3aed; flex-shrink:0;"></i>
+                                <input type="text" id="hier-search-input" placeholder="Search gene (e.g. sigA, glxR)…"
+                                    style="border:none; outline:none; font-size:11.5px; width:100%; background:transparent; color:var(--text-primary); font-weight: 500;"
                                     oninput="highlightHierSearch(this.value)"
                                     onkeydown="if(event.key==='Escape'){this.value='';highlightHierSearch('');}else if(event.key==='Enter'){scrollToHierMatch();}">
                                 <button id="hier-search-clear" onclick="document.getElementById('hier-search-input').value='';highlightHierSearch('');"
-                                    style="border:none;background:none;cursor:pointer;color:#94a3b8;font-size:10px;padding:0;line-height:1;display:none;">
+                                    style="border:none; background:none; cursor:pointer; color:#94a3b8; font-size:11px; padding:0; line-height:1; display:none;">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
-                            <span id="hier-search-status" style="font-size:10px;color:var(--text-muted);white-space:nowrap;display:none;"></span>
+                            <span id="hier-search-status" style="font-size:10px; color:#7c3aed; font-weight: 700; white-space:nowrap; display:none;"></span>
+
+                            <!-- Confidence threshold -->
+                            <div style="display:flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:4px 10px;">
+                                <span style="font-size:11px; font-weight:600; color:var(--text-secondary);">Conf &ge;</span>
+                                <input type="range" id="hier-conf-slider" min="0" max="1" step="0.05" value="0"
+                                    style="width:70px; accent-color:#7c3aed; cursor:pointer;" oninput="updateHierConfLabel(this.value); renderHierarchy();">
+                                <span id="hier-conf-label" style="font-size:11px; font-weight:700; color:#7c3aed; min-width:24px;">0.0</span>
+                            </div>
+
+                            <!-- Regulation type filter -->
+                            <select id="hier-type-filter" onchange="renderHierarchy()"
+                                style="font-size:11.5px; font-weight:600; height:32px; padding:0 10px; border-radius:8px; border:1px solid var(--border-color); background:#f8fafc; color:var(--text-primary); cursor:pointer;">
+                                <option value="all">⚡ All Edge Types</option>
+                                <option value="activation">🟢 Activation Only (+)</option>
+                                <option value="repression">🔴 Repression Only (-)</option>
+                                <option value="tf-tf">👑 TF–TF Backbone Only</option>
+                            </select>
+
+                            <!-- Focus Mode toggle -->
+                            <button id="hier-focus-mode-btn" onclick="hierToggleFocusMode()"
+                                title="Focus Mode: click any TF to isolate its regulatory cascade"
+                                style="font-size:11.5px; font-weight:600; height:32px; padding:0 12px; border-radius:8px; border:1px solid #7c3aed; background:rgba(124, 58, 237, 0.06); cursor:pointer; color:#7c3aed; display:flex; align-items:center; gap:6px; transition:all 0.15s;">
+                                <i class="fa-solid fa-crosshairs"></i> <span>Focus Cascade</span>
+                            </button>
+
                             <!-- Expand / Collapse All -->
-                            <div style="display:flex;gap:4px;">
+                            <div style="display:flex; gap:4px; background:#f8fafc; padding:2px; border-radius:8px; border:1px solid var(--border-color);">
                                 <button id="hier-expand-all-btn" onclick="hierExpandAll()"
                                     title="Expand all TFs to show their target genes"
-                                    style="font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">
+                                    style="font-size:11px; font-weight:600; padding:4px 8px; border-radius:6px; border:none; background:transparent; cursor:pointer; color:var(--text-secondary); display:flex; align-items:center; gap:4px;">
                                     <i class="fa-solid fa-expand"></i> All
                                 </button>
                                 <button id="hier-collapse-all-btn" onclick="hierCollapseAll()"
-                                    title="Collapse all TFs — hide target gene rows"
-                                    style="font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">
+                                    title="Collapse all target gene rows"
+                                    style="font-size:11px; font-weight:600; padding:4px 8px; border-radius:6px; border:none; background:transparent; cursor:pointer; color:var(--text-secondary); display:flex; align-items:center; gap:4px;">
                                     <i class="fa-solid fa-compress"></i> Collapse
                                 </button>
                             </div>
-                            <!-- Focus Mode toggle -->
-                            <button id="hier-focus-mode-btn" onclick="hierToggleFocusMode()"
-                                title="Focus Mode: click any TF to highlight only its regulatory chain"
-                                style="font-size:11px;padding:5px 12px;border-radius:7px;border:1px solid #7c3aed;background:transparent;cursor:pointer;color:#7c3aed;display:flex;align-items:center;gap:5px;transition:all 0.15s;">
-                                <i class="fa-solid fa-crosshairs"></i> Focus
-                            </button>
-                            <!-- Zoom controls -->
-                            <div style="display:flex;align-items:center;gap:3px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:7px;padding:2px 4px;">
+
+                            <!-- Zoom & Fit controls -->
+                            <div style="display:flex; align-items:center; gap:3px; background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:2px 4px; height:32px; box-sizing:border-box;">
                                 <button onclick="hierZoom(-0.15)" title="Zoom out"
-                                    style="border:none;background:none;cursor:pointer;color:var(--text-secondary);font-size:13px;padding:3px 5px;line-height:1;">
+                                    style="border:none; background:none; cursor:pointer; color:var(--text-secondary); font-size:12px; padding:4px 6px;">
                                     <i class="fa-solid fa-minus"></i>
                                 </button>
-                                <span id="hier-zoom-label" style="font-size:10.5px;min-width:30px;text-align:center;color:var(--text-secondary);font-weight:600;">100%</span>
+                                <span id="hier-zoom-label" style="font-size:11px; min-width:32px; text-align:center; color:var(--text-primary); font-weight:700;">100%</span>
                                 <button onclick="hierZoom(0.15)" title="Zoom in"
-                                    style="border:none;background:none;cursor:pointer;color:var(--text-secondary);font-size:13px;padding:3px 5px;line-height:1;">
+                                    style="border:none; background:none; cursor:pointer; color:var(--text-secondary); font-size:12px; padding:4px 6px;">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
-                                <button onclick="hierZoomReset()" title="Reset zoom"
-                                    style="border:none;background:none;cursor:pointer;color:var(--text-secondary);font-size:10px;padding:3px 5px;line-height:1;">
+                                <button onclick="hierZoomReset()" title="Reset zoom (100%)"
+                                    style="border:none; background:none; cursor:pointer; color:var(--text-muted); font-size:11px; padding:4px 6px;">
                                     <i class="fa-solid fa-rotate-left"></i>
                                 </button>
+                                <button id="hier-fit-btn" onclick="hierFitToScreen()" title="Fit entire hierarchy to screen viewport"
+                                    style="border:none; background:rgba(124,58,237,0.08); border-radius:5px; cursor:pointer; color:#7c3aed; font-size:11px; font-weight:700; padding:2px 6px; display:flex; align-items:center; gap:3px;">
+                                    <i class="fa-solid fa-arrows-to-eye"></i> Fit
+                                </button>
                             </div>
+
+                            <!-- Fullscreen Toggle -->
+                            <button id="hier-fullscreen-btn" onclick="hierToggleFullscreen()" title="Toggle Immersive Fullscreen (Hotkey: F)"
+                                style="font-size:11.5px; font-weight:700; height:32px; padding:0 12px; border-radius:8px; border:1px solid #6366f1; background:linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); cursor:pointer; color:#ffffff; display:flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(99,102,241,0.25); transition:all 0.2s;">
+                                <i class="fa-solid fa-expand" id="hier-fullscreen-icon"></i> <span id="hier-fullscreen-txt">Fullscreen</span>
+                            </button>
+
                             <!-- Export -->
-                            <button onclick="exportHierarchySvg()"
-                                style="font-size:11px;padding:5px 12px;border-radius:7px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:5px;">
-                                <i class="fa-solid fa-download"></i> SVG
+                            <button onclick="exportHierarchySvg()" title="Download publication-quality SVG"
+                                style="font-size:11.5px; font-weight:600; height:32px; padding:0 12px; border-radius:8px; border:1px solid var(--border-color); background:#ffffff; cursor:pointer; color:var(--text-primary); display:flex; align-items:center; gap:6px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                                <i class="fa-solid fa-file-arrow-down" style="color:#7c3aed;"></i> SVG
                             </button>
                         </div>
                     </div>
 
-                    <!-- Legend bar -->
-                    <div style="display:flex;align-items:center;gap:14px;padding:8px 20px;font-size:10px;color:var(--text-secondary);background:var(--bg-card);border-bottom:1px solid var(--border-color);flex-wrap:wrap;">
-                        <span style="font-weight:700;color:var(--text-primary);">Node:</span>
-                        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#f59e0b;margin-right:4px;"></span>Sigma factor</span>
-                        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#7c3aed;margin-right:4px;"></span>Global TF (&ge;10 targets)</span>
-                        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#3b82f6;margin-right:4px;"></span>Local TF</span>
-                        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#0d9488;margin-right:4px;"></span>sRNA</span>
-                        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#94a3b8;margin-right:4px;"></span>Target gene</span>
-                        <span style="font-weight:700;color:var(--text-primary);margin-left:8px;">Edge:</span>
-                        <span><span style="display:inline-block;width:16px;height:3px;background:#10b981;margin-right:4px;vertical-align:middle;"></span>Activation</span>
-                        <span><span style="display:inline-block;width:16px;height:3px;background:#ef4444;margin-right:4px;vertical-align:middle;"></span>Repression</span>
-                        <span><span style="display:inline-block;width:16px;height:3px;background:#f59e0b;margin-right:4px;vertical-align:middle;"></span>Dual/Unknown</span>
+                    <!-- Enhanced Legend Bar -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 24px; font-size:11px; color:var(--text-secondary); background:#ffffff; border-bottom:1px solid var(--border-color); flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                            <span style="font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-nodes" style="color:#7c3aed;"></i> Layers:</span>
+                            <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(245, 158, 11, 0.1); color:#b45309; padding:2px 8px; border-radius:12px; font-weight:600; border:1px solid rgba(245, 158, 11, 0.25);"><span style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span>⚡ Tier 0: Sigma Factors</span>
+                            <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(99, 102, 241, 0.1); color:#4338ca; padding:2px 8px; border-radius:12px; font-weight:600; border:1px solid rgba(99, 102, 241, 0.25);"><span style="width:8px; height:8px; border-radius:50%; background:#6366f1;"></span>👑 Tier 1: Global Master TFs (&ge;10)</span>
+                            <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(14, 165, 233, 0.1); color:#0369a1; padding:2px 8px; border-radius:12px; font-weight:600; border:1px solid rgba(14, 165, 233, 0.25);"><span style="width:8px; height:8px; border-radius:50%; background:#0ea5e9;"></span>🎯 Tier 2: Local TFs (1–9)</span>
+                            <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(16, 185, 129, 0.1); color:#065f46; padding:2px 8px; border-radius:12px; font-weight:600; border:1px solid rgba(16, 185, 129, 0.25);"><span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span>🧬 Tier 3: Regulatory sRNAs</span>
+                            <span style="display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:12px; font-weight:600; border:1px solid #cbd5e1;"><span style="width:8px; height:8px; border-radius:50%; background:#94a3b8;"></span>📦 Tier 4: Target Genes</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <span style="font-weight:700; color:var(--text-primary);">Edge Mode:</span>
+                            <span style="display:inline-flex; align-items:center; gap:4px; font-weight:600; color:#059669;"><span style="width:14px; height:3px; background:#10b981; border-radius:2px;"></span> Activation (+)</span>
+                            <span style="display:inline-flex; align-items:center; gap:4px; font-weight:600; color:#dc2626;"><span style="width:14px; height:3px; background:#ef4444; border-radius:2px;"></span> Repression (-)</span>
+                            <span style="display:inline-flex; align-items:center; gap:4px; font-weight:600; color:#d97706;"><span style="width:14px; height:3px; background:#f59e0b; border-radius:2px;"></span> Dual / Other</span>
+                        </div>
                     </div>
 
                     <!-- Main SVG canvas -->
@@ -3108,17 +3090,37 @@
                             style="display:block;min-width:100%;font-family:var(--font-sans);"
                             role="img" aria-label="Regulatory hierarchy diagram">
                             <defs>
-                                <marker id="arrow-act" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-                                    <path d="M0,0 L0,6 L8,3 z" fill="#10b981"/>
+                                <linearGradient id="hier-grad-sigma" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#f59e0b" />
+                                    <stop offset="100%" stop-color="#d97706" />
+                                </linearGradient>
+                                <linearGradient id="hier-grad-global" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#6366f1" />
+                                    <stop offset="100%" stop-color="#4338ca" />
+                                </linearGradient>
+                                <linearGradient id="hier-grad-local" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#0ea5e9" />
+                                    <stop offset="100%" stop-color="#0284c7" />
+                                </linearGradient>
+                                <linearGradient id="hier-grad-srna" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#10b981" />
+                                    <stop offset="100%" stop-color="#0f766e" />
+                                </linearGradient>
+                                <linearGradient id="hier-grad-target" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff" />
+                                    <stop offset="100%" stop-color="#f8fafc" />
+                                </linearGradient>
+                                <marker id="arrow-act" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L7,3 z" fill="#10b981"/>
                                 </marker>
-                                <marker id="arrow-rep" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-                                    <path d="M0,0 L0,6 L8,3 z" fill="#ef4444"/>
+                                <marker id="arrow-rep" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L7,3 z" fill="#ef4444"/>
                                 </marker>
-                                <marker id="arrow-dbl" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-                                    <path d="M0,0 L0,6 L8,3 z" fill="#f59e0b"/>
+                                <marker id="arrow-dbl" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b"/>
                                 </marker>
-                                <marker id="arrow-srna" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-                                    <path d="M0,0 L0,6 L8,3 z" fill="#0d9488"/>
+                                <marker id="arrow-srna" markerWidth="7" markerHeight="7" refX="7" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L7,3 z" fill="#0d9488"/>
                                 </marker>
                             </defs>
                             <!-- labelsG (bands) at bottom, then edges, then nodes on top -->
@@ -3715,548 +3717,543 @@
                     <i class="fa-solid fa-chevron-left"></i>
                     <span>Details</span>
                 </button>
+                <button id="right-sidebar-fullscreen-toggle" class="right-sidebar-fullscreen-toggle collapsed" title="全屏显示右侧面板 (Toggle Full Screen)" aria-label="Toggle Full Screen">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
             </main>
 
             <!-- Right detail sidebar -->
             <aside id="right-sidebar" class="sidebar collapsed">
                 <div id="sidebar-resizer" class="sidebar-resizer" title="Drag to resize the detail panel"
                     aria-label="Drag to resize the detail panel"></div>
-                <button id="close-detail-btn" class="close-btn" title="Hide detail panel"
+                <button id="open-full-portal-btn" class="secondary-btn" onclick="const locus = document.getElementById('detail-locus-tag')?.innerText || 'cg0350'; window.GeneProfilePortal?.open(locus);" style="position: absolute; top: 12px; right: 80px; height: 28px; padding: 0 10px; border-radius: 14px; font-size: 11.5px; font-weight: 700; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; border: none; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.15s ease;" title="Open full-screen comprehensive Gene Profile Workspace Portal">
+                    <i class="fa-solid fa-expand-wide"></i> 🌐 全景档案
+                </button>
+                <button id="btn-toggle-sidebar-fullscreen" class="close-btn" style="right: 44px; font-size: 12px;" title="全屏显示右侧面板 (Toggle Full Screen)" aria-label="Toggle Full Screen">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+                <button id="close-detail-btn" class="close-btn" style="right: 12px;" title="Hide detail panel"
                     aria-label="Hide detail panel"><i class="fa-solid fa-xmark"></i></button>
                 <div class="detail-header">
-                    <span class="gene-badge" id="detail-type-badge">Gene</span>
-                    <h2 id="detail-gene-name">-</h2>
-                    <p class="locus-tag" id="detail-locus-tag">-</p>
+                    <div class="detail-header-left" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <span class="gene-badge" id="detail-type-badge">Gene</span>
+                        <h2 id="detail-gene-name">-</h2>
+                        <p class="locus-tag" id="detail-locus-tag">-</p>
+                    </div>
+                    <div class="detail-header-actions" style="display:flex; align-items:center; gap:10px;">
+                        <button class="btn-open-portal" onclick="const locus = (document.getElementById('detail-locus-tag')?.innerText || document.getElementById('info-locus')?.innerText || 'cg0350').trim(); window.GeneProfilePortal?.open(locus);" style="padding: 6px 14px; border-radius: 8px; background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: #ffffff; border: none; font-size: 11.5px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25); display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.2s ease;">
+                            <i class="fa-solid fa-expand-wide"></i> 🌐 打开全景基因档案 (Full Profile Portal)
+                        </button>
+                    </div>
                 </div>
                 <div class="detail-content">
-                    <div class="detail-section">
-                        <h3><i class="fa-solid fa-circle-info"></i> Basic Information</h3>
-                        <table class="info-table">
-                            <tr>
-                                <th>Locus tag</th>
-                                <td id="info-locus">-</td>
-                            </tr>
-                            <tr>
-                                <th>Display name</th>
-                                <td id="info-name">-</td>
-                            </tr>
-                            <tr>
-                                <th>Molecule type</th>
-                                <td id="info-type">-</td>
-                            </tr>
-                            <tr id="info-cgl-row" style="display: none;">
-                                <th>Cgl Locus Tag</th>
-                                <td id="info-cgl">-</td>
-                            </tr>
-                            <tr id="info-operon-row" style="display: none;">
-                                <th>Operon</th>
-                                <td id="info-operon"
-                                    style="white-space: normal; font-size: 12px; line-height: 1.4; color: var(--text-secondary);">
-                                    -</td>
-                            </tr>
-                            <tr id="info-essential-row" style="display: none;">
-                                <th>Essentiality</th>
-                                <td id="info-essential" style="font-weight: 600; color: #dc2626;">-</td>
-                            </tr>
-                            <tr id="info-abasy-row" style="display: none;">
-                                <th>Systemic Role (Abasy)</th>
-                                <td id="info-abasy">-</td>
-                            </tr>
-                            <tr id="info-cog-row" style="display: none;">
-                                <th>Functional COG Category</th>
-                                <td id="info-cog" style="white-space: normal; line-height: 1.4;">-</td>
-                            </tr>
-                            <tr id="info-product-row" style="display: none;">
-                                <th>Functional description</th>
-                                <td id="info-product"
-                                    style="font-family: var(--font-primary); font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: normal; word-break: break-all; text-align: justify;">
-                                    -</td>
-                            </tr>
-                            <tr id="info-pathway-row" style="display: none;">
-                                <th>Pathways (KEGG/GO)</th>
-                                <td id="info-pathway"
-                                    style="font-family: var(--font-primary); font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: normal; word-break: break-all;">
-                                    <div class="pathway-container" id="info-pathway-container"></div>
-                                </td>
-                            </tr>
-                        </table>
-                        <button id="view-network-btn" class="view-network-btn" style="display: none; margin-top: 14px; width: 100%;">
-                            <i class="fa-solid fa-network-wired"></i> View regulatory network
-                        </button>
-                    </div>
-
-                    <!-- iModulon membership badges -->
-                    <div class="detail-section" id="info-imodulon-row" style="display:none;">
-                        <h3><i class="fa-solid fa-circle-nodes" style="color:#6366f1;"></i> iModulon Membership</h3>
-                        <div id="info-imodulon-badges" style="display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;"></div>
-                    </div>
-
-                    <!-- TCS signal chain card -->
-                    <div class="detail-section" id="info-tcs-row" style="display:none;">
-                        <h3><i class="fa-solid fa-arrow-right-arrow-left" style="color:#3b82f6;"></i> Two-Component
-                            System</h3>
-                        <div id="info-tcs-content"></div>
-                    </div>
-
-                    <!-- Sigma factor annotation card -->
-                    <div class="detail-section" id="info-sigma-row" style="display:none;">
-                        <h3><i class="fa-solid fa-sigma" style="color:#8b5cf6;"></i> Sigma Factor Context</h3>
-                        <div id="info-sigma-content"></div>
-                    </div>
-
-                    <!-- RegPrecise TFBS Motif card -->
-                    <div class="detail-section" id="info-motif-row" style="display:none;">
-                        <h3><i class="fa-solid fa-dna" style="color:#059669;"></i> Binding Site Motif <span style="font-size:10px;font-weight:400;color:var(--text-muted);">(RegPrecise 3.2)</span></h3>
-                        <div id="info-motif-content" style="font-size:12px;"></div>
-                    </div>
-
-                    <!-- Cross-Network Section -->
-                    <div class="detail-section" id="info-crossnetwork-row" style="display:none; border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 12px;">
-                        <h3><i class="fa-solid fa-code-merge" style="color:#f57c00;"></i> Regulatory + PPI Cross-links</h3>
-                        <div id="info-crossnetwork-content" style="font-size:11.5px; color:var(--text-secondary); line-height:1.5;"></div>
-                    </div>
-
-                    <!-- STRING PPI interaction card -->
-                    <div class="detail-section" id="info-string-row" style="display:none;">
-                        <h3><i class="fa-solid fa-circle-nodes" style="color:#06b6d4;"></i> Protein Interactions <span id="info-string-badge" style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:4px;"></span></h3>
-                        <div id="info-string-content"></div>
-                    </div>
-
-                    <!-- External databases and literature -->
-                    <div class="detail-section">
-                        <h3><i class="fa-solid fa-share-nodes"></i> External Databases & Literature</h3>
-                        <div id="info-links" class="db-links-grid">
-                            <!-- Dynamic link buttons -->
-                        </div>
-                    </div>
-
-
-                    <div class="detail-section ai-summary-section">
-                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Literature & Function Summary</h3>
-
-                        <!-- AI run control -->
-                        <button id="btn-trigger-ai" class="view-network-btn"
-                            style="margin-top: 0; margin-bottom: 12px; background-color: #6366f1; font-weight: 600; border: none;"
-                            disabled>
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Summarize literature and function
-                        </button>
-
-                        <!-- Summary output -->
-                        <div id="ai-summary-result" class="ai-summary-card hidden">
-                            <!-- Dynamic markdown rendering -->
-                        </div>
-                    </div>
-
-                    <!-- Genomic physical map and expression data -->
-                    <div class="detail-section" id="detail-genomic-map-section">
-                        <div
-                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <h3 style="margin:0; font-size:12px; font-weight:600;"><i class="fa-solid fa-dna"
-                                    style="color: #0284c7;"></i> Genomic Context & Expression</h3>
-                            <button id="btn-import-rnaseq" class="secondary-btn"
-                                style="font-size:9.5px; padding:2px 8px; height:20px; width:auto; border:1px solid #0284c7; background:rgba(2, 132, 199, 0.04); color:#0284c7; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:4px;">
-                                <i class="fa-solid fa-file-import"></i> Import RNA-seq
-                            </button>
-                            <input type="file" id="rnaseq-upload-input" accept=".csv" style="display:none;">
-                        </div>
-                        <p style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
-                            Shows neighboring genes and operon structure. Click a gene to navigate.
-                        </p>
-                        <!-- SVG physical map container -->
-                        <div id="genomic-map-container"
-                            style="width:100%; height:120px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; padding: 4px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.01); display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative; overflow:hidden;">
-                            <!-- Dynamic SVG rendering -->
-                        </div>
-
-                        <!-- Expression legend -->
-                        <div
-                            style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:9px; color:var(--text-muted);">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span
-                                    style="display:inline-block; width:10px; height:10px; background:#fca5a5; border:1px solid #ef4444; border-radius:2px;"></span>
-                                Up-regulated
-                                <span
-                                    style="display:inline-block; width:10px; height:10px; background:#93c5fd; border:1px solid #3b82f6; border-radius:2px;"></span>
-                                Down-regulated
-                            </div>
-                            <span id="rnaseq-status-badge" style="font-weight:600; color:#10b981;">Default data</span>
-                        </div>
-                    </div>
-
-                    <!-- Protein domains and motif prediction -->
-                    <div class="detail-section protein-analysis-section" id="detail-protein-domain-section"
-                        style="display: none;">
-                        <h3><i class="fa-solid fa-shapes" style="color: #7c3aed;"></i> Protein Domains & Motif
-                            Prediction</h3>
-
-                        <!-- Top Part: Enlarged Premium 3D folded structure model card -->
-                        <div class="protein-structure-card">
-                            <!-- Technical HUD lines / grid visualization overlay -->
-                            <div id="protein-3d-hud-text"
-                                style="position: absolute; top: 10px; left: 10px; font-size: 9px; color: var(--text-muted); font-family: monospace; z-index: 2; pointer-events: none; line-height: 1.3; background: rgba(255,255,255,0.7); padding: 3px 6px; border-radius: 4px; border: 1px solid rgba(15, 23, 42, 0.05);">
-                                <i class="fa-solid fa-expand fa-xs" style="color:#7c3aed;"></i> VIEW: ACTIVE<br>
-                                <span style="color:#10b981;">● ALPHA_FOLD_v2</span>
-                            </div>
-
-                            <!-- Premium badge -->
-                            <span id="protein-3d-hud-badge"
-                                style="position: absolute; top: 10px; right: 10px; font-size: 8px; background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.2); color: #7c3aed; padding: 3px 8px; border-radius: 20px; font-family: var(--font-heading); font-weight: 600; letter-spacing: 0.5px; z-index: 2;">3D
-                                MODEL VIEW</span>
-
-                            <!-- Real 3D Interactive Canvas -->
-                            <div id="protein-3d-viewer"
-                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 1;">
-                            </div>
-
-                            <!-- The Protein 3D Mock Image -->
-                            <img id="protein-3d-img" src="lib/protein_structure_mock.png" alt="Protein Structure">
-
-                            <!-- Floating interaction controls -->
-                            <div
-                                style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; z-index: 2;">
-                                <button id="btn-spin-structure" class="structure-control-btn" title="Auto-rotate"><i
-                                        class="fa-solid fa-rotate-right"></i></button>
-                                <button id="btn-zoom-structure" class="structure-control-btn" title="Zoom model"><i
-                                        class="fa-solid fa-magnifying-glass-plus"></i></button>
-                                <button id="btn-reset-structure" class="structure-control-btn" title="Reset view"><i
-                                        class="fa-solid fa-arrows-to-eye"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Brief Structure Description -->
-                        <div
-                            style="background: rgba(124, 58, 237, 0.02); border: 1px solid rgba(124, 58, 237, 0.06); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; margin-top: 6px;">
-                            <div
-                                style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                                <i class="fa-solid fa-cube" style="color: #7c3aed; font-size: 10px;"></i>
-                                Helix-turn-helix domain context
-                            </div>
-                            <div style="font-size: 10px; color: var(--text-secondary); line-height: 1.45;">
-                                Predicted structural context for DNA-binding transcription regulators, including
-                                putative HTH regions involved in promoter recognition.
-                            </div>
-                        </div>
-
-                        <!-- Bottom part: WebLogo & PWM Heatmap in a unified premium card -->
-                        <div class="motif-dashboard-card">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(124, 58, 237, 0.08); padding-bottom: 6px;">
-                                <span
-                                    style="font-size: 11px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 5px;">
-                                    <i class="fa-solid fa-fingerprint" style="color: #7c3aed; font-size: 10px;"></i>
-                                    Binding Motif
-                                </span>
-                                <span id="motif-badge-info"
-                                    style="font-size: 9px; background: rgba(124, 58, 237, 0.08); color: #7c3aed; padding: 2px 6px; border-radius: 4px; font-weight: 600;">MEME
-                                    Suite</span>
-                            </div>
-
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <div>
-                                    <div
-                                        style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between;">
-                                        <span>Sequence logo</span>
-                                        <span id="right-motif-consensus-label"
-                                            style="font-family: monospace; font-weight: 600; color: #7c3aed; font-size: 10px;">-</span>
-                                    </div>
-                                    <canvas id="right-motif-logo-canvas" width="310" height="60"
-                                        class="premium-canvas-card"
-                                        style="display:block; width:100%; height:55px;"></canvas>
-                                </div>
-
-                                <div>
-                                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Position
-                                        weight matrix (PWM)</div>
-                                    <canvas id="right-motif-heatmap-canvas" width="310" height="70"
-                                        class="premium-canvas-card"
-                                        style="display:block; width:100%; height:62px;"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Result text domain analysis -->
-                        <div id="right-protein-domain-result"
-                            style="margin-top: 8px; font-size: 11px; color: var(--text-secondary); line-height: 1.45; max-height: 130px; overflow-y: auto; background: var(--bg-card); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);">
-                        </div>
-
-                        <!-- Promoter motif scanner -->
-                        <div
-                            style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 14px; margin-bottom: 4px; display:flex; align-items:center; gap:5px;">
-                            <i class="fa-solid fa-dna" style="color: #7c3aed; font-size: 10px;"></i> Promoter Motif
-                            Scanner
-                        </div>
-                        <p
-                            style="font-size: 9.5px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
-                            Paste a promoter DNA sequence to scan for putative TF binding sites on both strands.
-                        </p>
-                        <textarea id="scan-sequence-input" placeholder="Paste DNA sequence, e.g. TGTGACGTGTGTGTGACTTG"
-                            style="width: 100%; height: 42px; font-family: var(--font-mono); font-size: 9.5px; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; resize: none; margin-bottom: 6px; line-height: 1.3; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></textarea>
-
-                        <div
-                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <span style="font-size:9px; color:var(--text-muted);">
-                                Similarity threshold: <span id="scan-threshold-val"
-                                    style="font-weight:600; color:#7c3aed;">80%</span>
-                            </span>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <input type="range" id="scan-threshold-slider" min="60" max="95" value="80"
-                                    style="width: 70px; height: 3px; cursor: pointer;">
-                                <button id="btn-run-scan" class="secondary-btn"
-                                    style="font-size:9px; padding:2px 8px; height:20px; width:auto; background:var(--color-primary-accent); color:#ffffff; border:none; border-radius:4px; font-weight:600; cursor:pointer;"><i
-                                        class="fa-solid fa-magnifying-glass"></i> Scan</button>
-                            </div>
-                        </div>
-
-                        <div id="scan-results-box" class="hidden"
-                            style="max-height: 110px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; margin-bottom: 12px;">
-                            <table style="width:100%; font-size:9px; border-collapse: collapse; text-align:left;">
-                                <thead>
-                                    <tr
-                                        style="background:#f8fafc; border-bottom:1px solid var(--border-color); font-weight:600; color:var(--text-secondary);">
-                                        <th style="padding:4px 6px;">Position</th>
-                                        <th style="padding:4px 6px;">Strand</th>
-                                        <th style="padding:4px 6px;">Matched sequence</th>
-                                        <th style="padding:4px 6px; text-align:right; padding-right:10px;">Similarity
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="scan-results-body" style="font-family: var(--font-mono);"></tbody>
+                    <!-- 📋 Column 1: Identity, Annotations, Databases & AI Summary -->
+                    <div class="fullscreen-col fullscreen-col-left">
+                        <div class="detail-section" id="info-basic-section">
+                            <h3><i class="fa-solid fa-circle-info"></i> Basic Information</h3>
+                            <table class="info-table">
+                                <tr>
+                                    <th>Locus tag</th>
+                                    <td id="info-locus">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Display name</th>
+                                    <td id="info-name">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Molecule type</th>
+                                    <td id="info-type">-</td>
+                                </tr>
+                                <tr id="info-cgl-row" style="display: none;">
+                                    <th>Cgl Locus Tag</th>
+                                    <td id="info-cgl">-</td>
+                                </tr>
+                                <tr id="info-operon-row" style="display: none;">
+                                    <th>Operon</th>
+                                    <td id="info-operon"
+                                        style="white-space: normal; font-size: 12px; line-height: 1.4; color: var(--text-secondary);">
+                                        -</td>
+                                </tr>
+                                <tr id="info-essential-row" style="display: none;">
+                                    <th>Essentiality</th>
+                                    <td id="info-essential" style="font-weight: 600; color: #dc2626;">-</td>
+                                </tr>
+                                <tr id="info-abasy-row" style="display: none;">
+                                    <th>Systemic Role (Abasy)</th>
+                                    <td id="info-abasy">-</td>
+                                </tr>
+                                <tr id="info-cog-row" style="display: none;">
+                                    <th>Functional COG Category</th>
+                                    <td id="info-cog" style="white-space: normal; line-height: 1.4;">-</td>
+                                </tr>
+                                <tr id="info-product-row" style="display: none;">
+                                    <th>Functional description</th>
+                                    <td id="info-product"
+                                        style="font-family: var(--font-primary); font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: normal; word-break: break-all; text-align: justify;">
+                                        -</td>
+                                </tr>
+                                <tr id="info-pathway-row" style="display: none;">
+                                    <th>Pathways (KEGG/GO)</th>
+                                    <td id="info-pathway"
+                                        style="font-family: var(--font-primary); font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: normal; word-break: break-all;">
+                                        <div class="pathway-container" id="info-pathway-container"></div>
+                                    </td>
+                                </tr>
                             </table>
+                            <button id="view-network-btn" class="view-network-btn" style="display: none; margin-top: 14px; width: 100%;">
+                                <i class="fa-solid fa-network-wired"></i> View regulatory network
+                            </button>
                         </div>
 
-                        <!-- Thermodynamic binding affinity summary -->
-                        <div id="scan-thermo-box" class="hidden"
-                            style="padding: 8px 10px; border: 1px dashed rgba(124, 58, 237, 0.3); border-radius: 6px; background: rgba(124, 58, 237, 0.02); font-size: 10px; line-height: 1.4; color: var(--text-secondary); margin-bottom: 12px;">
+                        <!-- External databases and literature -->
+                        <div class="detail-section" id="info-links-section">
+                            <h3><i class="fa-solid fa-share-nodes"></i> External Databases & Literature</h3>
+                            <div id="info-links" class="db-links-grid">
+                                <!-- Dynamic link buttons -->
+                            </div>
+                        </div>
+
+                        <div class="detail-section ai-summary-section">
+                            <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Literature & Function Summary</h3>
+                            <!-- AI run control -->
+                            <button id="btn-trigger-ai" class="view-network-btn"
+                                style="margin-top: 0; margin-bottom: 12px; background-color: #6366f1; font-weight: 600; border: none;"
+                                disabled>
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Summarize literature and function
+                            </button>
+                            <!-- Summary output -->
+                            <div id="ai-summary-result" class="ai-summary-card hidden">
+                                <!-- Dynamic markdown rendering -->
+                            </div>
+                        </div>
+
+                        <!-- iModulon membership badges -->
+                        <div class="detail-section" id="info-imodulon-row" style="display:none;">
+                            <h3><i class="fa-solid fa-circle-nodes" style="color:#6366f1;"></i> iModulon Membership</h3>
+                            <div id="info-imodulon-badges" style="display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;"></div>
+                        </div>
+
+                        <!-- TCS signal chain card -->
+                        <div class="detail-section" id="info-tcs-row" style="display:none;">
+                            <h3><i class="fa-solid fa-arrow-right-arrow-left" style="color:#3b82f6;"></i> Two-Component
+                                System</h3>
+                            <div id="info-tcs-content"></div>
+                        </div>
+
+                        <!-- Sigma factor annotation card -->
+                        <div class="detail-section" id="info-sigma-row" style="display:none;">
+                            <h3><i class="fa-solid fa-sigma" style="color:#8b5cf6;"></i> Sigma Factor Context</h3>
+                            <div id="info-sigma-content"></div>
+                        </div>
+                    </div>
+
+                    <!-- 🕸️ Column 2: Core Regulatory Architecture -->
+                    <div class="fullscreen-col fullscreen-col-center">
+                        <!-- Fixed Regulatory Network Graph Card -->
+                        <div class="detail-section" id="detail-network-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <h3 style="margin:0; font-size:12px; font-weight:600;"><i class="fa-solid fa-network-wired"
+                                        style="color: #6366f1;"></i> Live Regulatory Network</h3>
+                                <button id="btn-fullscreen-net-fit" class="secondary-btn"
+                                    style="font-size:9.5px; padding:2px 8px; height:20px; width:auto; border:1px solid #6366f1; background:rgba(99, 102, 241, 0.05); color:#4f46e5; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:4px;">
+                                    <i class="fa-solid fa-expand"></i> Fit View
+                                </button>
+                            </div>
+                            <div id="fullscreen-network-canvas-container"
+                                style="width:100%; height:320px; background:#0f172a; border-radius:8px; border:1px solid #1e293b; overflow:hidden; position:relative;">
+                                <!-- Live Cytoscape canvas rendered here -->
+                            </div>
+                        </div>
+
+                        <div class="detail-section" id="detail-regulatory-summary-section">
+                            <h3><i class="fa-solid fa-circle-nodes"></i> Regulatory Summary</h3>
+                            <div class="summary-cards">
+                                <div class="summary-card" id="btn-regulators-summary"
+                                    title="Analyze and draw all upstream regulators">
+                                    <span class="card-num" id="regulators-count">0</span>
+                                    <span class="card-label">Upstream regulators</span>
+                                </div>
+                                <div class="summary-card" id="btn-targets-summary"
+                                    title="Analyze and draw all downstream targets">
+                                    <span class="card-num" id="targets-count">0</span>
+                                    <span class="card-label">Downstream targets</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cross-Network Section -->
+                        <div class="detail-section" id="info-crossnetwork-row" style="display:none; border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 12px;">
+                            <h3><i class="fa-solid fa-code-merge" style="color:#f57c00;"></i> Regulatory + PPI Cross-links</h3>
+                            <div id="info-crossnetwork-content" style="font-size:11.5px; color:var(--text-secondary); line-height:1.5;"></div>
+                        </div>
+
+                        <!-- RegPrecise TFBS Motif card -->
+                        <div class="detail-section" id="info-motif-row" style="display:none;">
+                            <h3><i class="fa-solid fa-dna" style="color:#059669;"></i> Binding Site Motif <span style="font-size:10px;font-weight:400;color:var(--text-muted);">(RegPrecise 3.2)</span></h3>
+                            <div id="info-motif-content" style="font-size:12px;"></div>
+                        </div>
+
+                        <div class="detail-section" id="detail-metabolic-impact-section">
+                            <h3><i class="fa-solid fa-route" style="color:#0f766e;"></i> Metabolic Impact</h3>
+                            <p class="source-note"
+                                style="font-size: 10px; color: var(--text-secondary); margin: 4px 0 8px 0; font-style: italic; line-height: 1.4;">
+                                <i class="fa-solid fa-info-circle"></i> Gene–reaction–pathway mappings are derived from
+                                local GEM model adapters.</p>
+                            <div id="metabolic-impact-content" class="metabolic-impact-card">
+                                <span class="metabolic-muted">Select a gene or transcription factor to load metabolic model
+                                    mapping.</span>
+                            </div>
+                        </div>
+
+                        <!-- Perturbation response prediction -->
+                        <div class="detail-section perturbation-section" style="display: none;"
+                            id="detail-perturbation-panel">
+                            <h3><i class="fa-solid fa-flask"></i> Target Expression Response Prediction</h3>
+                            <p
+                                style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
+                                Simulate genetic perturbation of the selected regulator and estimate downstream target
+                                responses.
+                            </p>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="btn-sim-oe" class="secondary-btn"
+                                    style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(46, 125, 50, 0.2); background-color: rgba(46, 125, 50, 0.03); color: var(--color-activation); font-weight: 600;">
+                                    <i class="fa-solid fa-circle-arrow-up"></i> Overexpress
+                                </button>
+                                <button id="btn-sim-ko" class="secondary-btn"
+                                    style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(211, 47, 47, 0.2); background-color: rgba(211, 47, 47, 0.03); color: var(--color-repression); font-weight: 600;">
+                                    <i class="fa-solid fa-circle-arrow-down"></i> Knock down
+                                </button>
+                                <button id="btn-sim-reset" class="secondary-btn hidden"
+                                    style="flex: 0 0 40px; font-size: 11px; padding: 6px 0; border: 1px solid var(--border-color); color: var(--text-secondary);">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            </div>
+                            <div id="sim-export-row" class="hidden" style="margin-top: 8px; display: flex;">
+                                <button id="btn-sim-export" class="secondary-btn"
+                                    style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(25, 118, 210, 0.2); background-color: rgba(25, 118, 210, 0.03); color: #1976d2; font-weight: 600;">
+                                    <i class="fa-solid fa-file-csv"></i> <span id="btn-sim-export-text">Export predicted
+                                        response table</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🧬 Column 3: Genomics, ChIP-seq & Proteomics -->
+                    <div class="fullscreen-col fullscreen-col-right">
+                        <!-- Genomic physical map and expression data -->
+                        <div class="detail-section" id="detail-genomic-map-section">
                             <div
-                                style="font-weight: 700; color: #7c3aed; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                                <i class="fa-solid fa-fire-flame-curved"></i> Thermodynamic Binding Affinity
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <h3 style="margin:0; font-size:12px; font-weight:600;"><i class="fa-solid fa-dna"
+                                        style="color: #0284c7;"></i> Genomic Context & Expression</h3>
+                                <button id="btn-import-rnaseq" class="secondary-btn"
+                                    style="font-size:9.5px; padding:2px 8px; height:20px; width:auto; border:1px solid #0284c7; background:rgba(2, 132, 199, 0.04); color:#0284c7; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; border-radius:4px;">
+                                    <i class="fa-solid fa-file-import"></i> Import RNA-seq
+                                </button>
+                                <input type="file" id="rnaseq-upload-input" accept=".csv" style="display:none;">
                             </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                                <div>Best Binding ΔG: <strong id="thermo-dg-val"
-                                        style="color: var(--text-primary); font-family: monospace;">-10.0
-                                        kcal/mol</strong></div>
-                                <div>Dissociation Const (K_d): <strong id="thermo-kd-val"
-                                        style="color: var(--text-primary); font-family: monospace;">12.5 nM</strong>
+                            <p style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
+                                Shows neighboring genes and operon structure. Click a gene to navigate.
+                            </p>
+                            <!-- SVG physical map container -->
+                            <div id="genomic-map-container"
+                                style="width:100%; height:120px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; padding: 4px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.01); display:flex; flex-direction:column; justify-content:center; align-items:center; position:relative; overflow:hidden;">
+                                <!-- Dynamic SVG rendering -->
+                            </div>
+
+                            <!-- Expression legend -->
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:9px; color:var(--text-muted);">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span
+                                        style="display:inline-block; width:10px; height:10px; background:#fca5a5; border:1px solid #ef4444; border-radius:2px;"></span>
+                                    Up-regulated
+                                    <span
+                                        style="display:inline-block; width:10px; height:10px; background:#93c5fd; border:1px solid #3b82f6; border-radius:2px;"></span>
+                                    Down-regulated
                                 </div>
-                            </div>
-                            <div style="margin-top: 4px; font-size: 9.5px; color: var(--text-muted);">
-                                Calculated via Shea-Ackers biophysical partition function on the promoter sequence.
+                                <span id="rnaseq-status-badge" style="font-weight:600; color:#10b981;">Default data</span>
                             </div>
                         </div>
 
-                        <!-- Thermodynamic Profile Chart -->
-                        <div id="scan-chart-box" class="hidden"
-                            style="margin-top: 10px; margin-bottom: 12px; height: 95px; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; padding: 6px; position: relative;">
-                            <canvas id="scan-profile-canvas" style="width: 100%; height: 100%;"></canvas>
+                        <!-- Dedicated Multi-Track Genomic & ChIP-seq Browser Section -->
+                        <div class="detail-section" id="detail-genomic-tracks-section" style="margin-top: 14px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <h3 style="margin:0; font-size:12px; font-weight:600;"><i class="fa-solid fa-layer-group"
+                                        style="color: #6366f1;"></i> Multi-Track & ChIP-seq Peak Browser</h3>
+                                <span style="font-size: 9px; font-weight: 600; background: rgba(99, 102, 241, 0.08); color: #6366f1; padding: 2px 6px; border-radius: 4px;">5-Track View</span>
+                            </div>
+                            <p style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
+                                5-track genomic profile (CDS, TSS promoter sites, ChIP-seq binding peaks, sRNA tracks).
+                            </p>
+                            <!-- Container for 5-track browser -->
+                            <div id="genomic-tracks-5track-container"
+                                style="width:100%; border-radius: 8px; overflow:hidden;">
+                            </div>
                         </div>
 
-                        <!-- Target Gene Enrichment Analysis Panel (KEGG + GO tabs) -->
-                        <div id="enrichment-panel" style="margin-top:14px;">
+                        <!-- STRING PPI interaction card -->
+                        <div class="detail-section" id="info-string-row" style="display:none;">
+                            <h3><i class="fa-solid fa-circle-nodes" style="color:#06b6d4;"></i> Protein Interactions <span id="info-string-badge" style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:4px;"></span></h3>
+                            <div id="info-string-content"></div>
+                        </div>
 
-                            <!-- Panel header -->
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                                <div style="display:flex;align-items:center;gap:5px;">
-                                    <i class="fa-solid fa-diagram-project" style="color:#7c3aed;font-size:11px;"></i>
-                                    <span style="font-size:11px;font-weight:700;color:var(--text-primary);">Target Gene Enrichment</span>
+                        <!-- Protein domains and motif prediction -->
+                        <div class="detail-section protein-analysis-section" id="detail-protein-domain-section"
+                            style="display: none;">
+                            <h3><i class="fa-solid fa-shapes" style="color: #7c3aed;"></i> Protein Domains & Motif
+                                Prediction</h3>
+
+                            <!-- Top Part: Enlarged Premium 3D folded structure model card -->
+                            <div class="protein-structure-card">
+                                <!-- Technical HUD lines / grid visualization overlay -->
+                                <div id="protein-3d-hud-text"
+                                    style="position: absolute; top: 10px; left: 10px; font-size: 9px; color: var(--text-muted); font-family: monospace; z-index: 2; pointer-events: none; line-height: 1.3; background: rgba(255,255,255,0.7); padding: 3px 6px; border-radius: 4px; border: 1px solid rgba(15, 23, 42, 0.05);">
+                                    <i class="fa-solid fa-expand fa-xs" style="color:#7c3aed;"></i> VIEW: ACTIVE<br>
+                                    <span style="color:#10b981;">● ALPHA_FOLD_v2</span>
                                 </div>
-                                <div style="display:flex;align-items:center;gap:6px;">
-                                    <span id="enrichment-stats-badge" style="font-size:9px;color:var(--text-muted);"></span>
-                                    <button id="btn-enrichment-export" onclick="exportEnrichmentCsv()" title="Export results as CSV"
-                                        style="font-size:9px;padding:2px 7px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">
-                                        <i class="fa-solid fa-download"></i> CSV
+
+                                <!-- Premium badge -->
+                                <span id="protein-3d-hud-badge"
+                                    style="position: absolute; top: 10px; right: 10px; font-size: 8px; background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.2); color: #7c3aed; padding: 3px 8px; border-radius: 20px; font-family: var(--font-heading); font-weight: 600; letter-spacing: 0.5px; z-index: 2;">3D
+                                    MODEL VIEW</span>
+
+                                <!-- Real 3D Interactive Canvas -->
+                                <div id="protein-3d-viewer"
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 1;">
+                                </div>
+
+                                <!-- The Protein 3D Mock Image -->
+                                <img id="protein-3d-img" src="lib/protein_structure_mock.png" alt="Protein Structure">
+
+                                <!-- Floating interaction controls -->
+                                <div
+                                    style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px; z-index: 2;">
+                                    <button id="btn-spin-structure" class="structure-control-btn" title="Auto-rotate"><i
+                                            class="fa-solid fa-rotate-right"></i></button>
+                                    <button id="btn-zoom-structure" class="structure-control-btn" title="Zoom model"><i
+                                            class="fa-solid fa-magnifying-glass-plus"></i></button>
+                                    <button id="btn-reset-structure" class="structure-control-btn" title="Reset view"><i
+                                            class="fa-solid fa-arrows-to-eye"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- Brief Structure Description -->
+                            <div
+                                style="background: rgba(124, 58, 237, 0.02); border: 1px solid rgba(124, 58, 237, 0.06); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; margin-top: 6px;">
+                                <div
+                                    style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-cube" style="color: #7c3aed; font-size: 10px;"></i>
+                                    Helix-turn-helix domain context
+                                </div>
+                                <div style="font-size: 10px; color: var(--text-secondary); line-height: 1.45;">
+                                    Predicted structural context for DNA-binding transcription regulators, including
+                                    putative HTH regions involved in promoter recognition.
+                                </div>
+                            </div>
+
+                            <!-- Bottom part: WebLogo & PWM Heatmap in a unified premium card -->
+                            <div class="motif-dashboard-card">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(124, 58, 237, 0.08); padding-bottom: 6px;">
+                                    <span
+                                        style="font-size: 11px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 5px;">
+                                        <i class="fa-solid fa-fingerprint" style="color: #7c3aed; font-size: 10px;"></i>
+                                        Binding Motif
+                                    </span>
+                                    <span id="motif-badge-info"
+                                        style="font-size: 9px; background: rgba(124, 58, 237, 0.08); color: #7c3aed; padding: 2px 6px; border-radius: 4px; font-weight: 600;">MEME
+                                        Suite</span>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div>
+                                        <div
+                                            style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between;">
+                                            <span>Sequence logo</span>
+                                            <span id="right-motif-consensus-label"
+                                                style="font-family: monospace; font-weight: 600; color: #7c3aed; font-size: 10px;">-</span>
+                                        </div>
+                                        <canvas id="right-motif-logo-canvas" width="310" height="60"
+                                            class="premium-canvas-card"
+                                            style="display:block; width:100%; height:55px;"></canvas>
+                                    </div>
+
+                                    <div>
+                                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">Position
+                                            weight matrix (PWM)</div>
+                                        <canvas id="right-motif-heatmap-canvas" width="310" height="70"
+                                            class="premium-canvas-card"
+                                            style="display:block; width:100%; height:62px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Result text domain analysis -->
+                            <div id="right-protein-domain-result"
+                                style="margin-top: 8px; font-size: 11px; color: var(--text-secondary); line-height: 1.45; max-height: 130px; overflow-y: auto; background: var(--bg-card); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);">
+                            </div>
+
+                            <!-- Promoter motif scanner -->
+                            <div
+                                style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 14px; margin-bottom: 4px; display:flex; align-items:center; gap:5px;">
+                                <i class="fa-solid fa-dna" style="color: #7c3aed; font-size: 10px;"></i> Promoter Motif
+                                Scanner
+                            </div>
+                            <p
+                                style="font-size: 9.5px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
+                                Paste a promoter DNA sequence to scan for putative TF binding sites on both strands.
+                            </p>
+                            <textarea id="scan-sequence-input" placeholder="Paste DNA sequence, e.g. TGTGACGTGTGTGTGACTTG"
+                                style="width: 100%; height: 42px; font-family: var(--font-mono); font-size: 9.5px; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; resize: none; margin-bottom: 6px; line-height: 1.3; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></textarea>
+
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span style="font-size:9px; color:var(--text-muted);">
+                                    Similarity threshold: <span id="scan-threshold-val"
+                                        style="font-weight:600; color:#7c3aed;">80%</span>
+                                </span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="scan-threshold-slider" min="60" max="95" value="80"
+                                        style="width: 70px; height: 3px; cursor: pointer;">
+                                    <button id="btn-run-scan" class="secondary-btn"
+                                        style="font-size:9px; padding:2px 8px; height:20px; width:auto; background:var(--color-primary-accent); color:#ffffff; border:none; border-radius:4px; font-weight:600; cursor:pointer;"><i
+                                            class="fa-solid fa-magnifying-glass"></i> Scan</button>
+                                </div>
+                            </div>
+
+                            <div id="scan-results-box" class="hidden"
+                                style="max-height: 110px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; margin-bottom: 12px;">
+                                <table style="width:100%; font-size:9px; border-collapse: collapse; text-align:left;">
+                                    <thead>
+                                        <tr
+                                            style="background:#f8fafc; border-bottom:1px solid var(--border-color); font-weight:600; color:var(--text-secondary);">
+                                            <th style="padding:4px 6px;">Position</th>
+                                            <th style="padding:4px 6px;">Strand</th>
+                                            <th style="padding:4px 6px;">Matched sequence</th>
+                                            <th style="padding:4px 6px; text-align:right; padding-right:10px;">Similarity
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scan-results-body" style="font-family: var(--font-mono);"></tbody>
+                                </table>
+                            </div>
+
+                            <!-- Thermodynamic binding affinity summary -->
+                            <div id="scan-thermo-box" class="hidden"
+                                style="padding: 8px 10px; border: 1px dashed rgba(124, 58, 237, 0.3); border-radius: 6px; background: rgba(124, 58, 237, 0.02); font-size: 10px; line-height: 1.4; color: var(--text-secondary); margin-bottom: 12px;">
+                                <div
+                                    style="font-weight: 700; color: #7c3aed; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-fire-flame-curved"></i> Thermodynamic Binding Affinity
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                                    <div>Best Binding ΔG: <strong id="thermo-dg-val"
+                                            style="color: var(--text-primary); font-family: monospace;">-10.0
+                                            kcal/mol</strong></div>
+                                    <div>Dissociation Const (K_d): <strong id="thermo-kd-val"
+                                            style="color: var(--text-primary); font-family: monospace;">12.5 nM</strong>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 4px; font-size: 9.5px; color: var(--text-muted);">
+                                    Calculated via Shea-Ackers biophysical partition function on the promoter sequence.
+                                </div>
+                            </div>
+
+                            <!-- Thermodynamic Profile Chart -->
+                            <div id="scan-chart-box" class="hidden"
+                                style="margin-top: 10px; margin-bottom: 12px; height: 95px; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; padding: 6px; position: relative;">
+                                <canvas id="scan-profile-canvas" style="width: 100%; height: 100%;"></canvas>
+                            </div>
+
+                            <!-- Target Gene Enrichment Analysis Panel (KEGG + GO tabs) -->
+                            <div id="enrichment-panel" style="margin-top:14px;">
+                                <!-- Panel header -->
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                    <div style="display:flex;align-items:center;gap:5px;">
+                                        <i class="fa-solid fa-diagram-project" style="color:#7c3aed;font-size:11px;"></i>
+                                        <span style="font-size:11px;font-weight:700;color:var(--text-primary);">Target Gene Enrichment</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <span id="enrichment-stats-badge" style="font-size:9px;color:var(--text-muted);"></span>
+                                        <button id="btn-enrichment-export" onclick="exportEnrichmentCsv()" title="Export results as CSV"
+                                            style="font-size:9px;padding:2px 7px;border-radius:6px;border:1px solid var(--border-color);background:var(--bg-card);cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">
+                                            <i class="fa-solid fa-download"></i> CSV
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Tabs -->
+                                <div style="display:flex;gap:0;border-bottom:2px solid var(--border-color);margin-bottom:10px;">
+                                    <button id="enrich-tab-kegg" onclick="switchEnrichTab('kegg')" class="enrich-tab enrich-tab-active" aria-selected="true">
+                                        <i class="fa-solid fa-sitemap" style="margin-right:4px;"></i>KEGG Pathway
+                                    </button>
+                                    <button id="enrich-tab-go" onclick="switchEnrichTab('go')" class="enrich-tab" aria-selected="false">
+                                        <i class="fa-solid fa-circle-nodes" style="margin-right:4px;"></i>GO Terms
                                     </button>
                                 </div>
-                            </div>
 
-                            <!-- Tabs -->
-                            <div style="display:flex;gap:0;border-bottom:2px solid var(--border-color);margin-bottom:10px;">
-                                <button id="enrich-tab-kegg" onclick="switchEnrichTab('kegg')" class="enrich-tab enrich-tab-active" aria-selected="true">
-                                    <i class="fa-solid fa-sitemap" style="margin-right:4px;"></i>KEGG Pathway
-                                </button>
-                                <button id="enrich-tab-go" onclick="switchEnrichTab('go')" class="enrich-tab" aria-selected="false">
-                                    <i class="fa-solid fa-circle-nodes" style="margin-right:4px;"></i>GO Terms
-                                </button>
-                            </div>
-
-                            <!-- Filter row -->
-                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
-                                <label style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--text-secondary);cursor:pointer;">
-                                    <input type="checkbox" id="enrich-sig-only" onchange="applyEnrichmentFilter()" checked
-                                        style="width:12px;height:12px;accent-color:#7c3aed;">
-                                    FDR &lt; 0.05 only
-                                </label>
-                                <select id="enrich-go-ns" onchange="applyEnrichmentFilter()"
-                                    style="font-size:9px;padding:2px 5px;border-radius:5px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-secondary);display:none;">
-                                    <option value="all">All namespaces</option>
-                                    <option value="biological_process">Biological Process</option>
-                                    <option value="molecular_function">Molecular Function</option>
-                                    <option value="cellular_component">Cellular Component</option>
-                                </select>
-                                <span id="enrich-count-badge" style="font-size:9px;color:var(--text-muted);margin-left:auto;"></span>
-                            </div>
-
-                            <!-- KEGG pane -->
-                            <div id="enrich-pane-kegg">
-                                <div id="enrich-kegg-bars" style="display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;"></div>
-                                <div id="enrich-kegg-empty" style="display:none;text-align:center;padding:14px 0;font-size:10.5px;color:var(--text-muted);">
-                                    <i class="fa-solid fa-circle-info" style="margin-right:5px;"></i>No significantly enriched KEGG pathways found.
+                                <!-- Filter row -->
+                                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+                                    <label style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--text-secondary);cursor:pointer;">
+                                        <input type="checkbox" id="enrich-sig-only" onchange="applyEnrichmentFilter()" checked
+                                            style="width:12px;height:12px;accent-color:#7c3aed;">
+                                        FDR &lt; 0.05 only
+                                    </label>
+                                    <select id="enrich-go-ns" onchange="applyEnrichmentFilter()"
+                                        style="font-size:9px;padding:2px 5px;border-radius:5px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-secondary);display:none;">
+                                        <option value="all">All namespaces</option>
+                                        <option value="biological_process">Biological Process</option>
+                                        <option value="molecular_function">Molecular Function</option>
+                                        <option value="cellular_component">Cellular Component</option>
+                                    </select>
+                                    <span id="enrich-count-badge" style="font-size:9px;color:var(--text-muted);margin-left:auto;"></span>
                                 </div>
-                                <div id="enrich-kegg-loading" style="text-align:center;padding:14px 0;font-size:10.5px;color:var(--text-muted);">
-                                    <i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i>Calculating pathway enrichment…
-                                </div>
-                            </div>
 
-                            <!-- GO pane (hidden by default) -->
-                            <div id="enrich-pane-go" style="display:none;">
-                                <div id="enrich-go-ns-pills" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;font-size:9.5px;"></div>
-                                <div id="enrich-go-bars" style="display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;"></div>
-                                <div id="enrich-go-empty" style="display:none;text-align:center;padding:14px 0;font-size:10.5px;color:var(--text-muted);">
-                                    <i class="fa-solid fa-circle-info" style="margin-right:5px;"></i>No GO terms found. GO data is fetched on demand and requires network access.
+                                <!-- KEGG pane -->
+                                <div id="enrich-pane-kegg">
+                                    <div id="enrich-kegg-bars" style="display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;"></div>
+                                    <div id="enrich-kegg-empty" style="display:none;text-align:center;padding:14px 0;font-size:10.5px;color:var(--text-muted);">
+                                        <i class="fa-solid fa-circle-info" style="margin-right:5px;"></i>No significantly enriched KEGG pathways found.
+                                    </div>
+                                    <div id="enrich-kegg-loading" style="text-align:center;padding:14px 0;font-size:10.5px;color:var(--text-muted);">
+                                        <i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i>Calculating pathway enrichment…
+                                    </div>
                                 </div>
-                                <div id="enrich-go-loading" style="display:none;text-align:center;padding:14px 0;font-size:10.5px;color:var(--text-muted);">
-                                    <i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i>Fetching GO annotations from UniProt…
+
+                                <!-- GO pane (hidden by default) -->
+                                <div id="enrich-pane-go" style="display:none;">
+                                    <div id="enrich-go-ns-pills" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;font-size:9.5px;"></div>
+                                    <div id="enrich-go-bars" style="display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;"></div>
+                                    <div id="enrich-go-empty" style="display:none;text-align:center;padding:14px 0;font-size:10.5px;color:var(--text-muted);">
+                                        <i class="fa-solid fa-circle-info" style="margin-right:5px;"></i>No GO terms found. GO data is fetched on demand and requires network access.
+                                    </div>
+                                    <div id="enrich-go-loading" style="display:none;text-align:center;padding:14px 0;font-size:10.5px;color:var(--text-muted);">
+                                        <i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i>Fetching GO annotations from UniProt…
+                                    </div>
+                                </div>
+
+                                <!-- Method footnote -->
+                                <div style="margin-top:8px;font-size:9px;color:var(--text-muted);line-height:1.4;">
+                                    Hypergeometric test · BH-FDR correction · KEGG: <em>C. glutamicum</em> (cgb/cgl) · GO via UniProt
                                 </div>
                             </div>
 
-                            <!-- Method footnote -->
-                            <div style="margin-top:8px;font-size:9px;color:var(--text-muted);line-height:1.4;">
-                                Hypergeometric test · BH-FDR correction · KEGG: <em>C. glutamicum</em> (cgb/cgl) · GO via UniProt
+                            <div
+                                style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 14px; margin-bottom: 4px; display:flex; align-items:center; gap:5px;">
+                                <i class="fa-solid fa-align-left" style="color: #7c3aed; font-size: 10px;"></i>
+                                Cross-species Homology Alignment
+                            </div>
+                            <p
+                                style="font-size: 9.5px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
+                                Compares candidate homologs with reference protein sequences when available.
+                            </p>
+                            <div id="homolog-alignment-box"
+                                style="padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: #f8fafc; font-family: var(--font-mono); font-size: 9px; line-height: 1.35; overflow-x: auto; white-space: pre; margin-bottom: 10px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02); max-height: 140px;">
+                                <span style="color:var(--text-muted);">Loading homolog alignment data...</span>
                             </div>
                         </div>
 
-
-                        <div
-                            style="font-size: 11px; font-weight: 600; color: var(--text-primary); margin-top: 14px; margin-bottom: 4px; display:flex; align-items:center; gap:5px;">
-                            <i class="fa-solid fa-align-left" style="color: #7c3aed; font-size: 10px;"></i>
-                            Cross-species Homology Alignment
-                        </div>
-                        <p
-                            style="font-size: 9.5px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4;">
-                            Compares candidate homologs with reference protein sequences when available.
-                        </p>
-                        <div id="homolog-alignment-box"
-                            style="padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: #f8fafc; font-family: var(--font-mono); font-size: 9px; line-height: 1.35; overflow-x: auto; white-space: pre; margin-bottom: 10px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02); max-height: 140px;">
-                            <span style="color:var(--text-muted);">Loading homolog alignment data...</span>
-                        </div>
-                    </div>
-
-                    <!-- Binding sites and occupancy -->
-                    <div class="detail-section binding-analysis-section" id="detail-binding-site-section"
-                        style="display: none;">
-                        <h3><i class="fa-solid fa-chart-line" style="color: #dc2626;"></i> Binding Sites & Occupancy
-                        </h3>
-                        <p
-                            style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.45;">
-                            ChIP-seq occupancy profile. Higher peaks indicate stronger binding enrichment.
-                        </p>
-                        <!-- ChIP-seq occupancy plot -->
-                        <canvas id="right-chipseq-peak-canvas" width="310" height="90" class="premium-canvas-card"
-                            style="margin-bottom:8px; display:block; width:100%; height:85px;"></canvas>
-
-                        <!-- Occupancy condition toggle -->
-                        <div
-                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; background:rgba(99, 102, 241, 0.04); padding:5px 10px; border-radius:6px; border:1px solid rgba(99, 102, 241, 0.1);">
-                            <span style="font-size:9.5px; color:var(--text-secondary); font-weight:600;"><i
-                                    class="fa-solid fa-sliders"></i> Condition:</span>
-                            <div style="display:flex; gap:4px;">
-                                <button id="btn-right-cond-ctrl" class="secondary-btn active"
-                                    style="font-size:8.5px; padding:2px 6px; height:18px; border-radius:3px; width:auto; border:1px solid var(--color-primary-accent); background-color:rgba(30, 58, 138, 0.08); color:var(--color-primary-accent); font-weight:600; cursor:pointer;">Control</button>
-                                <button id="btn-right-cond-stress" class="secondary-btn"
-                                    style="font-size:8.5px; padding:2px 6px; height:18px; border-radius:3px; width:auto; border:1px solid var(--border-color); background-color:#ffffff; color:var(--text-secondary); cursor:pointer;">Stress</button>
-                            </div>
-                        </div>
-
-                        <!-- Binding site table -->
-                        <div
-                            style="margin-top: 8px; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 6px;">
-                            <table class="relations-table" id="right-binding-sites-table"
-                                style="width: 100%; font-size: 10.5px; border-collapse: collapse;">
-                                <thead>
-                                    <tr
-                                        style="background-color: var(--bg-card); border-bottom: 1px solid var(--border-color);">
-                                        <th
-                                            style="padding: 6px 8px; text-align: left; font-weight: 600; color: var(--text-secondary);">
-                                            DNA binding site</th>
-                                        <th
-                                            style="padding: 6px 8px; text-align: left; font-weight: 600; color: var(--text-secondary);">
-                                            Genomic position</th>
-                                        <th
-                                            style="padding: 6px 8px; text-align: right; font-weight: 600; color: var(--text-secondary);">
-                                            ChIP-seq occupancy</th>
-                                    </tr>
-                                </thead>
-                                <tbody style="font-family: monospace;">
-                                    <!-- Dynamic rendering -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Perturbation response prediction -->
-                    <div class="detail-section perturbation-section" style="display: none;"
-                        id="detail-perturbation-panel">
-                        <h3><i class="fa-solid fa-flask"></i> Target Expression Response Prediction</h3>
-                        <p
-                            style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
-                            Simulate genetic perturbation of the selected regulator and estimate downstream target
-                            responses.
-                        </p>
-                        <div style="display: flex; gap: 8px;">
-                            <button id="btn-sim-oe" class="secondary-btn"
-                                style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(46, 125, 50, 0.2); background-color: rgba(46, 125, 50, 0.03); color: var(--color-activation); font-weight: 600;">
-                                <i class="fa-solid fa-circle-arrow-up"></i> Overexpress
-                            </button>
-                            <button id="btn-sim-ko" class="secondary-btn"
-                                style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(211, 47, 47, 0.2); background-color: rgba(211, 47, 47, 0.03); color: var(--color-repression); font-weight: 600;">
-                                <i class="fa-solid fa-circle-arrow-down"></i> Knock down
-                            </button>
-                            <button id="btn-sim-reset" class="secondary-btn hidden"
-                                style="flex: 0 0 40px; font-size: 11px; padding: 6px 0; border: 1px solid var(--border-color); color: var(--text-secondary);">
-                                <i class="fa-solid fa-rotate-left"></i>
-                            </button>
-                        </div>
-                        <div id="sim-export-row" class="hidden" style="margin-top: 8px; display: flex;">
-                            <button id="btn-sim-export" class="secondary-btn"
-                                style="flex: 1; font-size: 11px; padding: 6px 0; border: 1px solid rgba(25, 118, 210, 0.2); background-color: rgba(25, 118, 210, 0.03); color: #1976d2; font-weight: 600;">
-                                <i class="fa-solid fa-file-csv"></i> <span id="btn-sim-export-text">Export predicted
-                                    response table</span>
-                            </button>
-                        </div>
-                    </div>
-
-
-                    <div class="detail-section">
-                        <h3><i class="fa-solid fa-circle-nodes"></i> Regulatory Summary</h3>
-                        <div class="summary-cards">
-                            <div class="summary-card" id="btn-regulators-summary"
-                                title="Analyze and draw all upstream regulators">
-                                <span class="card-num" id="regulators-count">0</span>
-                                <span class="card-label">Upstream regulators</span>
-                            </div>
-                            <div class="summary-card" id="btn-targets-summary"
-                                title="Analyze and draw all downstream targets">
-                                <span class="card-num" id="targets-count">0</span>
-                                <span class="card-label">Downstream targets</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="detail-section" id="detail-metabolic-impact-section">
-                        <h3><i class="fa-solid fa-route" style="color:#0f766e;"></i> Metabolic Impact</h3>
-                        <p class="source-note"
-                            style="font-size: 10px; color: var(--text-secondary); margin: 4px 0 8px 0; font-style: italic; line-height: 1.4;">
-                            <i class="fa-solid fa-info-circle"></i> Gene–reaction–pathway mappings are derived from
-                            local GEM model adapters.</p>
-                        <div id="metabolic-impact-content" class="metabolic-impact-card">
-                            <span class="metabolic-muted">Select a gene or transcription factor to load metabolic model
-                                mapping.</span>
-                        </div>
-                    </div>
-
-
-
-
-                        <div class="detail-section table-section">
+                        <div class="detail-section table-section" id="detail-relations-section">
                             <h3><i class="fa-solid fa-list"></i> Regulatory Details</h3>
                             <div class="table-scroll-container">
                                 <table id="detail-relations-table" class="relations-table">
@@ -4280,6 +4277,28 @@
                                 generated by the platform and are not experimental validation probabilities.</p>
                         </div>
                     </div>
+                </div>
+                <!-- Floating Network Graph Picture-in-Picture (PiP) Mini-Window -->
+                <div id="pip-network-window" class="pip-network-window hidden">
+                    <div class="pip-network-header">
+                        <div class="pip-title">
+                            <i class="fa-solid fa-network-wired" style="color: #6366f1;"></i>
+                            <span>Live Network Mini-Map</span>
+                        </div>
+                        <div class="pip-controls">
+                            <button id="btn-pip-fit" title="Fit network view"><i class="fa-solid fa-expand"></i></button>
+                            <button id="btn-pip-minimize" title="Minimize PiP"><i class="fa-solid fa-minus"></i></button>
+                            <button id="btn-pip-close" title="Close PiP"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                    <div id="pip-cytoscape-container" class="pip-cytoscape-container">
+                        <!-- Synchronized Cytoscape mini-map rendered here -->
+                    </div>
+                    <div class="pip-footer">
+                        <div><span id="pip-node-count">0 nodes</span> • <span id="pip-edge-count">0 edges</span></div>
+                        <button id="btn-pip-return" class="pip-return-btn">Return to Full Canvas</button>
+                    </div>
+                </div>
             </aside>
         </div>
     </div>
@@ -4340,7 +4359,9 @@
     <script src="lib/vendor/hammer.min.js"></script>
     <script src="lib/vendor/chartjs-plugin-zoom.min.js"></script>
     <script src="lib/genomicTrackBrowser.js?v=1.0"></script>
-<script src="app.js?v=4.49"></script>
+    <script src="lib/onboardingTour.js?v=1.2"></script>
+    <script src="lib/geneProfilePortal.js?v=9.9"></script>
+    <script src="app.js?v=9.9"></script>
 </body>
 
 </html>

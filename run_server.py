@@ -65,6 +65,7 @@ from backend.metabolic_mapper import (
     load_metabolic_model_mappings,
     METABOLIC_MODEL_DIR, METABOLIC_MODEL_CACHE,
 )
+
 from backend.bio_handlers import (
     hypergeom_sf,
     evidence_weight,
@@ -79,6 +80,35 @@ from backend.bio_handlers import (
     handle_tf_simulation,
     handle_pathway_regulation,
 )
+
+def handle_kegg_pathways(gene_name: str = "", accession: str = "") -> dict:
+    """Thin wrapper that forwards to the KEGG client.
+
+    The original code referenced ``run_server.handle_kegg_pathways`` but the
+    implementation was moved to ``backend.kegg_client`` during refactoring.
+    This wrapper restores the expected public API so that ``/api/kegg_pathways``
+    works without raising ``AttributeError``.
+
+    Parameters
+    ----------
+    gene_name: str
+        Optional gene name to filter pathways.
+    accession: str
+        Optional organism accession identifier.
+    Returns
+    -------
+    dict
+        The JSON payload produced by ``find_matching_kegg_pathways``.
+    """
+    try:
+        # ``find_matching_kegg_pathways`` returns a list; we wrap it for
+        # consistency with other handlers that return a dict.
+        matches = find_matching_kegg_pathways(gene_name)
+        return {"matches": matches}
+    except Exception as exc:
+        # Propagate a clear error for the API layer.
+        raise RuntimeError(f"Failed to fetch KEGG pathways: {exc}")
+
 from backend.sequence_tools import (
     run_needleman_wunsch,
     handle_homolog_alignment,
@@ -131,19 +161,24 @@ def _is_port_busy(port: int) -> bool:
         return False
 
 
-def _is_cgl_server(port: int) -> bool:
+def _is_cgl_server(port: int, retries: int = 3) -> bool:
     import json
     import urllib.request
-    try:
-        request = urllib.request.Request(
-            f"http://127.0.0.1:{port}/api/health",
-            headers={"User-Agent": "CglServerLauncher/1"},
-        )
-        with urllib.request.urlopen(request, timeout=1) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        return response.status == 200 and payload.get("app") == "cgl-regulation"
-    except Exception:
-        return False
+    import time
+    for attempt in range(retries):
+        try:
+            request = urllib.request.Request(
+                f"http://127.0.0.1:{port}/api/health",
+                headers={"User-Agent": "CglServerLauncher/1"},
+            )
+            with urllib.request.urlopen(request, timeout=1.5) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            if response.status == 200 and payload.get("app") == "cgl-regulation":
+                return True
+        except Exception:
+            if attempt < retries - 1:
+                time.sleep(0.5)
+    return False
 
 
 if __name__ == "__main__":

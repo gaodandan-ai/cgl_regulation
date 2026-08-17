@@ -543,6 +543,9 @@ def metabolic_impact(gene: str = "", query: str = ""):
 
     try:
         result = run_server.handle_metabolic_impact(target)
+        if len(_METABOLIC_IMPACT_CACHE) >= 256:
+            first_key = next(iter(_METABOLIC_IMPACT_CACHE))
+            _METABOLIC_IMPACT_CACHE.pop(first_key, None)
         _METABOLIC_IMPACT_CACHE[target] = result
         return JSONResponse(
             content=result,

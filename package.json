@@ -1,0 +1,9 @@
+{
+  "name": "cgl-regulation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Corynebacterium glutamicum Regulatory Network & FBA Simulation Platform",
+  "scripts": {
+    "test": "node --test tests/frontend_*.test.js"
+  }
+}

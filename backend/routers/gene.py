@@ -27,11 +27,30 @@ from services.reference_data import (
     STRING_INTERACTIONS
 )
 
+try:
+    from schemas import (
+        GeneCoordinatesResponse,
+        GenomicNeighborhoodResponse,
+        ChIPSeqPeaksResponse,
+        HTTPError
+    )
+except ImportError:
+    from backend.schemas import (
+        GeneCoordinatesResponse,
+        GenomicNeighborhoodResponse,
+        ChIPSeqPeaksResponse,
+        HTTPError
+    )
+
 router = APIRouter(tags=["Gene & Quality"])
 logger = logging.getLogger("app.routers.gene")
 
 
-@router.get("/api/gene/coordinates/{gene_id}")
+@router.get(
+    "/api/gene/coordinates/{gene_id}",
+    response_model=GeneCoordinatesResponse,
+    responses={404: {"model": HTTPError}}
+)
 def get_gene_coordinates_api(gene_id: str):
     db = get_db_manager()
     res = db.get_gene_coordinates(gene_id)
@@ -40,7 +59,10 @@ def get_gene_coordinates_api(gene_id: str):
     return res
 
 
-@router.get("/api/gene/profile/{gene_id}")
+@router.get(
+    "/api/gene/profile/{gene_id}",
+    responses={404: {"model": HTTPError}}
+)
 def get_full_gene_profile_api(gene_id: str):
     db = get_db_manager()
     res = db.get_full_gene_profile(gene_id)
@@ -49,7 +71,10 @@ def get_full_gene_profile_api(gene_id: str):
     return res
 
 
-@router.get("/api/gene/neighborhood/{gene_id}")
+@router.get(
+    "/api/gene/neighborhood/{gene_id}",
+    response_model=GenomicNeighborhoodResponse
+)
 def get_genomic_neighborhood_api(gene_id: str, window_bp: int = 20000):
     db = get_db_manager()
     genes = db.get_genomic_neighborhood(gene_id, window_bp=window_bp)
@@ -74,7 +99,7 @@ except ImportError:
         PUBLIC_DEPLOYMENT = False
 
 
-@router.get("/api/chipseq_peaks/{gene_id}")
+@router.get("/api/chipseq_peaks/{gene_id}", response_model=ChIPSeqPeaksResponse)
 def get_chipseq_peaks_api(gene_id: str):
     """Retrieve all experimental ChIP-seq binding peaks associated with target gene or TF."""
     if PUBLIC_DEPLOYMENT:

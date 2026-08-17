@@ -47,7 +47,7 @@
     }
 
     async function load() {
-        const results=document.getElementById('ip-results');results.innerHTML='<div class="ip-panel ip-loading"><i class="fa-solid fa-spinner fa-spin"></i> Ranking targets…</div>';
+        const results=document.getElementById('ip-results');results.innerHTML='<div class="ip-panel" style="padding:16px"><div class="skeleton-loader skeleton-title"></div><div class="skeleton-loader skeleton-card"></div><div class="skeleton-loader skeleton-card"></div><div class="skeleton-loader skeleton-text"></div></div>';
         try{const response=await fetch(`/api/intervention-targets?${params()}`);if(!response.ok)throw new Error(`Target API failed (${response.status})`);const payload=await response.json();state.targets=payload.targets||[];state.total=payload.total||0;render();}
         catch(error){results.innerHTML=`<div class="ip-panel ip-error">${esc(error.message)}</div>`;}
     }

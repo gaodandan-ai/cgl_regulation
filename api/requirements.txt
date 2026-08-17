@@ -1,1 +1,2 @@
-fastapi>=0.95.0
+# Refer to shared core server requirements in root directory
+-r ../requirements-core.txt

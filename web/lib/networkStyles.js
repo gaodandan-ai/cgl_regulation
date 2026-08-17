@@ -272,6 +272,15 @@
         }];
     }
 
+    function getStyles({ theme = 'light' } = {}) {
+        return [
+            ...createBaseNodeStyles(),
+            ...createBaseEdgeStyles(),
+            ...createRegulationEdgeStyles(),
+            ...createInteractionStateStyles(),
+        ];
+    }
+
     return {
         STYLE_VERSION,
         createBaseNodeStyles,
@@ -282,5 +291,6 @@
         baseNodeSize,
         expressionNodeSize,
         createRnaSeqStyles,
+        getStyles,
     };
 });

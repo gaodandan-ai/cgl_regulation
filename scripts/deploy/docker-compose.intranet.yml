@@ -1,0 +1,36 @@
+# ==============================================================================
+# docker-compose.intranet.yml
+# ==============================================================================
+# Laboratory Intranet Deployment Configuration for Server 172.16.2.105
+# C. glutamicum Regulatory Network Explorer (Cgl Regulation Explorer)
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  cgl-regulation-intranet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cgl_regulation_172_16_2_105
+    restart: unless-stopped
+    ports:
+      - "8010:8010"
+    environment:
+      - PORT=8010
+      - CGL_HOST=0.0.0.0
+      - HEADLESS=true
+      - CGL_PUBLIC_DEPLOYMENT=false
+      - CGL_DATABASE_PATH=/app/data/reference/cgl_regulation.db
+      - CGL_INTRANET_SERVER=172.16.2.105
+    volumes:
+      # Persistent data and log directories
+      - ./data/reference:/app/data/reference
+      - ./chip_rnaseq:/app/chip_rnaseq
+      - ./logs:/root/.local/share/Cgl Regulation Explorer/logs
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8010/api/health')\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

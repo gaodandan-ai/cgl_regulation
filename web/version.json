@@ -1,6 +1,6 @@
 {
-  "version": "1.4.0",
-  "release_date": "2026-07-28",
+  "version": "1.5.0",
+  "release_date": "2026-08-17",
   "download_url": "https://github.com/gaodandan-ai/cgl_regulation/releases/latest/download/cgl_regulation.exe",
-  "changelog": "Enhanced iModulon Explorer with TF regulatory subnetwork controls, Regulon alignment metrics, and streamlined UI for transcriptional regulation."
+  "changelog": "v1.5.0: Proportional multi-row Hierarchy View layout, intelligent sRNA density filtering, structured 3-column Gene Details Fullscreen Workspace, and intranet containerized deployment upgrades."
 }

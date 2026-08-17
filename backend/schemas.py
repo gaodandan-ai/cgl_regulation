@@ -241,3 +241,146 @@ class GraphMotifResponse(BaseModel):
     motif_type: str
     count: int
     items: List[Dict] = []
+
+
+# ── New Standardized Response Schemas ───────────────────────────────────────
+
+class HTTPError(BaseModel):
+    detail: str
+
+
+class GeneCoordinatesResponse(BaseModel):
+    locus_tag: str
+    gene_name: Optional[str] = None
+    start_pos: Optional[int] = None
+    end_pos: Optional[int] = None
+    strand: Optional[str] = None
+    gene_length: Optional[int] = None
+    tss_position: Optional[int] = None
+    promoter_70bp: Optional[str] = None
+    contig: Optional[str] = None
+
+
+class GeneNeighborhoodItem(BaseModel):
+    locus_tag: str
+    gene_name: Optional[str] = None
+    start_pos: Optional[int] = None
+    end_pos: Optional[int] = None
+    strand: Optional[str] = None
+    product: Optional[str] = None
+
+
+class GenomicNeighborhoodResponse(BaseModel):
+    center_gene: str
+    window_bp: int
+    count: int
+    genes: List[GeneNeighborhoodItem] = []
+
+
+class ChIPSeqPeakItem(BaseModel):
+    tf_locus: Optional[str] = None
+    tf_name: Optional[str] = None
+    target_locus: Optional[str] = None
+    peak_start: Optional[int] = None
+    peak_end: Optional[int] = None
+    enrichment_fold: Optional[float] = None
+    p_value: Optional[float] = None
+    q_value: Optional[float] = None
+    condition: Optional[str] = None
+    source_dataset: Optional[str] = None
+
+
+class ChIPSeqPeaksResponse(BaseModel):
+    query: str
+    as_target_count: int = 0
+    as_target_peaks: List[ChIPSeqPeakItem] = []
+    as_tf_count: int = 0
+    as_tf_peaks: List[ChIPSeqPeakItem] = []
+    is_public_deployment: bool = False
+    message: Optional[str] = None
+
+
+class ModuleEvidenceItem(BaseModel):
+    module_run_id: str
+    mean_score: Optional[float] = None
+    condition_count: int = 0
+    supported_count: int = 0
+    significant_context_count: int = 0
+
+
+class InterventionTargetSchema(BaseModel):
+    target_locus: str
+    target_name: Optional[str] = None
+    product: Optional[str] = None
+    evidence_grade: str = "D"
+    module_count: int = 0
+    modules: List[str] = []
+    evidence_score: float = 0.0
+    systems_impact_score: float = 0.0
+    risk_score: float = 0.0
+    engineering_tractability_score: float = 0.0
+    priority_score: float = 0.0
+    strategy_class: str = "context_specific_candidate"
+    essentiality_status: str = "non_essential"
+    proteomics_detected: bool = False
+    pathway_count: int = 0
+    module_evidence: List[ModuleEvidenceItem] = []
+
+
+class InterventionTargetsResponse(BaseModel):
+    total: int = 0
+    limit: int = 150
+    targets: List[InterventionTargetSchema] = []
+
+
+class IModulonSummarySchema(BaseModel):
+    imodulon_id: str
+    name: str
+    category: str
+    regulator: Optional[str] = None
+    explained_variance: float = 0.0
+    gene_count: int = 0
+
+
+class IModulonsListResponse(BaseModel):
+    total: int = 0
+    imodulons: List[IModulonSummarySchema] = []
+
+
+class IModulonDetailResponse(BaseModel):
+    imodulon_id: str
+    name: str
+    category: str
+    description: Optional[str] = None
+    explained_variance: float = 0.0
+    gene_count: int = 0
+    regulator: Optional[str] = None
+    precision: Optional[float] = None
+    recall: Optional[float] = None
+    f1_score: Optional[float] = None
+    top_genes: List[Dict] = []
+    pathway_enrichment: List[Dict] = []
+
+
+class RAGQueryRequest(BaseModel):
+    query: str
+    top_k: int = 5
+    include_raw: bool = False
+
+
+class RAGSourceSchema(BaseModel):
+    title: str
+    authors: Optional[str] = None
+    journal: Optional[str] = None
+    year: Optional[int] = None
+    doi: Optional[str] = None
+    pmid: Optional[str] = None
+    score: float = 0.0
+    snippet: Optional[str] = None
+
+
+class RAGQueryResponse(BaseModel):
+    query: str
+    answer: str
+    sources: List[RAGSourceSchema] = []
+
