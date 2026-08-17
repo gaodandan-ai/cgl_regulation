@@ -18966,15 +18966,17 @@ function initMobileHandlers() {
 // ==========================================================================
 
 /** Module-level state */
+let _hierSelectedNode = null;
 const _hier = {
-    built:        false,   // has computeHierarchyLayers() been run?
-    layers:       null,    // {sigma, globalTf, localTf, srna, target}
-    allEdges:     null,    // filtered edge list for current render
-    nodePos:      {},      // id -> {x, y, w, h}
-    expandedTf:   new Set(),  // TF ids whose target children are visible
-    confThresh:   0,
-    typeFilter:   'all',
-    showTfTf:     true,
+    built:            false,   // has computeHierarchyLayers() been run?
+    layers:           null,    // {sigma, globalTf, localTf, srna, target}
+    allEdges:         null,    // filtered edge list for current render
+    nodePos:          {},      // id -> {x, y, w, h}
+    expandedTf:       new Set(),  // TF ids whose target children are visible
+    confThresh:       0,
+    typeFilter:       'all',
+    showTfTf:         true,
+    _initialCentered: false,
 };
 
 /** Layer config: label, icon, gradientId, border, textColor, nodeHeight */
@@ -19563,11 +19565,16 @@ function hierToggleSrnaView() {
         });
 
         g.addEventListener('mouseleave', () => {
-            if (!_hierFocusMode) resetNodeCascade();
+            if (_hierFocusMode) return;
+            if (_hierSelectedNode) {
+                highlightNodeCascade(_hierSelectedNode);
+            } else {
+                resetNodeCascade();
+            }
             if (tooltip) tooltip.style.display = 'none';
         });
 
-        // Click handler
+        // Click handler: Instant smooth selection, no full SVG re-render, no viewport jumping
         g.addEventListener('click', (evt) => {
             if (_hierFocusMode) {
                 if (_hierFocusedTf === id) {
@@ -19587,23 +19594,52 @@ function hierToggleSrnaView() {
                 return;
             }
 
+            // Set selected node & illuminate connected cascade without redrawing entire SVG DOM
+            _hierSelectedNode = id;
+            highlightNodeCascade(id);
+
+            // Visual feedback on selected node
+            nodesG.querySelectorAll('.hier-node-g').forEach(el => {
+                const isSelected = el.dataset.nodeId === id;
+                const bg = el.querySelector('.node-card-bg');
+                if (bg) {
+                    if (isSelected) {
+                        bg.setAttribute('stroke', '#4f46e5');
+                        bg.setAttribute('stroke-width', '2.8');
+                        bg.setAttribute('filter', 'drop-shadow(0 0 10px rgba(79,70,229,0.5))');
+                    } else {
+                        const origBorder = _hier.nodePos[el.dataset.nodeId]?.border || '#cbd5e1';
+                        bg.setAttribute('stroke', origBorder);
+                        bg.setAttribute('stroke-width', '1.5');
+                        bg.setAttribute('filter', 'drop-shadow(0 3px 8px rgba(15,23,42,0.12))');
+                    }
+                }
+            });
+
+            // Smoothly open gene details
             if (pos.locusTag) {
                 showNodeDetails(pos.locusTag);
                 toggleRightSidebar(true);
-            }
-
-            if (pos.layer === 1 || pos.layer === 2) {
-                if (_hier.expandedTf.has(id)) {
-                    _hier.expandedTf.delete(id);
-                } else {
-                    _hier.expandedTf.add(id);
-                }
-                renderHierarchy();
             }
         });
 
         nodesG.appendChild(g);
     });
+
+    // Background click on canvas clears selection
+    svg.onclick = (evt) => {
+        if (!evt.target.closest('.hier-node-g') && !evt.target.closest('.hier-layer-badge-g')) {
+            _hierSelectedNode = null;
+            resetNodeCascade();
+            nodesG.querySelectorAll('.hier-node-g .node-card-bg').forEach(bg => {
+                const nid = bg.parentElement?.dataset?.nodeId;
+                const origBorder = _hier.nodePos[nid]?.border || '#cbd5e1';
+                bg.setAttribute('stroke', origBorder);
+                bg.setAttribute('stroke-width', '1.5');
+                bg.setAttribute('filter', 'drop-shadow(0 3px 8px rgba(15,23,42,0.12))');
+            });
+        }
+    };
 
     _updateHierStats(activeEdges);
 
@@ -19612,7 +19648,9 @@ function hierToggleSrnaView() {
         updateHierMinimap();
     });
 
-    if (canvasWrap) {
+    // Only center scroll position on initial load, do NOT jump/reset on every click or render
+    if (canvasWrap && !_hier._initialCentered) {
+        _hier._initialCentered = true;
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 const wrapW   = canvasWrap.clientWidth  || canvasWrap.offsetWidth  || viewW;
