@@ -13203,7 +13203,6 @@ async function initIModulonDashboard() {
     // 1. Fetch data if not already loaded
     if (!imodulonsMetadata || !imodulonsWeights) {
         try {
-            showToast('iModulon Explorer', 'Loading full 87 iModulons dataset...', 'info');
             const [metaResp, weightsResp] = await Promise.all([
                 fetch('/data/imodulon/imodulon_metadata.json'),
                 fetch('/data/imodulon/imodulon_gene_weights.json')
@@ -13213,7 +13212,6 @@ async function initIModulonDashboard() {
             }
             imodulonsMetadata = await metaResp.json();
             imodulonsWeights = await weightsResp.json();
-            showToast('iModulon Explorer', 'iModulon dataset loaded successfully!', 'success');
         } catch (e) {
             console.error(e);
             showToast('iModulon Explorer', 'Failed to load iModulon data: ' + e.message, 'error');
